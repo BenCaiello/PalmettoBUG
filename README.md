@@ -22,7 +22,7 @@ PalmettoBUG is intended to accomplish a few things:
 
 ## Installation:
 
-PalmettoBUG is still under development, however once published on pip, its installation (in a clean, **Python 3.10** environment!) should be as simple as running:
+**PalmettoBUG is still under development, however once published on pip**, its installation (in a clean, **Python 3.10** environment!) should be as simple as running:
 
     > pip install palmettobug[tensorflow]
 
@@ -36,8 +36,9 @@ much easier to install for Pytorch alone (Cellpose already uses Pytorch). To not
 Note that if you later install tensorflow, keras, etc. in this environment then palmettobug will default to using that instead (if palmettobug finds tensorflow available for import, then it will prefer it to using PyTorch for Mesmer predictions).
 
 
-*Future: Either of these commands also will install the sister package _isoSegDenoise_ in the same environment.* That sister package is unique in that it is a fully independent, separate program for only the denoising / segmentation (separated to avoid licensing conflicts with GPL-3, as deepcell and cellpose models do or might have non-commercial-use clauses attached to them.). The two program should cooperate seamlessly, as the needed file structure and inputs/ouputs of isoSegDenoise precisely matches that of PalmettoBUG, and the two program share a good amount of code, giving them a similar appearance.
-*These packages are not yet released on pip -- so for now, you would need to install both packages individually in the same environment!*
+**Future: Either of these commands also will install the sister package _isoSegDenoise_ in the same environment.** That sister package is unique in that it is a fully independent, separate program for only the denoising / segmentation (separated to avoid licensing conflicts with GPL-3, as deepcell and cellpose models do or might have non-commercial-use clauses attached to them.). The two program should cooperate seamlessly, as the needed file structure and inputs/ouputs of isoSegDenoise precisely matches that of PalmettoBUG, and the two program share a good amount of code, giving them a similar appearance.
+
+**These packages are not yet released on pip -- so for now, you would need to install both packages individually in the same environment, using a command like >>> pip install C:/path/to/the/folder/containing/pyproject.toml !**
 
 Then to launch PalmettoBUG, simply enter:
 
