@@ -6,7 +6,5 @@
 
 *.pyc
 
-*.mcd
-
 ## Ignore temporary files:
 *temp*
