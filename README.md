@@ -33,10 +33,11 @@ much easier to install for Pytorch alone (Cellpose already uses Pytorch). To not
 
     > pip install palmettobug
 
-Note that if you later install tensorflow, keras, etc. in this environment then palmettobug will use htat instead (if palmettobug finds tensorflow available for import, then it will prefer it to using PyTorch for Mesmer predictions).
+Note that if you later install tensorflow, keras, etc. in this environment then palmettobug will default to using that instead (if palmettobug finds tensorflow available for import, then it will prefer it to using PyTorch for Mesmer predictions).
 
 
-Either of these commands also will install the sister package _isoSegDenoise_ in the same environment. That sister package is unique in that it is a fully independent, separate program for only the denoising / segmentation (separated to avoid licensing conflicts with GPL-3, as deepcell and cellpose models do or might have non-commercial-use clauses attached to them.). The two program should cooperate seamlessly, as the needed file structure and inputs/ouputs of isoSegDenoise precisely matches that of PalmettoBUG, and the two program share a good amount of code, giving them a similar appearance.
+*Future: Either of these commands also will install the sister package _isoSegDenoise_ in the same environment.* That sister package is unique in that it is a fully independent, separate program for only the denoising / segmentation (separated to avoid licensing conflicts with GPL-3, as deepcell and cellpose models do or might have non-commercial-use clauses attached to them.). The two program should cooperate seamlessly, as the needed file structure and inputs/ouputs of isoSegDenoise precisely matches that of PalmettoBUG, and the two program share a good amount of code, giving them a similar appearance.
+*These packages are not yet released on pip -- so for now, you would need to install both packages individually in the same environment!*
 
 Then to launch PalmettoBUG, simply enter:
 
