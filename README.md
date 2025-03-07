@@ -1,3 +1,14 @@
+## Warning! This package is still under development!
+
+Final development steps (this package and its subsidiary / sister package, isosegdenoise):
+
+    - Installation: this means getting onto PyPI, adding isosegdenoise to the list of dependencies, final re-testing in fresh installation environments.
+
+    - Documentation: this means taking existing .docx files + images --> .rst files --> html --> readthedocs (using pandoc, sphinx). Also, ensuring no unintended data is bleeding into the documentation.
+
+    - Final features % debugging: there are known errors that I plan on fixing before final release of PyPI. Additionally, a proper connection to the Zenodo example dataset will need ot be set up.
+
+
 ## Welcome to PalmettoBUG!
 
 
