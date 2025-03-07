@@ -1,0 +1,64 @@
+[tool.poetry]
+name = "palmettobug"
+version = "0.1.0"
+description = "A GUI for (imaging) mass cyometry analysis predominantly based on the popular Steinbock and CATALYST image processing and data analysis packages and written in customtkinter."
+authors = ["Ben Caiello <caiello@musc.edu>"]
+license = "GPL-3"
+readme = "README.md"
+repository = "https://github.com/BenCaiello/PALMETTO_BUG"
+
+[tool.poetry.dependencies]
+python = ">=3.9, <3.11"
+numpy = "1.*"
+pandas = "2.*"
+dask = "<2025.1.0"
+matplotlib = "3.*"
+seaborn = "0.*"
+customtkinter = ">=5.2.2"
+napari = "*" 
+pyside2 = "*" 
+qtconsole = "*"
+QtPy = "*"
+lxml = "*"
+readfcs = "1.1.8"
+tifffile = ">=2024.2.12" 
+# xtiff = "0.7.9" 
+opencv-python-headless = ">=4.9.0.80"
+scikit-image = "0.*"
+scikit-learn = "1.*"
+scipy = "1.*" 
+scikit-fda = "0.*"
+statsmodels = "0.*"
+anndata = "0.*"
+scanpy = "1.*"
+squidpy = "1.6.*"
+igraph = "0.*"
+loguru = "0.*"
+mudata = "0.*"
+# leidenalg = "0.10.2"
+sympy = "<=1.13.1"
+sortedcontainers = "*"
+defusedxml = "0.*"
+
+[tool.poetry.group.tensorflow]
+optional = true
+
+[tool.poetry.group.tensorflow.dependencies]
+tensorflow = ">=2.8.0,<=2.13.*"
+tensorflow-addons = ">=0.16.1"
+keras = "<3.0.0"
+
+[tool.poetry.group.other]
+optional = true
+
+[tool.poetry.group.other.dependencies]
+svg-stack = "0.1.0"
+navis = "1.9.1"
+
+
+[tool.poetry.scripts]
+palmettobug = 'palmettobug.Executable:run_GUI'
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
