@@ -1,0 +1,12 @@
+# Ignore log files:
+
+*.log
+
+# Ignore python compiler files:
+
+*.pyc
+
+*.mcd
+
+## Ignore temporary files:
+*temp*
