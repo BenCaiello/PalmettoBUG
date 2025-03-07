@@ -6,7 +6,7 @@ Final development steps (this package and its subsidiary / sister package, isose
 
     - Documentation: this means taking existing .docx files + images --> .rst files --> html --> readthedocs (using pandoc, sphinx). Also, ensuring no unintended data is bleeding into the documentation.
 
-    - Final features % debugging: there are known errors that I plan on fixing before final release of PyPI. Additionally, a proper connection to the Zenodo example dataset will need ot be set up.
+    - Final features % debugging: there are known errors that I plan on fixing before final release on PyPI. Additionally, a proper connection to the Zenodo example dataset will need ot be set up.
 
 
 ## Welcome to PalmettoBUG!
@@ -60,6 +60,10 @@ in the conda environment where the package was installed.
 ## Documentation
 
 Step-by-step documentation of what can be done in the GUI will be found in the **animated** powerpoint file inside PalmettoBUG itself / this github repo, or at readthedocs: __________________________________. Tutorial notebooks for using this package outside the GUI can be found in this repository or at the readthedocs website.
+
+## LICENSE
+
+This package is licensed under the GPL-3 license. However, much of the code in it is derived / copying from other software packages -- so the original licenses associated with that code also applies to those parts of the repository. 
 
 ## Citation
 
