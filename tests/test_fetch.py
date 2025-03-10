@@ -16,7 +16,7 @@ import tempfile as tmp
 def test_CyTOF_fetch():
     with tmp.TemporaryDirectory() as dir:
         fetch_CyTOF_example(dir)
-        new_dir = dir + "/Example_IMC"
+        new_dir = dir + "/Example_CyTOF"
         test_analysis = Analysis()
         test_analysis.load_data(new_dir + "/main", load_regionprops = False)
         assert(len(test_analysis.data) == 31162), "The fetched CyTOF is not the expected length"
