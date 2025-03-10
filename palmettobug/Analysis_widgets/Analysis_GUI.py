@@ -716,7 +716,8 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                             command = lambda: self.run_clustering(self.cluster_dimX.get(), 
                                                                                     self.k.get(), 
                                                                                     self.rlen_entry.get(),
-                                                                                    self.seed_entry.get()))
+                                                                                    self.seed_entry.get(),
+                                                                                    self.plot_stars.get()))
         button_run_clustering.grid(column = 0, row = 6, padx = 5, pady = 5)
 
         self.plot_stars = ctk.CTkCheckBox(master = self, onvalue = True, offvalue = False, text = "Plot MST")
@@ -754,7 +755,9 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             except Exception as e:
                 pass
             if plot_stars:
-                self.master.cat_exp._plot_stars_CNs(returned, filename = "FlowSOM_MST.png")
+                filename = "FlowSOM_MST.png"
+                self.master.cat_exp._plot_stars_CNs(returned, filename = filename)
+                self.master.save_and_display(filename = filename,sizeX = 550, sizeY = 550)
             warning_window("FlowSOM complete!")
             self.withdraw()
         else:
