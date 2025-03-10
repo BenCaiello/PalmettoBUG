@@ -34,7 +34,11 @@ jobs:
     #- name: Lint with flake8
     #  run: |
     #    flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-    - name: Test with pytest
+    - name: Test (sequential order of execution important, may or may not work with pytest)
       run: |
-        pytest
-    #   python /tests/test_seg.py
+        python tests/test_img_proc.py
+        python tests/test_analysis.py
+        python tests/test_make_px_classifier.py
+        python tests/test_spatial.py
+    #   pytest
+
