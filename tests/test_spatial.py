@@ -121,7 +121,9 @@ def test_edt_heatmap():
     assert type(plot) == matplotlib.figure.Figure, "plot edt heatmap did not return a matplotlib figure"
 
 def test_plot_edt_boxplot():
-    plot = my_spatial.plot_edt_boxplot("Distance to epithelia")
+    second_edt = list(my_analysis.data.var[my_analysis.data.var['marker_class'] == "spatial_edt")]['antigen'])[1]
+    print(second_edt)
+    plot = my_spatial.plot_edt_boxplot(second_edt)
     assert type(plot) == matplotlib.figure.Figure, "plot edt boxplot did not return a matplotlib figure"
 
 def test_run_edt_statistics():

@@ -584,9 +584,14 @@ class SpatialAnalysis:
         '''
         Plots a heatmap for spatial edt -- default marker_class is spatial_edt, and export folder (if filename is provided) is in /Spatial_plots
         '''
-        plot = self.edt.plot_edt_heatmap(groupby_col = groupby_col, 
+        if filename is not None:
+            plot = self.edt.plot_edt_heatmap(groupby_col = groupby_col, 
                                          marker_class = marker_class, 
                                          filename = self.SpaceANOVA.output_dir + "/" + filename + ".png")
+        else:
+            plot = self.edt.plot_edt_heatmap(groupby_col = groupby_col, 
+                                         marker_class = marker_class, 
+                                         filename = None)
         return plot
 
     def plot_edt_boxplot(self, var_column, groupby_col = 'merging', facet_col = 'condition', col_num = 3, filename = ''):
@@ -617,11 +622,18 @@ class SpatialAnalysis:
         Returns:
             matplotlib.figure (the boxplot)
         '''
-        plot = self.edt.plot_horizontal_boxplot(var_column = var_column, 
+        if filename != '':
+            plot = self.edt.plot_horizontal_boxplot(var_column = var_column, 
                                                 subset_col = groupby_col, 
                                                 facet_col = facet_col, 
                                                 col_num = col_num, 
                                                 filename = self.SpaceANOVA.output_dir + "/" + filename + ".png")
+        else:
+            plot = self.edt.plot_horizontal_boxplot(var_column = var_column, 
+                                                subset_col = groupby_col, 
+                                                facet_col = facet_col, 
+                                                col_num = col_num, 
+                                                filename = '')
         return plot
 
     def run_edt_statistics(self, groupby_column, marker_class = "spatial_edt", statistic = "mean", test = "anova", filename = None):
