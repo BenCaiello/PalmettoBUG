@@ -16,15 +16,17 @@ import tempfile as tmp
 def test_CyTOF_fetch():
     with tmp.TemporaryDirectory() as dir:
         fetch_CyTOF_example(dir)
+        new_dir = dir + "/Example_IMC"
         test_analysis = Analysis()
-        test_analysis.load_data(dir + "/main", load_regionprops = False)
+        test_analysis.load_data(new_dir + "/main", load_regionprops = False)
         assert(len(test_analysis.data) == 31162), "The fetched CyTOF is not the expected length"
 
 def test_IMC_fetch():
     with tmp.TemporaryDirectory() as dir:
         fetch_IMC_example(dir)
-        assert(len(os.listdir(dir + "/raw")) == 10), "The fetched IMC does not have the expected number of image files in /raw!"
-        assert("panel.csv" in os.listdir(dir)), "The fetched IMC did not get its panel file!"
+        new_dir = dir + "/Example_IMC"
+        assert(len(os.listdir(new_dir + "/raw")) == 10), "The fetched IMC does not have the expected number of image files in /raw!"
+        assert("panel.csv" in os.listdir(new_dir)), "The fetched IMC did not get its panel file!"
 
 
 if __name__ == "__main__":
