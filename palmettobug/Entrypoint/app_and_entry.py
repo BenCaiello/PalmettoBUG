@@ -679,22 +679,19 @@ def fetch_CyTOF_example(new_directory):
 
     Calling this fetch function on an existing directory will cause the existing directory's /Analysis_fcs folder to be emptied and refilled with the example data!   
     '''
+    import requests
+    import zipfile
     if not os.path.exists(new_directory):
         raise Exception("Target directory does not exist")
-    main_dir = new_directory + "/main"
-    if not os.path.exists(main_dir):
-        os.mkdir(main_dir)
-    analysis_fcs = main_dir + "/Analysis_fcs"
-    if os.path.exists(analysis_fcs):
-        shutil.rmtree(analysis_fcs)
-    homedir = __file__.replace("\\","/")
-    homedir = homedir[:(homedir.rfind("/"))]
-    homedir = homedir[:(homedir.rfind("/"))]
-    example_cytof = homedir + "/Assets/Example_CyTOF"
-    example_FCS = example_cytof + "/FCS"
-    shutil.copytree(example_FCS, analysis_fcs)
-    shutil.copyfile(example_cytof + "/Analysis_panel.csv", main_dir + "/Analysis_panel.csv")
-    shutil.copyfile(example_cytof + "/metadata.csv", main_dir + "/metadata.csv")
+    CyTOF_data = requests.get("https://zenodo.org/records/14983582/files/Example_CyTOF.zip?download=1")
+    with open(new_directory + "/CyTOF_data.zip", 'wb') as write_to:
+        write_to.write(CyTOF_data.content)
+    zip_archive = zipfile.ZipFile(new_directory + "/CyTOF_data.zip")
+    zip_archive.extract_all(new_directory)
+    ## check extraction:
+    print(os.listdir(new_directory))
+    for i in os.listdir(new_directory):
+        print(os.listdir(i))
 
 def fetch_IMC_example(new_directory):
     '''
