@@ -18,7 +18,7 @@ import matplotlib
 from palmettobug import Analysis
 
 ########### CRITICAL! -- depends on test_img_proc having been run first!
-proj_directory = homedir + "/project_folder"
+proj_directory = homedir + "/project_folder/Example_IMC"
 Analysis_panel = proj_directory + "/Analyses/Analysis_panel.csv"
 metadata = proj_directory + "/Analyses/metadata.csv"
 shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
