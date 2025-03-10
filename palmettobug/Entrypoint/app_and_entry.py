@@ -654,7 +654,7 @@ class LoadExampleDataWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                                                                              "as well as the associated panel and metdata files?"):
             return
         fetch_CyTOF_example(choice)
-        self.master.FCS_choice(choice)
+        self.master.FCS_choice(choice + "/Example_CyTOF")
         self.withdraw()
 
     def load_IMC(self):
@@ -666,9 +666,8 @@ class LoadExampleDataWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                                                                 "as well as the associated panels and metdata files?"):
             return
         fetch_IMC_example(choice)
-        self.master.img_entry_func(choice, from_mcds = None)
+        self.master.img_entry_func(choice + "/Example_IMC", from_mcds = None)
         self.withdraw()
-
 
 def fetch_CyTOF_example(new_directory):
     '''
@@ -691,7 +690,8 @@ def fetch_CyTOF_example(new_directory):
     ## check extraction:
     print(os.listdir(new_directory))
     for i in os.listdir(new_directory):
-        print(os.listdir(i))
+        if i.rfind(".zip") == -1:
+            print(os.listdir(i))
 
 def fetch_IMC_example(new_directory):
     '''
@@ -714,7 +714,8 @@ def fetch_IMC_example(new_directory):
     ## check extraction:
     print(os.listdir(new_directory))
     for i in os.listdir(new_directory):
-        print(os.listdir(i))
+        if i.rfind(".zip") == -1:
+            print(os.listdir(i))
 
 
 
