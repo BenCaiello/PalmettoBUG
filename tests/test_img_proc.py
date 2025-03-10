@@ -17,8 +17,8 @@ import pandas as pd
 from palmettobug import fetch_IMC_example, ImageAnalysis
 
 fetch_dir = homedir + "/project_folder"
+os.mkdir(fetch_dir)
 proj_directory = fetch_dir + "/Example_IMC"
-os.mkdir(proj_directory)
 
 np.random.default_rng(42)
 
