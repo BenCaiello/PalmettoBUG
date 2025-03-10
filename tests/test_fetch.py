@@ -25,7 +25,7 @@ def test_IMC_fetch():
     with tmp.TemporaryDirectory() as dir:
         fetch_IMC_example(dir)
         new_dir = dir + "/Example_IMC"
-        assert(len(os.listdir(new_dir + "/raw")) == 10), "The fetched IMC does not have the expected number of image files in /raw!"
+        assert(len(os.listdir(new_dir + "/raw")) == 3), "The fetched IMC does not have the expected number of MCD files in /raw!"
         assert("panel.csv" in os.listdir(new_dir)), "The fetched IMC did not get its panel file!"
 
 

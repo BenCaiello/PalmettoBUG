@@ -18,7 +18,7 @@ import matplotlib
 from palmettobug import SupervisedClassifier, UnsupervisedClassifier, plot_pixel_heatmap, segment_class_map_folder
 
 ########### CRITICAL! -- depends on test_img_proc having been run first!
-proj_directory = homedir + "/project_folder"
+proj_directory = homedir + "/project_folder/Example_IMC"
 images_dir = proj_directory + "/images/img"
 
 my_classifier_name = "lumen_epithelia_laminapropria.json"

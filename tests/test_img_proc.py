@@ -16,7 +16,8 @@ import pandas as pd
 
 from palmettobug import fetch_IMC_example, ImageAnalysis
 
-proj_directory = homedir + "/project_folder"
+fetch_dir = homedir + "/project_folder"
+proj_directory = fetch_dir + "/Example_IMC"
 os.mkdir(proj_directory)
 
 np.random.default_rng(42)
@@ -25,10 +26,10 @@ np.random.default_rng(42)
 #img_processing = ImageAnalysis(proj_directory, from_mcds = False)
     
 def fetch_IMC():
-    fetch_IMC_example(proj_directory)
+    fetch_IMC_example(fetch_dir)
 
 def test_raw_to_img():
-    img_processing = ImageAnalysis(proj_directory, from_mcds = False)
+    img_processing = ImageAnalysis(proj_directory, from_mcds = True)
     img_processing.directory_object.makedirs()
     img_processing.raw_to_img(0.85)
     images = [f"{proj_directory}/images/img/{i}" for i in os.listdir(proj_directory + "/images/img")]
