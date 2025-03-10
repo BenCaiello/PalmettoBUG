@@ -13,7 +13,9 @@ import shutil
 from typing import Union
 from pathlib import Path
 import tkinter as tk
+import zipfile
 
+import requests
 import customtkinter as ctk
 import numpy as np
 import pandas as pd
@@ -679,8 +681,6 @@ def fetch_CyTOF_example(new_directory):
 
     Calling this fetch function on an existing directory will cause the existing directory's /Analysis_fcs folder to be emptied and refilled with the example data!   
     '''
-    import requests
-    import zipfile
     if not os.path.exists(new_directory):
         raise Exception("Target directory does not exist")
     CyTOF_data = requests.get("https://zenodo.org/records/14983582/files/Example_CyTOF.zip?download=1")
@@ -706,27 +706,19 @@ def fetch_IMC_example(new_directory):
     if not os.path.exists(new_directory):
         raise Exception("Target directory does not exist")
     new_analyses_dir = new_directory + "/Analyses"
-    if not os.path.exists(new_analyses_dir):
-        os.mkdir(new_analyses_dir)
-    raw_dir = new_directory + "/raw"
-    if os.path.exists(raw_dir):
-        shutil.rmtree(raw_dir)
-    homedir = __file__.replace("\\","/")
-    homedir = homedir[:(homedir.rfind("/"))]
-    homedir = homedir[:(homedir.rfind("/"))]
-    example_IMC = homedir + "/Assets/Example_IMC"
-    example_MCD = example_IMC + "/TIFF"
-    shutil.copytree(example_MCD, raw_dir)
-    shutil.copyfile(example_IMC + "/panel.csv", new_directory + "/panel.csv")
-    shutil.copyfile(example_IMC + "/Analysis_panel.csv", new_analyses_dir + "/Analysis_panel.csv")   ## here the metadata / analysis panel files should be available 
-                                                                                                    ## to be picked up by the special 'load metadata / panel from save'
-                                                                                                    ## checkbox when loading the analysis after region measurements
-    shutil.copyfile(example_IMC + "/metadata.csv", new_analyses_dir + "/metadata.csv")
+    CyTOF_data = requests.get("https://zenodo.org/records/14983582/files/Example_IMC.zip?download=1")
+    with open(new_directory + "/IMC_data.zip", 'wb') as write_to:
+        write_to.write(CyTOF_data.content)
+    zip_archive = zipfile.ZipFile(new_directory + "/IMC_data.zip")
+    zip_archive.extract_all(new_directory)
+    ## check extraction:
+    print(os.listdir(new_directory))
+    for i in os.listdir(new_directory):
+        print(os.listdir(i))
 
 
 
-
-## Remove, probably -- this previously coded for a widget on the opening screen that was an laternate way of inputting the directories for projects.
+## Remove, probably -- this previously coded for a widget on the opening screen that was an alternate way of inputting the directories for projects.
 '''
 class directory_display_helper_frame(ctk.CTkFrame):
     def __init__(self, master, dir_disp):
