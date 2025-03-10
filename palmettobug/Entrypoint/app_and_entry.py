@@ -687,7 +687,7 @@ def fetch_CyTOF_example(new_directory):
     with open(new_directory + "/CyTOF_data.zip", 'wb') as write_to:
         write_to.write(CyTOF_data.content)
     zip_archive = zipfile.ZipFile(new_directory + "/CyTOF_data.zip")
-    zip_archive.extract_all(new_directory)
+    zip_archive.extractall(new_directory)
     ## check extraction:
     print(os.listdir(new_directory))
     for i in os.listdir(new_directory):
@@ -710,7 +710,7 @@ def fetch_IMC_example(new_directory):
     with open(new_directory + "/IMC_data.zip", 'wb') as write_to:
         write_to.write(CyTOF_data.content)
     zip_archive = zipfile.ZipFile(new_directory + "/IMC_data.zip")
-    zip_archive.extract_all(new_directory)
+    zip_archive.extractall(new_directory)
     ## check extraction:
     print(os.listdir(new_directory))
     for i in os.listdir(new_directory):
