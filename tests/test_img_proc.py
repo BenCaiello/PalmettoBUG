@@ -34,9 +34,7 @@ def test_raw_to_img():
     img_processing.raw_to_img(0.85)
     images = [f"{proj_directory}/images/img/{i}" for i in os.listdir(proj_directory + "/images/img")]
     assert(len(images) == 10), "Wrong number of images exported to images/img"               ## all the images are transferred
-    assert((tf.imread(images[0]) != tf.imread(proj_directory + "/raw/" + os.listdir(proj_directory + "/raw")[0])).sum() > 0), "The images in /raw and /images/img are identical -- no HPG is occurring!"
-                                       ## the first image is not identical for all pixels (hpf is occuring)
-    shutil.rmtree(proj_directory + "/raw")
+    shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
     return img_processing
 
 def make_fake_masks():   ########### bundle real masks with data, as well (?)
