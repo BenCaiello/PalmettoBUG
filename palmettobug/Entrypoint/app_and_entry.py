@@ -687,11 +687,6 @@ def fetch_CyTOF_example(new_directory):
         write_to.write(CyTOF_data.content)
     zip_archive = zipfile.ZipFile(new_directory + "/CyTOF_data.zip")
     zip_archive.extractall(new_directory)
-    ## check extraction:
-    print(os.listdir(new_directory))
-    for i in os.listdir(new_directory):
-        if i.rfind(".zip") == -1:
-            print(os.listdir(i))
 
 def fetch_IMC_example(new_directory):
     '''
@@ -711,13 +706,6 @@ def fetch_IMC_example(new_directory):
         write_to.write(CyTOF_data.content)
     zip_archive = zipfile.ZipFile(new_directory + "/IMC_data.zip")
     zip_archive.extractall(new_directory)
-    ## check extraction:
-    print(os.listdir(new_directory))
-    for i in os.listdir(new_directory):
-        if i.rfind(".zip") == -1:
-            print(os.listdir(i))
-
-
 
 ## Remove, probably -- this previously coded for a widget on the opening screen that was an alternate way of inputting the directories for projects.
 '''
