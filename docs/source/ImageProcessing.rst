@@ -13,16 +13,14 @@ The Panel
 On the left half of the GUI you should see the Steinbock-style Panel
 file, with four columns. Each column serves a different purpose:
 
-1. Channel – this column cannot be edited in the GUI, and represents the
+0. Channel – this column cannot be edited in the GUI, and represents the
    names of the channels in the dataset (derived either from the .mcd or
    .ome.tiff files’ metadata). This channel name can sometimes be not
    very helpful or biological, like “Nd142Di”.
-
-2. Name – this column is the biological name of the channel, like
+1. Name – this column is the biological name of the channel, like
    “CD45”. It determines how the channel is saved in the downstream .fcs
    / .csv files, and subsequent single-cell analysis plots.
-
-3. Keep – this column is whether to drop a channel (keep = 0) or keep a
+2. Keep – this column is whether to drop a channel (keep = 0) or keep a
    channel ( = 1) when converting from the */raw* files to the first
    image folder. For example, .mcd files frequently contain channels
    (like BCKG190) that contain no useful information for downstream
@@ -30,8 +28,7 @@ file, with four columns. Each column serves a different purpose:
    burden of the image files and downstream analysis. This column NEVER
    be changed after converting files from */raw,* unless you intend on
    re-doing that conversion and all downstream steps.
-
-4. Segmentation – this column is an annotation of what channels to use
+3. Segmentation – this column is an annotation of what channels to use
    in the segmentation models. Channels set to ‘nan’ or left blank will
    not be used in segmentation, while those used in segmentation will
    either be used as ‘nuclei’ channels or ‘cytoplasmic / membrane’
@@ -54,14 +51,13 @@ can convert your starting data files from the */raw* folder into
 Regardless of whether there are .mcd or .tiff files in the */raw*
 folder, this step ALWAYS does at least two things:
 
-1. Write every ROI as a single .ome.tiff image in the */images/img*
+4. Write every ROI as a single .ome.tiff image in the */images/img*
    subfolder of the project directory. When converting from .mcd’s this
    means that there will usually be more .ome.tiffs exported than
    original files, as .mcd’s can contain multiple ROIs. However, when
    “converting” from .tiff files, each individual .tiff in */raw* will
    create a single .ome.tiff in */images/img*.
-
-2. Every channel with keep == 0 in the panel file will be dropped from
+5. Every channel with keep == 0 in the panel file will be dropped from
    the images exported to */images/img.* Importantly, this means that
    there is frequently a difference in the length (number of channels)
    of the panel file and the number of channels in the images. The panel
@@ -76,10 +72,9 @@ provided (say 50), and if any pixel is more than 50 ‘units’ brighter
 than all its neighbors, that pixel’s intensity is reduced to the
 intensity of its brightest neighbor, as in this example:
 
-|A black and white squares with white text Description automatically
-generated|
+|image2|
 
-|A screenshot of a computer Description automatically generated|
+|image3|
 
 The default hpf value **in steinbock** is 50. However, the default in
 PalmettoBUG is an alternative hpf thresholding method – hpf by
@@ -94,8 +89,7 @@ sliding the threshold based on the quantile of values in the
 channel/image will ensure that the filtering threshold always falls in
 the range of values of the channel/image.
 
-*Example HPF results:*\ |A collage of images of a person's body
-Description automatically generated|
+*Example HPF results:*\ |image4|
 
 Launching isoSegDenoise
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -109,7 +103,7 @@ be launched from the indicated button in PalmettoBUG. Launching form
 this button will also automatically load the current project in
 PalmettoBUG into iSD for a seamless transition between the two programs.
 
-|Screens screenshot of a computer Description automatically generated|
+|image5|
 
 When the iSD window has opened, note that programs operate independently
 of each other. As in, you can perform actions in each independently, at
@@ -143,7 +137,7 @@ their best use may be specficially to prepare images for segmentation –
 in particular cellpose segmentation using the same cellpose model used
 in denoising!
 
-|image2|
+|image6|
 
 ‘Simple’ denoising, on the other hand, uses j-invariant optimization for
 a non-local means denoiser. See the following for information on how the
@@ -156,10 +150,9 @@ with the output of a standard non-local means denoiser (not j-invariant)
 with the same parameters as the optimized denoiser. This process is much
 slower than the cellpose denoising, but it is available if desired.
 
-*Example Denoising Outputs:*\ |A collage of images of cellulose and
-cellphone Description automatically generated|
+*Example Denoising Outputs:*\ |image7|
 
-*What is Denoising good for?*
+What is Denoising good for?
 
 Denoising an image always reduces the information an in image, usually
 blurring pixelated regions and reducing or removing “noisy” pixels. This
@@ -196,7 +189,7 @@ separate program they can be easily placed inside the PalmettoBUG
 project directory (in a sub-folder of */masks*) where they can be used
 further in the PalmettoBUG GUI.
 
-|image3|
+|image8|
 
 *DeepCell vs. Cellpose*
 
@@ -223,8 +216,7 @@ Cellpose has no restrictions (although many of its models were trained
 on ‘non-commercial’ datasets, making a bit of a licensing gray area).
 
 *Example segmentation results (colored regions = segmentation
-masks):*\ |A collage of different colored objects Description
-automatically generated|
+masks):*\ |image9|
 
 In addition to Cellpose and Deepcell, it is worth noting that sometimes
 segmentation can be done using a pixel classifier inside PalmettoBUG,
@@ -244,8 +236,9 @@ and in particular any rapid / non-manual method of segmentation, will
 always have errors so it is mainly a matter of getting a “good-enough”
 final result.
 
-*Example of expansion:* |A screenshot of a computer screen Description
-automatically generated|
+*Example of expansion:* 
+
+|image10|
 
 Region Measurements
 ~~~~~~~~~~~~~~~~~~~
@@ -266,18 +259,20 @@ perimeter length of each mask. The procedure / outputs for this step
 matches how the steinbock pipeline operates (and steinbock is the
 starting point on which the PalmettoBUG code was built).
 
-**NOTE! –** Be careful to ensure that all the images are present in the
-folder you select and that all the images have a corresponding mask in
-the mask folder you select! You can check this in the project directory
-itself, or just be sure when using the GUI that you don’t accidently
-create a single mask (which can be a good practice to see a sample of
-the results for that model) and then forget to run the rest of the
-folder of images. Each image and mask should have identical file names
-(just be in different folders), and there should not be any extra files
-in the two folders – this is part of how PalmettoBUG knows how to find
-and pair an image with its corresponding cell mask.
+.. caution::
 
-|image4|
+   Be careful to ensure that all the images are present in the
+   folder you select and that all the images have a corresponding mask in
+   the mask folder you select! You can check this in the project directory
+   itself, or just be sure when using the GUI that you don’t accidently
+   create a single mask (which can be a good practice to see a sample of
+   the results for that model) and then forget to run the rest of the
+   folder of images. Each image and mask should have identical file names, 
+   just in different folders, and there should not be any extra files
+   in the two folders – this is part of how PalmettoBUG knows how to find
+   and pair an image with its corresponding cell mask.
+
+|image11|
 
 Performing region measurements also start the preliminary set up for a
 single-cell analysis directory. This new single-cell analysis folder is
@@ -297,45 +292,45 @@ project. Having more than one analysis can be useful if you are
 comparing the effect of different segmentations, or different
 denoisings, on your cell clustering or other single-cell results.
 
-|image5|
+|image12|
 
 As for what happens next, after clicking “Go to Analysis!” – well for
-that we’ll need to turn the page into the Single-Cell analysis
+that we’ll need to turn the page into the :doc:`SingleCellAnalysis`
 documentation.
 
 .. |image1| image:: media/ImageProcessing/ImageProcessing1.png
    :width: 6.12268in
    :height: 4.46667in
-.. |A black and white squares with white text Description automatically generated| image:: media/ImageProcessing/ImageProcessing2.png
+.. |image2| image:: media/ImageProcessing/ImageProcessing2.png
    :width: 5.77743in
    :height: 2.27826in
-.. |A screenshot of a computer Description automatically generated| image:: media/ImageProcessing/ImageProcessing3.png
+.. |image3| image:: media/ImageProcessing/ImageProcessing3.png
    :width: 4.8626in
    :height: 1.22604in
-.. |A collage of images of a person's body Description automatically generated| image:: media/ImageProcessing/ImageProcessing4.png
+.. |image4| image:: media/ImageProcessing/ImageProcessing4.png
    :width: 6.5in
    :height: 2.59722in
-.. |Screens screenshot of a computer Description automatically generated| image:: media/ImageProcessing/ImageProcessing5.png
+.. |image5| image:: media/ImageProcessing/ImageProcessing5.png
    :width: 6.01667in
    :height: 3.65307in
-.. |image2| image:: media/ImageProcessing/ImageProcessing6.png
+.. |image6| image:: media/ImageProcessing/ImageProcessing6.png
    :width: 4.73373in
    :height: 3.38788in
-.. |A collage of images of cellulose and cellphone Description automatically generated| image:: media/ImageProcessing/ImageProcessing7.png
+.. |image7| image:: media/ImageProcessing/ImageProcessing7.png
    :width: 5.18031in
    :height: 3.72916in
-.. |image3| image:: media/ImageProcessing/ImageProcessing8.png
+.. |image8| image:: media/ImageProcessing/ImageProcessing8.png
    :width: 5.95027in
    :height: 3.68887in
-.. |A collage of different colored objects Description automatically generated| image:: media/ImageProcessing/ImageProcessing9.png
+.. |image9| image:: media/ImageProcessing/ImageProcessing9.png
    :width: 5.78863in
    :height: 3.2827in
-.. |A screenshot of a computer screen Description automatically generated| image:: media/ImageProcessing/ImageProcessing10.png
+.. |image10| image:: media/ImageProcessing/ImageProcessing10.png
    :width: 4.9014in
    :height: 2.50725in
-.. |image4| image:: media/ImageProcessing/ImageProcessing11.png
+.. |image11| image:: media/ImageProcessing/ImageProcessing11.png
    :width: 5.52445in
    :height: 3.35187in
-.. |image5| image:: media/ImageProcessing/ImageProcessing12.png
+.. |image12| image:: media/ImageProcessing/ImageProcessing12.png
    :width: 5.63214in
    :height: 3.0351in

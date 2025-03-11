@@ -1302,13 +1302,18 @@ class whole_class_analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
 
         classes = self.analysis_exp_whole.class_labels['labels'].astype('str').unique()
 
-        self.analysis_exp_whole.plot_distribution_exprs(unique_class = classes[1], 
+        if len(classes) > 1:
+            show_class = classes[1]
+        else:
+            show_class = classes[0]
+
+        self.analysis_exp_whole.plot_distribution_exprs(unique_class = show_class, 
                                                         plot_type = "Bar", 
-                                                        filename = f"{classes[1]}_Bar")
-        self.display1.update_image(self.analysis_exp_whole.save_dir + f"/{classes[1]}_Bar.png")
+                                                        filename = f"{show_class}_Bar")
+        self.display1.update_image(self.analysis_exp_whole.save_dir + f"/{show_class}_Bar.png")
 
         self.class_to_barplot = ctk.CTkOptionMenu(master = self, 
-                                                  variable = ctk.StringVar(value = classes[1]),
+                                                  variable = ctk.StringVar(value = show_class),
                                                   values = classes, 
                                                   command = lambda choice: self.plot_distribution_exprs(unique_class = choice, 
                                                                                             plot_type = self.plot_type_choice.get(),

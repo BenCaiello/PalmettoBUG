@@ -14,14 +14,15 @@ What happens when you load the analysis for an imaging project is that
 the centroid data from the regionprops csv files in automatically
 loaded, ready for spatial analysis.
 
-**Note! –**\ PalmettoBUG spatial functions (except the EDT / pixel
-classifier option) use the **centroids** of the cells to calculate
-distances between cells, **not the edges of the cells**.
+.. important::
+   PalmettoBUG spatial functions (except the EDT / pixel
+   classifier option) use the **centroids** of the cells to calculate
+   distances between cells, **not the edges of the cells**.
 
 Once you have loaded the analysis from the imaging project & clustered
 and annotated your cells, you click to the Spatial tab:
 
-|A screenshot of a computer Description automatically generated|
+|image1|
 
 There 3-4 major categories of spatial analysis, Spatial Neighbors,
 Neighborhoods, SpaceANOVA, and Distance(EDT)-from-pixel class.
@@ -33,7 +34,7 @@ The simplest style of spatial plot is the cell map. These just provide a
 view of the cells as they are positioned in the ROI / image, with the
 cells colored by their cell type / cell grouping:
 
-|image1|
+|image2|
 
 There are two style of cell map, “masks” and “points” as shown above.
 
@@ -47,8 +48,7 @@ make a grid of spatial connections between the neighboring cells of each
 image. *The creation of this grid is also necessary before doing
 neighborhood analysis.*
 
-|A diagram of a diagram of a star Description automatically generated
-with medium confidence|
+|image3|
 
 Then, plots can be made of the raw number of interactions between cell
 types (“interaction matrix”) or the enrichment over random (by
@@ -57,7 +57,7 @@ centrality of the different cell types. There are three different types
 of centrality statistic that can be plotted (see squidpy documentation
 for details), but here I just show one type, closeness centrality:
 
-|A screenshot of a computer screen Description automatically generated|
+|image4|
 
 Neighborhood Analysis. 
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -81,9 +81,9 @@ grouping/faceting plots). This includes creating plots like violin plots
 and abundance plots, as well as any other plots that use a cell
 groupings like these.
 
-*Cellular Neighborhoods:*
+Cellular Neighborhoods:
 
-|image2|
+|image5|
 
 SpaceANOVA
 ~~~~~~~~~~
@@ -95,21 +95,16 @@ you to do is calculate Ripley’s statistics (K / L) as well as the
 pair-correlation function (referred to as ‘g’ in the program) between
 all cell types in the data set.
 
-*A Graphical Explanation of Ripley’s statistics:*
-
-|A collage of images of circles and arrows Description automatically
-generated|
-
-|A diagram of a function Description automatically generated|
+A Graphical Explanation of Ripley’s statistics:
 
 The key takeaways from the graphical example above is that the Ripley’s
 statistics provide a way to see if cell types are associating with each
 other more or less than would be expected by chance, creating a function
 with values at every radius of interest. In PalmettoBUG, these types of
-graphs can be calculated for every cell type 🡨🡪 cell type pair, with a
+graphs can be calculated for every cell type  cell type pair, with a
 few parameters, such as the range of radii, selected by the user:
 
-|image3|
+|image6|
 
 Some parameters of particular note are:
 
@@ -123,6 +118,8 @@ Some parameters of particular note are:
    such as inhomogeneities / holes in the tissue that could shift the
    value K function even when the cell types are randomly distributed in
    the tissue.
+
+..
 
    2). The random seed. This is used for the shuffling of data in the
    permutation correction, but also for a few other steps in the
@@ -146,6 +143,8 @@ Some parameters of particular note are:
    to the terminal any time an image or an entire condition fails to
    meet the threshold – this end up being a lot of messages!*
 
+..
+
    4). Radii min, max, step. These parameters set the range of radius
    values to calculate over. As in for the defaults (min = 0, max = 100,
    step = 1), Ripley’s statistics are calculated at around 100 points
@@ -161,7 +160,7 @@ Some parameters of particular note are:
    cases, although the specific number depends on the proximity and size
    of your cell masks. If you see similar sharp changes in the g
    statistic over the first few radii for all your comparisons, that
-   might indicate you need to increase the minimum radius.
+   might indicate you may want to increase the minimum radius.
 
 Once the SpaceANOVA calculation for the Ripley’s statistics has been
 performed, the buttons for plotting and statistics become available. For
@@ -180,7 +179,7 @@ significant, but should not be used on its own as there is no correction
 for multi-comparison – instead the functional ANOVA should be used to
 determine if two conditions differ overall.
 
-|image4|
+|image7|
 
 For statistically comparing the difference between how cell types
 cluster in conditions, SpaceANOVA uses functional ANOVA (fANOVA). This
@@ -199,7 +198,7 @@ the “SpaceANOVA statistics” button. You will then be able to either
 export the p-values from the fANOVA tests as a table, or plot them in a
 heatmap:
 
-|image5|
+|image8|
 
 These p-value statistics can be calculated from K, l, or g. Note that it
 is not uncommon for most adjusted p-values to be at or near 1.0 (this is
@@ -229,13 +228,13 @@ The distance calculation is performed using a Euclidean Distance
 Transform (EDT) on the pixel classes of interest, which is why this
 module is frequently referred to with the label EDT.
 
-*Graphical Summary of the EDT method:*
+Graphical Summary of the EDT method:
 
-|image6|
+|image9|
 
-*EDT calculation window:*
+EDT calculation window:
 
-|image7|
+|image10|
 
 The key parameters for the EDT calculation are as follows:
 
@@ -250,9 +249,14 @@ The key parameters for the EDT calculation are as follows:
    classifier predictions in a */classification_maps* subfolder or
    merged/annotated predictions in a */merged_classification_maps*
    subfolder), this must be specified in the drop down immediately below
-   classifier selection. **Note! –** if you use the /*merged…maps*
-   folder for a supervised classifier, the background class will not
-   have an EDT calculated.
+   classifier selection. 
+   
+   .. note::
+   
+      If you use the /*merged…maps* folder for a supervised classifier, the background class will not
+      have an EDT calculated.
+
+..
 
    3). Marker_class. This determines how the newly added EDT channel(s)
    are treated once merged into the analysis – will they be “type”,
@@ -260,11 +264,11 @@ The key parameters for the EDT calculation are as follows:
    the new “spatial_edt” class, because it is assumed that you will want
    to treat the EDT channels differently than the regular channels and
    because “spatial_edt” channels are treated specially in the GUI **–
-   the dedicated EDT plotting buttons in the spatial tab only work for
-   “spatial_edt” marker_class**. However, if you wanted to cluster your
-   cells based on EDT values, you would want to set them to “type”, and
-   then return to the analysis tab and run a FlowSOM / Leiden
-   clustering.
+   the dedicated EDT plotting buttons in the spatial tab only
+   works for “spatial_edt” marker_class**. However, if you wanted to
+   cluster your cells based on EDT values, you would want to set them to
+   “type”, and then return to the analysis tab and run a FlowSOM /
+   Leiden clustering.
 
    4). Smoothing threshold. Isolated regions of the pixel class of
    interest in the pixel classification maps that are smaller than the
@@ -274,6 +278,8 @@ The key parameters for the EDT calculation are as follows:
    Euclidean distance transform is very sensitive to the presence of
    even a single pixel of the class of interest, as that could create –
    on its own – a large circular region of lower values around it.
+
+..
 
    5). Statistic. Much like when reading the region properties during
    the main pipeline of the program, the statistic when reading the EDT
@@ -291,13 +297,14 @@ The key parameters for the EDT calculation are as follows:
    cell will be divided by the average EDT value across the entire image
    that cell came from, which is intended to help control this effect.
 
-**Note! –** when calculating the EDT values\ **, PalmettoBUG will
-calculate EDT values for each cell using every class in the selected
-classifier**, assigning them all the same marker_class. Typically, it is
-best to make dedicated supervised classifier for each object of
-interest, so this should not be an issue, although for some applications
-(like when identifying mutually exclusive regions, like tissue layers)
-you may want to have multiple classes in one pixel classifier.
+.. Attention::
+   Wwhen calculating the EDT values\ **, PalmettoBUG will
+   calculate EDT values for each cell using every class in the selected
+   classifier**, assigning them all the same marker_class. Typically, it is
+   best to make dedicated supervised classifier for each object of
+   interest, so this should not be an issue, although for some applications
+   (like when identifying mutually exclusive regions, like tissue layers)
+   you may want to have multiple classes in one pixel classifier.
 
 **EDT plots and statistics**
 
@@ -315,7 +322,7 @@ input, depending on the marker_class chosen.
 
 The outputs of the dedicated EDT functions are shown below:
 
-|image8|
+|image11|
 
 Key points include 1). the heatmap requires at least two markers with
 the marker_class “spatial_edt” to run. 2). The statistics function in
@@ -336,42 +343,42 @@ such as if you exit / re-enter PalmettoBUG — then you can directly load
 the EDT from the CSV, setting the marker_class when you do so, instead
 of needing to redo the calculation.
 
-.. |A screenshot of a computer Description automatically generated| image:: media/SpatialAnalysis/Spatial1.png
+.. |image1| image:: media/SpatialAnalysis/Spatial1.png
    :width: 6.06191in
    :height: 4.34372in
-.. |image1| image:: media/SpatialAnalysis/Spatial2.png
+.. |image2| image:: media/SpatialAnalysis/Spatial2.png
    :width: 6.5in
    :height: 3.61736in
-.. |A diagram of a diagram of a star Description automatically generated with medium confidence| image:: media/SpatialAnalysis/Spatial3.png
+.. |image3| image:: media/SpatialAnalysis/Spatial3.png
    :width: 6.5in
    :height: 4.14861in
-.. |A screenshot of a computer screen Description automatically generated| image:: media/SpatialAnalysis/Spatial4.png
+.. |image4| image:: media/SpatialAnalysis/Spatial4.png
    :width: 5.64191in
    :height: 4.91497in
-.. |image2| image:: media/SpatialAnalysis/Spatial5.png
+.. |image5| image:: media/SpatialAnalysis/Spatial5.png
    :width: 6.5in
    :height: 4.08056in
-.. |A collage of images of circles and arrows Description automatically generated| image:: media/SpatialAnalysis/Spatial6.png
+.. |image6| image:: media/SpatialAnalysis/Spatial6.png
    :width: 4.45684in
    :height: 4.92671in
-.. |A diagram of a function Description automatically generated| image:: media/SpatialAnalysis/Spatial7.png
+.. |image7| image:: media/SpatialAnalysis/Spatial7.png
    :width: 4.44251in
    :height: 3.94495in
-.. |image3| image:: media/SpatialAnalysis/Spatial8.png
+.. |image8| image:: media/SpatialAnalysis/Spatial8.png
    :width: 5.74777in
    :height: 5.12632in
-.. |image4| image:: media/SpatialAnalysis/Spatial9.png
+.. |image9| image:: media/SpatialAnalysis/Spatial9.png
    :width: 6.5in
    :height: 4.07569in
-.. |image5| image:: media/SpatialAnalysis/Spatial10.png
+.. |image10| image:: media/SpatialAnalysis/Spatial10.png
    :width: 6.5in
    :height: 4.09167in
-.. |image6| image:: media/SpatialAnalysis/Spatial11.png
+.. |image11| image:: media/SpatialAnalysis/Spatial11.png
    :width: 6.5in
    :height: 3.76667in
-.. |image7| image:: media/SpatialAnalysis/Spatial12.png
+.. |image12| image:: media/SpatialAnalysis/Spatial12.png
    :width: 6.5in
    :height: 2.88819in
-.. |image8| image:: media/SpatialAnalysis/Spatial13.png
+.. |image13| image:: media/SpatialAnalysis/Spatial13.png
    :width: 6in
    :height: 3.5in
