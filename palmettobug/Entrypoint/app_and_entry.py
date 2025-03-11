@@ -703,7 +703,7 @@ def fetch_IMC_example(new_directory):
     new_analyses_dir = new_directory + "/Analyses"
     IMC_data = requests.get("https://zenodo.org/records/14983582/files/Example_IMC.zip?download=1", stream = True)
     with open(new_directory + "/IMC_data.zip", 'wb') as write_to:
-        for i in IMC_data.iter_content(chunk_size = 1024**2)
+        for i in IMC_data.iter_content(chunk_size = 1024**2):
             write_to.write(i)
     zip_archive = zipfile.ZipFile(new_directory + "/IMC_data.zip")
     zip_archive.extractall(new_directory)
