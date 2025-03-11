@@ -12,7 +12,7 @@ On most pages of the program, except the entry screen, you will find a
 data into loaded into the appropriate part of the program. When loaded
 they look like this:
 
-|A screenshot of a computer Description automatically generated|
+|image1|
 
 This display serves a simplistic alternative to using your computer’s
 normal file explorer program to navigate inside the PalmettoBUG project
@@ -47,7 +47,7 @@ generate a plot in PalmettoBUG, or click on a .png file in directory
 display, that file will be displayed on the Plot display (and Mr./Mrs.
 PalmettoBUG will be gone until you reload the program!).
 
-|image1|
+|image2|
 
 This is a convenient way to see your plots as you generate them.
 However, note that any plot displayed in PalmettoBUG is forced into the
@@ -66,7 +66,7 @@ large for your computer screen. You can change the theme of PalmettoBUG,
 whether to be in light / dark mode or an entirely different color
 scheme.
 
-|image2|
+|image3|
 
 The PalmettoBUG interface is built using the customtkinter package, and
 a set of themes for this package exists from
@@ -77,10 +77,12 @@ color scheme (“green”) in mind and not the alternative themes – so the
 useability of the program / clarity of the widgets can suffer in
 alternate color schemes.
 
-**Note! –** Changing the GUI color-theme is best done BEFORE loading any
-data into the program. Part of updating the widgets to the new color
-scheme means that any progress in the GUI will be lost, and you will
-need to re-load your project!
+.. warning::
+   
+   Changing the GUI color-theme is best done BEFORE loading any
+   data into the program. Part of updating the widgets to the new color
+   scheme means that any progress in the GUI will be lost, and you will
+   need to re-load your project!
 
 Other Noteworthy Peculiarities of PalmettoBUG
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,6 +107,8 @@ no longer offer default file / folder names.
    at a given time, so running a 2\ :sup:`nd` FlowSOM will effectively
    erase the first metaclustering.
 
+..
+
    PalmettoBUG’s love of overwriting can become a particular risk for
    file / folder names because of peculiarity number 2:
 
@@ -123,6 +127,8 @@ no longer offer default file / folder names.
    that you intended to use & end up displaying an incorrect plot or
    performing a downstream calculation on the wrong set of images!
 
+..
+
    3). Napari / isoSegDenoise are launched as separate processes. Except
    when creating training labels for supervised pixel classifiers,
    Napari windows launched inside the program, as well as the
@@ -136,12 +142,12 @@ no longer offer default file / folder names.
    chance that you cause a catastrophic error that crashes the entire
    program!).
 
-.. |A screenshot of a computer Description automatically generated| image:: media/GUI1.png
+.. |image1| image:: media/GUI1.png
    :width: 6.5in
    :height: 2.85069in
-.. |image1| image:: media/GUI2.png
+.. |image2| image:: media/GUI2.png
    :width: 6.5in
    :height: 4.57778in
-.. |image2| image:: media/GUI3.png
+.. |image3| image:: media/GUI3.png
    :width: 6.5in
    :height: 3.9625in

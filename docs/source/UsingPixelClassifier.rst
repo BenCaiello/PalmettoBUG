@@ -9,7 +9,7 @@ Specifically, there are four main ways to use a classifier in this
 sub-tab: filter images, analyze the classes as a whole, classify cell
 masks, and extend cell masks.
 
-|A screenshot of a computer Description automatically generated|
+|image1|
 
 The first and critical step anytime you enter this sub-tab of the
 program is to select one of the classifiers that you have made in the
@@ -22,7 +22,7 @@ for every image in the dataset and also has a *biological_labels.csv*,
 which associates the class numbers in the classifier’s predictions to
 relevant biological groupings.
 
-|image1|
+|image2|
 
 Once you have loaded a classifier, the widgets of this sub-tab will
 populate with values relevant to the classifier (such as classes).
@@ -42,7 +42,7 @@ Possible reasons to do this step might be to help focus on only tissue
 regions of interest, or to reduce the computational load of later steps
 in the pipeline.
 
-|image2|
+|image3|
 
 Sometimes, as in the example image above, the class(es) of interest are
 near or at all the edges of the image. In this case, the filtering /
@@ -74,7 +74,7 @@ classes, usually mean. After this, you must provide a panel / metadata
 file (again, just like for the single-cell analysis portion of the
 program), then finally the analysis itself can be launched.
 
-|image3|
+|image4|
 
 Within the analysis window, PalmettoBUG will display a box plot of the %
 of each class in each condition of the data, and a barplot of marker
@@ -115,7 +115,7 @@ need to do is select the folder of masks to classify (the folder of
 pixel class maps is automatically found in the loaded classifier).
 Typically, the mode method is used more with supervised classifiers.
 
-|A screenshot of a computer screen Description automatically generated|
+|image5|
 
 The output of the mask classification will be written to a sub-folder of
 the */classy_masks* folder inside the project, with a name automatically
@@ -145,7 +145,7 @@ cell masks to the regions they can be expanded into. However, if you are
 only interested in grouping the cells into cell types for the sake of
 single-analysis, you can freely use custom labels.
 
-|image4|
+|image6|
 
 When the secondary FlowSOM is first run, a folder is created in
 */classy\_*\ masks, which will be populated by the outputs of the
@@ -170,7 +170,7 @@ PalmettoBUG will then identify the segmentation masks belonging to the
 class(es) of interest, and extend those cell masks into the surrounding
 regions that were predicted to be in the matching class.
 
-|image5|
+|image7|
 
 This extension process occurs simultaneously for every cell mask in a
 given class, using water shedding to connect masks to the continuous
@@ -199,24 +199,24 @@ this will be written as a sub-folder of */masks*, where it can be picked
 up by the rest of PalmettoBUG for the purposes of region measurements,
 etc.
 
-.. |A screenshot of a computer Description automatically generated| image:: media/UsePxClass/UsePx1.png
+.. |image1| image:: media/UsePxClass/UsePx1.png
    :width: 6.5in
    :height: 4.26458in
-.. |image1| image:: media/UsePxClass/UsePx2.png
+.. |image2| image:: media/UsePxClass/UsePx2.png
    :width: 4.35318in
    :height: 4.26342in
-.. |image2| image:: media/UsePxClass/UsePx3.png
+.. |image3| image:: media/UsePxClass/UsePx3.png
    :width: 6.5in
    :height: 4.46944in
-.. |image3| image:: media/UsePxClass/UsePx4.png
+.. |image4| image:: media/UsePxClass/UsePx4.png
    :width: 6.68678in
    :height: 4.41927in
-.. |A screenshot of a computer screen Description automatically generated| image:: media/UsePxClass/UsePx5.png
+.. |image5| image:: media/UsePxClass/UsePx5.png
    :width: 6.59394in
    :height: 4.47275in
-.. |image4| image:: media/UsePxClass/UsePx6.png
+.. |image6| image:: media/UsePxClass/UsePx6.png
    :width: 6.5in
    :height: 3.30069in
-.. |image5| image:: media/UsePxClass/UsePx7.png
+.. |image7| image:: media/UsePxClass/UsePx7.png
    :width: 6.5in
    :height: 4.06087in

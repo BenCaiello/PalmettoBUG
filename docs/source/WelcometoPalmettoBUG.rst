@@ -4,7 +4,7 @@ Welcome to PalmettoBUG!
 PalmettoBUG is a GUI interface for performing all the steps of analysis
 for an (imaging) mass cytometry experiment. While explicitly intended
 for IMC and solution-mode mass cytometry, it theoretically can work with
-any imaging data that can represented in a .tiff file or any signle-cell
+any imaging data that can represented in a .tiff file or any single-cell
 data that can be represented as an .fcs file. However, note that it’s
 design was very much directed at high-dimensional, but small/medium
 scale experiments and not low-dimensional very large experiments. So its
@@ -14,17 +14,24 @@ individual ROIs.
 PalmettoBUG Capabilities in Graphical Form
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-From the manuscript: (\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\__link
-here\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_)
+From the manuscript: ( BioRXiv link here )
 
 |image1|
 
 Installation:
 ~~~~~~~~~~~~~
 
-To install, first setup a **Python 3.9 or 3.10** environment.
+To install, first setup a **Python 3.10** environment.
 
-I used miniconda to develop and test PalmettoBUG.
+.. warning::
+
+   A python 3.9 environment should be useable, but since most of the dependencies in pyproject.toml allow for some higher versions of the dependencies
+   trying to directly install will run into errors. I know that at least anndata and mudata have a conflict that occurs in python 3.9 when installing
+   automatically, because the latest anndata is compatible with python 3.9, but none of the mudata versions compatible with that verison of anndata
+   allow python 3.10 *(so you would need to download an older version of anndata before installing PalmettoBUG, or something like that)*. And there
+   may be other conflicts. If you can, stick with python 3.10!
+
+I mainly used conda environments to develop and test PalmettoBUG.
 
 Enter your environment and issue the command:
 
@@ -33,6 +40,12 @@ Enter your environment and issue the command:
 To install PalmettoBUG in your environment. All dependencies should be
 automatically installed (via the pyproject.toml dependency manifest) by
 pip.
+
+.. admonition::Temporary Warning!
+
+   Palmettobug is not (yet) on PyPI, so the command above is aspirational and not true! Until PalmettoBUG is on PyPI
+   you will have to download both PalmettoBUG and isoSegDenoise programs (from GitHub repositories) and install them in the 
+   same python 3.10 environment using pip's installation-from-a-folder-path capacity.
 
 There are many dependencies for the program, and the example data for
 PalmettoBUG is quite large so this installation will take some time, and
@@ -85,20 +98,22 @@ driver for your GPU, you will need to:
    PyTorch <https://pytorch.org/get-started/locally/>`__ to get GPU
    support for Cellpose functions.
 
+..
+
    2). Download the proper tensorflow & cuda packages for deepcell /
    mesmer (listed are what worked for me):
 
-- >>> pip install tensorflow-gpu==2.8.4
+   >>> pip install tensorflow-gpu==2.8.4
 
-- >>> conda install cudnn=8.9.2.26
+   >>> conda install cudnn=8.9.2.26
 
-- >>> conda install cudatoolkit=11.8.0
+   >>> conda install cudatoolkit=11.8.0
 
-- >>> conda install zlib-wapi
+   >>> conda install zlib-wapi
 
-*However, your mileage using these steps may vary in practice – GPU
+However, your mileage using these steps may vary in practice – GPU
 support was not thoroughly tested on a variety of computer systems or
-setups!*
+setups!
 
 Do note that to get GPU support really means getting it configured for
 Cellpose (build on PyTorch) and DeepCell/Mesmer (Tensorflow) packages as
@@ -111,10 +126,15 @@ Licensing information:
 PalmettoBUG is under the GPL-3 opensource license. Much of the code &
 dependencies of PalmettoBUG came from GPL-2+ projects across a few
 different programming languages, necessitating that PalmettoBUG itself
-be under the same license. The DeepCell model (and possibly some of
-those from Cellpose) is licensed under a more restrictive non-commercial
-license that is not compatible with GPL-3, which is why the
-isoSegDenoise program was separated off from the main package.
+be under the same license. 
+
+.. warning::
+
+   The DeepCell / Mesmer segmentation model (and possibly some of the models from Cellpose) is licensed under a non-commercial / academic
+   license! 
+
+   This is not compatible with GPL-3, which is why the isoSegDenoise program was separated off as a technically independent program
+   from the main PalmettoBUG package. 
 
 .. |image1| image:: media/Welcome1.png
    :width: 6.49583in

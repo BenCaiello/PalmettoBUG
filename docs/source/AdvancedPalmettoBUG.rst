@@ -6,14 +6,15 @@ directory structure and data table files of PalmettoBUG and particularly
 with troubleshooting the program or using the program with other
 software.
 
-**Note! –** that the “HackingPalmettoBUG” PowerPoint inside the GitHub /
-PalmettoBUG package is an even more thorough, animated documentation
-resource for understanding the various directories of the program.
+.. note:: 
+
+   The “HackingPalmettoBUG” slide deck inside the GitHub / PalmettoBUG package is an even more thorough, **animated** documentation
+   resource for understanding the various directories of the program.
 
 The Imaging Project Directory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The directory is a key structure in a PalmettoBUG project – it is where
+The directory is a key structure in a PalmettoBUG project - it is where
 data is expected to be read from, and where data is saved in expected
 locations for later read-in. This well-defined structure is how
 PalmettoBUG can often easily re-enter an experiment at the same step
@@ -23,7 +24,7 @@ format can be very helpful for understanding errors and troubleshooting
 issues with your project, as well as for mix-and-matching PalmettoBUG
 inputs / outputs with other data analysis pipelines.
 
-|A screenshot of a computer program Description automatically generated|
+|image1|
 
 The upper level of an imaging project includes a number of folders, as
 well as a single file (panel.csv). However, to begin a project, only the
@@ -38,8 +39,10 @@ including */images, /masks, /Pixel_Classification, /classy_masks,* and
    1). The */images* folder contains subfolders of images as .tiff
    files. Within it, the */images/img* is a special subfolder containing
    the images directly converted from the raw folder. Other folders of
-   images can be made by the user with custom names – for example after
+   images can be made by the user with custom names - for example after
    denoising or other image modifications.
+
+..
 
    2). The /*masks* folder contains subfolders of cell masks as .tiff
    files. */masks/cellpose_masks* and */masks/deepcell_masks* are
@@ -49,12 +52,14 @@ including */images, /masks, /Pixel_Classification, /classy_masks,* and
 
    3). *Pixel_Classification* contains subfolders, each dedicated to a
    particular pixel classifier. Each classifier folder contains not only
-   the primary outputs of the classifier – folder(s) of .tiff files with
-   the predicted classes for each input image – but also a variety of
+   the primary outputs of the classifier - folder(s) of .tiff files with
+   the predicted classes for each input image - but also a variety of
    other folders and files that provide information about the classifier
    (such as .json files containing the parameters of the classifier, or
    a folder of user-annotated images for training supervised
    classifiers).
+
+..
 
    4). C\ *lassy_masks* contains subfolders for every time you classify
    cell masks into cell types / groups using a pixel classifier. This
@@ -73,8 +78,8 @@ Images and Masks sub-folder are fairly simple and need little
 explanation. They only contain images as .tiff files, all with the same
 filename for each ROI across all folders. In general, PalmettoBUG
 automatically uses the filename of the source image / ROI when writing a
-new .tiff file – this convention is critical because it is how images /
-masks / pixel classes, etc. are matched together – so if you make edits
+new .tiff file - this convention is critical because it is how images /
+masks / pixel classes, etc. are matched together - so if you make edits
 or add data to a PalmettoBUG project, **be sure that this convention is
 maintained.**
 
@@ -87,7 +92,7 @@ a source of common errors. It is composed of 4 columns, the first two
 dedicated to the names of the channels in the */raw* dataset, and the
 second two dedicated to how they will be used.
 
-|A screenshot of a computer Description automatically generated|
+|image2|
 
 The first column are the labels for the channels that can be derived
 */raw* data, usually the metal channels themselves if derived from MCD
@@ -103,7 +108,7 @@ labels, so **the** **order & number of channels in the images themselves
 is incredibly important.** This order is changed by what channel are
 kept, and those changes are tracked by the panel file. This is why
 editing the “keep” column after converting the data from */raw*, is very
-risky – the order of the channels in the panel file is changed, while
+risky - the order of the channels in the panel file is changed, while
 the data itself is unchanged, creating a mismatch in expectation that
 can create errors or inaccurate analysis! Only edit the “keep” column if
 you intend to re-do all the steps of the pipeline, in order, immediately
@@ -133,14 +138,16 @@ additional data .csv files needed by imaging experiments are why
 analysis directories have folders parallel with */main* (specifically,
 */intensities*, */regionprops*, and sometimes */spatial_edts*). However,
 the meat of the analysis directory is contained inside the */main*
-sub-folder – this is where plots, cell clusterings, and statistics
+sub-folder - this is where plots, cell clusterings, and statistics
 tables are written to as you perform your analysis.
 
-|image1|
+|image3|
 
 Sub-folder of */main*:
 
    1). */Analysis_fcs* is the starting folder with raw FCS files.
+
+..
 
    2) */*\ C\ *lusterings* contains .csv files of cell clusterings /
    groupings. These csv’s also are used for spatial analysis in
@@ -149,25 +156,29 @@ Sub-folder of */main*:
    3). */Mergings* contains .csv files of the manual merging of FlowSOM
    clusters by the user.
 
-   4). */Data_tables* contains .csv files with data or statistics
+..
+
+   4). */Data\_tables* contains .csv files with data or statistics
    exported by the user for use outside PALMETTOBUG.
 
    5). */Plots* contains the plots generated by PALMETTOBUG.
 
-   6). */Spatial_plots* contains the outputs of the spatial tab of the
-   program – including plots AND statistics tables.
+..
 
-*Key CSV’s – metadata and Analysis_panel & regionprops_panel*
+   6). */Spatial_plots* contains the outputs of the spatial tab of the
+   program - including plots AND statistics tables.
+
+Key CSV’s - metadata and Analysis_panel & regionprops_panel
 
 As described in the single-cell analysis page, when an analysis is run
-two CSV are necessary – an Analysis_panel file, which helps with the
+two CSVs are necessary - an Analysis_panel file, which helps with the
 handling of antigen names / classes, and a metadata file which handles
 the experimental details of the samples in the dataset. If you choose to
 load region properties into the analysis, then a regionprops_panel.csv
-will also be created – this contains the name / marker_class of the
+will also be created - this contains the name / marker_class of the
 regionproperties being added to the data.
 
-|image2|
+|image4|
 
 If you are familiar with the anndata structure in Python — which is the
 primary data structure inside the PalmettoBUG analysis modules — you may
@@ -189,16 +200,16 @@ merging will be written to */merged_classification_maps*. Further, both
 types of classifier have a {classifier_name}\ *\_details.json* file that
 contains information about the setup and parameters of the classifier.
 
-However, only supervised classifiers will have a second .json file –
+However, only supervised classifiers will have a second .json file -
 containing the neural network information (including any training
-weights, which allows prediction after reload) – and only these will
+weights, which allows prediction after reload) - and only these will
 have a /*training\_*\ labels sub-folder. Unsupervised classifiers, on
 the other hand, contain a parameter file (flowsom_panel) absent in
 supervised classifiers, as well as a cluster_heatmap.png containing a
 useful heatmap plot for examining & annotating the expression of markers
 in the primary, pre-annotation clusters.
 
-|image3|
+|image5|
 
 For either type of classifier, you may see a */Whole_class_analysis*
 sub-folder. This contains a very similar structure to a normal
@@ -216,7 +227,7 @@ as the */classy_masks* subfolder, which contains the class assignments
 for each cell mask. These are the only outputs for a cell mask
 classifier using the “mode” method.
 
-|image4|
+|image6|
 
 However, classy masks made using a secondary FlowSOM have a number of
 extra folders because of the need to annotate & merge the initial output
@@ -233,22 +244,25 @@ Knowing the directory structure can help in a couple main ways:
    program, it can be helpful to know where the program is looking for
    information. For example, if you encounter an error in the analysis
    portion of the program with a message related to a “patient_id”
-   column – it may be useful to check the metadata.csv file inside
+   column - it may be useful to check the metadata.csv file inside
    *{*\ analysis name\ *}/main*, and see if the metadata file contains
    the expected information. Or, if you are performing a step requiring
    a folder of pixel classifier outputs, you could check that folder to
    be sure that there is a pixel classification for every image, and you
    did not accidently only predict for one or a few of the images.
 
-   2). Combining PalmettoBUG with other software. One of the benefits of
-   PalmettoBUG is that many of intermediate outputs of the program (like
-   segmentation masks, pixel classifications, etc.) are automatically
-   exported in common file formats like .tiff, allowing relatively easy
-   integration of data between analysis pipelines, at certain steps of
-   the program. But to be able to do this, you need to understand the
-   PalmettoBUG directory to both find the data you want to take out of
-   PalmettoBUG or to know where/how to try and insert the data you want
-   to add to a PalmettoBUG project.
+..
+
+   | 
+   | 2). Combining PalmettoBUG with other software. One of the benefits
+     of PalmettoBUG is that many of intermediate outputs of the program
+     (like segmentation masks, pixel classifications, etc.) are
+     automatically exported in common file formats like .tiff, allowing
+     relatively easy integration of data between analysis pipelines, at
+     certain steps of the program. But to be able to do this, you need
+     to understand the PalmettoBUG directory to both find the data you
+     want to take out of PalmettoBUG or to know where/how to try and
+     insert the data you want to add to a PalmettoBUG project.
 
    For example, you may want to predict segmentation masks using a
    custom-trained improvement to the generalist model in the Cellpose
@@ -264,21 +278,23 @@ Knowing the directory structure can help in a couple main ways:
    folder inside */Pixel_classification* to find those classifier
    predictions.
 
-.. |A screenshot of a computer program Description automatically generated| image:: media/Advanced1.png
+..
+
+.. |image1| image:: media/Advanced1.png
    :width: 6.5in
    :height: 4.30347in
-.. |A screenshot of a computer Description automatically generated| image:: media/Advanced2.png
+.. |image2| image:: media/Advanced2.png
    :width: 3.94669in
    :height: 4.41262in
-.. |image1| image:: media/Advanced3.png
+.. |image3| image:: media/Advanced3.png
    :width: 6.5in
    :height: 3.425in
-.. |image2| image:: media/Advanced4.png
+.. |image4| image:: media/Advanced4.png
    :width: 5.56551in
    :height: 3.71807in
-.. |image3| image:: media/Advanced5.png
+.. |image5| image:: media/Advanced5.png
    :width: 6.5in
    :height: 3.06806in
-.. |image4| image:: media/Advanced6.png
+.. |image6| image:: media/Advanced6.png
    :width: 6.5in
    :height: 2.69375in
