@@ -48,14 +48,6 @@ tensorflow = ">=2.8.0,<=2.13.*"
 tensorflow-addons = ">=0.16.1"
 keras = "<3.0.0"
 
-[tool.poetry.group.documentation]
-optional = true
-
-[tool.poetry.group.documentation.dependencies]
-nbsphinx = "*"
-sphinx_rtd_theme = "*"
-sphinx = "*"
-
 [tool.poetry.group.other]
 optional = true
 
