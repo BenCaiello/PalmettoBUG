@@ -6,7 +6,7 @@ Final development steps (this package and its subsidiary / sister package, isose
 
     - Documentation: clean & add .odp (slideshows) files, edit existing documentation
 
-    - Final features % debugging: there are known errors that I plan on fixing before final release on PyPI. Additionally, a proper connection to the Zenodo example dataset will need ot be set up.
+    - Final features & debugging
 
 
 ## Welcome to PalmettoBUG!
