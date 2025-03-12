@@ -932,16 +932,20 @@ class SpatialANOVA():
                     if i.find(multi_or_single) != -1:
                         multi_or_single = i
                         break
-
+            print(1)
             id = space_anova[space_anova['file_name'].astype('str') == multi_or_single]["sample_id"].values[0]
             id_filename = roi_areas[int(id)]
+            print(1)
             filename_without_extension = id_filename[:id_filename.rfind(".")]
             img = space_anova[space_anova['sample_id'] == id].copy()
+            print(1)
             img.loc[:,'cellType'] = img['cellType'].astype('category')
             mask_areas = area[space_anova['sample_id'] == id] 
+            print(1)
             img.loc[:,'cell areas'] = mask_areas
             mpl_figure, ax = plt.subplots()  ## 1 inch of figure per 100 micrometers
             handles, labels = sns.scatterplot(x = img['x'], y = img['y'], hue = img['cellType'], size = img['cell areas'], legend = True).get_legend_handles_labels()
+            print(1)
             plt.close()
             mpl_figure, ax = plt.subplots(figsize = (img['x'].max() / 75, img['y'].max() / 75))
             mpl_figure.suptitle(filename_without_extension)
