@@ -28,7 +28,9 @@ SOFTWARE.
 Changes:
     -- removed a mysterious symbol from the first comment in the copied code (maybe a ctrl+C / ctrl+V artifact? Not visible on github where it was copied from)
     -- replaced assert --> if not...raise 
+    -- add __all__ for docs
 '''
+__all__ = []
 ######### Begin copied code:
 
 #!/usr/bin/python

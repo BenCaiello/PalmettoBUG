@@ -26,6 +26,7 @@ SOFTWARE.
 )
 
 Changes:
+    -- add __all__ (for the sake of autoapi docs -- I don't really want to include any of the vendor files)
     -- Only kept the part needed for PalmettoBUG (DataFrame and its required code)
     -- merged all necessary files into this one
     -- Removing bespoke typing hints (._typing import commented out, all uses of them deleted in main text)
@@ -34,6 +35,9 @@ Changes:
 
 
 '''
+__all__ = []
+
+
 __version__ = "0.10.0"
 
 from typing import Union

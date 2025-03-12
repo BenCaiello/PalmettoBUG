@@ -30,7 +30,9 @@ Changes:
     -- unified code into one file (this file!) -- removing redundant / unused imports as they arose
     -- removed typing hints for Annotation, Panorama, Slide 
     -- switch to defusedxml for xml parsing and removed ET.Element type hinting
+    -- add __all__ for docs
 '''
+__all__ = []
 from warnings import warn
 import mmap
 import itertools

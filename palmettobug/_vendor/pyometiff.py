@@ -16,8 +16,10 @@ Changes:
 -- added copy of BSD-3 license to relevant code section
 -- Move a __future__ import from the BSD-3 licensed section ot the top of the file
 -- replaced assert --> if not...raise    (or similar replacement)
+-- add __all__ (for docs)
 
 '''
+__all__ = []
 # This file is part of the pyometiff library.
 
 # pyometiff is distributed under the GNU General Public License v3.0 (GNU GPLv3),

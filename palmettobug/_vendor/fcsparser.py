@@ -26,12 +26,14 @@ SOFTWARE.
 )
 
 Changes:
+    -- add __all__ (for the sake of autoapi docs -- I don't really want to include any of the vendor files)
     -- removed logging (replacing with print statement)
     -- removed Python 2 support (six package code)
     -- removed now unused imports (division, logging, six)
 
 
 '''
+__all__ = []
 ###### Begin copied code:
 
 

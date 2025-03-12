@@ -28,6 +28,7 @@ Edits:  --> removed mmap reading code (my program will not ever use that format,
 --> removed special Steinbock______Exceptions, and left them as plain Exceptions
 --> In concatenating the files listed above, and removed redundant and unused code / imports
 --> in the code taken from the io module (just the first two functions --> removed dtype & special exceptions)
+--> add __all__ for docs
 
 Edit 8/28/24 ---> removing code from steinbock.measurement.neighbors (not needed anymore in the program)
 
@@ -60,7 +61,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 '''
-
+__all__ = []
 import logging
 from enum import Enum
 from functools import partial
