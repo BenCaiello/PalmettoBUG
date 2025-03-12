@@ -28,7 +28,7 @@ palmettoBUG documentation
    :maxdepth: 2
    :caption: Tutorials (outside GUI):
 
-   ../../notebooks/index.rst
+   notebooks/index.rst
 
 .. toctree::
    :maxdepth: 1
