@@ -20,7 +20,7 @@ extensions = ['sphinx_rtd_theme',
 'autoapi.extension',
 'nbsphinx'
 ]
-# autoapi_dirs = ['../../palmettobug']
+autoapi_dirs = ['../../palmettobug']
 
 
 templates_path = ['_templates']
