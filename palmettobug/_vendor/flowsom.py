@@ -39,9 +39,9 @@ this would mean:
 
      5. added __all__ (for the sake of autoapi docs -- I don't really want to include any of the vendor files)    
 '''
-__all__ = []
-
 from __future__ import annotations
+
+__all__ = []
 
 import copy
 import re

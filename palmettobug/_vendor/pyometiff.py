@@ -19,7 +19,6 @@ Changes:
 -- add __all__ (for docs)
 
 '''
-__all__ = []
 # This file is part of the pyometiff library.
 
 # pyometiff is distributed under the GNU General Public License v3.0 (GNU GPLv3),
@@ -39,6 +38,8 @@ __all__ = []
 
 
 from __future__ import annotations # needed for python < 3.10    ### moved from top of BSD-3 licensed code section (__future__ calls must be at the top)
+
+__all__ = []
 
 from pathlib import Path
 import pathlib
