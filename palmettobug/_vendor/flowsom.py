@@ -36,9 +36,10 @@ this would mean:
         3. See the comments above the starplots code (likely the same minimal edits, but didn't precisely record edits at the time)
 
         4. (2-6-25): removed assert statements (replaced with if / print / raise). This silences security warnings from certain tools.
-        
-'''
 
+     5. added __all__ (for the sake of autoapi docs -- I don't really want to include any of the vendor files)    
+'''
+__all__ = []
 
 from __future__ import annotations
 

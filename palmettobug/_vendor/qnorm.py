@@ -31,8 +31,10 @@ Changes:
 -- Joined all files into one (.util import in the original ---> .util functions moved into this file)
 -- Removed multiple dispatch (I only pass in numpy arrays to qnorm) and pandas check
 -- Removed unused imports
+-- add __all__ for docs
 
 '''
+__all__ = []
 from typing import Union
 from multiprocessing import Pool, RawArray
 
