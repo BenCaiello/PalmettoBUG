@@ -94,6 +94,10 @@ class Analysis_py_widgets(ctk.CTkFrame):
         self.region.grid(column = 2, row = 2, padx = 5, pady = 5)
         self.region.configure(state = 'disabled')
 
+        self.scatter = ctk.CTkButton(master = self, text = 'Scatterplot', command = self.launch_scatterplot)
+        self.scatter.grid(column = 2, row = 3, padx = 5, pady = 5)
+        #self.scatter.configure(state = 'disabled')
+
 
     def initialize_experiment_and_buttons(self, directory: str) -> None: 
         ### This function is to separate the initialization of the widgets and their placement from the initialization 
@@ -127,6 +131,9 @@ class Analysis_py_widgets(ctk.CTkFrame):
 
     def setup_dir_disp(self, directory: str) -> None:
         self.directory_display.setup_with_dir(directory, self, png = self.display2)
+
+    def launch_scatterplot(self):
+        scatterplot_window(self)
 
     def launch_leiden(self):
         do_leiden_window(self)
@@ -2905,3 +2912,93 @@ class MatPlotLib_Display(ctk.CTkFrame):
         self.widget.grid(row = 0, column = 0)
 
         self.toolbar = ctk.CTkLabel(master = self, text = "placeholder so the .destroy() method doesn't throw an error")
+
+
+class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
+    def __init__(self, master):
+        super().__init__(master)
+        self.title("Cluster Heatmap Options")
+        self.master = master
+        label = ctk.CTkLabel(self, text = "Cluster Heatmap options:")
+        label.grid(column = 0,row = 0, padx = 5, pady = 5)
+
+        label_1 = ctk.CTkLabel(self, text = "Antigen X:")
+        label_1.grid(column = 0, row = 2)
+
+        self.antigen1 = ctk.CTkOptionMenu(master = self, values = list(self.master.cat_exp.data.var['antigen'].unique()))
+        self.antigen1.grid(column= 1, row = 2, padx = 5, pady = 5)
+
+        label_2 = ctk.CTkLabel(self, text = "Antigen Y:")
+        label_2.grid(column = 0, row = 3)
+
+        self.antigen2 = ctk.CTkOptionMenu(master = self, values = list(self.master.cat_exp.data.var['antigen'].unique()))
+        self.antigen2.grid(column= 1, row = 3, padx = 5, pady = 5)
+
+        label_3 = ctk.CTkLabel(self, text = "Color points by:")
+        label_3.grid(column = 0, row = 4)
+
+        color_list = ["None", "Density", ] + COLNAMES
+        color_list_obs = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns.unique())]
+        color_list_antigens = list(self.master.cat_exp.data.var['antigen'].unique())
+        color_list = color_list + color_list_obs + color_list_antigens
+        self.hue = ctk.CTkOptionMenu(master = self, values = color_list)
+        self.hue.grid(column= 1, row = 4, padx = 5, pady = 5)
+
+        label_4 = ctk.CTkLabel(self, text = "Point Size:")
+        label_4.grid(column = 0, row = 5)
+
+        self.size = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "1"))
+        self.size.grid(column= 1, row = 5, padx = 5, pady = 5)
+
+        label_5 = ctk.CTkLabel(self, text = "Transparency (alpha):")
+        label_5.grid(column = 0, row = 6)
+
+        self.alpha = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "0.5"))
+        self.alpha.grid(column= 1, row = 6, padx = 5, pady = 5)
+
+        label_7 = ctk.CTkLabel(self, text = "Filename:")
+        label_7.grid(column = 0, row = 7)
+
+        self.filename = ctk.CTkEntry(self, textvariable = ctk.StringVar(value ="scatter"))
+        self.filename.grid(column = 1, row = 7, padx = 5, pady = 5)
+
+        button_plot = ctk.CTkButton(self, text = "Plot", command = lambda: self.plot_scatter(antigen1 = self.antigen1.get(), 
+                                                                                             antigen2 = self.antigen2.get(),
+                                                                                             hue = self.hue.get(),
+                                                                                             size = self.size.get(),
+                                                                                             alpha = self.alpha.get(),
+                                                                                             filename = self.filename.get().strip()))
+        button_plot.grid(column = 0, row = 10, padx = 5, pady = 5)
+
+        self.pop_up = ctk.CTkCheckBox(master = self, text = "Make detailed Plot Editing Pop-up?", onvalue = True, offvalue = False)
+        self.pop_up.grid(column = 0, row = 11, padx = 3, pady = 3)
+
+        self.after(200, lambda: self.focus())
+
+    def plot_scatter(self, 
+                    antigen1: str, 
+                    antigen2: str, 
+                    hue = None, 
+                    size: str = "1", 
+                    alpha: str = "0.5", 
+                    filename: str = "Scatter_plot") -> None:
+        '''  '''
+        try:
+            size = float(size)
+            alpha = float(alpha)
+        except:
+            tk.messagebox.showwarning("Warning!", 
+                message = "size and alpha must both be numerical! Cancelling plot!")
+            self.focus()
+            return
+        if filename_checker(filename, self):
+            return
+        if not overwrite_approval(f"{self.master.cat_exp.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
+            return
+        figure = self.master.cat_exp.plot_scatter(antigen1, antigen2, hue = hue, filename = filename)
+        self.master.save_and_display(filename = filename, sizeX = 550, sizeY = 550)
+        if self.pop_up.get() is True:
+            Plot_window_display(figure)
+            self.withdraw()
+        else:
+            self.destroy()

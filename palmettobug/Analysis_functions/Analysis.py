@@ -56,6 +56,7 @@ import statsmodels.api as sm
 import sklearn.preprocessing as skpre
 from sklearn.manifold import MDS
 from sklearn.decomposition import PCA
+from sklearn.neighbors import KernelDensity
 
 from .._vendor import sigfig
 from .._vendor import fcsparser
@@ -935,13 +936,6 @@ class Analysis:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
         plt.close()
         return figure
-    
-    def plot_scatter(self, X, Y, scale = "linear"):
-        if scale == "linear":
-            pass
-
-        if scale == "log":
-            pass
 
     def plot_cell_counts(self,
                          group_by: str = "sample_id", 
@@ -1309,6 +1303,39 @@ class Analysis:
         except KeyError:
             pass
         return downsample_anndata
+
+    def plot_scatter(self, antigen1, antigen2, hue = None, filename = None, size = 1, alpha = 0.5, **kwargs):
+        data = pd.DataFrame(self.data.X.copy(), columns = self.data.var['antigen'].copy())
+        hue_norm = None
+        palette = None
+        if hue is not None:
+            if hue == "Density":
+                ## need to code this
+                density = KernelDensity()
+                X = data.loc[:,[antigen1, antigen2]]
+                density = density.fit(X)
+                density = density.score_samples(X)
+                data['Density'] = list(np.exp(density)  * 100)
+                hue_norm = (0,1)
+                palette = 1
+            elif hue in self.data.obs.columns:
+                data[hue] = list(self.data.obs[hue])
+        print(data[hue].unique())
+        figure = plt.figure()
+        ax = plt.gca()
+        sns.scatterplot(data, 
+                        x = antigen1, 
+                        y = antigen2, 
+                        hue = hue, 
+                        palette = palette, 
+                        hue_norm = hue_norm, 
+                        size = size, 
+                        alpha = alpha, 
+                        **kwargs)
+        if filename is not None:
+            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
+        plt.close()  
+        return figure
 
     def plot_UMAP(self,
                 color_by: str = 'metaclustering', 
