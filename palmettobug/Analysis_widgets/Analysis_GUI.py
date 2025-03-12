@@ -755,8 +755,8 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             except Exception as e:
                 pass
             if plot_stars:
-                filename = "FlowSOM_MST.png"
-                self.master.cat_exp._plot_stars_CNs(returned, filename = filename)
+                filename = "FlowSOM_MST"
+                self.master.cat_exp._plot_stars_CNs(returned, filename = filename + ".png")
                 self.master.save_and_display(filename = filename,sizeX = 550, sizeY = 550)
             warning_window("FlowSOM complete!")
             self.withdraw()

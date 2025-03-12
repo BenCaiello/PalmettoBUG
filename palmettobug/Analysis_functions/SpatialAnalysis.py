@@ -740,9 +740,8 @@ class SpatialEDT:
         distances_panel['fcs_colnames'] = distance_transforms.columns
         distances_panel['antigen'] = distance_transforms.columns
         distances_panel['marker_class'] = marker_class
-        if not auto_panel:
-            distances_panel.to_csv(self.exp.directory + '/distances_edt_panel.csv', index = False) 
-        else:
+        distances_panel.to_csv(self.exp.directory + '/distances_edt_panel.csv', index = False) 
+        if auto_panel:
             self.append_distance_transform(distances_panel = distances_panel) ## specifying distances panel in this call overwrites any prior panel
         return distances_panel
     
@@ -860,6 +859,7 @@ class SpatialEDT:
         
         for ii,i in enumerate(df[facet_col].unique()):
             to_plot = df[df[facet_col] == i]
+            to_plot.loc[:,subset_col] = to_plot[subset_col].astype('str')
             ax = axs.ravel()[ii]
             if subset_col != "None":
                 sns.boxplot(to_plot, x = var_column, y = subset_col, ax = ax)
@@ -1212,7 +1212,7 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         data = self.exp.data.copy()
         data.obs['CN'] = data.obs['CN'].astype('category')
         towards_abundance = data.obs.groupby(['CN', clustering_col], observed = False).count().reset_index()
-        facets = len(towards_abundance['CN'].unique()) + 1
+        facets = len(towards_abundance['CN'].unique())
         if int(facets) == int(cols):
             cols -= 1    ## automatically reshape if it is too small
 
