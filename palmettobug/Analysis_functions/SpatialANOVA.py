@@ -168,6 +168,7 @@ class SpatialANOVA():
                 self.data_table['sample_id']  = list(self.exp.back_up_data.obs['sample_id'].astype('str'))
                 self.data_table['patient_id'] = list(self.exp.back_up_data.obs['patient_id'].astype('str'))
                 self.data_table['cellType'] = 'dropped'
+                self.data_table.index = self.data_table.index.astype('str')
                 self.data_table.loc[self.exp.data.obs.index,['cellType']] = list(self.exp.data.obs[self.cellType_key].astype('str'))
             else:
                 self.data_table = pd.DataFrame()
@@ -932,7 +933,6 @@ class SpatialANOVA():
                     if i.find(multi_or_single) != -1:
                         multi_or_single = i
                         break
-
             id = space_anova[space_anova['file_name'].astype('str') == multi_or_single]["sample_id"].values[0]
             id_filename = roi_areas[int(id)]
             filename_without_extension = id_filename[:id_filename.rfind(".")]

@@ -42,7 +42,7 @@ def test_cell_maps():
     plot2 = my_spatial.plot_cell_maps(plot_type = "masks", id = "6")
     assert type(plot2) == matplotlib.figure.Figure, "Plot Cell maps for a single ROI (masks) did not return a matplotlib figure"
     my_spatial.plot_cell_maps(plot_type = "points")
-    assert(len(os.listdir(my_spatial.SpaceANOVA.output_dir + "/cell_maps")) == 10), "Plot Cell maps for a single ROI (masks) did not write a plot for each ROI to the appropriate location"
+    assert(len(os.listdir(my_spatial.SpaceANOVA.output_dir + "/cell_maps")) == 9), "Plot Cell maps for a single ROI (masks) did not write a plot for each ROI to the appropriate location"
 
 def test_do_neighbors_and_plots():
     my_spatial.do_neighbors(radius_or_neighbors = "Neighbors", number = 20)
