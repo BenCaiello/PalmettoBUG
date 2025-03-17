@@ -13,14 +13,14 @@ The Panel
 On the left half of the GUI you should see the Steinbock-style Panel
 file, with four columns. Each column serves a different purpose:
 
-0. Channel – this column cannot be edited in the GUI, and represents the
+1. Channel – this column cannot be edited in the GUI, and represents the
    names of the channels in the dataset (derived either from the .mcd or
    .ome.tiff files’ metadata). This channel name can sometimes be not
    very helpful or biological, like “Nd142Di”.
-1. Name – this column is the biological name of the channel, like
+2. Name – this column is the biological name of the channel, like
    “CD45”. It determines how the channel is saved in the downstream .fcs
    / .csv files, and subsequent single-cell analysis plots.
-2. Keep – this column is whether to drop a channel (keep = 0) or keep a
+3. Keep – this column is whether to drop a channel (keep = 0) or keep a
    channel ( = 1) when converting from the */raw* files to the first
    image folder. For example, .mcd files frequently contain channels
    (like BCKG190) that contain no useful information for downstream
@@ -28,7 +28,7 @@ file, with four columns. Each column serves a different purpose:
    burden of the image files and downstream analysis. This column NEVER
    be changed after converting files from */raw,* unless you intend on
    re-doing that conversion and all downstream steps.
-3. Segmentation – this column is an annotation of what channels to use
+4. Segmentation – this column is an annotation of what channels to use
    in the segmentation models. Channels set to ‘nan’ or left blank will
    not be used in segmentation, while those used in segmentation will
    either be used as ‘nuclei’ channels or ‘cytoplasmic / membrane’
@@ -51,13 +51,13 @@ can convert your starting data files from the */raw* folder into
 Regardless of whether there are .mcd or .tiff files in the */raw*
 folder, this step ALWAYS does at least two things:
 
-4. Write every ROI as a single .ome.tiff image in the */images/img*
+1. Write every ROI as a single .ome.tiff image in the */images/img*
    subfolder of the project directory. When converting from .mcd’s this
    means that there will usually be more .ome.tiffs exported than
    original files, as .mcd’s can contain multiple ROIs. However, when
    “converting” from .tiff files, each individual .tiff in */raw* will
    create a single .ome.tiff in */images/img*.
-5. Every channel with keep == 0 in the panel file will be dropped from
+2. Every channel with keep == 0 in the panel file will be dropped from
    the images exported to */images/img.* Importantly, this means that
    there is frequently a difference in the length (number of channels)
    of the panel file and the number of channels in the images. The panel
@@ -150,7 +150,9 @@ with the output of a standard non-local means denoiser (not j-invariant)
 with the same parameters as the optimized denoiser. This process is much
 slower than the cellpose denoising, but it is available if desired.
 
-*Example Denoising Outputs:*\ |image7|
+*Example Denoising Outputs:*
+
+|image7|
 
 What is Denoising good for?
 
@@ -191,7 +193,7 @@ further in the PalmettoBUG GUI.
 
 |image8|
 
-*DeepCell vs. Cellpose*
+**DeepCell vs. Cellpose**
 
 DeepCell is far simpler than Cellpose: it only needs to know what
 channels to use (from the panel) and what images to process. It tends to
@@ -223,7 +225,7 @@ segmentation can be done using a pixel classifier inside PalmettoBUG,
 although this depends on the objects to segment being well separated and
 roughly circular.
 
-*Mask expansion*
+**Mask expansion**
 
 Sometimes expanding a mask can be useful, particularly if the model /
 current segmentation method only was able to identify the nuclei of

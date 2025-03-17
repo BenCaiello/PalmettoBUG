@@ -13,7 +13,9 @@ by the following code:
 
 >>> pbug.run_GUI()
 
-|image1|\ This should launch the PalmettoBUG GUI into the starting tab:
+This should launch the PalmettoBUG GUI into the starting tab:
+
+|image1|
 
 *Don’t mind me, I think you’ll find that I’m a very hospitable
 cockroach!*
@@ -60,11 +62,11 @@ through the terminal you can always check the terminal for any detailed
 error message, in case the program is encountering an error I did not
 anticipate!
 
-Tips, Errors, and expectation –
+**Tips, Errors, and expectation –**
 
 Common errors for loading the data include:
 
-0. **Do not mix .mcd and .tiff files in you /raw folder for an imaging
+1. **Do not mix .mcd and .tiff files in you /raw folder for an imaging
    project!** PalmettoBUG expects one or the other file type, not a
    mixture! If you have a mixture of .mcd’s and .tiff’s for some reason,
    create two separate projects and perform the first Image Processing
@@ -75,12 +77,12 @@ Common errors for loading the data include:
    all images it processes, so if you have images with the same name,
    but differing only by .tif / .tiff, *one of them will be overwritten
    by the other when processed by PalmettoBUG*!
-1. **Do not mix images with different panels / channels!** PalmettoBUG
+2. **Do not mix images with different panels / channels!** PalmettoBUG
    expects all the channels & *the channel order* to be the same across
    the images of a dataset – if this is not true then using the full
    PalmettoBUG pipeline isn’t possible, and you are more likely to
    create errors and inaccurate results than useful data!
-2. Selecting a sub-folder of the directory you actually want. For
+3. Selecting a sub-folder of the directory you actually want. For
    example, you click the button to load a .tiff experiment. Then you
    navigate to the directory where you made a */raw* folder and placed
    your experiment’s .tiff files into it. However, you click on the
