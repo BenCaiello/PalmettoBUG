@@ -71,7 +71,7 @@ smoothly launch it when needed.
 Alternative Slideshow Documentation & Specific Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Inside the /docs/slide folder of the GitHub repository, you
+Inside the /docs/slides folder of the GitHub repository, you
 will find two animated .odp files (open source format similar to .pptx files, 
 open-able by PowerPoint or other slideshow software) which can serve an alternate 
 documentation for the PalmettoBUG GUI. These can be particularly powerful because of their
@@ -81,6 +81,15 @@ These slideshows were created & edited in PowerPoint.
 Also on the GitHub (in an /environments folder) will be a few text documents listing
 all the dependencies that are installed with PalmettoBUG / isoSegDenoise, using “pip freeze” 
 command to retrieve packages in installed in an environment I used in testing / development.
+
+Example Data
+~~~~~~~~~~~~~
+
+The example data used in PalmettoBUG documentation / preprint / etc. can be retrieved using the fetch_CyTOF_example
+and fetch_IMC_example functions, as well as in the GUI (which calls those two functions using a button). These work by
+using the python requests library to download the data from Zenodo.
+However, if an error occurs in one of these functions (which may be more likely for the IMC data because of its large size of ~700 MB), 
+the example data can be downloaded directly from Zenodo instead: https://zenodo.org/records/14983582.  
 
 GPU support
 ~~~~~~~~~~~
@@ -135,6 +144,30 @@ be under the same license.
    This is not compatible with GPL-3, which is why the isoSegDenoise program was separated off as a technically independent program
    from the main PalmettoBUG package. 
 
+
+
+Details of Documentation creation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The pages of this documentation was created in Microsoft Word (odt_docs) or in jupyterlab (notebooks).
+The odt files were then translated into .rst files using the pandoc library. These .rst files were subsequently
+edited into their final form (this mainly meant getting the proper relative links between pages and to images and fixing formatting).
+Then, sphinx (using the automated readthedocs pipeline) was used to convert the .rst files 
+into html. Other packages used in this process include: nbsphinx (for jupyter notebook files), sphinx-autoapi & the napoleon sphinx extension (for api docs),
+and sphinx-rtd-theme.
+
+The media / images (and odp files) in the /docs folder of the GitHub repository were created in 
+Microsoft PowerPoint from screenshots (using Windows Snipping Tool) of the PalmettoBUG program & its output files, as well as screenshots of 
+other programs (like Napari & Windows File Explorer) that are used while analysing the example data  
+Additionally, (of course) PowerPoint objects such as arrows, shapes, etc. were used to compose and arrange the figures, before a 
+final screenshot was taken to save the images as they are displayed here.
+These screenshots are used under the assumption of fair use given the limited use of such screenshots and open-source / academic / non-commercial 
+nature of the PalmettoBUG program and its documentation -- if this is inaccurate I am happy to remove any offending parts.
+(such copyright concerns could only likely apply to icons in / screenshots of Windows File Explorer, which I may begin to edit anyway in order to reduce any such concerns)
+
+
 .. |image1| image:: media/Welcome1.png
    :width: 6.49583in
    :height: 3.68681in
+
+   

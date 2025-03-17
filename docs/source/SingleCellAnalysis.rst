@@ -15,7 +15,7 @@ the Analysis_panel and metadata tables:
 
 |image2|
 
-In these windows our mission – should we choose to accept it – will be
+In these windows, our mission – should we choose to accept it – will be
 to categorize the antigens in the dataset and assign key metadata
 categories, particularly those pertaining to the groups being compared
 in the experiment (treatment vs. control). Specifically, in the first
@@ -222,7 +222,7 @@ There are four major actions in this bank of buttons:
    state again (just as it will also be un-batch corrected and all
    dropped data will be restored).
 
-Scaling details
+**Scaling details**
 
 The scaling option in PalmettoBUG scales data within in channel /
 antigen of the data. There are several different ways to scale the datainside PalmettoBUG:
@@ -330,7 +330,7 @@ Dimensionality reductions are also very helpful after clustering (see
 next section), as they can help visualize the cell clustering and
 indicate how distinct the discovered cell groupings are.
 
-Example of Dimensionality Reduction plots:
+*Example of Dimensionality Reduction plots:*
 
 |image10|
 
@@ -375,11 +375,11 @@ those cell classes can be loaded into a single-cell analysis created
 from the same cell segmentation masks, and used instead of the primary
 pipeline of FlowSOM / Leiden + annotation.
 
-FlowSOM and Leiden windows in the GUI:
+*FlowSOM and Leiden windows in the GUI:*
 
    |image11|
 
-Plotting the Clusters
+**Plotting the Clusters**
 
 Once a clustering has been created, the next step is to visualize what
 that clustering looks like. There are variety of useful plots for this:
@@ -447,7 +447,7 @@ tension with not wanting to over-complicate the annotation process for
 the scientist, so often a slight / moderate over-clustering is aimed
 for.
 
-Example merging table:
+*Example merging table:*
 
 |image15|
 
@@ -475,7 +475,7 @@ merging:
 
 |image17|
 
-Saving and reloading annotations
+**Saving and reloading annotations**
 
 To help save time, and allow you not have to redo clustering every time
 you re-enter or reload an experiment, PalmettoBUG allows you to save a
@@ -549,7 +549,9 @@ each sample / image. Notice that this test is not performed using the
 cells as the sample population, but instead the aggregate statistic
 (mean / median) of each sample / image in the dataset.
 
-   *Warning!* Variability or batch effects between different runs of the
+.. warning::
+   
+   Variability or batch effects between different runs of the
    imaging mass cytometer or in the stability of FFPE tissue can make
    the comparison of expression unreliable, unless you have a plan for
    controlling these effects!
