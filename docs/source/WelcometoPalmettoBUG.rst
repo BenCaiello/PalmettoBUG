@@ -68,20 +68,19 @@ Note that isoSegDenoise should be installed in the same python
 environment as PalmettoBUG so that the PalmettoBUG GUI can directly and
 smoothly launch it when needed.
 
-PowerPoint Documentation & Full Dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Alternative Slideshow Documentation & Specific Dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Inside the PalmettoBUG package itself or on the GitHub repository, you
-will find two PowerPoints which can serve an alternate documentation for
-the PalmettoBUG GUI. These can be particularly powerful because of their
-animations that lay out how to use the various buttons of the GUI in
-**excruciating** detail.
+Inside the /docs/slide folder of the GitHub repository, you
+will find two animated .odp files (open source format similar to .pptx files, 
+open-able by PowerPoint or other slideshow software) which can serve an alternate 
+documentation for the PalmettoBUG GUI. These can be particularly powerful because of their
+animations that lay out how to use the various buttons of the GUI in **excruciating** detail.
+These slideshows were created & edited in PowerPoint.
 
-Also on the GitHub / inside the package are a few text documents listing
-all the dependencies that are installed with PalmettoBUG /
-isoSegDenoise, at least in my personal miniconda, python3.10 environment
-on a windows device (using “pip freeze” or “conda list” commands to
-retrieve).
+Also on the GitHub (in an /environments folder) will be a few text documents listing
+all the dependencies that are installed with PalmettoBUG / isoSegDenoise, using “pip freeze” 
+command to retrieve packages in installed in an environment I used in testing / development.
 
 GPU support
 ~~~~~~~~~~~
