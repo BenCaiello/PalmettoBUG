@@ -161,6 +161,7 @@ class SpatialANOVA():
             pass
         else:
             if (for_cell_maps) and (self.exp.back_up_data is not None):
+                self.filenames = self.exp.back_up_data.obs['file_name']
                 self.data_table = pd.DataFrame()
                 self.data_table['x'] = self.exp.back_up_data.obsm['spatial'][:,0]
                 self.data_table['y'] = self.exp.back_up_data.obsm['spatial'][:,1]
