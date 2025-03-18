@@ -3,7 +3,6 @@ FAQ / Common Errors
 
 For now this section will be short / just be my best guesses for common problems.
 
-..
     1). I made a panel file already outside of PalmettoBUG -- do I have to create it inside PalmettoBUg again?
 
         -- No you can use panel / analysis_panel / metadata files that were created outside PalmettoBUG, they just need to match the formatting of PalmettoBUG!

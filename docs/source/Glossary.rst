@@ -60,7 +60,7 @@ Leiden
 ''''''
 
    A clustering derived by the Leiden unsupervised algorithm acting on a
-   UMPA of the single-cell expression data. See :ref:`Leiden Algorithm`
+   UMAP of the single-cell expression data. See :ref:`Leiden Algorithm`
 
 Merging
 '''''''

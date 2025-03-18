@@ -3,7 +3,6 @@ Citing & Acknowledgements
 
 Authors:
 
-..
     - Original Code: Ben Caiello
 
     - Documentation: Ben Caiello and Jacob Kendrick
