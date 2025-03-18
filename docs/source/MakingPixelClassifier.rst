@@ -132,7 +132,9 @@ details window with the “Display Classifier Details” button before
 launching in Napari, as it will contain the information needed to match
 channel / label numbers to the desired channels / labels.
 
-   **Note! –** while Napari is open in this step (this does not apply
+.. warning:: 
+
+   While Napari is open in this step (this does not apply
    when Napari is opened any other way), the PalmettoBUG windows will be
    non-responsive, and if you try to move a PalmettoBUG window the
    entire program may crash! This error is because of how Python handles
@@ -203,22 +205,22 @@ Finally, run the prediction!
 
 |image6|
 
-.. note:: 
 
-   The predictions are written to the pixel classifier’s
-   /*classification_maps* sub-folder, where they are accessible by the
-   rest of the program for downstream steps. However, they are not
-   automatically displayed after prediction. You will want to examine
-   your pixel class predictions to see if they are capturing the classes
-   that you want accurately, and to do this you should launch the
-   classification map(s) in Napari. This can be done in the directory
-   display from inside PalmettoBUG, or you can open Napari in a separate
-   terminal from PalmettoBUG and navigate to the relevant directories
-   using your system native file explorer app. If you use the directory
-   display inside PalmettoBUG’s pixel classification tabs, then the
-   image will also be loaded into Napari beneath the classification
-   prediction, allowing you to easily go back and forth between the
-   predictions and the original image.
+The predictions are written to the pixel classifier’s
+/*classification_maps* sub-folder, where they are accessible by the
+rest of the program for downstream steps. However, they are not
+automatically displayed after prediction. 
+
+You will want to examine your pixel class predictions to see if they are capturing the classes
+that you want accurately, and to do this you should launch the
+classification map(s) in Napari. This can be done in the directory
+display from inside PalmettoBUG, or you can open Napari in a separate
+terminal from PalmettoBUG and navigate to the relevant directories
+using your system native file explorer app. If you use the directory
+display inside PalmettoBUG’s pixel classification tabs, then the
+image will also be loaded into Napari beneath the classification
+prediction, allowing you to easily go back and forth between the
+predictions and the original image.
 
 Creating Unsupervised Classifiers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -417,7 +419,9 @@ is a key plot for helping to annotate and merge the predicted classes.
   adjust the opacity of the class labels to see both the labels and the
   image beneath it better.
 
-|image9|\ When you accept the new labels, a new folder
+|image9|
+
+When you accept the new labels, a new folder
 (*merged_classification_maps)* is created in the pixel classifier
 directory, where the merged class predictions are written. Specifically,
 any class in the original classification maps that was labeled as

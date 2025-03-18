@@ -95,7 +95,11 @@ you to do is calculate Ripley’s statistics (K / L) as well as the
 pair-correlation function (referred to as ‘g’ in the program) between
 all cell types in the data set.
 
-A Graphical Explanation of Ripley’s statistics:
+*A Graphical Explanation of Ripley’s statistics:*
+
+|image6|
+
+|image7|
 
 The key takeaways from the graphical example above is that the Ripley’s
 statistics provide a way to see if cell types are associating with each
@@ -104,7 +108,6 @@ with values at every radius of interest. In PalmettoBUG, these types of
 graphs can be calculated for every cell type  cell type pair, with a
 few parameters, such as the range of radii, selected by the user:
 
-|image6|
 
 Some parameters of particular note are:
 
@@ -151,7 +154,9 @@ Some parameters of particular note are:
    (0, 1, 2, 3, … 98, 99, 100). The statistics at zero, of course always
    = 0.
 
-   **Note! –** the first few radii after zero essentially never find any
+.. note:: 
+
+   The first few radii after zero essentially never find any
    adjacent cells because the distance between cells is calculated from
    centroid-to-centroid (not from cell edge to cell edge). In my
    experience, these first few radii tend to create a sharp spike in the
@@ -179,7 +184,9 @@ significant, but should not be used on its own as there is no correction
 for multi-comparison – instead the functional ANOVA should be used to
 determine if two conditions differ overall.
 
-|image7|
+|image8|
+
+|image9|
 
 For statistically comparing the difference between how cell types
 cluster in conditions, SpaceANOVA uses functional ANOVA (fANOVA). This
@@ -198,7 +205,7 @@ the “SpaceANOVA statistics” button. You will then be able to either
 export the p-values from the fANOVA tests as a table, or plot them in a
 heatmap:
 
-|image8|
+|image10|
 
 These p-value statistics can be calculated from K, l, or g. Note that it
 is not uncommon for most adjusted p-values to be at or near 1.0 (this is
@@ -228,13 +235,13 @@ The distance calculation is performed using a Euclidean Distance
 Transform (EDT) on the pixel classes of interest, which is why this
 module is frequently referred to with the label EDT.
 
-Graphical Summary of the EDT method:
+*Graphical Summary of the EDT method:*
 
-|image9|
+|image11|
 
-EDT calculation window:
+*EDT calculation window:*
 
-|image10|
+|image12|
 
 The key parameters for the EDT calculation are as follows:
 
@@ -320,9 +327,9 @@ plot, clustering, dimensionality reduction, etc. covered in the
 Single-Cell Analysis documentation could take an EDT channel as an
 input, depending on the marker_class chosen.
 
-The outputs of the dedicated EDT functions are shown below:
+*The outputs of the dedicated EDT functions are shown below:*
 
-|image11|
+|image13|
 
 Key points include 1). the heatmap requires at least two markers with
 the marker_class “spatial_edt” to run. 2). The statistics function in
