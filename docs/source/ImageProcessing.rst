@@ -10,7 +10,7 @@ image processing tab:
 The Panel 
 ~~~~~~~~~~
 
-On the left half of the GUI you should see the Steinbock-style Panel
+On the left half of the GUI you should see the `Steinbock <https://github.com/BodenmillerGroup/steinbock>`-style Panel
 file, with four columns. Each column serves a different purpose:
 
 1. Channel – this column cannot be edited in the GUI, and represents the

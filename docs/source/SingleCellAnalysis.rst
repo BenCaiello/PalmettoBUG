@@ -603,7 +603,7 @@ into PalmettoBUG:
 
    2). The data will be saved exactly as it is – meaning that if you
    scaled or batch corrected the data, etc. those changes will be
-   propagated into the exported file\ **. If you want the raw, unaltered
+   propagated into the exported file. **If you want the raw, unaltered
    data** (except arcsinh transformation, which is always done), **load
    / reload the analysis immediately before exporting!**
 
