@@ -927,14 +927,19 @@ class SpatialANOVA():
         else:   
             space_anova['file_name'] = list(self.filenames)
             filenames = list(space_anova['file_name'].astype('str'))
-            if multi_or_single not in filenames:    ## if the provided filename is not in the available filenames, see if it is a substring of one of them
-                                                        ## (this is for allowing the filename without the extension to be provided)
-                                                        ## useful in the GUI in case .ome.fcs is not the format available (?)
-                for i in filenames:
-                    if i.find(multi_or_single) != -1:
-                        multi_or_single = i
-                        break
-            id = space_anova[space_anova['file_name'].astype('str') == multi_or_single]["sample_id"].values[0]
+            
+            if multi_or_single in list(space_anova['sample_id'].astype('str')):
+                id = multi_or_single
+            else:
+                if multi_or_single not in filenames:    ## if the provided filename is not in the available filenames, see if it is a substring of one of them
+                                                            ## (this is for allowing the filename without the extension to be provided)
+                                                            ## useful in the GUI in case .ome.fcs is not the format available (?)
+                    for i in filenames:
+                        if i.find(multi_or_single) != -1:
+                            multi_or_single = i
+                            break
+                id = space_anova[space_anova['file_name'].astype('str') == multi_or_single]["sample_id"].values[0]
+
             id_filename = roi_areas[int(id)]
             filename_without_extension = id_filename[:id_filename.rfind(".")]
             img = space_anova[space_anova['sample_id'] == id].copy()

@@ -111,6 +111,7 @@ class SpatialAnalysis:
             if id is None:
                 self.SpaceANOVA.plot_cell_maps(multi_or_single = 'ALL', cellType_key = clustering)
             else:
+                id = str(id)
                 plot = self.SpaceANOVA.plot_cell_maps(multi_or_single = id, cellType_key = clustering)
                 return plot
 

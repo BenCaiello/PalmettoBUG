@@ -79,8 +79,15 @@ animations that lay out how to use the various buttons of the GUI in **excruciat
 These slideshows were created & edited in PowerPoint.
 
 Also on the GitHub (in an /environments folder) will be a few text documents listing
-all the dependencies that are installed with PalmettoBUG / isoSegDenoise, using “pip freeze” 
+all the dependencies installed with PalmettoBUG / isoSegDenoise, using “pip freeze” 
 command to retrieve packages in installed in an environment I used in testing / development.
+You can use one of these files to run 
+   
+   >>> pip install -r "/path/to/environments/file.txt"
+
+Which should recreate the environment in question (at least in terms of python packages), allowing you to easily install PalmettoBUG & isoSegDenoise 
+into it without needin any additional dependencies, and without needing to worry about dependency conflicts.
+
 
 Example Data
 ~~~~~~~~~~~~~
