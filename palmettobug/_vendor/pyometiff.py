@@ -8,7 +8,7 @@ This file "vendorizes" the following package: https://github.com/filippocastelli
             except for a __future__ import statement that was moved to the otp of this file (creates an error if not)
 
 
-Changes:
+Changes (date: precise day uncertain, edits made January-March 2025):
 -- Only focused on the functions that I use in PalmettoBUG (OMETIFFReader and OMETIFFWriter) -- remove anything not needed for that
 -- Joined all files into one (this one!) --> remove relative imports
 -- Removed unused and most duplicate imports    (ex: renamed as for etree to be consistently "et")

@@ -10,7 +10,7 @@ image processing tab:
 The Panel 
 ~~~~~~~~~~
 
-On the left half of the GUI you should see the `Steinbock <https://github.com/BodenmillerGroup/steinbock>`_-style Panel
+On the left half of the GUI you should see the Steinbock-style Panel
 file, with four columns. Each column serves a different purpose:
 
 1. Channel – this column cannot be edited in the GUI, and represents the
@@ -89,7 +89,8 @@ sliding the threshold based on the quantile of values in the
 channel/image will ensure that the filtering threshold always falls in
 the range of values of the channel/image.
 
-*Example HPF results:*\ |image4|
+*Example HPF results:*
+|image4|
 
 Launching isoSegDenoise
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -195,7 +196,7 @@ further in the PalmettoBUG GUI.
 
 **DeepCell vs. Cellpose**
 
-DeepCell is far simpler than Cellpose: it only needs to know what
+Using DeepCell is far simpler than Cellpose: it only needs to know what
 channels to use (from the panel) and what images to process. It tends to
 create consistent, decent mask predictions with only this information –
 however in my experience it is not good at segmenting cell cytoplasm
@@ -218,7 +219,8 @@ Cellpose has no restrictions (although many of its models were trained
 on ‘non-commercial’ datasets, making a bit of a licensing gray area).
 
 *Example segmentation results (colored regions = segmentation
-masks):*\ |image9|
+masks):*
+|image9|
 
 In addition to Cellpose and Deepcell, it is worth noting that sometimes
 segmentation can be done using a pixel classifier inside PalmettoBUG,
@@ -299,6 +301,20 @@ denoisings, on your cell clustering or other single-cell results.
 As for what happens next, after clicking “Go to Analysis!” – well for
 that we’ll need to turn the page into the :doc:`SingleCellAnalysis`
 documentation.
+
+Links
+~~~~~
+
+These are links to some packages / software / manuscripts that can be helpful to understand this page of documentation,
+as either code or techniques / ideas from these are used in PalmettoBUG's & isoSegDenoise's image processing module.
+
+`steinbock <https://github.com/BodenmillerGroup/steinbock>`_
+
+`DeepCell / Mesmer <https://deepcell.readthedocs.io/en/master/app-gallery/mesmer.html>`_ 
+
+`CellPose <https://github.com/MouseLand/cellpose>`_ 
+
+`scikit image <https://scikit-image.org/>`_ 
 
 .. |image1| image:: media/ImageProcessing/ImageProcessing1.png
    :width: 6.12268in
