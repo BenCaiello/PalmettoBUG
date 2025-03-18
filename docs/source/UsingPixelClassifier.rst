@@ -109,6 +109,8 @@ extending cell masks.
 
 There are two ways to classify cell masks: mode and FlowSOM.
 
+**Mode**
+
 Mode is the easier and simpler method: cells are simply assigned to the
 pixel class that is most common within the mask. To do this, all you
 need to do is select the folder of masks to classify (the folder of
@@ -120,6 +122,8 @@ Typically, the mode method is used more with supervised classifiers.
 The output of the mask classification will be written to a sub-folder of
 the */classy_masks* folder inside the project, with a name automatically
 derived from the used mask folder and classifier name.
+
+**secondary FlowSOM**
 
 The more complex method is to use a secondary FlowSOM. This method
 closely imitates the Angelo lab Pixie / ark-analysis pipeline for
