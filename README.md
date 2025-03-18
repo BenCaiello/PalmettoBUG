@@ -4,7 +4,7 @@ Final development steps (this package and its subsidiary / sister package, isose
 
     - Installation: this means getting onto PyPI, adding isosegdenoise to the list of dependencies, final re-testing in fresh installation environments.
 
-    - Documentation: clean & add .odp (slideshows) files, edit existing documentation
+    - Documentation: edit existing documentation, add new / missing features to docs
 
     - Final features & debugging
 

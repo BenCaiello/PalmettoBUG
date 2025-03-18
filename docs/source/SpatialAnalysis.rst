@@ -108,6 +108,7 @@ with values at every radius of interest. In PalmettoBUG, these types of
 graphs can be calculated for every cell type  cell type pair, with a
 few parameters, such as the range of radii, selected by the user:
 
+|image8|
 
 Some parameters of particular note are:
 
@@ -183,8 +184,6 @@ clustering between treatment vs. control is most statistically
 significant, but should not be used on its own as there is no correction
 for multi-comparison – instead the functional ANOVA should be used to
 determine if two conditions differ overall.
-
-|image8|
 
 |image9|
 
