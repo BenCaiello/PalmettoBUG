@@ -5,7 +5,7 @@ For now this section will be short / just be my best guesses for common problems
 
     *1). I made a panel file already outside of PalmettoBUG -- do I have to create it inside PalmettoBUG again?*
 
-        -- No you can use panel / analysis_panel / metadata files that were created outside PalmettoBUG, they just need to match the formatting of PalmettoBUG!
+        -- Yes, you can use a panel (or analysis_panel / metadata) file that was created outside PalmettoBUG! They just need to match the formatting expected by PalmettoBUG.
         This includes a few factors: 1). these files should be .csv files (comma separated -- no alternate delimiters!) 2). They must have the same column names
         and follow the same conventions of PalmettoBUG versions of these files. 3). They must be placed in the same location in a PalmettoBUG project directory
         so that the program can find them at the appropriate steps (overwriting any files PalmettoBUG auto-generated).

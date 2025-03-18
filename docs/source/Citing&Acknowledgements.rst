@@ -11,6 +11,8 @@ Authors:
 
     - Supervision: Jacob Kendrick, Silvia Guglietta, and Carsten Krieg
 
+Work performed at Medical University of South Carolina in Charleston, South Carolina.
+
 For problems / questions about the code or documentation of PalmettoBUG, open an issue at the GitHub repository!
 
 For questions about the example data, workflow, or manuscript -- 
