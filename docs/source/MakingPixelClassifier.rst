@@ -1,8 +1,9 @@
 Making a Pixel Classifier
 =========================
 
-Pixel classifiers are made in the first sub-tab of the Pixel
-Classification tab:
+Go to the bottom of the page for a list of useful links to packages / algorithms used in this module of PalmettoBUG.
+
+Pixel classifiers are made in the first sub-tab of the Pixel Classification tab:
 
 |image1|
 
@@ -462,6 +463,17 @@ This style of segmentation is quite reasonable for things like nuclear
 segmentation (as usually nuclei are generally circular, well separated,
 etc.), and nuclear segmentation can often be followed up by expansion of
 the masks to approximately capture the cytoplasm around the nuclei.
+
+Links
+~~~~~
+
+These are links to some packages / software / manuscripts that can be helpful to understand this page of documentation,
+as either code or techniques / ideas from these are used in PalmettoBUG's pixel classifiers.
+
+`QuPath classifiers <https://qupath.readthedocs.io/en/0.5/docs/tutorials/pixel_classification.html>`_
+
+`Pixie / ark-analysis <https://github.com/angelolab/ark-analysis>`_ 
+
 
 .. |image1| image:: media/MakePxClass/PxMake1.png
    :width: 6.5in

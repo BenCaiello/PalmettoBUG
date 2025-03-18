@@ -27,12 +27,16 @@ Batch Correction
    different batches or technical replicates. In PalmettoBUG, batch
    correction is only provided by the ComBat algorithm through scanpy.
 
+   Link: https://scanpy.readthedocs.io/en/stable/api/generated/scanpy.pp.combat.html
+
 CATALYST
 ^^^^^^^^
 
    An R *package* whose functions and associated *manuscript* served as
    the inspiration and seed for much of the PalmettoBUG *analysis*
-   functions.
+   functions. 
+   
+   Link: https://github.com/HelenaLC/CATALYST/ 
 
 Clustering
 ^^^^^^^^^^
@@ -50,13 +54,13 @@ Metaclustering:
 '''''''''''''''
 
    A clustering derived by the FlowSOM unsupervised algorithm acting on
-   the single-cell expression data.
+   the single-cell expression data. See :ref:`FlowSOM`
 
 Leiden
 ''''''
 
    A clustering derived by the Leiden unsupervised algorithm acting on a
-   UMPA of the single-cell expression data.
+   UMPA of the single-cell expression data. See :ref:`Leiden Algorithm`
 
 Merging
 '''''''
@@ -69,7 +73,7 @@ Merging
 Classification
 ''''''''''''''
 
-Any cell clustering derived from a pixel classifier.
+   Any cell clustering derived from a pixel classifier. See :ref:`Pixel Classification`
 
 CN
 '''
@@ -132,7 +136,9 @@ UMAP
    Uniform Manifold Approximation and Projection. This creates a
    non-linear projection of the data into a lower dimensional space (2
    dimensions for plotting / leiden clustering in PalmettoBUG). It is
-   similar to tSNE.
+   similar to tSNE. In PalmettoBUG this is implemented through scanpy.
+
+   Link: https://scanpy.readthedocs.io/en/stable/generated/scanpy.tl.umap.html
 
 fANOVA
 ^^^^^^
@@ -142,6 +148,7 @@ fANOVA
    values. In the context of PalmettoBUg / SpaceANOVA, this means taking
    into account the spatial relationship of celltypes across an entire
    range of distances, instead of only testing one distance at a time.
+    
 
 FCS files
 ^^^^^^^^^
@@ -168,6 +175,8 @@ FlowSOM
    clustering of the grid points into a pre-set number of
    “metaclusters”. Cells are assigned to each *cluster* / *metacluster*.
 
+   Link: https://github.com/saeyslab/FlowSOM_Python
+
 Image Processing
 ^^^^^^^^^^^^^^^^
 
@@ -193,6 +202,8 @@ isoSegDenoise
    restrictions affecting their segmentation models, which might be
    incompatible with PalmettoBUG’s GPL-3 license.
 
+   Link: https://github.com/BenCaiello/isoSegDenoise
+
 Leiden Algorithm
 ^^^^^^^^^^^^^^^^
 
@@ -201,7 +212,10 @@ Leiden Algorithm
    that cells in similar locations of the UMAP projection will be
    clustered together. Unlike *FlowSOM*, it does not take a preset
    metaclustering number, and the final number of clusters it finds is
-   variable.
+   variable. In PalmettoBUG, it is implemented
+   through the leiden options in scanpy.
+
+   Link: https://scanpy.readthedocs.io/en/stable/generated/scanpy.tl.leiden.html 
 
 Masks
 ^^^^^
@@ -326,6 +340,8 @@ SpaceANOVA
    statistics* + *fANOVA* to test the spatial associations of
    *clusterings* / cell types in a dataset.
 
+   Link: https://github.com/sealx017/SpaceANOVA
+
 Spatial EDT
 ^^^^^^^^^^^
 
@@ -343,6 +359,8 @@ Steinbock
    A python *package* from the Bodenmiller group that served as the
    inspiration & seed for much of image processing portion of the
    PalmettoBUG pipeline.
+
+   Link: https://github.com/BodenmillerGroup/steinbock
 
 Supervised Algorithm
 ^^^^^^^^^^^^^^^^^^^^

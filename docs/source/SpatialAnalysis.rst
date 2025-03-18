@@ -1,6 +1,8 @@
 Spatial Analysis
 ================
 
+Go to the bottom of the page for a list of useful links to packages / algorithms used in this module of PalmettoBUG.
+
 Getting Started
 ~~~~~~~~~~~~~~~
 
@@ -348,6 +350,16 @@ calculation or change the marker_class of EDT channels in a classifier,
 such as if you exit / re-enter PalmettoBUG — then you can directly load
 the EDT from the CSV, setting the marker_class when you do so, instead
 of needing to redo the calculation.
+
+Links
+~~~~~
+
+These are links to some packages / software / manuscripts that can be helpful to understand this page of documentation,
+as either code or techniques / ideas from these are used in PalmettoBUG's spatial module.
+
+`squidpy <https://github.com/scverse/squidpy>`_
+
+`SpaceANOVA <https://github.com/sealx017/SpaceANOVA>`_ 
 
 .. |image1| image:: media/SpatialAnalysis/Spatial1.png
    :width: 6.06191in

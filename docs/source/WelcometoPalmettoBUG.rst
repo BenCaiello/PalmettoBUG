@@ -31,7 +31,7 @@ To install, first setup a **Python 3.10** environment.
    allow python 3.10 *(so you would need to download an older version of anndata before installing PalmettoBUG, or something like that)*. And there
    may be other conflicts. If you can, stick with python 3.10!
 
-I mainly used conda environments to develop and test PalmettoBUG.
+I mainly used `conda <https://docs.conda.io/projects/conda/en/latest/index.html>`_ environments to develop and test PalmettoBUG.
 
 Enter your environment and issue the command:
 
@@ -131,10 +131,11 @@ consult these package’s for information about configuring GPU support.
 Licensing information:
 ~~~~~~~~~~~~~~~~~~~~~~
 
-PalmettoBUG is under the GPL-3 opensource license. Much of the code &
-dependencies of PalmettoBUG came from GPL-2+ projects across a few
-different programming languages, necessitating that PalmettoBUG itself
+PalmettoBUG is under the `GPL-3 <https://github.com/BenCaiello/PalmettoBUG?tab=License-1-ov-file>`_ opensource license. Much of the code &
+dependencies of PalmettoBUG came from GPL-2+ projects across a few different programming languages, necessitating that PalmettoBUG itself
 be under the same license. 
+
+There is a good amount of copied / derived code in PalmettoBUG, which natrually remains also under their `original licenses <https://github.com/BenCaiello/PalmettoBUG/blob/main/Other_License_Details.txt>`_.
 
 .. warning::
 
@@ -149,7 +150,7 @@ be under the same license.
 Details of Documentation creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The pages of this documentation was created in Microsoft Word (odt_docs) or in jupyterlab (notebooks).
+The pages of this documentation were created in Microsoft Word (odt_docs) or in jupyterlab (notebooks).
 The odt files were then translated into .rst files using the pandoc library. These .rst files were subsequently
 edited into their final form (this mainly meant getting the proper relative links between pages and to images and fixing formatting).
 Then, sphinx (using the automated readthedocs pipeline) was used to convert the .rst files 
@@ -161,9 +162,10 @@ Microsoft PowerPoint from screenshots (using Windows Snipping Tool) of the Palme
 other programs (like Napari & Windows File Explorer) that are used while analysing the example data  
 Additionally, (of course) PowerPoint objects such as arrows, shapes, etc. were used to compose and arrange the figures, before a 
 final screenshot was taken to save the images as they are displayed here.
-These screenshots are used under the assumption of fair use given the limited use of such screenshots and open-source / academic / non-commercial 
-nature of the PalmettoBUG program and its documentation -- if this is inaccurate I am happy to remove any offending parts.
-(such copyright concerns could only likely apply to icons in / screenshots of Windows File Explorer, which I may begin to edit anyway in order to reduce any such concerns)
+These screenshots are used under the assumption of fair use given the limited use of such screenshots, the open-source / academic / non-commercial 
+nature of the PalmettoBUG program and its documentation, and the lack of financial consequences from such screenshots -- if this is inaccurate I am happy to remove 
+any offending parts of this documentation. (such copyright concerns could only likely apply to icons in / screenshots of Windows File Explorer, where I may begin to 
+make edits in the documentation anyway, in order to reduce any such concerns)
 
 
 .. |image1| image:: media/Welcome1.png

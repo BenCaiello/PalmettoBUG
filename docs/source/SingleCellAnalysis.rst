@@ -1,6 +1,8 @@
 Single-Cell Analysis
 ====================
 
+Go to the bottom of the page for a list of useful links to packages / algorithms used in this module of PalmettoBUG.
+
 Loading a Single-Cell Analysis from Image Processing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -652,6 +654,24 @@ Region properties tend to have very different distributions / scales
 than normal antigens and the types of regionprops offered by the
 PalmettoBUG GUI are limited, so this is not anticipated to be an option
 that is commonly used.
+
+
+Links
+~~~~~
+
+These are links to some packages / software / manuscripts that can be helpful to understand this page of documentation,
+as either code or the techniques / ideas from these are used in PalmettoBUG's single-cell analysis module.
+
+`CATALYST <https://github.com/HelenaLC/CATALYST/>`_
+
+`CATALYST workflow <https://www.bioconductor.org/packages/release/workflows/vignettes/cytofWorkflow/inst/doc/cytofWorkflow.html>`_
+
+`anndata <https://github.com/scverse/anndata>`_
+
+`scanpy <https://github.com/scverse/scanpy>`_ 
+
+`FlowSOM <https://github.com/saeyslab/FlowSOM_Python>`_ 
+
 
 .. |image1| image:: media/SingleCellAnalysis/ImageProcessing12.png
    :width: 5.72982in

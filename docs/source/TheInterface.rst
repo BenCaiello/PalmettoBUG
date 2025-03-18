@@ -142,6 +142,16 @@ no longer offer default file / folder names.
    chance that you cause a catastrophic error that crashes the entire
    program!).
 
+Links
+~~~~~
+
+These are links to some packages / software / manuscripts that can be helpful to understand this page of documentation,
+as either code or techniques / ideas from these are used in PalmettoBUG's interface.
+
+`customtkinter <https://github.com/tomschimansky/customtkinter>`_
+
+`CTk theme builder <https://github.com/avalon60/ctk_theme_builder>`_ 
+
 .. |image1| image:: media/GUI1.png
    :width: 6.5in
    :height: 2.85069in
