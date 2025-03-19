@@ -40,6 +40,7 @@ jobs:
         python tests/test_analysis.py
         python tests/test_make_px_classifier.py
         python tests/test_spatial.py
+        pip freeze
     #   pytest
     #     python tests/test_fetch.py
 
