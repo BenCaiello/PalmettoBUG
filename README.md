@@ -1,13 +1,21 @@
 ## Warning! This package is still under development!
 
-Final development steps (this package and its subsidiary / sister package, isosegdenoise):
+Final development plans:
 
-    - Installation: this means getting onto PyPI, adding isosegdenoise to the list of dependencies, final re-testing in fresh installation environments.
+    1). Installation: this means getting onto PyPI, adding isosegdenoise to the list of dependencies (once iSD is on PyPI), and final re-testing in fresh installation environments testing, saving environments as .txt files with "pip freeze" or "conda list" into the /environments folder:
+        MacOS, Windows, and Linux (Python 3.10 only, using local windows installation & GitHub runners -- won't be testing GUI on Linux / MacOS without collaborator help)
+        Python 3.9 (Windows, local install only)
+        GPU support with conda-forge packages / "conda list" (Windows, Python 3.10, local install)
 
-    - Documentation: edit existing documentation, add new / missing features to docs
-
-    - Final features & debugging
-
+    2). Documentation: 
+        - re-run notebooks (update, check differences from original, be sure of consistency on fresh installation!)
+        - Update images and descriptions with new features / missing features
+            -- "CytoNorm" mimic
+            -- scatterplot option
+            -- clustering --> classy  mask, and classy mask / pixel class --> PNG options
+            -- Added parameters to existing functions (is_torch, rlen, etc.)
+        - update GPU section
+        - Edit images & screenshots to reduce / use open-source alternatives to windows explorer
 
 ## Welcome to PalmettoBUG!
 
@@ -35,19 +43,14 @@ PalmettoBUG is intended to accomplish a few things:
 
 **PalmettoBUG is still under development, however once published on pip**, its installation (in a clean, **Python 3.10** environment!) should be as simple as running:
 
-    > pip install palmettobug[tensorflow]
-
-Deepcell / Mesmer was originally implemented in tensorflow. I converted that model (using the tf2onnx package) into an Onnx model, so that it can be run in pytorch.
-This onnx version of the model has not be extensively tested, but from what I've seen is very similar -- BUT NOT IDENTICAL -- to the original mesmer model. The 
-advantages of using the PyTorch model is that then tensorflow, keras, and associated packages are no longer needed (which saves a lot of downlaod) and GPU support is
-much easier to install for Pytorch alone (Cellpose already uses Pytorch). To not install tensorflow, and use the PyTorch Mesmer model instead, use the installation command:
-
     > pip install palmettobug
 
-Note that if you later install tensorflow, keras, etc. in this environment then palmettobug will default to using that instead (if palmettobug finds tensorflow available for import, then it will prefer it to using PyTorch for Mesmer predictions).
+Deepcell / Mesmer was originally implemented in tensorflow. I converted that model (using the tf2onnx package) into an Onnx model, so that it can be run in pytorch.
+This onnx version of the model has not be extensively tested, and I know that it is not perfectly identical to the original mesmer model. The 
+advantages of using the PyTorch model is that then tensorflow, keras, and associated packages are no longer needed (which saves a lot of download) and GPU support is
+much easier to install for Pytorch alone (Cellpose already uses Pytorch). Right now, tensorflow is automatically installed (as the pytorch version may be too different from the original). To activate / test the PyTorch version of Mesmer, uninstall tensorflow from your environment -- palmettobug will switch to PyTorch if it can't find tensorflow.
 
-
-**Future: Either of these commands also will install the sister package _isoSegDenoise_ in the same environment.** That sister package is unique in that it is a fully independent, separate program for only the denoising / segmentation (separated to avoid licensing conflicts with GPL-3, as deepcell and cellpose models do or might have non-commercial-use clauses attached to them.). The two program should cooperate seamlessly, as the needed file structure and inputs/ouputs of isoSegDenoise precisely matches that of PalmettoBUG, and the two program share a good amount of code, giving them a similar appearance.
+**Future: pip will also automatically install the sister package _isoSegDenoise_ in the same environment.** That sister package is unique in that it is a fully independent, separate program for only the denoising / segmentation (separated to avoid licensing conflicts with GPL-3, as deepcell and cellpose models do or might have non-commercial-use clauses attached to them.). The two program should cooperate seamlessly, as the needed file structure and inputs/ouputs of isoSegDenoise precisely matches that of PalmettoBUG, and the two program share a good amount of code, giving them a similar appearance.
 
 **These packages are not yet released on pip -- so for now, you would need to install both packages individually in the same environment, using a command like >>> pip install C:/path/to/the/folder/containing/pyproject.toml !**
 
@@ -59,7 +62,7 @@ in the conda environment where the package was installed.
 
 ## Documentation
 
-Step-by-step documentation of what can be done in the GUI will be found in the **animated** powerpoint file inside PalmettoBUG itself / this github repo, or at readthedocs: __________________________________. Tutorial notebooks for using this package outside the GUI can be found in this repository or at the readthedocs website.
+Step-by-step documentation of what can be done in the GUI will be found in the **animated** powerpoint file inside PalmettoBUG itself / this github repo, or at readthedocs: https://palmettobug.readthedocs.io/en/latest/. Tutorial notebooks for using this package outside the GUI can be found in this repository or at the readthedocs website.
 
 ## LICENSE
 
@@ -67,5 +70,5 @@ This package is licensed under the GPL-3 license. However, much of the code in i
 
 ## Citation
 
-If you use this work in your data analysis, software package, or paper -- a citation of this repository or its associated paper (TBD ____________) would be appreciated. 
+If you use this work in your data analysis, software package, or paper -- a citation of this repository or its associated preprint / paper (TBD ____________) would be appreciated. 
 

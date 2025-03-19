@@ -35,13 +35,13 @@ squidpy = "1.6.*"
 igraph = "0.*"
 loguru = "0.*"
 mudata = "0.*"
-# leidenalg = "0.10.2"
+leidenalg = "0.10.2"
 sympy = "<=1.13.1"
 sortedcontainers = "*"
 defusedxml = "0.*"
 
 [tool.poetry.group.tensorflow]
-optional = true
+optional = false
 
 [tool.poetry.group.tensorflow.dependencies]
 tensorflow = ">=2.8.0,<=2.13.*"
