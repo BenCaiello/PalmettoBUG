@@ -1320,7 +1320,6 @@ class Analysis:
                 palette = 1
             elif hue in self.data.obs.columns:
                 data[hue] = list(self.data.obs[hue])
-        print(data[hue].unique())
         figure = plt.figure()
         ax = plt.gca()
         sns.scatterplot(data, 
