@@ -2944,10 +2944,10 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.hue = ctk.CTkOptionMenu(master = self, values = color_list)
         self.hue.grid(column= 1, row = 4, padx = 5, pady = 5)
 
-        label_4 = ctk.CTkLabel(self, text = "Point Size:")
+        label_4 = ctk.CTkLabel(self, text = "Point Size: \n (automatically determined if not a number)")
         label_4.grid(column = 0, row = 5)
 
-        self.size = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "1"))
+        self.size = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "auto"))
         self.size.grid(column= 1, row = 5, padx = 5, pady = 5)
 
         label_5 = ctk.CTkLabel(self, text = "Transparency (alpha):")
@@ -2984,18 +2984,26 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                     filename: str = "Scatter_plot") -> None:
         '''  '''
         try:
-            size = float(size)
             alpha = float(alpha)
-        except:
+        except Exception as e:
             tk.messagebox.showwarning("Warning!", 
-                message = "size and alpha must both be numerical! Cancelling plot!")
+                message = "Alpha must be numerical! Cancelling plot!")
             self.focus()
             return
+        try:
+            size = float(size)
+        except Exception as e:
+            size = None
         if filename_checker(filename, self):
             return
         if not overwrite_approval(f"{self.master.cat_exp.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
             return
-        figure = self.master.cat_exp.plot_scatter(antigen1, antigen2, hue = hue, filename = filename)
+        figure = self.master.cat_exp.plot_scatter(antigen1, 
+                                                 antigen2, 
+                                                 hue = hue, 
+                                                 size = size, 
+                                                 alpha = alpha, 
+                                                 filename = filename)
         self.master.save_and_display(filename = filename, sizeX = 550, sizeY = 550)
         if self.pop_up.get() is True:
             Plot_window_display(figure)
