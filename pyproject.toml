@@ -5,7 +5,7 @@ description = "A GUI for (imaging) mass cyometry analysis predominantly based on
 authors = ["Ben Caiello <caiello@musc.edu>"]
 license = "GPL-3"
 readme = "README.md"
-repository = "https://github.com/BenCaiello/PALMETTO_BUG"
+repository = "https://github.com/BenCaiello/PalmettoBUG"
 
 [tool.poetry.dependencies]
 python = ">=3.9, <3.11"
