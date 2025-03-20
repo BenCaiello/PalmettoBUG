@@ -26,7 +26,8 @@ from ..Analysis_functions.WholeClassAnalysis import WholeClassAnalysis
 from ..Analysis_widgets.Analysis_GUI import MatPlotLib_Display, data_table_exportation_window
 from .Classifiers_GUI import quick_option_dir_disp
 from .Classifiers import plot_pixel_heatmap
-from .use_classifiers import (extend_masks_folder, 
+from .use_classifiers import (plot_classes,
+                              extend_masks_folder, 
                               slice_folder, 
                               secondary_flowsom, 
                               classify_from_secondary_flowsom, 
@@ -143,6 +144,13 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.change_labels_button = ctk.CTkButton(master = self, text = "View / Edit \n Class number : biological label \n assignments")
             self.change_labels_button.grid(padx = 3, pady = 3, column = 1, row = 3, columnspan = 2)
 
+            self.plot_classes = ctk.CTkButton(master = self, text = "Plot Classes as PNG files", command = self.launch_classes_as_png)
+            self.plot_classes.grid(padx = 3, pady = 3, column = 1, row = 4, columnspan = 2)
+
+        def launch_classes_as_png(self):
+            ''''''
+            classes_as_png_window(self)
+        
         def launch_bio_labels(self) -> None:
             if self.master.classifier_type is None:
                 tk.messagebox.showwarning("No Classifier Loaded!", message = "No Classifier Loaded!")
@@ -1393,3 +1401,62 @@ class whole_class_analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         def plot_heatmap(self, to_plot):
             self.master.analysis_exp_whole.plot_heatmap(to_plot, filename = f"Heatmap of {to_plot}")
             self.display3.update_image(self.master.analysis_exp_whole.save_dir + f"/Heatmap of {to_plot}.png")
+
+
+class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
+    ''''''
+    def __init__(self, master) -> None:
+        super().__init__(master)
+
+        label1 = ctk.CTkLabel(master = self, text = "Write classifications as png files / plots")
+        label1.grid(padx = 3, pady = 3)
+
+        label2 = ctk.CTkLabel(master = self, text = "Convert Pixel Classification (currently loaded classifier only) \n or"
+                                                    " classy masks (any) to .png's:")
+        label2.grid(padx = 3, pady = 3)
+        
+        self.option1 = ctk.CTkOptionMenu(master = self, values = ["pixel classification", "classy masks"])
+        self.option1.grid(padx = 3, pady = 3)
+
+        label3 = ctk.CTkLabel(master = self, text = "Select folder to convert")
+        label3.grid(padx = 3, pady = 3)
+
+        if_pixel_classifier = ["classification_maps", "merged_classification_maps"]
+
+        self.option2 = ctk.CTkOptionMenu(master = self, values = [""])
+        self.option2.grid(padx = 3, pady = 3)
+
+        def refresh_option2(choice):
+            if choice == "pixel classification":
+                self.option2.configure(values = [i for i in if_pixel_classifier if i in os.listdir(self.master.master.active_classifier_dir)])
+            elif choice == "classy masks":
+                self.option2.configure(values = os.listdir(f"{self.master.master.main_directory}/classy_masks"))
+
+        self.option1.configure(command = refresh_option2)
+
+        ## output folder will be automatically parallel to the selected folder (just append "_PNG_conversion" or something like that)
+        button = ctk.CTkButton(master = self, text = "Plot / Convert!", command = lambda: self.convert_to_png(self.option1.get(),
+                                                                                                            self.option2.get()))
+        button.grid(padx = 3, pady = 3)
+
+        self.after(200, self.focus())
+
+    def convert_to_png(self, map_type = "pixel classification", choice = "classification_maps"):
+        ''''''
+        ## Step 1: use map_type & choice to identify folder to convert
+        if map_type == "pixel classification":
+            path_to_folder = f"{self.master.master.active_classifier_dir}/{choice}"
+        elif map_type == "classy masks":
+            path_to_classy_mask = f"{self.master.master.main_directory}/classy_masks/{choice}"
+            if "merged_classification_maps" in os.listdir(path_to_classy_mask):
+                path_to_folder = f"{path_to_classy_mask}/merged_classification_maps"
+            else:
+                path_to_folder = f"{path_to_classy_mask}/{choice}"
+
+        path_to_ouput = path_to_folder + "_PNG_conversion"
+        if not os.path.exists(path_to_ouput):
+            os.mkdir(path_to_ouput)
+
+        ## Step 2: convert folder & write png's to a parallel folder to the original (with _PNG appended to the name or somesuch)
+        plot_classes(path_to_folder, path_to_ouput)
+        self.destroy()
