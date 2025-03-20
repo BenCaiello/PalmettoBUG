@@ -1091,7 +1091,8 @@ class SpatialNeighbors:        ## formerly SquipySpatial
                                   seed: int  = 42, 
                                   resolution: float  = 1.0, 
                                   min_dist: float  = 0.1, 
-                                  n_neighbors: int  = 15, 
+                                  n_neighbors: int  = 15,
+                                  flavor = "leidenalg", 
                                   plot_filename: Union[None, str] = None,
                                   **kwargs):
         '''
@@ -1163,7 +1164,7 @@ class SpatialNeighbors:        ## formerly SquipySpatial
             sc.tl.leiden(new_anndata, 
                         resolution = resolution, 
                         random_state = seed,
-                        flavor = "igraph", 
+                        flavor = flavor, 
                         n_iterations = 2)
             new_anndata.obs['leiden'] = new_anndata.obs['leiden'].astype('int') + 1
             new_anndata.obs['leiden'] = new_anndata.obs['leiden'].astype('category')
