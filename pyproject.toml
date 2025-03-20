@@ -39,6 +39,7 @@ leidenalg = "0.10.2"
 sympy = "<=1.13.1"
 sortedcontainers = "*"
 defusedxml = "0.*"
+isosegdenoise = "*"
 
 [tool.poetry.group.tensorflow]
 optional = false
