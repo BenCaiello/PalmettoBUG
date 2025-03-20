@@ -42,6 +42,7 @@ def test_scaling(my_analysis):
     original_X = my_analysis.data.X.copy()
     greater_than_zero = (original_X > 0)
     for i in scaling_options:
+        print(1)
         my_analysis.do_scaling(scaling_algorithm = i)
         if i != "unscale":
             assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < 1, "Scaling did not change all the data points > 0!"
@@ -51,6 +52,7 @@ def test_scaling(my_analysis):
 def test_comBat(my_analysis):
     original_X = my_analysis.data.X.copy()
     greater_than_zero = (original_X > 0)
+    print(1)
     my_analysis.do_COMBAT(batch_column = "patient_id")
     #print((my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum())
     assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < (len(original_X[greater_than_zero]) / 10) , "ComBat did not change all the data points > 0!"
