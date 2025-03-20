@@ -30,8 +30,10 @@ jobs:
 
       - name: Build release distributions
         run: |
-          python -m pip install poetry
-          poetry build
+          python -m venv build
+          build/bin/pip install poetry
+          mkdir dist
+          build/bin/poetry build
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4

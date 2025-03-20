@@ -2,8 +2,7 @@
 
 Final development plans:
 
-    1). Installation: this means getting onto PyPI, and final re-testing in fresh installation environments testing, saving environments as .txt files with "pip freeze" or "conda list" into the /environments folder:
-        MacOS, Windows, and Linux (Python 3.10 only, using local windows installation & GitHub runners -- won't be testing GUI on Linux / MacOS without collaborator help)
+    1). Installation: this means final re-testing in fresh installation environments testing, saving environments as .txt files with "pip freeze" or "conda list" into the /environments folder:
         Python 3.9 (Windows, local install only)
         GPU support with conda-forge packages / "conda list" (Windows, Python 3.10, local install)
 
@@ -18,10 +17,9 @@ Final development plans:
         - Edit images & screenshots to reduce / use open-source alternatives to windows explorer / excel
         - update text, incorporate proofreading edits
 
-    3). address (if causing a problem) or perhaps silence, excessive warnings
+    3). Excessive warnings: address (if possible, or if genuine errors are occuring) or perhaps silence
 
 ## Welcome to PalmettoBUG!
-
 
 PalmettoBUG is a pure-python GUI in customtinker that, along with its sister package isoSegDenoise, can preprocess, segment, and analyze high-dimensional image or flow cytometry data,
 especially mass cytometry / imaging mass cytometry data. The GUI is built mostly prominently on code from:
@@ -44,7 +42,7 @@ PalmettoBUG is intended to accomplish a few things:
 
 ## Installation:
 
-**PalmettoBUG is still under development, however once published on pip**, its installation (in a clean, **Python 3.10** environment!) should be as simple as running:
+Its installation (in a clean, **Python 3.10** environment!) should be as simple as running:
 
     > pip install palmettobug
 
@@ -52,10 +50,6 @@ Deepcell / Mesmer was originally implemented in tensorflow. I converted that mod
 This onnx version of the model has not be extensively tested, and I know that it is not perfectly identical to the original mesmer model. The 
 advantages of using the PyTorch model is that then tensorflow, keras, and associated packages are no longer needed (which saves a lot of download) and GPU support is
 much easier to install for Pytorch alone (Cellpose already uses Pytorch). Right now, tensorflow is automatically installed (as the pytorch version may be too different from the original). To activate / test the PyTorch version of Mesmer, uninstall tensorflow from your environment -- palmettobug will switch to PyTorch if it can't find tensorflow.
-
-**Future: pip will also automatically install the sister package _isoSegDenoise_ in the same environment.** That sister package is unique in that it is a fully independent, separate program for only the denoising / segmentation (separated to avoid licensing conflicts with GPL-3, as deepcell and cellpose models do or might have non-commercial-use clauses attached to them.). The two program should cooperate seamlessly, as the needed file structure and inputs/ouputs of isoSegDenoise precisely matches that of PalmettoBUG, and the two program share a good amount of code, giving them a similar appearance.
-
-**These packages are not yet released on pip -- so for now, you would need to install both packages individually in the same environment, using a command like >>> pip install C:/path/to/the/folder/containing/pyproject.toml !**
 
 Then to launch PalmettoBUG, simply enter:
 
