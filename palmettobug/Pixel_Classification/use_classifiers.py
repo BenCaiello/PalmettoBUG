@@ -32,7 +32,8 @@ from ..Analysis_functions.Analysis import _quant
 from ..Utils.Exceptions import NoSharedFilesError
 
 
-__all__ = ["merge_classes", 
+__all__ = ["plot_classes",
+            "merge_classes", 
             "merge_folder",
             "slice_folder",
             "mode_classify_folder",
@@ -45,6 +46,17 @@ def toggle_in_gui():
     global _in_gui
     _in_gui = not _in_gui
 
+def plot_classes(class_map_folder, output_folder):
+    '''
+    Goal: allow classy masks and pixel classification outputs to be written as .png files
+    '''
+    if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
+    for i in os.listdir(class_map_folder):
+        px_class = tf.imread(f"{class_map_folder}/{i}").astype('int')
+        figure = tf.imshow(px_class)[0]
+        figure.savefig(f"{output_folder}/{i[:-5]}.png", bbox_inches = "tight")
+        plt.close()
 
 def merge_classes(classifier_mask: np.ndarray[int], 
                   merging_table: pd.DataFrame,

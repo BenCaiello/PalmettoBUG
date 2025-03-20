@@ -96,7 +96,11 @@ class Analysis_py_widgets(ctk.CTkFrame):
 
         self.scatter = ctk.CTkButton(master = self, text = 'Scatterplot', command = self.launch_scatterplot)
         self.scatter.grid(column = 2, row = 3, padx = 5, pady = 5)
-        #self.scatter.configure(state = 'disabled')
+        self.scatter.configure(state = 'disabled')
+
+        self.classy_masker = ctk.CTkButton(master = self, text = 'Clustering to classy masks', command = self.launch_classy_masker)
+        self.classy_masker.grid(column = 2, row = 4, padx = 5, pady = 5)
+        self.classy_masker.configure(state = 'disabled')
 
 
     def initialize_experiment_and_buttons(self, directory: str) -> None: 
@@ -107,6 +111,8 @@ class Analysis_py_widgets(ctk.CTkFrame):
         Analysis_widget_logger = Analysis_logger(directory).return_log() 
         self.cat_exp.load_data(self.directory)  
         self.data_export_buton.configure(state = 'normal')
+        self.scatter.configure(state = 'normal')
+        self.classy_masker.configure(state = 'normal')
         regionprops_directory = self.cat_exp.directory[:-4] + "/regionprops/"
         try:
             roi_areas = os.listdir(regionprops_directory)   ## TODO: Fix this -- it is not working.
@@ -134,6 +140,9 @@ class Analysis_py_widgets(ctk.CTkFrame):
 
     def launch_scatterplot(self):
         scatterplot_window(self)
+
+    def launch_classy_masker(self):
+        classy_masker_window(self)
 
     def launch_leiden(self):
         do_leiden_window(self)
@@ -227,6 +236,8 @@ class Analysis_py_widgets(ctk.CTkFrame):
         Analysis_widget_logger.info(f"Loaded from CSV: {directory}")
 
         self.data_export_buton.configure(state = 'normal')
+        self.scatter.configure(state = 'normal')
+        self.classy_masker.configure(state = 'normal')
         self.analysis_bank.initialize_buttons()
         self.plot_bank.initialize_buttons()
         self.hypothesis_widget.initialize_buttons()
@@ -2917,9 +2928,9 @@ class MatPlotLib_Display(ctk.CTkFrame):
 class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
         super().__init__(master)
-        self.title("Cluster Heatmap Options")
+        self.title("Scatterplot Options")
         self.master = master
-        label = ctk.CTkLabel(self, text = "Cluster Heatmap options:")
+        label = ctk.CTkLabel(self, text = "Scatterplot options:")
         label.grid(column = 0,row = 0, padx = 5, pady = 5)
 
         label_1 = ctk.CTkLabel(self, text = "Antigen X:")
@@ -3010,3 +3021,39 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.withdraw()
         else:
             self.destroy()
+
+class classy_masker_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
+
+    def __init__(self, master):
+        super().__init__(master)
+        self.title("Classy masks from clustering")
+        self.master = master
+        label = ctk.CTkLabel(self, text = "Classy masks from clustering:")
+        label.grid(column = 0,row = 0, padx = 5, pady = 5)
+
+        label_1 = ctk.CTkLabel(self, text = "Clustering")
+        label_1.grid(column = 0, row = 2)
+
+        self.clustering = ctk.CTkOptionMenu(master = self, 
+                                            values = [""] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns])
+        self.clustering.grid(column= 1, row = 2, padx = 5, pady = 5)
+
+        def refresher1(enter = ""):
+            self.clustering.configure(values = [""] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns])
+        self.clustering.bind("<Enter>", refresher1)
+
+        label_5 = ctk.CTkLabel(self, text = "Identifier:")
+        label_5.grid(column = 0, row = 3)
+
+        self.identifier = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "1"))
+        self.identifier.grid(column= 1, row = 3, padx = 5, pady = 5)
+
+        button_plot = ctk.CTkButton(self, text = "Create", command = lambda: self.classy_mask(clustering = self.clustering.get(),
+                                                                                            identifier = self.identifier.get()))
+        button_plot.grid(column = 0, row = 4, padx = 5, pady = 5)
+        self.after(200, lambda: self.focus())
+
+    def classy_mask(self, clustering = "merging", identifier = "") -> None:
+        '''  '''
+        self.master.cat_exp.export_clustering_classy_masks(clustering = clustering, identifier = identifier)
+        self.destroy()

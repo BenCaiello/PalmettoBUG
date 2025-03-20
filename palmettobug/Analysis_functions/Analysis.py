@@ -57,6 +57,8 @@ import sklearn.preprocessing as skpre
 from sklearn.manifold import MDS
 from sklearn.decomposition import PCA
 from sklearn.neighbors import KernelDensity
+import skimage
+import tifffile as tf
 
 from .._vendor import sigfig
 from .._vendor import fcsparser
@@ -764,6 +766,7 @@ class Analysis:
                           min_dist: float = 0.1, 
                           n_neighbors: int = 15,
                           resolution: int = 1,
+                          flavor = "leidenalg",
                           try_from_umap_embedding: bool = False,
                           ) -> None:
         '''Creates a UMAP from all the cells in the dataset and then performs leiden clustering. 
@@ -813,7 +816,7 @@ class Analysis:
         sc.tl.leiden(for_fs, 
                     resolution = resolution, 
                     random_state = seed,
-                    flavor = "igraph", 
+                    flavor = flavor, 
                     n_iterations = 2)
 
         self.data.obs['leiden'] = list(for_fs.obs['leiden'].astype('int') + 1)
@@ -3172,6 +3175,62 @@ class Analysis:
         table['watermark2'] = for_sampling.sample(1, random_state = 1776)[0].values[0]
         table.to_csv(self.clusterings_dir + f"/{groupby_column}{identifier}.csv", index = False)
         return table, self.clusterings_dir + f"/{groupby_column}{identifier}.csv"
+
+    def export_clustering_classy_masks(self, clustering = "merging", identifier = ""):
+        '''
+        Intent of this function is to write a "classy mask" folder from an annotation
+
+        Uses: visualization, mainly. Perhaps could be used in extending masks
+        '''
+        # Step 0: set up naming & directory
+        analyses_folder = self.directory[:self.directory.rfind("/")]
+        interim = analyses_folder[:analyses_folder.rfind("/")]
+        classy_mask_folder = interim[:interim.rfind("/")] + "/classy_masks"
+        if len(identifier) > 0:
+            identifier = f"_{identifier}"
+        name = f'{clustering}_{self.input_mask_folder[(self.input_mask_folder.rfind("/") + 1):]}{identifier}'
+        destination_folder = classy_mask_folder + f"/{name}"
+        if not os.path.exists(destination_folder):
+            os.mkdir(destination_folder)
+        internal_folder = f'{destination_folder}/{name}'   ## this holds the .tiff files themselves
+        if not os.path.exists(internal_folder):
+            os.mkdir(internal_folder)
+
+        # Step 1: use back-up data & recover labels (either 'none' if filtered/dropped before clustering, or clustering labels)
+        if self.back_up_data is not None:
+            data = self.back_up_data.obs.copy()
+            data[clustering] = 'none'
+            data.index = data.index.astype('str')
+            data.loc[self.data.obs.index, clustering] = list(self.data.obs[clustering].astype('str'))
+            data = data[[clustering,"file_name"]].copy()
+        else:
+            data = self.data.obs[[clustering,"file_name"]].copy()
+        
+        # Step 2: Assign numbers to the labels, including 'none'
+        unique_labels = data[clustering].unique()
+        zip_dict = {}
+        for i,ii in enumerate(unique_labels):
+            zip_dict[ii] = i + 1   # 0 is a special number in images!
+        data['label'] = data[clustering].replace(zip_dict)
+        data.drop("file_name", axis = 1).to_csv(f'{destination_folder}/{name}.csv', index = False)
+
+        # Step 3: Iterate through masks for this analysis, creating classy mask .tiffs
+                # this iteration step would follow the same / similar methods as the classy mask functions that already exist
+        for i in os.listdir(self.input_mask_folder):
+            mask = tf.imread(f"{self.input_mask_folder}/{i}").astype('int')
+            as_fcs = i[:i.rfind(".")] + ".fcs"
+            temp_labels = list(data[data["file_name"] == as_fcs]['label'])
+            regionprops = skimage.measure.regionprops(mask)
+            if len(regionprops) != len(temp_labels):
+                print(f"Error! Number of labels and number of masks do not match for ROI = {i}! Aborting classy masking")     
+                            ##>>## complete error message / in gui version (?), etc.
+                return None
+            for j,jj in zip(skimage.measure.regionprops(mask), list(data['label'])):
+                box = j.bbox
+                slicer = j.image
+                mask[box[0]:box[2],box[1]:box[3]][slicer] = int(jj)
+            tf.imwrite(f"{internal_folder}/{i}", mask)
+        return data
 
     def load_clustering(self, path: Union[str, Path]) -> None:
         '''
