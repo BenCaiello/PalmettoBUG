@@ -549,6 +549,12 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.load_type = ctk.CTkOptionMenu(master = self, values = list_of_columns, variable = ctk.StringVar(value = ""))
         self.load_type.grid(column= 0, row = 3, padx = 5, pady = 5)
 
+        def refresh_load_options(enter = ""):
+            list_of_columns = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
+            self.load_type.configure(values = list_of_columns)
+
+        self.load_type.bind("<Enter>", refresh_load_options)
+
         label_1 = ctk.CTkLabel(self, 
             text = "Save Identifier / filename \n" +
              "(Metaclustering / Merging / Classification \n will be automatically added, as appropriate, to the identifier):")
@@ -1232,6 +1238,12 @@ class ClusterVGroup(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.clustering = ctk.CTkOptionMenu(master = self, variable = ctk.StringVar(value = ""), values = option_list)
         self.clustering.grid(column = 1, row = 0, padx = 3, pady = 3)
 
+        def refresh_ClusterVgroup_clusters(enter = ""):
+            option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] # + COLNAMES   
+            self.clustering.configure(values = option_list)
+
+        self.clustering.bind("<Enter>", refresh_ClusterVgroup_clusters)
+
         label_1 = ctk.CTkLabel(self, text = "Choose Marker Class:")
         label_1.grid(column = 0, row = 1, padx = 3, pady = 3)
 
@@ -1377,6 +1389,11 @@ class plot_cluster_abundances_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         self.k = ctk.CTkOptionMenu(master = self, values = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns], variable = ctk.StringVar())
         self.k.grid(column = 1, row = 1, pady = 5, padx = 5)
 
+        def refresh_abund_k(enter = ""):
+            self.k.configure(values = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns])
+        
+        self.k.bind("<Enter>", refresh_abund_k)
+
         label_2 = ctk.CTkLabel(self, text = "Type of Plot:")
         label_2.grid(column = 0, row = 2)
 
@@ -1484,6 +1501,12 @@ class plot_cluster_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         self.k = ctk.CTkOptionMenu(master = self, values = option_list, variable = ctk.StringVar())
         self.k.grid(column = 1, row = 1, pady = 5, padx = 5)
 
+        def refresh_cluster_heatmap_k(eenter = ""):
+            option_list =  [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
+            self.k.configure(values = option_list)
+
+        self.k.bind("<Enter>", refresh_cluster_heatmap_k)
+
         label_7 = ctk.CTkLabel(self, text = "Filename:")
         label_7.grid(column = 0, row = 7)
 
@@ -1562,6 +1585,12 @@ class plot_cluster_expression_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         clustering_options = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
         self.clustering_option = ctk.CTkOptionMenu(master = self, values = clustering_options, variable = ctk.StringVar())
         self.clustering_option.grid(padx = 3, pady = 3)
+
+        def refresh_cluster_exp_clusters(enter = ""):
+            clustering_options = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
+            self.clustering_options.configure(values = clustering_options)
+
+        self.clustering_options.bind("<Enter>", refresh_cluster_exp_clusters)
 
         label2 = ctk.CTkLabel(master = self, text = "Choose Antigen to plot expression of:")
         label2.grid(padx = 3, pady = 3)
@@ -1840,6 +1869,12 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         self.column = ctk.CTkOptionMenu(master = self, values = self.options, variable = ctk.StringVar())
         self.column.grid(padx = 3, pady = 3, row = 1, column = 0)
 
+        def refresh_abund_ANOVA_cluster(enter = ""):
+            self.options = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
+            self.column.configure(values = self.options)
+
+        self.column.bind("<Enter>", refresh_abund_ANOVA_cluster)
+
         label1 = ctk.CTkLabel(master = self, text = "Choose comparison:")
         label1.grid(padx = 3, pady = 3, row = 2, column = 0)
 
@@ -1852,6 +1887,13 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
                                                                             ## exist in a users' choice of condition name
 
         def refresh12(enter = ""):
+            self.condition_pairs = []
+            self.conditions = list(self.master.cat_exp.data.obs['condition'].astype('str').unique())
+            for i in self.conditions:
+                for j in self.conditions:
+                    if i != j:
+                        self.condition_pairs.append(f"{i} %vs.% {j}")   ## want the spacer to be unique enough that it is very unlikely to accidently 
+                                                                         ## exist in a users' choice of condition name
             self.options1 = ["multicomparison"] + self.condition_pairs
             self.condition1.configure(values = self.options1)
 
@@ -1944,6 +1986,12 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.options = ["whole dataset"] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
         self.clustering_column = ctk.CTkOptionMenu(master = self, values = self.options, variable = ctk.StringVar(value = "whole dataset"))
         self.clustering_column.grid(padx = 3, pady = 3)
+
+        def refresh_state_ANOVA_clusters(enter = ""):
+            self.options = ["whole dataset"] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
+            self.clustering_column.configure(values = self.options)
+
+        self.clustering_column.bind("<Enter>", refresh_state_ANOVA_clusters)
 
         label2 = ctk.CTkLabel(master = self, text = "Choose marker class to analyze:")
         label2.grid(padx = 3, pady = 3)
@@ -2042,6 +2090,12 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                                              variable = ctk.StringVar(), 
                                              command = self.update_option_menu) 
         self.column_type.grid(column = 1, row = 1, pady = 5, padx = 5)
+
+        def refresh_cluster_stats_clusters(enter = ""):
+            option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] 
+            self.column_type.configure(values = option_list)
+
+        self.column_type.bind("<Enter>", refresh_cluster_stats_clusters)
 
         label4 = ctk.CTkLabel(master = self, text = "Heatmap Filename:")
         label4.grid(column = 0, row = 4, pady = 5, padx = 5)
@@ -2553,8 +2607,14 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
                     self.columns_keep_or_no.append(leader_checkbox)
 
                     column = data_table.obs[i].astype('str')
-                    column_choice = self.special_optionmenu(master = self, values = column.unique(), row_number = ii)
-                    column_choice.grid(row = ii + 2, column = 1, padx = 2, pady = 2)
+                    self.column_choice = self.special_optionmenu(master = self, values = column.unique(), row_number = ii)
+                    self.column_choice.grid(row = ii + 2, column = 1, padx = 2, pady = 2)
+
+                    def refresh_export_column_choice(enter = ""):
+                        column = data_table.obs[i].astype('str')
+                        self.column_choice.configure(value = column.unique())
+
+                    self.column_choice.bind("<Enter>", refresh_export_column_choice)
 
                     text_box_of_choices = ctk.CTkTextbox(master = self, activate_scrollbars = True, wrap = 'none')
                     text_box_of_choices.grid(row = ii + 2, column = 2, padx = 2, pady = 2)
@@ -2939,11 +2999,21 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.antigen1 = ctk.CTkOptionMenu(master = self, values = list(self.master.cat_exp.data.var['antigen'].unique()))
         self.antigen1.grid(column= 1, row = 2, padx = 5, pady = 5)
 
+        def refresh_scatter_antigen1(enter = ""):
+            self.antigen1.configure(values = list(self.master.cat_exp.data.var['antigen'].unique()))
+
+        self.antigen1.bind("<Enter>", refresh_scatter_antigen1)
+
         label_2 = ctk.CTkLabel(self, text = "Antigen Y:")
         label_2.grid(column = 0, row = 3)
 
         self.antigen2 = ctk.CTkOptionMenu(master = self, values = list(self.master.cat_exp.data.var['antigen'].unique()))
         self.antigen2.grid(column= 1, row = 3, padx = 5, pady = 5)
+
+        def refresh_scatter_antigen2(enter = ""):
+            self.antigen2.configure(values = list(self.master.cat_exp.data.var['antigen'].unique()))
+
+        self.antigen2.bind("<Enter>", refresh_scatter_antigen2)
 
         label_3 = ctk.CTkLabel(self, text = "Color points by:")
         label_3.grid(column = 0, row = 4)
@@ -2952,8 +3022,18 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         color_list_obs = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns.unique())]
         color_list_antigens = list(self.master.cat_exp.data.var['antigen'].unique())
         color_list = color_list + color_list_obs + color_list_antigens
+
         self.hue = ctk.CTkOptionMenu(master = self, values = color_list)
         self.hue.grid(column= 1, row = 4, padx = 5, pady = 5)
+
+        def refresh_scatter_hue(enter = ""):
+            color_list = ["None", "Density", ] + COLNAMES
+            color_list_obs = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns.unique())]
+            color_list_antigens = list(self.master.cat_exp.data.var['antigen'].unique())
+            color_list = color_list + color_list_obs + color_list_antigens
+            self.hue.configure(values = color_list)
+
+        self.hue.bind("<Enter>", refresh_scatter_hue)
 
         label_4 = ctk.CTkLabel(self, text = "Point Size: \n (automatically determined if not a number)")
         label_4.grid(column = 0, row = 5)
