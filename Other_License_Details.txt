@@ -49,6 +49,7 @@ Files (see file headers for more specifics / modifications of the packages):
         -- palmettobug/Entrypoint/bead_norm.py
             --  Premessa (re-implementation / translation from R)            GPL-3, https://github.com/ParkerICI/premessa     (which was in turn a re-implementation of: https://github.com/nolanlab/bead-normalization)
 
+The .yml / .yaml GitLab and GitHub actions files were copied, then modified, from an oen source templates (MIT)
 
 Additionally, much of the structure of PalmettoBUG directories / projects is inspired / derived from CATALYST, steinbock, etc.
 
