@@ -239,20 +239,37 @@ class Spatial_py(ctk.CTkFrame):
                 self.celltype = ctk.CTkOptionMenu(master = self, values = options, variable = ctk.StringVar(value = ""))
                 self.celltype.grid(column = 0, row = 2, padx = 5, pady = 5)
 
+                def refresh_SpaceANOVA_clusters(enter = ""):
+                    options = [i for i in CLUSTER_NAMES if i in self.master.master.master_exp.data.obs.columns]
+                    self.celltype.configure(values = options)
+
+                self.celltype.bind("<Enter>", refresh_SpaceANOVA_clusters)
+
                 label_1 = ctk.CTkLabel(self, text = "Conditions to Compare:")
                 label_1.grid(column = 0, row = 3)
 
                 condition_list = self.master.master.master_exp.data.obs['condition'].unique()
-                comparison_list = ["All (multicomparison)"]
-                already_used_list = []
-                for i in condition_list:
-                    for j in condition_list:
-                        if (i != j) and (j not in already_used_list):
-                            comparison_list.append(f'{i}_vs_{j}')
-                    already_used_list.append(i)
+
+                def comparisons_return():
+                    comparison_list = ["All (multicomparison)"]
+                    already_used_list = []
+                    for i in condition_list:
+                        for j in condition_list:
+                            if (i != j) and (j not in already_used_list):
+                                comparison_list.append(f'{i}_vs_{j}')
+                        already_used_list.append(i)
+                    return comparison_list
+
+                comparison_list = comparisons_return()
 
                 self.C1 = ctk.CTkOptionMenu(self, values = comparison_list, variable = ctk.StringVar(value = comparison_list[0]))
                 self.C1.grid(column = 0, row = 4, padx = 5, pady = 5)
+
+                def refresh_comparisons(enter = ""):
+                    comparison_list = comparisons_return()
+                    self.C1.configure(values = comparison_list)
+
+                self.C1.bind("<Enter>", refresh_comparisons)
 
                 label_seed = ctk.CTkLabel(self, text = "Select threshold of cell count per ROI \n for excluding comparisons:") 
                 label_seed.grid(column = 1, row = 6)
@@ -499,6 +516,11 @@ class Spatial_py(ctk.CTkFrame):
                                         variable = ctk.StringVar(value = "Run All"))  
                 self.comparison.grid(column= 1, row= 1, padx = 5, pady = 5)
 
+                def refresh_fxn_plot_comparisons(enter = ""):
+                    self.comparison.configure(values = ["Run All"] + self.master.master._all_comparison_list)
+
+                self.comparison.bind("<Enter>", refresh_fxn_plot_comparisons)
+
                 label_2 = ctk.CTkLabel(self, text = "Choose Ripley's Statistic to plot:")                                     
                 label_2.grid(column = 0, row = 2)
 
@@ -630,6 +652,12 @@ class plot_cell_maps_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.clustering = ctk.CTkOptionMenu(master = self, values = options, variable = ctk.StringVar(value = ""))
         self.clustering.grid(column = 1, row = 5, padx = 5, pady = 5)
+
+        def refresh_cell_maps_clustering(enter = ""):
+            options = [i for i in CLUSTER_NAMES if i in self.master.master_exp.data.obs.columns]
+            self.clustering.configure(values = options)
+
+        self.clustering.bind("<Enter>", refresh_cell_maps_clustering)
         
         self.label_2 = ctk.CTkLabel(self, text = "Choose one test image:")
         self.label_2.grid(column = 1, row = 6, padx = 5, pady = 5)
@@ -816,6 +844,18 @@ class NeigborhoodEnrichmentWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         self.clustering = ctk.CTkOptionMenu(master = self, values = options, variable = ctk.StringVar(value = ""))
         self.clustering.grid(padx = 5, pady = 5)
 
+        def refresh_neighbor_clustering(enter = ""):
+            options = [i for i in CLUSTER_NAMES if i in self.master.spatial.exp.data.obs.columns]
+            self.clustering.configure(values = options)
+
+        self.clustering.bind("<Enter>", refresh_neighbor_clustering)
+
+        labelXX = ctk.CTkLabel(master = self, text = "Facet statistics / plots by:")
+        labelXX.grid(padx = 5, pady = 5)
+
+        self.facet = ctk.CTkOptionMenu(master = self, values = [], variable = ctk.StringVar(value = "None"))
+        self.facet.grid(padx = 5, pady = 5)
+
         def refresh_facet_options(enter = ""):
             try:
                 facet_options = [i for i in self.master.spatial.exp.data.obs.columns if i in COLNAMES]
@@ -823,11 +863,6 @@ class NeigborhoodEnrichmentWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             except:
                 self.facet.configure(values = [])
 
-        labelXX = ctk.CTkLabel(master = self, text = "Facet statistics / plots by:")
-        labelXX.grid(padx = 5, pady = 5)
-
-        self.facet = ctk.CTkOptionMenu(master = self, values = [], variable = ctk.StringVar(value = "None"))
-        self.facet.grid(padx = 5, pady = 5)
         self.facet.bind("<Enter>", refresh_facet_options)
 
         label_nperm = ctk.CTkLabel(master = self, text = "Number of Permutations to perform:")
@@ -913,6 +948,12 @@ class CentralityWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.clustering = ctk.CTkOptionMenu(master = self, values = options, variable = ctk.StringVar(value = ""))
         self.clustering.grid(padx = 5, pady = 5)
 
+        def refresh_centrality_cluster(enter = ""):
+            options = [i for i in CLUSTER_NAMES if i in self.master.spatial.exp.data.obs.columns]
+            self.clustering.configure(values = options)
+
+        self.clustering.bind("<Enter>", refresh_centrality_cluster)
+
         label_cluster = ctk.CTkLabel(self, text = "Choose type of Centrality to plot:")
         label_cluster.grid(padx = 5, pady = 5)
 
@@ -979,18 +1020,23 @@ class InteractionMatrixWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.clustering = ctk.CTkOptionMenu(master = self, values = options, variable = ctk.StringVar(value = ""))
         self.clustering.grid(padx = 5, pady = 5)
 
-        def refresh_facet_options(enter = ""):
-            try:
-                facet_options = [i for i in self.master.spatial.exp.data.obs.columns if i in COLNAMES]
-                self.facet.configure(values = ["None"] + list(facet_options))
-            except:
-                self.facet.configure(values = [])
+        def refresh_interaction_mat_cluster(enter = ""):
+            options = [i for i in CLUSTER_NAMES if i in self.master.spatial.exp.data.obs.columns]
+            self.clustering.configure(values = options)
+
+        self.clustering.bind("<Enter>", refresh_interaction_mat_cluster)
 
         labelXX = ctk.CTkLabel(master = self, text = "Facet statistics / plots by:")
         labelXX.grid(padx = 5, pady = 5)
 
         self.facet = ctk.CTkOptionMenu(master = self, values = [], variable = ctk.StringVar(value = "None"))
         self.facet.grid(padx = 5, pady = 5)
+        def refresh_facet_options(enter = ""):
+            try:
+                facet_options = [i for i in self.master.spatial.exp.data.obs.columns if i in COLNAMES]
+                self.facet.configure(values = ["None"] + list(facet_options))
+            except:
+                self.facet.configure(values = [])
         self.facet.bind("<Enter>", refresh_facet_options)
 
         labelXX = ctk.CTkLabel(master = self, text = "Choose Filename:")
@@ -1179,6 +1225,12 @@ class CNabundanceWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                        variable = ctk.StringVar(value = self.master.clustering))
         self.clustering.grid(padx = 5, pady = 5)
 
+        def refresh_CN_abund_cluster(enter = ""):
+            options = [i for i in ["merging", "metaclustering", "leiden", "classification"] if i in self.master.spatial.exp.data.obs.columns]
+            self.clustering.configure(values = options)
+
+        self.clustering.bind("<Enter>", refresh_CN_abund_cluster)
+
         labelXX = ctk.CTkLabel(master = self, text = "Choose Filename:")
         labelXX.grid(padx = 5, pady = 5)
 
@@ -1231,6 +1283,12 @@ class CNheatmapWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                        values = options, 
                                        variable = ctk.StringVar(value = self.master.clustering))
         self.clustering.grid(padx = 5, pady = 5)
+
+        def refresh_CN_heatmap_cluster(enter = ""):
+            options = [i for i in ["merging", "metaclustering", "leiden", "classification"] if i in self.master.spatial.exp.data.obs.columns]
+            self.clustering.configure(values = options)
+
+        self.clustering.bind("<Enter>", refresh_CN_heatmap_cluster)
 
         labelXX = ctk.CTkLabel(master = self, text = "Choose Filename:")
         labelXX.grid(padx = 5, pady = 5)
@@ -1515,6 +1573,12 @@ class CellularNeighborhoodWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow
         self.celltype = ctk.CTkOptionMenu(master = self, values = options, variable = ctk.StringVar(value = ""))
         self.celltype.grid(column = 1, row = 2, padx = 5, pady = 5, columnspan = 2)
 
+        def refresh_CN_cluster(enter = ""):
+            options = [i for i in ["merging", "metaclustering", "leiden", "classification"] if i in self.master.spatial.exp.data.obs.columns]
+            self.celltype.configure(values = options)
+
+        self.celltype.bind("<Enter>", refresh_CN_cluster)
+
         labelC = ctk.CTkLabel(master = self, text = "UMAP+Leiden or FlowSOM:")
         labelC.grid(row = 3, column = 1, padx = 3, pady = 3, columnspan = 2)
 
@@ -1745,6 +1809,12 @@ class edt_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.groupby_column = ctk.CTkOptionMenu(master = self, values = options, variable = ctk.StringVar(value = ""))
         self.groupby_column.grid(column = 1, row = 1, padx = 3, pady = 3)
 
+        def refresh_edt_heatmap_cluster(enter = ""):
+            options = [i for i in CLUSTER_NAMES if i in self.master.edt_object.exp.data.obs.columns]
+            self.groupby_column.configure(values = options)
+
+        self.groupby_column.bind("<Enter>", refresh_edt_heatmap_cluster)
+
         label2 = ctk.CTkLabel(master = self, text = "Select Filename:")
         label2.grid(column = 0, row = 2, padx = 3, pady = 3)
 
@@ -1793,10 +1863,18 @@ class edt_dist_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label1 = ctk.CTkLabel(master = self, text = 'Select distance transform to plot:')
         label1.grid(column = 0, row = 1, padx = 3, pady = 3)
 
+        options = list(self.experiment.data.var['antigen'].iloc[np.array(self.experiment.data.var['marker_class'] == "spatial_edt")])
+
         self.var_column = ctk.CTkOptionMenu(master = self, 
-                                                values = list(self.experiment.data.var['antigen'].iloc[np.array(self.experiment.data.var['marker_class'] == "spatial_edt")]), 
+                                                values = options, 
                                                 variable = ctk.StringVar(value = ""))
         self.var_column.grid(column = 1, row = 1, padx = 3, pady = 3)
+
+        def refresh_edt_dist_var(enter = ""):
+            options = list(self.experiment.data.var['antigen'].iloc[np.array(self.experiment.data.var['marker_class'] == "spatial_edt")])
+            self.var_column.configure(values = options)
+
+        self.var_column.bind("<Enter>", refresh_edt_dist_var)
 
         label1a = ctk.CTkLabel(master = self, text = 'Select clustering:')
         label1a.grid(column = 0, row = 2, padx = 3, pady = 3)
@@ -1805,6 +1883,12 @@ class edt_dist_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.subset_col = ctk.CTkOptionMenu(master = self, values = ["None"] + options, variable = ctk.StringVar(value = ""))
         self.subset_col.grid(column = 1, row = 2, padx = 3, pady = 3)
+
+        def refresh_edt_dist_cluster(enter = ""):
+            options = [i for i in CLUSTER_NAMES if i in self.master.edt_object.exp.data.obs.columns]
+            self.subset_col.configure(values = options)
+
+        self.subset_col.bind("<Enter>", refresh_edt_dist_cluster)
 
         label1b = ctk.CTkLabel(master = self, text = 'Select  metadata to facet on:')
         label1b.grid(column = 0, row = 3, padx = 3, pady = 3)
@@ -1836,6 +1920,8 @@ class edt_dist_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if not overwrite_approval(self.experiment.directory + f"/Spatial_plots/{filename}.png", file_or_folder = "file", GUI_object = self):
             return
         subset_col = self.subset_col.get()
+        if subset_col == "None":
+            subset_col = None
         facet_col = self.facet_col.get()
 
         figure = self.master.edt_object.plot_horizontal_boxplot(var_column = var_column, subset_col = subset_col, facet_col = facet_col)
@@ -1872,6 +1958,12 @@ class edt_stat_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                 values = options, 
                                                 variable = ctk.StringVar(value = ""))
         self.groupby_column.grid(column = 1, row = 1, padx = 3, pady = 3)
+
+        def refresh_edt_options(enter = ""):
+            options = [i for i in CLUSTER_NAMES if i in self.master.edt_object.exp.data.obs.columns]
+            self.groupby_column.configure(values = options)
+
+        self.groupby_column.bind("<Enter>", refresh_edt_options)
 
         label2 = ctk.CTkLabel(master = self, text = 'Select statistic:')
         label2.grid(column = 0, row = 2, padx = 3, pady = 3)
@@ -2067,6 +2159,11 @@ class edt_reload_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                 values = os.listdir(self.folder), 
                                                 variable = ctk.StringVar(value = ""))
         self.choice.grid(column = 1, row = 1, padx = 3, pady = 3)
+
+        def refresh_edt_reload(enter = ""):
+            self.choice.configure(values = os.listdir(self.folder))
+
+        self.choice.bind("<Enter>", refresh_edt_reload)
 
         label2 = ctk.CTkLabel(master = self, text = 'Select marker_class for all distance transforms in this file:')
         label2.grid(column = 0, row = 2, padx = 3, pady = 3)
