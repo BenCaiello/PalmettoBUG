@@ -2,7 +2,7 @@
 
 Final development plans:
 
-    1). Installation: this means getting onto PyPI, adding isosegdenoise to the list of dependencies (once iSD is on PyPI), and final re-testing in fresh installation environments testing, saving environments as .txt files with "pip freeze" or "conda list" into the /environments folder:
+    1). Installation: this means getting onto PyPI, and final re-testing in fresh installation environments testing, saving environments as .txt files with "pip freeze" or "conda list" into the /environments folder:
         MacOS, Windows, and Linux (Python 3.10 only, using local windows installation & GitHub runners -- won't be testing GUI on Linux / MacOS without collaborator help)
         Python 3.9 (Windows, local install only)
         GPU support with conda-forge packages / "conda list" (Windows, Python 3.10, local install)
@@ -10,12 +10,15 @@ Final development plans:
     2). Documentation: 
         - re-run notebooks (update, check differences from original, be sure of consistency on fresh installation!)
         - Update images and descriptions with new features / missing features
-            -- "CytoNorm" mimic
+            -- Premessa translation --> have a page for (would require fresh example data?)
             -- scatterplot option
-            -- clustering --> classy  mask, and classy mask / pixel class --> PNG options
+            -- clustering --> classy mask, and classy mask / pixel class --> PNG options
             -- Added parameters to existing functions (is_torch, rlen, etc.)
-        - update GPU section
-        - Edit images & screenshots to reduce / use open-source alternatives to windows explorer
+        - update GPU section (if needing changes)
+        - Edit images & screenshots to reduce / use open-source alternatives to windows explorer / excel
+        - update text, incorporate proofreading edits
+
+    3). address (if causing a problem) or perhaps silence, excessive warnings
 
 ## Welcome to PalmettoBUG!
 
