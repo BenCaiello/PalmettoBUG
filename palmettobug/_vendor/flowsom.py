@@ -37,7 +37,9 @@ this would mean:
 
         4. (2-6-25): removed assert statements (replaced with if / print / raise). This silences security warnings from certain tools.
 
-     5. added __all__ (for the sake of autoapi docs -- I don't really want to include any of the vendor files)    
+        5. added __all__= [] (for the sake of autoapi docs -- I don't really want to include any of the vendor files)  
+
+        6. See section lower down for edits to the MST plotting function  
 '''
 from __future__ import annotations
 
@@ -66,6 +68,13 @@ from scipy.stats import median_abs_deviation
 from sklearn.base import check_is_fitted as check_is_fitted2
 from sklearn.base import  BaseEstimator, ClusterMixin
 from sklearn.utils.validation import check_is_fitted
+
+import matplotlib.colors
+import matplotlib.pyplot as plt
+from matplotlib import collections as mc
+from matplotlib.lines import Line2D
+from matplotlib.patches import Circle, Wedge
+#from scipy.spatial.distance import pdist
 
 __all__ = []
 
@@ -1078,14 +1087,9 @@ def flowsom_clustering(inp: ad.AnnData, cols_to_use=None, n_clusters=10, xdim=10
 ################################################ Added 11-21-24 --> the code (also copied from the FlowSOM package) for plotting star plots
 ## Uncertain of specific edits to the original code, but any edits that were applied were to allow this code to function independently of the rest of the
 ## FlowSOM package. 
-## Certainly modifications occurred in the process of compiling the various portions of the original package needed for this funciton into this one script
+## Certainly modifications occurred in the process of compiling the various portions of the original package needed for this function into this one script
 
-import matplotlib.colors
-import matplotlib.pyplot as plt
-from matplotlib import collections as mc
-from matplotlib.lines import Line2D
-from matplotlib.patches import Circle, Wedge
-from scipy.spatial.distance import pdist
+##>>## 3-21-25 modification: moved imports to the top, removed redundant import
 
 def FlowSOM_colors():
     """Colormap of default FlowSOM colors."""
