@@ -756,9 +756,7 @@ class Analysis:
                 for i in self.data.obs[split_by_column].unique():
                     slicer = self.data.obs[split_by_column] == i
                     data_to_scale[slicer] = quantile_normalize(data_to_scale[slicer])
-        import warnings
         self.data.X = data_to_scale
-        warnings.warn(f"{list(self.data.var.index)}", Warning)
         self._scaling = scaling_algorithm
 
     def do_leiden_clustering(self, 
@@ -775,7 +773,7 @@ class Analysis:
 
         Args:
             seed (int): 
-                The random seed for all non-dterministic steps in the clustering pipeline.
+                The random seed for all non-deterministic steps in the clustering pipeline.
 
             marker_class (string): 
                 what channels/antigens to use in the clustering ("type", "state", "none", or all)
