@@ -757,8 +757,8 @@ class Analysis:
                     slicer = self.data.obs[split_by_column] == i
                     data_to_scale[slicer] = quantile_normalize(data_to_scale[slicer])
         import warnings
-        warnings.warn(f"{list(self.data.var.columns)}", Warning)
         self.data.X = data_to_scale
+        warnings.warn(f"{list(self.data.var.index)}", Warning)
         self._scaling = scaling_algorithm
 
     def do_leiden_clustering(self, 
