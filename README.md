@@ -57,6 +57,12 @@ Then to launch PalmettoBUG, simply enter:
 
 in the conda environment where the package was installed. 
 
+## isoSegDenoise
+
+The overall workflow of PalmettoBUG depends on a semi-independent package: https://github.com/BenCaiello/isoSegDenoise 
+This package was separated due to licensing reasons and both packages can theoretically be operated without the other, but it is automatically installed by pip as a dependency of PalmettoBUG so typically you don't need to pay too much attention to the division between the packages.
+
+
 ## Documentation
 
 Step-by-step documentation of what can be done in the GUI will be found in the **animated** powerpoint file inside PalmettoBUG itself / this github repo, or at readthedocs: https://palmettobug.readthedocs.io/en/latest/. Tutorial notebooks for using this package outside the GUI can be found in this repository or at the readthedocs website.
