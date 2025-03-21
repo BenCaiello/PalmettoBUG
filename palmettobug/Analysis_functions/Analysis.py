@@ -756,7 +756,8 @@ class Analysis:
                 for i in self.data.obs[split_by_column].unique():
                     slicer = self.data.obs[split_by_column] == i
                     data_to_scale[slicer] = quantile_normalize(data_to_scale[slicer])
-
+        import warnings
+        warnings.warn(f"{list(self.data.var.columns)}", Warning)
         self.data.X = data_to_scale
         self._scaling = scaling_algorithm
 

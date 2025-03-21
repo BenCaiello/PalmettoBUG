@@ -1588,9 +1588,9 @@ class plot_cluster_expression_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
 
         def refresh_cluster_exp_clusters(enter = ""):
             clustering_options = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
-            self.clustering_options.configure(values = clustering_options)
+            self.clustering_option.configure(values = clustering_options)
 
-        self.clustering_options.bind("<Enter>", refresh_cluster_exp_clusters)
+        self.clustering_option.bind("<Enter>", refresh_cluster_exp_clusters)
 
         label2 = ctk.CTkLabel(master = self, text = "Choose Antigen to plot expression of:")
         label2.grid(padx = 3, pady = 3)
