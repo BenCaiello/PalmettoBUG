@@ -773,7 +773,7 @@ class Analysis:
 
         Args:
             seed (int): 
-                The random seed for all non-dterministic steps in the clustering pipeline.
+                The random seed for all non-deterministic steps in the clustering pipeline.
 
             marker_class (string): 
                 what channels/antigens to use in the clustering ("type", "state", "none", or all)
