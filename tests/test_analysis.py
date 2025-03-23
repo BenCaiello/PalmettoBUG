@@ -1,6 +1,7 @@
 import sys
 import os
 import shutil
+import warnings
 
 homedir = __file__.replace("\\","/")
 homedir = homedir[:(homedir.rfind("/"))]
@@ -42,7 +43,7 @@ def test_scaling(my_analysis):
     original_X = my_analysis.data.X.copy()
     greater_than_zero = (original_X > 0)
     for i in scaling_options:
-        print(1)
+        warnings.warn("Test Warning", Warning)
         my_analysis.do_scaling(scaling_algorithm = i)
         if i != "unscale":
             assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < 1, "Scaling did not change all the data points > 0!"
