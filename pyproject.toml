@@ -39,15 +39,7 @@ leidenalg = "0.10.2"
 sympy = "<=1.13.1"
 sortedcontainers = "*"
 defusedxml = "0.*"
-isosegdenoise = "*"
-
-[tool.poetry.group.tensorflow]
-optional = false
-
-[tool.poetry.group.tensorflow.dependencies]
-tensorflow = ">=2.8.0,<=2.13.*"
-tensorflow-addons = ">=0.16.1"
-keras = "<3.0.0"
+# isosegdenoise = "*"
 
 [tool.poetry.group.other]
 optional = true
@@ -55,7 +47,6 @@ optional = true
 [tool.poetry.group.other.dependencies]
 svg-stack = "0.1.0"
 navis = "1.9.1"
-
 
 [tool.poetry.scripts]
 palmettobug = 'palmettobug.Executable:run_GUI'
