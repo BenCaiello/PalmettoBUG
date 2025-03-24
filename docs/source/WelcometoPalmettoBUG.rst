@@ -25,11 +25,9 @@ To install, first setup a **Python 3.10** environment.
 
 .. warning::
 
-   A python 3.9 environment should be useable, but since most of the dependencies in pyproject.toml allow for some higher versions of the dependencies
-   trying to directly install will run into errors. I know that at least anndata and mudata have a conflict that occurs in python 3.9 when installing
-   automatically, because the latest anndata is compatible with python 3.9, but none of the mudata versions compatible with that verison of anndata
-   allow python 3.10 *(so you would need to download an older version of anndata before installing PalmettoBUG, or something like that)*. And there
-   may be other conflicts. If you can, stick with python 3.10!
+   A python 3.9 environment is useable, but you must install mudata==0.8.4 and anndata==0.10.8 BEFORE installing palmettobug with the usual pip command. Otherwise,
+   you will encounter a dependency conflict! Additionally, future edits to the program will primarily focus on python 3.10, so there are no guarantees that compatibility with 
+   python 3.9 will be maintained!
 
 I mainly used `conda <https://docs.conda.io/projects/conda/en/latest/index.html>`_ environments to develop and test PalmettoBUG.
 
@@ -37,39 +35,35 @@ Enter your environment and issue the command:
 
 >>> pip install palmettobug
 
-To install PalmettoBUG in your environment. All dependencies should be
-automatically installed (via the pyproject.toml dependency manifest) by
-pip.
+To install PalmettoBUG in your environment. 
 
-.. admonition::Temporary Warning!
+To get PalmettoBUG's sister package, which handles image denoising and segmentation, use the command:
 
-   Palmettobug is not (yet) on PyPI, so the command above is aspirational and not true! Until PalmettoBUG is on PyPI
-   you will have to download both PalmettoBUG and isoSegDenoise programs (from GitHub repositories) and install them in the 
-   same python 3.10 environment using pip's installation-from-a-folder-path capacity.
+>>> pip install isosegdenoise 
 
-There are many dependencies for the program, and the example data for
-PalmettoBUG is quite large so this installation will take some time, and
-can use a good deal of disc space (> 1-2 Gb). If you run into errors you
-believe are a result of dependency issues, you can look at the
+in the SAME environment.
+
+.. important::
+   If you want segmentation and denoising to be available in the GUI as shown in the documentation, you MUST install isosegdenoise in the same environment as PalmettoBUG!
+
+.. important::
+   By default, isoSegDenoise (iSD) uses a ONNX-converted model of the DeepCell / Mesmer segmentation algorithm. This allows one framework for deep learning
+   to be used by the pipeline (PyTorch), which in turn means that tensorflow/keras do not need to be installed & GPU support is much simpler to configure.
+   HOWEVER, tensorflow/keras are the original framework of the Mesmer neural network, and the conversion to ONNX / PyTorch format does slightly change the outputs of the model.
+   The outputs do not appear by eye to be dramatically changed between the model versions, but I have also not yet benchmarked the ONNX / PyTorch version of Mesmer!
+   If you want to use the original tensorflow model, just use the following command to install iSD instead:
+
+      >>> pip install isosegdenoise[tensorflow]
+
+   This will install tensorflow / keras, and by default when these packages are available in the iSD environmnt, the program will prefer to use tensorflow over PyTorch.
+
+There are many dependencies for the packages and can use a good deal of disc space. 
+If you run into errors you believe are a result of dependency issues, you can look at the
 environment files at the PalmettoBUG github repository to see the exact
-version numbers of the packages in my development environment, or you
-can open an issue at the same repository.
+version numbers of the packages in my testing environments, or you can open an issue at the GitHub repository.
 
-**A Note on the isoSegDenoise sister program**
-
-One dependency to make particular note of is *isoSegDenoise* – a sister
-program to PalmettoBUG that handles segmentation and denoising of images
-(separated for licensing reasons, see below). If needed, it can be
-separately installed by the command:
-
->>> pip install isoSegDenoise
-
-Note that isoSegDenoise should be installed in the same python
-environment as PalmettoBUG so that the PalmettoBUG GUI can directly and
-smoothly launch it when needed.
-
-Alternative Slideshow Documentation & Specific Dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Alternative Slideshow Documentation & Frozen Dependency Environments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Inside the /docs/slides folder of the GitHub repository, you
 will find two animated .odp files (open source format similar to .pptx files, 
@@ -79,15 +73,13 @@ animations that lay out how to use the various buttons of the GUI in **excruciat
 These slideshows were created & edited in PowerPoint.
 
 Also on the GitHub (in an /environments folder) will be a few text documents listing
-all the dependencies installed with PalmettoBUG / isoSegDenoise, using “pip freeze” 
-command to retrieve packages in installed in an environment I used in testing / development.
-You can use one of these files to run 
+all the dependencies installed in test environments I used for PalmettoBUG / isoSegDenoise. If you are
+having trouble with installation, or want to replicate an environemnt that I tested in, use the command: 
    
    >>> pip install -r "/path/to/environments/file.txt"
 
-Which should recreate the environment in question (at least in terms of python packages), allowing you to easily install PalmettoBUG & isoSegDenoise 
-into it without needin any additional dependencies, and without needing to worry about dependency conflicts.
-
+Which should recreate the environment in question, allowing you to easily install PalmettoBUG & isoSegDenoise 
+into it without needing any additional dependencies, and without needing to worry about dependency conflicts.
 
 Example Data
 ~~~~~~~~~~~~~
@@ -101,39 +93,34 @@ the example data can be downloaded directly from Zenodo instead: https://zenodo.
 GPU support
 ~~~~~~~~~~~
 
-GPU support is only useful for the isosegdenoise sister program,
-specifically for the DeepCell and Cellpose segmentation / denoising deep
-neural network models. On a windows 10 system for a NVIDIA GPU (in
-python 3.10), I was able to successfully install GPU support.
-Specifically, presuming you have successfully installed the NVIDIA
-driver for your GPU, you will need to:
+.. important::
 
-   1). follow the recommended pip download on the PyTorch website:
-   `Start Locally \|
-   PyTorch <https://pytorch.org/get-started/locally/>`__ to get GPU
-   support for Cellpose functions.
+   Your mileage using the steps I list here may vary! GPU support was not thoroughly tested on a variety of computer systems or setups, only
+   on Windows operating systems where I did development.
 
-..
+GPU support is ONLY relevant for the denoising / segmentation steps in isoSegDenoise, the sister package to PalmettoBUG. The main PalmettoBUG package
+does not use GPU support.
 
-   2). Download the proper tensorflow & cuda packages for deepcell /
-   mesmer (listed are what worked for me):
+GPU support is useful for the DeepCell and Cellpose segmentation / denoising deep
+neural network models, which involves configuring GPU support for PyTorch and tensorflow.
+If you chose to use the ONNX / PyTorch model for DeepCell / Mesmer (see installation section) 
+instead of the original tensorflow version of Mesmer, then you only need to configure GPU support for
+PyTorch.
 
-   >>> pip install tensorflow-gpu==2.8.4
+**PyTorch GPU support:**
 
-   >>> conda install cudnn=8.9.2.26
+PyTorch support for GPUs is fairly straightforward -- follow the recommended pip download on the PyTorch website:
+`Start Locally |PyTorch <https://pytorch.org/get-started/locally/>`__
 
-   >>> conda install cudatoolkit=11.8.0
+**Tensorflow GPU support**
 
-   >>> conda install zlib-wapi
-
-However, your mileage using these steps may vary in practice – GPU
-support was not thoroughly tested on a variety of computer systems or
-setups!
-
-Do note that to get GPU support really means getting it configured for
-Cellpose (build on PyTorch) and DeepCell/Mesmer (Tensorflow) packages as
-these are the only parts of the program that use a GPU. So you can also
-consult these package’s for information about configuring GPU support.
+This is slightly more complicated, as you will need to install tensorflow-gpu, cudnn, cudatoolkit, and zlib-wapi packages.
+Here is an example of commands that appeared to work for me on a windows computer (also, see the conda_list_GPU3.10 environment file in the PalmettoBUG GitHub repo 
+inside its /environments folder for a full list of packages in that environment). 
+ > pip install tensorflow-gpu==2.8.4
+ > conda install cudnn=8.9.*
+ > conda install cudatoolkit=11.8.0
+ > conda install zlib-wapi
 
 Licensing information:
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -142,14 +129,14 @@ PalmettoBUG is under the `GPL-3 <https://github.com/BenCaiello/PalmettoBUG?tab=L
 dependencies of PalmettoBUG came from GPL-2+ projects across a few different programming languages, necessitating that PalmettoBUG itself
 be under the same license. 
 
-There is a good amount of copied / derived code in PalmettoBUG, which natrually remains also under their `original licenses <https://github.com/BenCaiello/PalmettoBUG/blob/main/Other_License_Details.txt>`_.
+There is a good amount of copied / derived code in PalmettoBUG, which naturally remains also under their `original licenses <https://github.com/BenCaiello/PalmettoBUG/blob/main/Other_License_Details.txt>`_.
 
 .. warning::
 
    The DeepCell / Mesmer segmentation model (and possibly some of the models from Cellpose) is licensed under a non-commercial / academic
-   license! 
+   license! This is more restrictive than the rest of the PalmettoBUG pipeline!
 
-   This is not compatible with GPL-3, which is why the isoSegDenoise program was separated off as a technically independent program
+   These types of restrictions are not compatible with GPL-3, which is why the isoSegDenoise program was separated off as a technically independent program
    from the main PalmettoBUG package. 
 
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "palmettobug"
-version = "0.1.0"
+version = "0.1.1"
 description = "A GUI for (imaging) mass cyometry analysis predominantly based on the popular Steinbock and CATALYST image processing and data analysis packages and written in customtkinter."
 authors = ["Ben Caiello <caiello@musc.edu>"]
 license = "GPL-3"
@@ -39,15 +39,7 @@ leidenalg = "0.10.2"
 sympy = "<=1.13.1"
 sortedcontainers = "*"
 defusedxml = "0.*"
-isosegdenoise = "*"
-
-[tool.poetry.group.tensorflow]
-optional = false
-
-[tool.poetry.group.tensorflow.dependencies]
-tensorflow = ">=2.8.0,<=2.13.*"
-tensorflow-addons = ">=0.16.1"
-keras = "<3.0.0"
+# isosegdenoise = "*"
 
 [tool.poetry.group.other]
 optional = true
@@ -55,7 +47,6 @@ optional = true
 [tool.poetry.group.other.dependencies]
 svg-stack = "0.1.0"
 navis = "1.9.1"
-
 
 [tool.poetry.scripts]
 palmettobug = 'palmettobug.Executable:run_GUI'
