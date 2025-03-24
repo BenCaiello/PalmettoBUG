@@ -2,11 +2,7 @@
 
 Final development plans:
 
-    1). Installation: this means final re-testing in fresh installation environments testing, saving environments as .txt files with "pip freeze" or "conda list" into the /environments folder:
-        Python 3.9 (Windows, local install only)
-        GPU support with conda-forge packages / "conda list" (Windows, Python 3.10, local install)
-
-    2). Documentation: 
+    1). Documentation: 
         - re-run notebooks (update, check differences from original, be sure of consistency on fresh installation!)
         - Update images and descriptions with new features / missing features
             -- Premessa translation --> have a page for (would require fresh example data?)
@@ -17,7 +13,7 @@ Final development plans:
         - Edit images & screenshots to reduce / use open-source alternatives to windows explorer / excel
         - update text, incorporate proofreading edits
 
-    3). Excessive warnings: address (if possible, or if genuine errors are occuring) or perhaps silence
+    2). Excessive warnings: address (if possible, or if genuine errors are occuring) or perhaps silence
 
 ## Welcome to PalmettoBUG!
 
