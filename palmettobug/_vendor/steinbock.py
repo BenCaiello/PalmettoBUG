@@ -33,6 +33,7 @@ Edits:  --> removed mmap reading code (my program will not ever use that format,
 Edit 8/28/24 ---> removing code from steinbock.measurement.neighbors (not needed anymore in the program)
 
 EDIT 2-7-2025 --> removed unused MCD / TXT file reading code, and some unused imports (including parst of readimc import), and Annotation typing from readimc
+EDIT 3-25-25 --> fix import of MCDFile (from vendored readimc, not python package readimc)
 
 Reasons: disconnect the files listed above from all other modules of steinbock.
 
@@ -89,12 +90,12 @@ import tifffile as tf
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
-try:
-    from readimc import MCDFile
+#try:
+from .readimc import MCDFile
     # from readimc.data import Acquisition
-    imc_available = True
-except Exception:
-    imc_available = False
+#    imc_available = True
+#except Exception:
+#    imc_available = False
 
 __all__ = []
 
