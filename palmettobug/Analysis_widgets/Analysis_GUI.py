@@ -3089,6 +3089,8 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         if not overwrite_approval(f"{self.master.cat_exp.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
             return
+        if hue == "None":
+            hue = None
         figure = self.master.cat_exp.plot_scatter(antigen1, 
                                                  antigen2, 
                                                  hue = hue, 
