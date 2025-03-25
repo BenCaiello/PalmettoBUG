@@ -1308,18 +1308,20 @@ class Analysis:
 
     def plot_scatter(self, antigen1, antigen2, hue = None, filename = None, size = 1, alpha = 0.5, **kwargs):
         data = pd.DataFrame(self.data.X.copy(), columns = self.data.var['antigen'].copy())
-        hue_norm = None
+        # hue_norm = None
         palette = None
         if hue is not None:
             if hue == "Density":
-                ## need to code this
                 density = KernelDensity()
                 X = data.loc[:,[antigen1, antigen2]]
                 density = density.fit(X)
                 density = density.score_samples(X)
-                data['Density'] = list(np.exp(density)  * 100)
-                hue_norm = (0,1)
-                palette = 1
+                to_scale = np.exp(density)
+                to_scale = to_scale / np.quantile(to_scale, 0.99)
+                to_scale[to_scale > 1] = 1
+                data['Density'] = list(to_scale)
+                # hue_norm = (0,1)
+                palette = 'coolwarm'
             elif hue in self.data.obs.columns:
                 data[hue] = list(self.data.obs[hue])
         figure = plt.figure()
@@ -1329,7 +1331,7 @@ class Analysis:
                         y = antigen2, 
                         hue = hue, 
                         palette = palette, 
-                        hue_norm = hue_norm, 
+                        # hue_norm = hue_norm, 
                         size = size, 
                         alpha = alpha, 
                         **kwargs)
