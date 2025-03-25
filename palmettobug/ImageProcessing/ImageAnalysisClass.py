@@ -99,6 +99,7 @@ def imc_entrypoint(directory: Union[Path, str],
     try:
         experiment = ImageAnalysis(directory, resolutions, from_mcds = from_mcds)
     except Exception as e:
+        print(e)
         if from_mcds:
             if _in_gui:
                 tk.messagebox.showwarning("Warning!", message = "Are you sure there are .mcd files in the 'raw' folder of your directory? \n" 
