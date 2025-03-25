@@ -129,8 +129,11 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             self.Region_Measurements.grid(column = 2, row = 1, padx= 5, pady = 5)
             self.Region_Measurements.configure(state = "disabled")
             def activate_region_measure(enter = ""):
-                if (len(os.listdir(self.master.Experiment_object.directory_object.masks_dir)) > 0) and (self.Region_Measurements.cget("state") == "disabled"):
-                    self.Region_Measurements.configure(state = "normal", command = self.master.call_region_measurement)
+                try:
+                    if (len(os.listdir(self.master.Experiment_object.directory_object.masks_dir)) > 0) and (self.Region_Measurements.cget("state") == "disabled"):
+                        self.Region_Measurements.configure(state = "normal", command = self.master.call_region_measurement)
+                except Exception as e:
+                    pass
             self.Region_Measurements.bind("<Enter>", activate_region_measure)
 
             self.Convert_towards_analysis = ctk.CTkButton(self, text = "Load an existing Analysis")
