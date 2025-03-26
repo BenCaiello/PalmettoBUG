@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "palmettobug"
-version = "0.1.3"
+version = "0.1.4"
 description = "A GUI for (imaging) mass cyometry analysis predominantly based on the popular Steinbock and CATALYST image processing and data analysis packages and written in customtkinter."
 authors = ["Ben Caiello <caiello@musc.edu>"]
 license = "GPL-3"
