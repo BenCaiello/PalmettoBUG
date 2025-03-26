@@ -1,5 +1,9 @@
 # PalmettoBUG
-[![PyPI Downloads](https://static.pepy.tech/badge/palmettobug)](https://pepy.tech/projects/palmettobug)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/BenCaiello/PalmettoBUG/python-app.yml)
+![Pepy Total Downloads](https://img.shields.io/pepy/dt/palmettobug)
+![PyPI - Version](https://img.shields.io/pypi/v/palmettobug)
+![Static Badge](https://img.shields.io/badge/License-GPL3-blue)
+
 
 ## Warning! This package is still under development!
 
