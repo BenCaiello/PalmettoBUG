@@ -392,7 +392,9 @@ class Spatial_py(ctk.CTkFrame):
                 warnings.filterwarnings("default", message = "invalid value encountered in divide") 
 
                 space_logger.info(f"""Spatial Analysis Run: 
-                                  max_radii = {str(max_radii)}, step = {str(step)},
+                                  clusterin = {str(celltype_key)},
+                                  max_radii = {str(max_radii)}, min_radii = {str(min_rad)} step = {str(step)},
+                                  threshold = {str(threshold)},
                                   conditions = {str([condition1, condition2])},
                                   permutations = {str(permutations)},
                                   random_seed = {str(seed)}""")
@@ -546,13 +548,13 @@ class Spatial_py(ctk.CTkFrame):
             def plot_pairwise_comparison(self, comparison: str, stat: str, plot_f_vals: str) -> None:
                 output_dir = self.master.master.master_exp.space_analysis.output_dir
                 if comparison != "Run All":
-                    if not overwrite_approval(f"{output_dir}/Functional_plots/",
-                                   file_or_folder = "folder", 
+                    if not overwrite_approval(f"{output_dir}/Functional_plots/{comparison}_{stat}",
+                                   file_or_folder = "file", 
                                    GUI_object = self):
                         return
                 else:
-                    if not overwrite_approval(f"{output_dir}/Functional_plots/{comparison}_{stat}",
-                                   file_or_folder = "file", 
+                    if not overwrite_approval(f"{output_dir}/Functional_plots/",
+                                   file_or_folder = "folder", 
                                    GUI_object = self):
                         return
                 if not os.path.exists("".join([output_dir, "/Functional_plots"])):

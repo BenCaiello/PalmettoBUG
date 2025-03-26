@@ -1268,11 +1268,6 @@ class Analysis:
         will be randomly sampled from each sample_id of the anndata_in object. Returns the downsampled data as an anndata object.
         '''
         fs_anndata = anndata_in.copy()
-        original_index = fs_anndata.obs.index.copy()
-        fs_anndata.obs = fs_anndata.obs.reset_index().drop('index', axis = 1)
-        zip_dict = {}
-        for i,ii in zip(fs_anndata.obs.index.copy(), original_index):
-            zip_dict[i] = ii
         anndata_df = pd.DataFrame(fs_anndata.X, columns = fs_anndata.var['antigen'])
         anndata_df['sample_id'] = list(fs_anndata.obs['sample_id'])
         sample_together = pd.DataFrame()
@@ -1284,12 +1279,13 @@ class Analysis:
         sample_together = sample_together.reset_index().sort_values(by = 'index')
         sample_together.index = sample_together['index']
         sample_together = sample_together.drop(['index','sample_id'], axis = 1)
-        fs_anndata.obs = fs_anndata.obs.reset_index()
-        for_obs = pd.merge(fs_anndata.obs, sample_together.reset_index()[['index']], on = "index")
+        fs_anndata.obs = fs_anndata.obs.index.astype('int')
+        fs_anndata.obs['true_index'] = fs_anndata.obs.index.copy()
+        sample_together['true_index'] = sample_together.index.copy()
+        for_obs = pd.merge(fs_anndata.obs, sample_together[["true_index"]], on = "true_index")
+        sample_together = sample_together.drop("true_index", axis = 1)
         downsample_anndata = ann.AnnData(sample_together)   
         downsample_anndata.obs = for_obs
-        downsample_anndata.obs['true_index'] = pd.Series(downsample_anndata.obs.index).replace(zip_dict)
-        downsample_anndata.obs.index = pd.Series(downsample_anndata.obs.index).replace(zip_dict)
         downsample_anndata.var =  pd.DataFrame(sample_together.columns)
         ## these columns are not always present:
         try:
@@ -3302,6 +3298,27 @@ class Analysis:
                 print("Caution: 'Patient_ids'  do not match between saved clustering and current experiment! Be sure of any changes \n"
                         "Proceeding with clustering load.")
         self.data.obs[column_name] = list(clustering_info['cellType'])    #### assumes no changes in the index
+        ###>>>
+        if self.UMAP_embedding is not None:
+            try: 
+                self.UMAP_embedding.obs = self.UMAP_embedding.obs.drop(column_name, axis = 1)   
+                                                                    ## if present, these columns should be dropped
+            except KeyError:
+                pass
+            merge_df = self.data.obs[column_name].astype('category').copy()
+            merge_df['true_index'] = mege_df.index.astype('int').copy()
+            self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
+            self.UMAP_embedding.obs = pd.merge(self.UMAP_embedding.obs, merge_df, on = "true_index")
+        if self.PCA_embedding is not None:
+            try: 
+                self.PCA_embedding.obs = self.PCA_embedding.obs.drop(column_name, axis = 1)   
+                                                                    ## if present, these columns should be dropped
+            except KeyError:
+                pass
+            merge_df = self.data.obs[column_name].astype('category').copy()
+            merge_df['true_index'] = mege_df.index.astype('int').copy()
+            self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
+            self.PCA_embedding.obs = pd.merge(self.PCA_embedding.obs, merge_df, on = "true_index")
         return
 
     def load_classification(self, 
@@ -3339,6 +3356,27 @@ class Analysis:
         cell_classes.index = cell_classes.reset_index().index
         if len(list(cell_classes[column])) == len(self.data.obs.index):
             self.data.obs['classification'] = list(cell_classes[column])
+            if self.UMAP_embedding is not None:
+                try: 
+                    self.UMAP_embedding.obs = self.UMAP_embedding.obs.drop('classification', axis = 1)   
+                                                                        ## if present, these columns should be dropped
+                except KeyError:
+                    pass
+                merge_df = self.data.obs['classification'].astype('category').copy()
+                merge_df['true_index'] = mege_df.index.astype('int').copy()
+                self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
+                self.UMAP_embedding.obs = pd.merge(self.UMAP_embedding.obs, merge_df, on = "true_index")
+
+            if self.PCA_embedding is not None:
+                try: 
+                    self.PCA_embedding.obs = self.PCA_embedding.obs.drop('classification', axis = 1)   
+                                                                        ## if present, these columns should be dropped
+                except KeyError:
+                    pass
+                merge_df = self.data.obs['classification'].astype('category').copy()
+                merge_df['true_index'] = mege_df.index.astype('int').copy()
+                self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
+                self.PCA_embedding.obs = pd.merge(self.PCA_embedding.obs, merge_df, on = "true_index")
         else:
             print("Number of Classified masks and the number of cells in the loaded dataset do not match!" +
                    "\nDid you not generate the classy masks from the same underlying masks that you used to do region measurements?"+
