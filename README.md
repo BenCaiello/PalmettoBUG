@@ -1,3 +1,6 @@
+# PalmettoBUG
+[![PyPI Downloads](https://static.pepy.tech/badge/palmettobug)](https://pepy.tech/projects/palmettobug)
+
 ## Warning! This package is still under development!
 
 Final development plans:
@@ -15,7 +18,7 @@ Final development plans:
 
     2). Excessive warnings: address (if possible, or if genuine errors are occuring) or perhaps silence
 
-## Welcome to PalmettoBUG!
+## What is PalmettoBUG
 
 PalmettoBUG is a pure-python GUI in customtinker that, along with its sister package isoSegDenoise, can preprocess, segment, and analyze high-dimensional image or flow cytometry data, especially mass cytometry / imaging mass cytometry data. 
 
