@@ -626,7 +626,7 @@ class Analysis:
         filterer = self.data.obs[column].astype('str') != str(to_drop) 
         if (column == "sample_id") or (column == "patient_id") or (column == "condition"):
             filter2 = (self.metadata[column].astype('str')  != str(to_drop))
-            self.metadata = self.metadata[filter2].reset_index().drop('index', axis = 1)
+            self.metadata = self.metadata[filter2]
 
         self.data = self.data[filterer]
         if self.unscaled_data is not None:
@@ -1270,6 +1270,7 @@ class Analysis:
         fs_anndata = anndata_in.copy()
         anndata_df = pd.DataFrame(fs_anndata.X, columns = fs_anndata.var['antigen'])
         anndata_df['sample_id'] = list(fs_anndata.obs['sample_id'])
+        anndata_df.index = fs_anndata.obs.index.astype('int')
         sample_together = pd.DataFrame()
         for i in anndata_df['sample_id'].astype('str').unique():
             segment = anndata_df[anndata_df['sample_id'] == i]
@@ -1279,13 +1280,13 @@ class Analysis:
         sample_together = sample_together.reset_index().sort_values(by = 'index')
         sample_together.index = sample_together['index']
         sample_together = sample_together.drop(['index','sample_id'], axis = 1)
-        fs_anndata.obs = fs_anndata.obs.index.astype('int')
+        fs_anndata.obs.index = fs_anndata.obs.index.astype('int')
         fs_anndata.obs['true_index'] = fs_anndata.obs.index.copy()
         sample_together['true_index'] = sample_together.index.copy()
         for_obs = pd.merge(fs_anndata.obs, sample_together[["true_index"]], on = "true_index")
         sample_together = sample_together.drop("true_index", axis = 1)
-        downsample_anndata = ann.AnnData(sample_together)   
-        downsample_anndata.obs = for_obs
+        for_obs.index = list(for_obs['true_index'])
+        downsample_anndata = ann.AnnData(sample_together, obs = for_obs)   
         downsample_anndata.var =  pd.DataFrame(sample_together.columns)
         ## these columns are not always present:
         try:
@@ -3305,8 +3306,8 @@ class Analysis:
                                                                     ## if present, these columns should be dropped
             except KeyError:
                 pass
-            merge_df = self.data.obs[column_name].astype('category').copy()
-            merge_df['true_index'] = mege_df.index.astype('int').copy()
+            merge_df = pd.DataFrame(self.data.obs[column_name].astype('category').copy())
+            merge_df['true_index'] = merge_df.index.astype('int').copy()
             self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
             self.UMAP_embedding.obs = pd.merge(self.UMAP_embedding.obs, merge_df, on = "true_index")
         if self.PCA_embedding is not None:
@@ -3315,8 +3316,8 @@ class Analysis:
                                                                     ## if present, these columns should be dropped
             except KeyError:
                 pass
-            merge_df = self.data.obs[column_name].astype('category').copy()
-            merge_df['true_index'] = mege_df.index.astype('int').copy()
+            merge_df = pd.DataFrame(self.data.obs[column_name].astype('category').copy())
+            merge_df['true_index'] = merge_df.index.astype('int').copy()
             self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
             self.PCA_embedding.obs = pd.merge(self.PCA_embedding.obs, merge_df, on = "true_index")
         return
@@ -3362,8 +3363,8 @@ class Analysis:
                                                                         ## if present, these columns should be dropped
                 except KeyError:
                     pass
-                merge_df = self.data.obs['classification'].astype('category').copy()
-                merge_df['true_index'] = mege_df.index.astype('int').copy()
+                merge_df = pd.DataFrame(self.data.obs['classification'].astype('category').copy())
+                merge_df['true_index'] = merge_df.index.astype('int').copy()
                 self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
                 self.UMAP_embedding.obs = pd.merge(self.UMAP_embedding.obs, merge_df, on = "true_index")
 
@@ -3373,8 +3374,8 @@ class Analysis:
                                                                         ## if present, these columns should be dropped
                 except KeyError:
                     pass
-                merge_df = self.data.obs['classification'].astype('category').copy()
-                merge_df['true_index'] = mege_df.index.astype('int').copy()
+                merge_df = pd.DataFrame(self.data.obs['classification'].astype('category').copy())
+                merge_df['true_index'] = merge_df.index.astype('int').copy()
                 self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
                 self.PCA_embedding.obs = pd.merge(self.PCA_embedding.obs, merge_df, on = "true_index")
         else:
