@@ -10,17 +10,20 @@
 Final development plans:
 
     1). Documentation: 
-        - re-run notebooks (update, check differences from original, be sure of consistency on fresh installation!)
-        - Update images and descriptions with new features / missing features
-            -- Premessa translation --> have a page for (would require fresh example data?)
-            -- scatterplot option
-            -- clustering --> classy mask, and classy mask / pixel class --> PNG options
+        - Update images and descriptions with new features & data
+            -- Premessa / bead-normalization translation --> have a page for this (would require fresh example data?)
+            -- scatterplot option, clustering --> classy mask option, and classy mask / pixel class --> PNG options
             -- Added parameters to existing functions (is_torch, rlen, etc.)
-        - update GPU section (if needing changes)
-        - Edit images & screenshots to reduce / use open-source alternatives to windows explorer / excel
-        - update text, incorporate proofreading edits
+            -- update for replicability with notebooks (same analysis, *mostly* the same steps, etc.)
+            -- update to remove / reduce 'proprietary' screenshots (probably fair use, but won't hurt)
+        - update text / incorporate proofreading edits
 
-    2). Excessive warnings: address (if possible, or if genuine errors are occuring) or perhaps silence
+    2). Code:
+        - Excessive warnings: address (if possible, or if genuine errors are occuring) or perhaps silence
+        - SpaceANOVA --
+            1. how to handled cell types dropped from the analysis (keep them in the permutation correction calculation, probably? Currently they are dropped from that as well, changing the results for other cell types)
+            2. how to handle p-value adjustment when celltype1 vs. celltype 2 comparison is highly correlated with the reverse comparison (celltype 2 vs celltype 1), but not identical.
+        - Other bugs (there are always some) .... keep testing
 
 ## What is PalmettoBUG
 
