@@ -50,7 +50,6 @@ import warnings
 
 import numpy as np
 import pandas as pd
-pd.set_option('future.no_silent_downcasting', True)
 import tifffile as tf
 import cv2 as cv
 import matplotlib.pyplot as plt
@@ -61,6 +60,8 @@ import skimage
 import seaborn as sns 
 
 from .._vendor.flowsom import FlowSOM
+
+pd.set_option('future.no_silent_downcasting', True)
 
 __all__ = ["SupervisedClassifier", 
            "UnsupervisedClassifier", 
@@ -175,7 +176,7 @@ class SupervisedClassifier:
         self.classifier_name = classifier_name
         
         self.classifier_dir = self._px_dir + classifier_name
-        self.output_directory = self.classifier_dir + f"/classification_maps"
+        self.output_directory = self.classifier_dir + "/classification_maps"
         if not os.path.exists(self.classifier_dir):
             os.mkdir(self.classifier_dir)
         if not os.path.exists(self.output_directory):
@@ -418,7 +419,7 @@ class SupervisedClassifier:
         if image.shape[0] > image.shape[2]:    ## the channel dimensions should be the first
             image = image.T
 
-        if display_all_channels == True:
+        if display_all_channels is True:
             viewer = napari.view_image(image, name = self._image_name, channel_axis = 0) 
         else:
             viewer = napari.view_image(image, name = self._image_name)     ### , channel_axis = 0   
@@ -696,7 +697,7 @@ def all_channels_features_together(image: np.ndarray[float],
                 all_together[current_layer] = stMax
                 current_layer += 1
             if "STRUCTURE_TENSOR_EIGENVALUE_MIN" in features_list:
-                if struct_tense == True:
+                if struct_tense is True:
                     all_together[current_layer] = stMin
                     current_layer += 1
                 else:
@@ -710,33 +711,33 @@ def all_channels_features_together(image: np.ndarray[float],
                 all_together[current_layer] = coherence                  
                 current_layer += 1  
             if "HESSIAN_DETERMINANT" in features_list:
-                if mixed_deriv == False:
+                if mixed_deriv is False:
                     dxx, dyy, dxy = _getMixedDerivs(image_temp,kernel0, kernel1, kernel2)
-                    mixed_deriv == True
+                    mixed_deriv = True
                 hessian_min, hessian_max, hessian_determinant = _getHessian(dxx, dyy, dxy)
                 hessians_done = True
                 all_together[current_layer] = hessian_determinant
                 current_layer += 1
             if "HESSIAN_EIGENVALUE_MAX" in features_list:
-                if hessians_done == True:
+                if hessians_done is True:
                     all_together[current_layer] = hessian_max               
                     current_layer += 1
                 else:
-                    if mixed_deriv == False:
+                    if mixed_deriv is False:
                         dxx, dyy, dxy = _getMixedDerivs(image_temp,kernel0, kernel1, kernel2)
-                        mixed_deriv == True
+                        mixed_deriv = True
                     hessian_min, hessian_max, hessian_determinant = _getHessian(dxx, dyy, dxy)
                     hessians_done = True
                     all_together[current_layer] = hessian_max             
                     current_layer += 1
             if "HESSIAN_EIGENVALUE_MIN" in features_list:
-                if hessians_done == True:
+                if hessians_done is True:
                     all_together[current_layer] = hessian_min         
                     current_layer += 1
                 else:
-                    if mixed_deriv == False:
+                    if mixed_deriv is False:
                         dxx, dyy, dxy = _getMixedDerivs(image_temp,kernel0, kernel1, kernel2)
-                        mixed_deriv == True
+                        mixed_deriv = True
                     hessian_min, hessian_max, hessian_determinant = _getHessian(dxx, dyy, dxy)
                     all_together[current_layer] = hessian_min               
                     current_layer += 1
@@ -771,12 +772,12 @@ def _predictClassifier(all_together: np.ndarray[float],
             2-D, the pixel classification or probability predictions from the classifier. Dimensions match the spatial dimensions of the image.
     '''
     px_class = np.zeros((all_together.shape[1],all_together.shape[0]))
-    if categorical == False:
+    if categorical is False:
         px_class = np.zeros((all_together.shape[1],all_together.shape[0],num_classes))
     for i in range(0, all_together.shape[1]):
         row = all_together[:,i]
         px_probs = algorithm1.predict(row)[1]
-        if categorical == False:
+        if categorical is False:
              px_class[i,:,:] = scipy.special.softmax(px_probs, axis = 1)      # presumes negative precedes positive in the QuPath classifier
         else:
             px_class[i] = np.argmax(px_probs, axis = 1) + 1 ## check proper axis!
@@ -889,7 +890,7 @@ def _getStructureTensor(image: np.ndarray[float],
     ST_dyy = cv.sepFilter2D(ST_dyy, ddepth = -1, kernelX = kernel0, kernelY = kernel0, borderType = 1)				
     ST_dxy = cv.sepFilter2D(ST_dxy, ddepth = -1, kernelX = kernel0, kernelY = kernel0, borderType = 1)
     stMin, stMax, hessian_determinant = _getHessian(ST_dxx, ST_dyy, ST_dxy)
-    if co_bool == True:              
+    if co_bool is True:              
         coherence = ((stMax - stMin) / (stMax + stMin)) **2
         coherence = np.nan_to_num(coherence)
     else:
@@ -983,7 +984,7 @@ class UnsupervisedClassifier():
             os.mkdir(self._px_dir)   
 
         self.classifier_dir = self._px_dir + "/" + classifier_name
-        self.output_dir = self.classifier_dir + f"/classification_maps"
+        self.output_dir = self.classifier_dir + "/classification_maps"
         if not os.path.exists(self.classifier_dir):
             os.mkdir(self.classifier_dir)
         if not os.path.exists(self.output_dir):
@@ -1182,15 +1183,15 @@ def make_feature_dict_from_panel(panel: pd.DataFrame) -> dict:
     for each of the remaining columns (named after possible features), if a channels entry in that column = 1 (instead of 0) that means 
     generate that feature for that channel and use in the classifier.
     '''
-    possible_features_list = ['GRAD_MAG', 
-                              'HESSIAN_DET', 
-                              'HESSIAN_MAX', 
-                              'HESSIAN_MIN', 
-                              'LAPLACIAN', 
-                              'STRUCT_CO', 
-                              'STRUCT_MAX', 
-                              'STRUCT_MIN', 
-                              'WGT_STDV']
+    #possible_features_list = ['GRAD_MAG', 
+    #                          'HESSIAN_DET', 
+    #                          'HESSIAN_MAX', 
+    #                          'HESSIAN_MIN', 
+    #                          'LAPLACIAN', 
+    #                          'STRUCT_CO', 
+    #                          'STRUCT_MAX', 
+    #                          'STRUCT_MIN', 
+    #                          'WGT_STDV']
     additional_features_dict = {}
     panel_for_features = panel.copy().drop("keep", axis = 1)
     panel_for_features.index = panel_for_features['antigen']
@@ -1268,13 +1269,13 @@ def make_features(image_channel_slice: np.ndarray[float],
         all_together[counter] = hessian_determinant
         counter += 1
     if "HESSIAN_MAX" in feature_list:
-        if hessian == False:
+        if hessian is False:
             hessian_min, hessian_max, hessian_determinant = _getHessian(dxx, dyy, dxy)
             hessian = True
         all_together[counter] = hessian_max
         counter += 1
     if "HESSIAN_MIN" in feature_list:
-        if hessian == False:
+        if hessian is False:
             hessian_min, hessian_max, hessian_determinant = _getHessian(dxx, dyy, dxy)
             hessian = True
         all_together[counter] = hessian_min
@@ -1288,13 +1289,13 @@ def make_features(image_channel_slice: np.ndarray[float],
         all_together[counter] = coherence
         counter += 1
     if 'STRUCT_MAX' in feature_list:
-        if structure_tensor == False:
+        if structure_tensor is False:
             stMin, stMax, coherence = _getStructureTensor(image_channel_slice,kernel0,co_bool = False)
             structure_tensor = True
         all_together[counter] = stMax
         counter += 1
     if 'STRUCT_MIN' in feature_list:
-        if structure_tensor == False:
+        if structure_tensor is False:
             stMin, stMax, coherence = _getStructureTensor(image_channel_slice,kernel0,co_bool = False)
         all_together[counter] = stMin
         counter += 1

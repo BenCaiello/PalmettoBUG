@@ -21,7 +21,6 @@ import skimage
 #import scipy
 import numpy as np
 import pandas as pd
-pd.set_option('future.no_silent_downcasting', True)
 import tifffile as tf
 import cv2 as cv
 import anndata 
@@ -30,6 +29,8 @@ from .._vendor import pyometiff as pot
 from .._vendor.flowsom import FlowSOM 
 from ..Analysis_functions.Analysis import _quant
 from ..Utils.Exceptions import NoSharedFilesError
+
+pd.set_option('future.no_silent_downcasting', True)
 
 
 __all__ = ["plot_classes",
@@ -265,7 +266,7 @@ def slice_image_by_region(class_to_keep: Union[int, list[int]],
 
         ## slice image
         new_image = image[:,bound_1:bound_2,bound_3:bound_4]
-        if zero_out == True:
+        if zero_out is True:
             slicer = final_class[bound_1:bound_2,bound_3:bound_4].astype('float')
             slicer = slicer[np.newaxis,:,:]
             new_image = new_image*slicer

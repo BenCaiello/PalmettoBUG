@@ -31,9 +31,9 @@ The entire SpatialAnalysis class can be considered to derive from the spaceanova
 '''
 
 import os
-import copy
 from typing import Union
 from pathlib import Path 
+# import copy
 
 import numpy as np
 import pandas as pd
@@ -141,7 +141,7 @@ class SpatialANOVA():
         try:
             self.areas = self.exp.data.uns['areas']    ## will need to add Analysis.data.uns['areas'] ... 
             self.filenames = self.exp.data.obs['file_name']
-        except:
+        except Exception:
             print("areas not found in anndata -- plotting cell maps will not be available")
         self.cellType_key = cellType_key
         self.data_table = None

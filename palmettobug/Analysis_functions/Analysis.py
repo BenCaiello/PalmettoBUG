@@ -38,8 +38,6 @@ from pathlib import Path
 import tempfile as tp
 import tkinter as tk
 import warnings
-warnings.filterwarnings("ignore", message = "Transforming to str index")   ## anndata implicit modification warning that is not necessary
-warnings.filterwarnings("ignore", message = "Observation names are not unique")  ## anndata UserWarning that is not necessary
 
 import numpy as np
 import pandas as pd
@@ -49,7 +47,6 @@ import scipy
 from scipy.stats import gaussian_kde
 import matplotlib.pyplot as plt 
 from matplotlib.patches import Patch
-plt.style.use('ggplot')
 import seaborn as sns
 import seaborn.objects as so 
 import statsmodels.api as sm
@@ -65,6 +62,11 @@ from .._vendor import fcsparser
 from .._vendor.flowsom import FlowSOM, plot_stars, FlowSOM_colors
 from .._vendor.qnorm import quantile_normalize
 from ..Utils.sharedClasses import warning_window, Analysis_logger
+
+warnings.filterwarnings("ignore", message = "Transforming to str index")   ## anndata implicit modification warning that is not necessary
+warnings.filterwarnings("ignore", message = "Observation names are not unique")  ## anndata UserWarning that is not necessary
+
+plt.style.use('ggplot')
 
 __all__ = ["Analysis"]
 
@@ -1175,7 +1177,7 @@ class Analysis:
         fig.subplots_adjust(hspace = 0.5)
         sup_Y = 1.04 + (row_num * -0.01)
         if suptitle:
-            fig.suptitle(f"KDE / Histogram plots of normalized Exprs of each marker \n facetted by sample_id ", y = sup_Y)
+            fig.suptitle("KDE / Histogram plots of normalized Exprs of each marker \n facetted by sample_id ", y = sup_Y)
         fig.supxlabel("normalized Exprs")
         if filename is not None:
             fig.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
@@ -1330,7 +1332,8 @@ class Analysis:
                         palette = palette, 
                         # hue_norm = hue_norm, 
                         size = size, 
-                        alpha = alpha, 
+                        alpha = alpha,
+                        ax = ax, 
                         **kwargs)
         if filename is not None:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
@@ -1664,9 +1667,9 @@ class Analysis:
                 if groupby != "clustering":
                     percentiles['percents'] = [f'''{i} ({np.round(ii * 100, 1)}%)''' for i,ii in zip(percent_groupby.index, list(percent_groupby))]
                     percentiles['index'] = [i for i in percent_groupby.index]
-                else:
-                    percentiles['percents'] = [f'''{i} ({np.round(obs["percentages"].loc[i] * 100, 1)}%)''' for i in obs.index]
-                    percentiles['index'] = [i for i in obs.index]
+                #else:
+                #    percentiles['percents'] = [f'''{i} ({np.round(obs["percentages"].loc[i] * 100, 1)}%)''' for i in obs.index]
+                #    percentiles['index'] = [i for i in obs.index]
                 percentiles = percentiles.sort_values('index')
                 cluster_centers.index = list(percentiles['percents'])   
         else:
@@ -1696,7 +1699,7 @@ class Analysis:
             else:
                 return plot
         
-    def plot_facetted_heatmap(self, 
+    def _plot_facetted_heatmap(self, 
                               filename: str, 
                               subsetting_column: str, 
                               groupby_column: str = "metaclustering", 
@@ -1709,6 +1712,8 @@ class Analysis:
 
         Unique in that this function only exports an .SVG file to the disk and return only the path to that file (does not return the plot 
         like the other functions)
+
+        This function is old, and not well-tested / supported so it may have errors!
         '''
         try:
             import svg_stack # type: ignore
@@ -1720,7 +1725,7 @@ class Analysis:
             print("number_of_columns must be greater than 1!")
             return
 
-        analysis_anndata = analysis_anndata.copy()
+        analysis_anndata = self.data.copy()
 
         pre_heatmap_df = pd.DataFrame(analysis_anndata.X)
         pre_heatmap_df.columns = analysis_anndata.var.index
@@ -1957,7 +1962,7 @@ class Analysis:
             if comp_type == "vs":
                 griddy.figure.suptitle(f"{scale} Expression of each marker by Cluster {title_assistant}", y = sup_Y)
             else:
-                griddy.figure.suptitle(f"Expression of each marker in each Cluster", y = sup_Y)
+                griddy.figure.suptitle("Expression of each marker in each Cluster", y = sup_Y)
             if filename is not None:
                 griddy.savefig(f"{self.save_dir}/{plot_type}{filename}.png", bbox_inches = "tight") 
             plt.close()
@@ -2118,7 +2123,7 @@ class Analysis:
                 yax.set_label_text("")
                 yax.set_ticks([0.0], labels = "")
         sup_Y = 1.03 + (number_of_rows * -0.01)
-        figure.suptitle(f"Proportion of each cluster each in sample", y = sup_Y)
+        figure.suptitle("Proportion of each cluster each in sample", y = sup_Y)
         if filename is not None:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
         plt.close()
@@ -2454,10 +2459,10 @@ class Analysis:
                                     condition2, condition2_CI_plus_minus])
         
                 temp_row = pd.DataFrame(temp_row_array[:, np.newaxis].T, columns = consistent_columns, index = [ii])
-                if ii > 0:
-                    output_df = pd.concat([output_df, temp_row], axis = 0)
-                else:
+                if ii == 0:
                     output_df = temp_row
+                else:
+                    output_df = pd.concat([output_df, temp_row], axis = 0)
         
             output_df['p_adj'] = [sigfig.round(i, 
                                                3, 
@@ -2488,7 +2493,7 @@ class Analysis:
                 for i in new_obs_df.groupby([groupby_column,variable], observed = False).count().index:
                     try:
                         new_obs_df.groupby([groupby_column,variable], observed = True).count().loc[i]
-                    except:
+                    except Exception:
                         to_drop_list.append(i)
                         
             grouped = grouped.reset_index()
@@ -2604,7 +2609,7 @@ class Analysis:
                 for i in new_obs_df.groupby([groupby_column,variable], observed = False).count().index:
                     try:
                         new_obs_df.groupby([groupby_column,variable], observed = True).count().loc[i]
-                    except:
+                    except Exception:
                         to_drop_list.append(i)
                         
             grouped = grouped.reset_index()

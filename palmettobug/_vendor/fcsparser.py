@@ -1,3 +1,4 @@
+# ruff: noqa
 '''
 This file is an 'vendorizing' of the fcsparser package: https://github.com/eyurtsev/fcsparser
 

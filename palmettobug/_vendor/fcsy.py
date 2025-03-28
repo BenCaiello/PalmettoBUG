@@ -1,3 +1,4 @@
+# ruff: noqa
 '''
 This file is an "vendorizing" of the fcsy package: https://github.com/nehcgnay/fcsy
 
@@ -44,7 +45,6 @@ from typing import Union
 from io import BytesIO, StringIO
 import struct
 import re
-from io import BytesIO
 from abc import abstractmethod, ABC
 from contextlib import contextmanager
 from functools import update_wrapper, partial

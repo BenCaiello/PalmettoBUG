@@ -17,7 +17,6 @@ import tkinter as tk
 import customtkinter as ctk
 
 import pandas as pd
-pd.set_option('future.no_silent_downcasting', True)
 import numpy as np
 import tifffile as tf
 
@@ -42,6 +41,8 @@ from ..Utils.sharedClasses import (CtkSingletonWindow,
                                    folder_checker,
                                    overwrite_approval, 
                                    display_image_button)
+
+pd.set_option('future.no_silent_downcasting', True)
 
 __all__ = []
 
@@ -232,7 +233,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 return
             if not overwrite_approval(output_folder, file_or_folder = "folder"):
                 return
-            class_map_folder = self.master.active_classifier_dir + f"/classification_maps"
+            class_map_folder = self.master.active_classifier_dir + "/classification_maps"
             image_folder = self.master.image_directory + "/" + self.select_image_folder.get()  
             
 
@@ -256,7 +257,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 try:
                     self.biological_class_labels = pd.read_csv(self.master.master.active_classifier_dir + "/biological_labels.csv")
                     self.from_labels = True
-                except Exception as e1:
+                except Exception:
                     try:
                         open_json = open(self.master.master.active_classifier_dir + f"/{self.master.master.name}_details.json", 
                                          'r', 
@@ -266,7 +267,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                         open_json.close()
                         self.list_of_labels = [i for i in range(1,self.dictionary["number_of_classes"]+1)]
                         self.from_labels = False
-                    except Exception as e2:
+                    except Exception:
                         tk.messagebox.showwarning("Warning!", 
                             message = "Classifier is corrupted (_details.json missing)! \n"
                                 "Both the biological_labels.csv and _details.json is missing from this classifier. Please recreate classifier \n"
@@ -385,7 +386,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
         def launch_analysis(self) -> None:  
             whole_class_analysis_window(self)
-            pixel_logger.info(f"""Entered Whole class analysis""") 
+            pixel_logger.info("""Entered Whole class analysis""") 
 
         def add_panel(self) -> None:
             try:                ## first read from classifier directory
@@ -560,7 +561,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                                             connectivity = connectivity,
                                             merge_list = merge_list) 
             
-            pixel_logger.info(f"Merged Masks & Pixel classifier: \n"
+            pixel_logger.info("Merged Masks & Pixel classifier: \n"
                               f"masks_folder = {masks_folder}, \n"
                               f"classy_masks_folder = {classy_mask_folder}, \n"
                               f"classification_maps folder = {classification_folder}, \n"
@@ -757,7 +758,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 not_shared_names = [i for i,ii in zip(classifier_files,masks_files) if i != ii]
                 if len(not_shared_names) > 0:
                     tk.messagebox.showwarning("Warning", 
-                        message = f"The names of the files in the classifier maps folder and the masks folder do not match!")
+                        message = "The names of the files in the classifier maps folder and the masks folder do not match!")
                     return
             else:
                 tk.messagebox.showwarning("Warning", 
@@ -795,7 +796,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 cell_classes_df['labels'] = cell_classes_df['classification'].astype('str').replace(bio_dict)
                 cell_classes_df.to_csv(f'{self.master.main_directory}/classy_masks/{self.classy_mask_name}/{self.classy_mask_name}_cell_classes.csv', 
                                        index = False)
-                pixel_logger.info(f"Made Classy Masks, using the simple Mode based classification, with the following parameters: \n"
+                pixel_logger.info("Made Classy Masks, using the simple Mode based classification, with the following parameters: \n"
                                   f"masks folder = {masks_folder}, \n"
                                   f"classification maps folder = {classifier_masks_folder}, \n"
                                   f"output folder = {output_folder}, \n"
@@ -842,7 +843,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                                             panel = panel)
                 plot.figure.suptitle(self.classy_mask_name)
                 plot.figure.savefig(self.output_path)
-                pixel_logger.info(f"MadeClassy Masks, using the 2ndary FlowSOM based classification, with the following parameters: \n"
+                pixel_logger.info("MadeClassy Masks, using the 2ndary FlowSOM based classification, with the following parameters: \n"
                                   f"masks folder = {masks_folder}, \n"
                                   f"classification maps folder = {classifier_masks_folder}, \n"
                                   f"output foldre = {output_folder}, \n"
@@ -1278,13 +1279,13 @@ class bio_labels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
 
         if self.master.classifier_type == "supervised":
-            merge_folder(self.master.active_classifier_dir + f"/classification_maps", 
-                        pd.read_csv(self.master.active_classifier_dir + f"/biological_labels.csv"),
-                        self.master.PxQuPy_class.active_classifier_dir + f"/merged_classification_maps")
+            merge_folder(self.master.active_classifier_dir + "/classification_maps", 
+                        pd.read_csv(self.master.active_classifier_dir + "/biological_labels.csv"),
+                        self.master.PxQuPy_class.active_classifier_dir + "/merged_classification_maps")
         elif self.master.classifier_type == "unsupervised":
-            merge_folder(self.master.active_classifier_dir + f"/classification_maps", 
-                        pd.read_csv(self.master.active_classifier_dir + f"/biological_labels.csv"),
-                        self.master.active_classifier_dir + f"/merged_classification_maps")
+            merge_folder(self.master.active_classifier_dir + "/classification_maps", 
+                        pd.read_csv(self.master.active_classifier_dir + "/biological_labels.csv"),
+                        self.master.active_classifier_dir + "/merged_classification_maps")
         pixel_logger.info(f"Saved Biological labels and merged: \n {str(df)}")
 
         self.master.classify_cells.merge_frame.initialize_with_classifier()

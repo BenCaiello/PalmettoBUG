@@ -21,7 +21,7 @@ warnings.filterwarnings("ignore", message = "Setting an item of incompatible dty
                                                                                                             # seems like it would require creating a new column with the
                                                                                                             # new dtype, then deleting the old column to get the effect
                                                                                                             # I want without the warning -- but that is a pain and extra code / steps.
-from .Entrypoint.app_and_entry import App 
+from .Entrypoint.app_and_entry import App # noqa: E402
 
 __all__ = ["run_GUI"]
 #from .Utils.sharedClasses import NapariProcessClass

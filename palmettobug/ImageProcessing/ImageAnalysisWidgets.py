@@ -132,7 +132,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
                 try:
                     if (len(os.listdir(self.master.Experiment_object.directory_object.masks_dir)) > 0) and (self.Region_Measurements.cget("state") == "disabled"):
                         self.Region_Measurements.configure(state = "normal", command = self.master.call_region_measurement)
-                except Exception as e:
+                except Exception:
                     pass
             self.Region_Measurements.bind("<Enter>", activate_region_measure)
 
