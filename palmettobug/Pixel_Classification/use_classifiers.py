@@ -244,7 +244,7 @@ def slice_image_by_region(class_to_keep: Union[int, list[int]],
             print("The shapes of a classifier map and its image could not be aligned! Image filtering exited")
             return np.array([])
     
-    if type(class_to_keep) == list:
+    if isinstance(class_to_keep, list):
         final_class = np.zeros(class_map.shape)
         for i in class_to_keep:
             class_array = (class_map == i).astype('int')
@@ -695,7 +695,7 @@ def _heatmap_secondary_flowsom(classy_mask_folder: Union[Path, str], #### supers
     img_folder = str(img_folder)
     if output_path is not None:
         output_path = str(output_path)
-    if type(panel) != pd.DataFrame:
+    if not isinstance(panel, pd.DataFrame):
         panel = pd.read_csv(str(panel))
     numpy_seed = (panel[panel['keep'] == 1]['name'].values)
     if type_array is not None:

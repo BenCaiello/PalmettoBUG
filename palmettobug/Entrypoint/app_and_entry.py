@@ -250,7 +250,7 @@ class EntryPoint(ctk.CTkFrame):
                                             hover = "white")
 
         def update_image(self, image: Union[str, ctk.CTkImage]) -> None:
-            if type(image) == str:
+            if isinstance(image, str):
                 image = Image.open(image)
                 image = ctk.CTkImage(image, size = (550,550))
             self.configure(image = image)
