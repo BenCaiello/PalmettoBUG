@@ -17,7 +17,6 @@ from multiprocessing import Process
 
 import customtkinter as ctk
 import pandas as pd
-pd.set_option('future.no_silent_downcasting', True)
 import numpy as np
 import tifffile as tf
 import matplotlib.pyplot as plt 
@@ -38,6 +37,8 @@ from ..Utils.sharedClasses import (DirectoryDisplay,
                                    warning_window, 
                                    overwrite_approval, 
                                    display_image_button)
+
+pd.set_option('future.no_silent_downcasting', True)
 
 __all__ = []
 
@@ -178,8 +179,8 @@ class Pixel_class_widgets(ctk.CTkFrame):
         image = tf.imread(image_folder_name + "/"  + image_name).T
         self.PxQuPy_class.predict(image, image_name)
         merge_folder(self.PxQuPy_class.output_directory,
-                     pd.read_csv(self.PxQuPy_class.classifier_dir + f"/biological_labels.csv"),
-                    self.PxQuPy_class.classifier_dir + f"/merged_classification_maps")
+                     pd.read_csv(self.PxQuPy_class.classifier_dir + "/biological_labels.csv"),
+                    self.PxQuPy_class.classifier_dir + "/merged_classification_maps")
         pixel_logger.info(f"Predicted classification map for following image: {image_folder_name + '/'  + image_name}")
 
     def predict_folder(self) -> None:
@@ -193,8 +194,8 @@ class Pixel_class_widgets(ctk.CTkFrame):
             return False
         self.PxQuPy_class.predict_folder(image_folder_name)
         merge_folder(self.PxQuPy_class.output_directory, 
-                     pd.read_csv(self.PxQuPy_class.classifier_dir + f"/biological_labels.csv"),
-                    self.PxQuPy_class.classifier_dir + f"/merged_classification_maps")
+                     pd.read_csv(self.PxQuPy_class.classifier_dir + "/biological_labels.csv"),
+                    self.PxQuPy_class.classifier_dir + "/merged_classification_maps")
         pixel_logger.info(f"Predicted classification map for following image folder: {image_folder_name}")
 
     def run_one_unsupervised(self) -> None:
@@ -433,7 +434,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
                 return
             image_path = self.image_directory + "/" + image_folder + "/" + image_name
             self.image_path_choice = image_path
-            if self.labels_done == True:
+            if self.labels_done is True:
                 tk.messagebox.showwarning("Napari Warning!", 
                     message = "Labels have been generated and not exported! \n Napari will not launch unless you export or discard those labels!")
                 return
@@ -443,7 +444,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
             self.button3.configure(state = "normal")
 
         def accept_Napari_labeling(self) -> None:
-            if self.labels_done == False:
+            if self.labels_done is False:
                 tk.messagebox.showwarning("Napari Warning!", message = "No labels are available to save!")
                 return
             if np.max(self.master.PxQuPy_class._user_labels) == 0:
@@ -460,7 +461,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
             self.button3.configure(state = "disabled")
 
         def discard_labels(self) -> None:
-            if self.labels_done == False:
+            if self.labels_done is False:
                 tk.messagebox.showwarning("Napari Warning!", message = "No labels are available to discard!")
                 return
             self.master.PxQuPy_class._user_labels = None   ## clears stored Napari layer
@@ -597,7 +598,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
                                      threshold = threshold, 
                                      distance_between_centroids = distance_between_centroids, 
                                      background = 1)
-            pixel_logger.info(f"Did Segmentation from pixel classifier: \n"
+            pixel_logger.info("Did Segmentation from pixel classifier: \n"
                               f"input folder = {input_folder}, \n" 
                               f"output_folder = {output_folder}, \n" 
                               f"threshold = {str(threshold)}, \n" 
@@ -667,12 +668,12 @@ class bio_label_launch_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         
         if self.master.classifier_type == "supervised":
             merge_folder(self.master.PxQuPy_class.classifier_dir + "/classification_maps", 
-                        pd.read_csv(self.master.PxQuPy_class.classifier_dir + f"/biological_labels.csv"),
-                        self.master.PxQuPy_class.classifier_dir + f"/merged_classification_maps")
+                        pd.read_csv(self.master.PxQuPy_class.classifier_dir + "/biological_labels.csv"),
+                        self.master.PxQuPy_class.classifier_dir + "/merged_classification_maps")
         elif self.master.classifier_type == "unsupervised":
             merge_folder(self.master.unsupervised.classifier_dir + "/classification_maps", 
-                        pd.read_csv(self.master.unsupervised.classifier_dir + f"/biological_labels.csv"),
-                        self.master.unsupervised.classifier_dir + f"/merged_classification_maps")
+                        pd.read_csv(self.master.unsupervised.classifier_dir + "/biological_labels.csv"),
+                        self.master.unsupervised.classifier_dir + "/merged_classification_maps")
         pixel_logger.info(f"Saved Biological labels and merged: \n {str(df)}")
         self.destroy()
 
@@ -1405,7 +1406,7 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         sigma_label = ctk.CTkLabel(master = self, text = f"Sigma = {self.dictionary['sigma']}")
         sigma_label.grid(column = 0, row = 5, padx = 3, pady = 3)
 
-        toplabel1 = ctk.CTkLabel(master = self, text = f"Training Parameters:")
+        toplabel1 = ctk.CTkLabel(master = self, text = "Training Parameters:")
         toplabel1.grid(column = 1, row = 0, padx = 3, pady = 3)
 
         seed_label = ctk.CTkLabel(master = self, text = f"Seed = {self.dictionary['seed']}")

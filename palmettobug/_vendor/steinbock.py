@@ -74,14 +74,11 @@ import scipy.ndimage
 from scipy.ndimage import maximum_filter
 from skimage.measure import regionprops_table
 from typing import (
-    TYPE_CHECKING,
     Any,
     Dict,
     List,
     Generator,
-    Mapping,
     Optional,
-    Protocol,
     Sequence,
     Tuple,
     Union,

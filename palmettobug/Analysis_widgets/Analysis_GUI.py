@@ -250,7 +250,7 @@ class Analysis_py_widgets(ctk.CTkFrame):
     def reload_experiment(self) -> None:
         self.cat_exp = Analysis(in_gui = True)
         self.cat_exp.load_data(self.directory)
-        Analysis_widget_logger.info(f"Reloaded Experiment!")
+        Analysis_widget_logger.info("Reloaded Experiment!")
         with open(self.directory + '/Analysis_panel.csv') as file:
             Analysis_widget_logger.info(f"Loaded Analysis_panel file, with values: \n {file.read()}")
         with open(self.directory + '/metadata.csv') as file:
@@ -626,7 +626,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                     all_classifications = all_classifications + list_of_classifications
 
                 self.load_identifier_from_px.configure(values = all_classifications)
-            except:
+            except Exception:
                 pass
 
         self.load_identifier_from_px = ctk.CTkOptionMenu(master = self, values = [""], variable = ctk.StringVar(value = ""))
@@ -654,7 +654,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def load_clustering(self, identifier: str) -> None:
         if (identifier == ""):
             tk.messagebox.showwarning(title = "Warning!", 
-                message = f"No clustering selected to load!")
+                message = "No clustering selected to load!")
             self.focus()
             return
         identifier2 = f"{self.master.cat_exp.directory}/clusterings/{identifier}"
@@ -670,14 +670,14 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             load_type = load_types[np.argmin(load_types2)]
             if self.master.cat_exp.space_analysis.cellType_key == load_type:
                 self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
-        except Exception as e:
+        except Exception:
             pass
         self.withdraw()
 
     def load_class_from_px_classifier(self, identifier: str) -> None:
         if (identifier == ""):
             tk.messagebox.showwarning(title = "Warning!", 
-                message = f"No cell classification selected to load!")
+                message = "No cell classification selected to load!")
             self.focus()
             return   
         self.master.cat_exp.load_classification(cell_classifications = (self.classy_dir + "/" + identifier))
@@ -686,7 +686,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         try: ## either space_analysis or data_table attributes may not exist
             if self.master.cat_exp.space_analysis.cellType_key == 'classification':
                 self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
-        except Exception as e:
+        except Exception:
             pass
 
         Analysis_widget_logger.info(f"Loaded Pixel Classification: {identifier}!")
@@ -776,7 +776,7 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             try: ## either space_analysis or data_table attributes may not exist
                 if self.master.cat_exp.space_analysis.cellType_key == 'metaclustering':
                     self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
-            except Exception as e:
+            except Exception:
                 pass
             if plot_stars:
                 filename = "FlowSOM_MST"
@@ -1701,7 +1701,7 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         try: ## either space_analysis or data_table attributes may not exist
             if self.master.cat_exp.space_analysis.cellType_key == 'merging':
                 self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
-        except Exception as e:
+        except Exception:
             pass
 
         Analysis_widget_logger.info(f"Ran Cluster Merging with: name = {id}")
@@ -2034,7 +2034,7 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         clustering = self.clustering_column.get()
         if clustering not in available_columns:
             tk.messagebox.showwarning(title = "Warning!", 
-                                message = f"You must select a clustering!")
+                                message = "You must select a clustering!")
             self.focus()
             return
         elif clustering not in available_columns:
@@ -2212,7 +2212,7 @@ class Scaling_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label2 =  ctk.CTkLabel(master = self, text = f"Current scaling = \n {self.master.cat_exp._scaling}")
         label2.grid(column = 1, row = 0, pady = 5, padx = 5)
 
-        label3 =  ctk.CTkLabel(master = self, text = f"Select upper quantile: \n used for % quantile scaling")
+        label3 =  ctk.CTkLabel(master = self, text = "Select upper quantile: \n used for % quantile scaling")
         label3.grid(column = 1, row = 1, pady = 5, padx = 5, columnspan = 2)
 
         self.upper_quant = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "99.9"))
@@ -2236,7 +2236,7 @@ class Scaling_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 upper_quant = float(upper_quant)
                 upper_quant_log = str(upper_quant)
             except ValueError:
-                tk.messagebox.showwarning("Warning!", message = f"Upper quantile must be a number for %quantile scaling!")
+                tk.messagebox.showwarning("Warning!", message = "Upper quantile must be a number for %quantile scaling!")
                 self.focus()
                 return
         self.master.cat_exp.do_scaling(scaling_choice, upper_quantile = upper_quant)
@@ -2354,7 +2354,7 @@ class image_drop_restore_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
             return
         for i in filter_sample_ids:
             self.master.cat_exp.filter_data(i, column = self.column)
-        Analysis_widget_logger.info(f"Dropped from loaded analysis (will be restored at reload): \n" +
+        Analysis_widget_logger.info("Dropped from loaded analysis (will be restored at reload): \n" +
                                     f"column = {self.column}, \n" +
                                     f"to_drop = {str(filter_sample_ids)}")
         
@@ -2453,7 +2453,7 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
             child = self.subset_frame.children[i]
             try:
                 child.configure(state = "disabled")
-            except:
+            except Exception:
                 pass
 
     def subset_command(self) -> None:
@@ -2463,7 +2463,7 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
             child = self.subset_frame.children[i]
             try:
                 child.configure(state = "normal")
-            except:
+            except Exception:
                 pass
 
     def plain_command(self) -> None:
@@ -2472,7 +2472,7 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
             child = self.grouping.children[i]
             try:
                 child.configure(state = "disabled")
-            except:
+            except Exception:
                 pass
 
     def grouping_command(self) -> None:
@@ -2482,7 +2482,7 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
             child = self.grouping.children[i]
             try:
                 child.configure(state = "normal")
-            except:
+            except Exception:
                 pass
 
     def do_umap_pca(self, kind: str, filename: str) -> None:
@@ -2733,7 +2733,7 @@ class do_leiden_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             resolution = float(resolution)
             minimum_distance = float(minimum_distance)
         except ValueError:
-            tk.messagebox.showwarning("Warning!", message = f"Seed, resolution, neighbors, and minimum distance must be numeric! Exiting without performing Leiden")
+            tk.messagebox.showwarning("Warning!", message = "Seed, resolution, neighbors, and minimum distance must be numeric! Exiting without performing Leiden")
             self.focus()
             return
         success = self.master.cat_exp.do_leiden_clustering(marker_class = marker_class, 
@@ -2749,7 +2749,7 @@ class do_leiden_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             try: ## either space_analysis or data_table attributes may not exist
                 if self.master.cat_exp.space_analysis.cellType_key == 'leiden':
                     self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
-            except Exception as e:
+            except Exception:
                 pass
             self.withdraw()     
         else:
@@ -2822,7 +2822,7 @@ class Plot_window_display(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         aspect_slider = ctk.CTkSlider(self, from_ = -0.95, to = 0.95, number_of_steps = 38, command = self.change_aspect)
         aspect_slider.grid(row = 2, column = 5, padx = 3)
 
-        self.aspect_var = ctk.StringVar(value = f"Aspect Ratio: 1.0")
+        self.aspect_var = ctk.StringVar(value = "Aspect Ratio: 1.0")
         labelx = ctk.CTkLabel(master = self, textvariable = self.aspect_var)
         labelx.grid(row = 2, column = 4, padx = 3)
 
@@ -2876,7 +2876,7 @@ class Plot_window_display(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.display_widg.figure.set_figheight(self.size / 100)
             self.display_widg.canvas.draw()
             self.display_widg.widget.configure(width = self.size, height = self.size)
-            self.aspect_var.set(f"Aspect Ratio: 1.0")
+            self.aspect_var.set("Aspect Ratio: 1.0")
         elif aspect > 0: 
             aspect = 1 - aspect
             self.display_widg.figure.set_figwidth(self.size / 100)
@@ -3076,14 +3076,14 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         '''  '''
         try:
             alpha = float(alpha)
-        except Exception as e:
+        except Exception:
             tk.messagebox.showwarning("Warning!", 
                 message = "Alpha must be numerical! Cancelling plot!")
             self.focus()
             return
         try:
             size = float(size)
-        except Exception as e:
+        except Exception:
             size = None
         if filename_checker(filename, self):
             return

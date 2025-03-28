@@ -1,3 +1,4 @@
+# ruff: noqa
 '''
 This module is copied code from the saesys lab flowsom package::
  

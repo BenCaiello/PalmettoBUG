@@ -18,17 +18,17 @@ import customtkinter as ctk
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-
-homedir = __file__.replace("\\","/")
-homedir = homedir[:(homedir.rfind("/"))]
-## do it twice to get up to the top level directory:
-homedir = homedir[:(homedir.rfind("/"))]                         
+import matplotlib.pyplot as plt                       
 
 from ..Utils.sharedClasses import DirectoryDisplay, CtkSingletonWindow, filename_checker, TableLaunch, Analysis_logger, warning_window, overwrite_approval
 from ..Analysis_functions.SpatialANOVA import SpatialANOVA, plot_spatial_stat_heatmap
 from ..Analysis_functions.SpatialAnalysis import SpatialNeighbors, SpatialEDT
 from .Analysis_GUI import Plot_window_display, MatPlotLib_Display, CLUSTER_NAMES_append_CN, MARKER_CLASSES_append_spatial_edt
+
+homedir = __file__.replace("\\","/")
+homedir = homedir[:(homedir.rfind("/"))]
+## do it twice to get up to the top level directory:
+homedir = homedir[:(homedir.rfind("/"))]  
 
 __all__ = []
 
@@ -184,7 +184,7 @@ class Spatial_py(ctk.CTkFrame):
             self.plot_button.grid(column = 2, row = 2, padx = 5, pady = 5)
             self.plot_button.configure(state = "disabled")
 
-            if data == True:
+            if data is True:
                 self.configure_commands()
 
         def configure_commands(self) -> None:
@@ -862,7 +862,7 @@ class NeigborhoodEnrichmentWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             try:
                 facet_options = [i for i in self.master.spatial.exp.data.obs.columns if i in COLNAMES]
                 self.facet.configure(values = ["None"] + list(facet_options))
-            except:
+            except Exception:
                 self.facet.configure(values = [])
 
         self.facet.bind("<Enter>", refresh_facet_options)
@@ -907,7 +907,7 @@ class NeigborhoodEnrichmentWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         try:
             seed = int(seed)
             n_perms = int(n_perms)
-        except:
+        except Exception:
             tk.messagebox.showwarning("Warning!", message = 'Random seed and number of permutations must be integers! Cancelling plot')
             return 
         self.master.spatial.exp.data.obs[clustering] = self.master.spatial.exp.data.obs[clustering].astype('category')
@@ -1037,7 +1037,7 @@ class InteractionMatrixWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             try:
                 facet_options = [i for i in self.master.spatial.exp.data.obs.columns if i in COLNAMES]
                 self.facet.configure(values = ["None"] + list(facet_options))
-            except:
+            except Exception:
                 self.facet.configure(values = [])
         self.facet.bind("<Enter>", refresh_facet_options)
 
@@ -1194,12 +1194,12 @@ class CNUMAPMSTwindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if self.master.CN_type == "flowsom":
             figure.savefig(self.master.spatial.save_dir + f"/{filename}.png", bbox_inches = "tight")
             self.master.master.save_and_display(f"/{filename}", parent_folder = self.master.spatial.save_dir)
-            space_logger.info(f"""Cell neighborhood flowsom star plot generated""")
+            space_logger.info("""Cell neighborhood flowsom star plot generated""")
 
         elif self.master.CN_type == "leiden":
             figure.savefig(self.master.spatial.save_dir + f"/{filename}.png", bbox_inches = "tight")
             self.master.master.save_and_display(f"/{filename}", parent_folder = self.master.spatial.save_dir)
-            space_logger.info(f"""Cell neighborhood leiden UMAP plot generated""")
+            space_logger.info("""Cell neighborhood leiden UMAP plot generated""")
 
         if self.pop_up.get() is True:
             Plot_window_display(figure)
@@ -1257,7 +1257,7 @@ class CNabundanceWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         figure.savefig(self.master.spatial.save_dir + f"/{filename}.png", bbox_inches = "tight")
         self.master.master.save_and_display(f"/{filename}", parent_folder = self.master.spatial.save_dir)
 
-        space_logger.info(f"""Cell neighborhood abundance plot generated""")
+        space_logger.info("""Cell neighborhood abundance plot generated""")
 
         if self.pop_up.get() is True:
             Plot_window_display(figure)
@@ -1315,7 +1315,7 @@ class CNheatmapWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         figure = self.master.spatial.plot_CN_heatmap(self.clustering.get(), cmap = 'coolwarm')
         figure.savefig(self.master.spatial.save_dir + f"/{filename}.png", bbox_inches = "tight")
         self.master.master.save_and_display(f"/{filename}", parent_folder = self.master.spatial.save_dir)
-        space_logger.info(f"""Cell neighborhood heatmap generated""")
+        space_logger.info("""Cell neighborhood heatmap generated""")
         if self.pop_up.get() is True:
             Plot_window_display(figure)
 
@@ -1840,7 +1840,7 @@ class edt_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         figure = self.master.edt_object.plot_edt_heatmap(groupby_col, marker_class = "spatial_edt")
         figure.savefig(self.experiment.directory + f"/Spatial_plots/{filename}.png", bbox_inches = "tight")
-        self.master.master.save_and_display(f"/{filename}", parent_folder = self.experiment.directory + f"/Spatial_plots")
+        self.master.master.save_and_display(f"/{filename}", parent_folder = self.experiment.directory + "/Spatial_plots")
 
         space_logger.info(f"""Plotted distance transform horizontal boxplot: 
                         groupby_col  = {groupby_col}
@@ -1934,7 +1934,7 @@ class edt_dist_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                         filename = {filename}""")
         
         figure.savefig(self.experiment.directory + f"/Spatial_plots/{filename}.png", bbox_inches = "tight")
-        self.master.master.save_and_display(f"/{filename}", parent_folder = self.experiment.directory + f"/Spatial_plots")
+        self.master.master.save_and_display(f"/{filename}", parent_folder = self.experiment.directory + "/Spatial_plots")
 
         if self.pop_up.get() is True:
             Plot_window_display(figure)
@@ -2119,17 +2119,18 @@ class dist_transform_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         save_path = save_folder + f"/{pixel_class_folder[pixel_class_folder.rfind('/') + 1:]}.csv"
         if not overwrite_approval(save_path, file_or_folder = "file", GUI_object = self):
             return
-        distances_panel = self.master.test_edt.edt_object.load_distance_transform(pixel_class_folder, 
-                                                                 mask_folder,
-                                                                 maps = maps, 
-                                                                 smoothing = smoothing, 
-                                                                 marker_class = marker_class, 
-                                                                 auto_panel = auto_panel,
-                                                                 stat = stat,
-                                                                 background = True,
-                                                                 normalized = self.normalize.get(),
-                                                                 output_edt_folder = load_distance_transform,
-                                                                 save_path = save_path)
+        # distances_panel = 
+        self.master.test_edt.edt_object.load_distance_transform(pixel_class_folder, 
+                                                                mask_folder,
+                                                                maps = maps, 
+                                                                smoothing = smoothing, 
+                                                                marker_class = marker_class, 
+                                                                auto_panel = auto_panel,
+                                                                stat = stat,
+                                                                background = True,
+                                                                normalized = self.normalize.get(),
+                                                                output_edt_folder = load_distance_transform,
+                                                                save_path = save_path)
         space_logger.info(f"""Loaded distance transform: 
                         pixel classifier = {pixel_class_folder}
                         smoothing = {str(smoothing)}
@@ -2147,7 +2148,7 @@ class edt_reload_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         super().__init__(master)
         self.master = master
 
-        self.folder = self.master.master_exp.directory[:self.master.master_exp.directory.rfind("/")] + f"/spatial_edts"
+        self.folder = self.master.master_exp.directory[:self.master.master_exp.directory.rfind("/")] + "/spatial_edts"
         if not os.path.exists(self.folder):
             os.mkdir(self.folder)
 

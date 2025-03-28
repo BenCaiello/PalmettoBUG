@@ -53,7 +53,7 @@ def filename_checker(filename: str, GUI_object = None, regex: str = "[a-zA-Z0-9-
     Consider reversing the True / False return -- would make more intuitive sense (would require editing GUI code)
     '''
     if filename == "":  ## in the context of the GUI this means a user tried to save with an empty filename field
-        tk.messagebox.showwarning("Warning!", message = f"Filename field should not be empty!")
+        tk.messagebox.showwarning("Warning!", message = "Filename field should not be empty!")
         if GUI_object is not None:
             GUI_object.focus()
         return True  
@@ -72,7 +72,7 @@ def folder_checker(foldername: str, GUI_object = None, regex: str = "[a-zA-Z0-9-
     '''
     foldername = foldername.strip()
     if foldername == "":
-        tk.messagebox.showwarning("Warning!", message = f"You must specify a folder name!")
+        tk.messagebox.showwarning("Warning!", message = "You must specify a folder name!")
         if GUI_object is not None:
             GUI_object.focus()
         return True   
@@ -128,10 +128,11 @@ def overwrite_approval(full_path: str, file_or_folder: str = "file", custom_mess
     else:
         return True   ### if the path does not exist, does not contain files (and is a folder), or if the user says "yes", proceed with the step
 
-## These imports, etc. also from singleton package (Copyright (c) 2019, James Roeder, MIT License): 
-from collections import defaultdict
-from typing import Any, ClassVar, MutableMapping, Type, TypeVar
-T = TypeVar("T")  # noqa: WPS111
+## These imports, etc. also from singleton package (Copyright (c) 2019, James Roeder, MIT License):
+## edit 3-28-25 to shift noqa statements for ruff 
+from collections import defaultdict # noqa: E402
+from typing import Any, ClassVar, MutableMapping, Type, TypeVar # noqa: E402
+T = TypeVar("T")
 
 class CtkSingletonWindow(type):
     ############### This class edited from the singleton package: 
@@ -290,7 +291,7 @@ class Project_logger(metaclass = LogSemiSingleton):
             if not os.path.exists(f"{proj_dir}/Logs"):
                 os.mkdir(f"{proj_dir}/Logs")
             log_a_log_handler = logging.FileHandler(f"{proj_dir}/Logs/Project.log")
-            log_a_format = logging.Formatter(f"%(name)s: %(asctime)s: %(message)s")
+            log_a_format = logging.Formatter("%(name)s: %(asctime)s: %(message)s")
             log_a_log_handler.setFormatter(log_a_format)
             self.log.setLevel(logging.INFO)
             self.log.addHandler(log_a_log_handler)
@@ -315,7 +316,7 @@ class Analysis_logger(metaclass = LogSemiSingleton):
             if not os.path.exists(f"{proj_dir}/Logs"):
                 os.mkdir(f"{proj_dir}/Logs")
             log_a_log_handler = logging.FileHandler(f"{proj_dir}/Logs/Analysis.log")
-            log_a_format = logging.Formatter(f"%(name)s: %(asctime)s: %(message)s") 
+            log_a_format = logging.Formatter("%(name)s: %(asctime)s: %(message)s") 
             log_a_log_handler.setFormatter(log_a_format)
             self.log.setLevel(logging.INFO)
             self.log.addHandler(log_a_log_handler)
@@ -493,7 +494,7 @@ class DirectoryDisplay(ctk.CTkFrame):
         self.option_menu.configure(state = 'disabled', text_color_disabled = self.option_menu.cget("text_color"))
         self.button_list = []
         self.list_dir()
-        if delete_remove == False:
+        if delete_remove is False:
             self.delete_button = ctk.CTkButton(master = self, text = "Enter Delete Mode", command  = self.switch_deleter)
             self.delete_button.grid(column = 0, row = 2, padx = 1, pady = 3)
 
@@ -501,12 +502,12 @@ class DirectoryDisplay(ctk.CTkFrame):
         '''Switch in and out of a mode where clicking on a FILE will delete it --> 
         folder deletion is not allowed (will still just change directories)
         '''
-        if self.deleter == False:
+        if self.deleter is False:
             self.deleter = True
             self.setup_with_dir(self.directories.main, self.experiment, self.png)   #### setup the widget again, but update deleter attribute
             self.delete_button = ctk.CTkButton(master = self, text = "Exit Delete Mode", command  = self.switch_deleter)
             self.delete_button.grid(column = 0, row = 2)
-        elif self.deleter == True:
+        elif self.deleter is True:
             self.deleter = False
             self.setup_with_dir(self.directories.main, self.experiment, self.png)   #### setup the widget again, but update deleter attribute
             self.delete_button = ctk.CTkButton(master = self, text = "Enter Delete Mode", command  = self.switch_deleter)
@@ -541,7 +542,7 @@ class DirectoryDisplay(ctk.CTkFrame):
             filepath = parent.currentdir + "/" + parent.out
             identifier = parent.out[(parent.out.rfind(".")):]
             file_name = parent.out[:(parent.out.rfind("."))]
-            if self.parent.deleter == True:
+            if self.parent.deleter is True:
                 os.remove(filepath)
                 self.destroy()
                 try:
@@ -601,7 +602,7 @@ class DirectoryDisplay(ctk.CTkFrame):
             self.button_list.append(button)
             a = 2
         for i,ii in enumerate(os.scandir(self.currentdir)):
-            if ii.is_dir() == True:
+            if ii.is_dir() is True:
                 button = self.varButton(master = container, 
                                         textvariable = ctk.StringVar(value = ii.name), 
                                         height = 20, 
@@ -632,7 +633,7 @@ class DirectoryDisplay(ctk.CTkFrame):
     def change_dir(self, new_dir: str, option_menu: bool = False) -> None:
         if new_dir == "fdkjhgkjfdhgkdjghkdglskjlgkdlj":
             to_dir = self.currentdir[:self.currentdir.rfind("/")]
-        elif option_menu == True:
+        elif option_menu is True:
             to_dir = self.directories.main + f"/{new_dir}"
         else:
             to_dir = self.currentdir + f"/{new_dir}"
@@ -854,7 +855,7 @@ class TableWidget(ctk.CTkScrollableFrame):
         #       2.) place the widget, load the data, then setup the width / height automatically, scaled by the number of columns&rows 
         #           (scale_width_height = True). Scaling will not work without the data loaded, the number of columns/rows is not known
         self.configure(width = width, height = height)
-        if scale_width_height == True:     # In this case, a value for height / width should be ~1, and the overall size of the table 
+        if scale_width_height is True:     # In this case, a value for height / width should be ~1, and the overall size of the table 
                                             # will determined by the number of columns / rows multiplied by constants defined below & 
                                             # the height/width passed into the constructor:
             if height*(len(self.table_dataframe.index)*35) > 700:  ## cap out the height so the situation of a too long scrollable frame 
@@ -944,7 +945,7 @@ class TableWidget(ctk.CTkScrollableFrame):
             for i in self.widgetframe.iloc[:,col_num]:
                 i.configure(state = 'normal')
             self.keep_state = 'normal'
-            if warning == True:
+            if warning is True:
                 warning_window("Caution! Editing the Keep column should NEVER be done after converting .mcd's --> .tiff's, \n" 
                                "unless you are intending on immediately repeating the mcd --> tiff conversion step after the edits!")
 

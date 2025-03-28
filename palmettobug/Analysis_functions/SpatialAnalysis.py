@@ -20,7 +20,6 @@ import skimage
 import scipy
 import numpy as np
 import pandas as pd
-import anndata as ann
 import scanpy as sc
 import squidpy as sq
 import matplotlib.pyplot as plt
@@ -792,7 +791,7 @@ class SpatialEDT:
             self.exp.do_scaling(scaling_algorithm = self.exp._scaling, upper_quantile = self.exp._quantile_choice)       
 
         if self.exp._in_gui: 
-            self.exp.logger.info(f"Appended distance transform edt data") 
+            self.exp.logger.info("Appended distance transform edt data") 
 
     def reload_edt(self, dataframe, marker_class):
         '''
