@@ -592,7 +592,7 @@ class Analysis:
         if regionprops_panel is None:
             self.regionprops_panel = pd.read_csv(self.directory + '/Regionprops_panel.csv')
         else:
-            if type(regionprops_panel) == pd.DataFrame:
+            if isinstance(regionprops_panel, pd.DataFrame):
                 self.regionprops_panel = regionprops_panel
             else:
                 self.regionprops_panel = pd.read_csv(str(regionprops_panel))
@@ -758,7 +758,7 @@ class Analysis:
                 for i in self.data.obs[split_by_column].unique():
                     slicer = self.data.obs[split_by_column] == i
                     data_to_scale[slicer] = quantile_normalize(data_to_scale[slicer])
-        self.data.X = data_to_scale
+        self.data.X = data_to_scale.copy()
         self._scaling = scaling_algorithm
 
     def do_leiden_clustering(self, 
@@ -1136,7 +1136,7 @@ class Analysis:
         figX = colwrap * 2.35
         figY = row_num * 1.9
         fig, axs = plt.subplots(row_num, colwrap, figsize = [figX,figY])
-        if type(axs) == np.ndarray:
+        if isinstance(axs, np.ndarray):
             axs = axs.ravel()
         else:    ## only 1 panel /facet / ax
             axs = np.array([axs]) 
@@ -2041,7 +2041,7 @@ class Analysis:
         figX = colwrap * 2.35
         figY = row_num * 1.9
         figure, axs = plt.subplots(row_num, colwrap, figsize = [figX,figY])
-        if type(axs) == np.ndarray:
+        if isinstance(axs, np.ndarray):
             axs = axs.ravel()
         else:    ## only 1 panel /facet / ax
             axs = np.array([axs]) 
@@ -2107,7 +2107,7 @@ class Analysis:
             number_of_rows += 1
 
         figure, axs = plt.subplots(number_of_rows,number_of_columns, sharex = False, sharey = False)         #, figsize = (figX, figY))
-        if type(axs) == np.ndarray:
+        if isinstance(axs, np.ndarray):
             axs = axs.ravel()
         else:    ## only 1 panel /facet / ax
             axs = np.array([axs]) 

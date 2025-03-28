@@ -450,7 +450,7 @@ class display_image_button(ctk.CTkButton):
 
     def save_and_display(self, image: str) -> None:
         ##### This piece of code is currently repeated many times across each plotting function. Should probably be its own function...
-        if type(image) == str:
+        if isinstance(image, str):
             image = Image.open(image)
         sizeX = image.size[0]
         sizeY = image.size[1]
@@ -1316,7 +1316,7 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
                         width = 1,
                         ) -> None:
         ''' Sets up the table widget -- see the documentation for TableLaunch to see details '''
-        if type(dataframe) != pd.DataFrame:
+        if not isinstance(dataframe, pd.DataFrame):
             dataframe = pd.read_csv(str(dataframe))
 
         self.table_dataframe = dataframe

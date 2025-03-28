@@ -2974,7 +2974,7 @@ class MatPlotLib_Display(ctk.CTkFrame):
         self.figure = None
         self.widget.destroy()
         self.toolbar.destroy()
-        if type(image) == str:
+        if isinstance(image, str):
             image = Image.open(image)
             image = ctk.CTkImage(image, size = (self.width + 50, self.height + 50))
 
