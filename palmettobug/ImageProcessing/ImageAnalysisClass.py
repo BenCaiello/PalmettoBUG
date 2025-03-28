@@ -34,15 +34,15 @@ from .._vendor.fcsy import DataFrame
 from .._vendor import fcsparser
 from .._vendor import pyometiff as pot
 
+from .._vendor import steinbock as stein_unhook 
+from ..Utils.sharedClasses import DirSetup, TableLaunch, Analysis_logger, Project_logger, warning_window  
+
 '''
 try:
-    import navis as nv       ### currently, there is an error in navis on small meshes (I think?) so recommend to not use this  TODO: reactivate once fixed
+    import navis as nv       ### currently, there is an error in navis on small meshes (I think?) so recommend to not use this  TODO: reactivate once fixed?
 except Exception:
     pass
 '''
-
-from .._vendor import steinbock as stein_unhook 
-from ..Utils.sharedClasses import DirSetup, TableLaunch, Analysis_logger, Project_logger, warning_window  
 
 __all__ = ["ImageAnalysis", 
             "mask_expand", 
@@ -56,7 +56,6 @@ def toggle_in_gui():
     global _in_gui
     _in_gui = not _in_gui
     return _in_gui
-
 
 def _my_auto_hpf(image: np.ndarray[float], hpf: float = 0.75):
     '''

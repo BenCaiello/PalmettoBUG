@@ -49,7 +49,7 @@ svg-stack = "*"
 navis = "*"
 
 [tool.ruff]
-extend-exclude = ["Assets",".tiff", ".png", ".jpg", ".ico", ".txt",".json"]
+extend-exclude = ["Assets", ".tiff", ".png", ".jpg", ".ico", ".txt", ".json"]
 
 [tool.poetry.scripts]
 palmettobug = 'palmettobug.Executable:run_GUI'

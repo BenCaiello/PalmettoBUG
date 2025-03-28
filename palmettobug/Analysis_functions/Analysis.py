@@ -547,7 +547,7 @@ class Analysis:
         try:
             self.input_mask_folder = regionprops['mask_folder'].values[0]
             to_drop = ['Object', 'image_area', 'centroid-0', 'centroid-1', 'mask_folder']
-        except:
+        except Exception:
             to_drop = ['Object', 'image_area', 'centroid-0', 'centroid-1']
 
         regionprops = regionprops.drop(to_drop, axis = 1)
@@ -612,7 +612,7 @@ class Analysis:
             self.unscaled_data = None
             self.do_scaling(scaling_algorithm = self._scaling, upper_quantile = self._quantile_choice)
         if self._in_gui: 
-            Analysis_log.info(f"Appended regionprops data.") 
+            Analysis_log.info("Appended regionprops data.") 
     
     def filter_data(self, 
                    to_drop: str, 
