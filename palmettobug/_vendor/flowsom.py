@@ -40,6 +40,8 @@ this would mean:
         5. added __all__= [] (for the sake of autoapi docs -- I don't really want to include any of the vendor files)  
 
         6. See section lower down for edits to the MST plotting function  
+
+edit 3-28-25 --> edit out readfcs import (unecessary for what PalmettoBUG uses FlowSOM for, can rmove this package as a dependency)
 '''
 from __future__ import annotations
 
@@ -59,7 +61,7 @@ import bisect
 from itertools import combinations
 from sklearn.cluster import AgglomerativeClustering
 
-import readfcs
+#import readfcs
 from loguru import logger 
 from mudata import MuData  
 from scipy.sparse import issparse
