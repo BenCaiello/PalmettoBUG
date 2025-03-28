@@ -3351,7 +3351,7 @@ class Analysis:
             Inputs: 
                 if cell_classifications is not a pandas dataframe, attempts to read a .csv from the path specified by cell_classifications
         '''
-        if type(cell_classifications) != pd.DataFrame:
+        if not isinstance(cell_classifications, pd.DataFrame):
             cell_classes_file_path = str(cell_classifications)
             cell_classes = pd.read_csv(cell_classes_file_path)
 

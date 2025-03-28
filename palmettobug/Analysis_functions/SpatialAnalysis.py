@@ -14,6 +14,7 @@ import os
 from typing import Union
 from pathlib import Path
 import tkinter as tk
+import warnings
 
 import tifffile as tf
 import skimage
@@ -21,7 +22,6 @@ import scipy
 import numpy as np
 import pandas as pd
 import scanpy as sc
-import squidpy as sq
 import matplotlib.pyplot as plt
 import seaborn as sns
 import anndata as ann
@@ -30,6 +30,9 @@ from .._vendor.flowsom import FlowSOM, plot_stars, FlowSOM_colors
 from ..Pixel_Classification.Classifiers import smooth_isolated_pixels
 from ..Pixel_Classification.use_classifiers import merge_folder
 from .SpatialANOVA import SpatialANOVA, plot_spatial_stat_heatmap
+
+warnings.filterwarnings("ignore", message = "Importing read_text")   ## future warning in anndata that squidpy has not caught up to yet. Irritating to see everytime on startup
+import squidpy as sq
 
 __all__ = ["SpatialAnalysis"]
 
@@ -576,7 +579,7 @@ class SpatialAnalysis:
         '''
         Loads a column of data into the anndata of the experiment (meant for saved edt information, but could be used for any type of channel)
         '''
-        if type(dataframe) != pd.DataFrame:
+        if not isinstance(dataframe, pd.DataFrame):
             dataframe = pd.read_csv(str(dataframe))
         self.edt.reload_edt(dataframe = dataframe, marker_class = marker_class)
 
@@ -752,7 +755,7 @@ class SpatialEDT:
         if distances_panel is None:
             self.distances_panel = pd.read_csv(self.exp.directory + '/distances_edt_panel.csv')
         else:
-            if type(distances_panel) == pd.DataFrame:
+            if isinstance(distances_panel, pd.DataFrame):
                 self.distances_panel = distances_panel
             else:
                 self.distances_panel = pd.read_csv(str(distances_panel))
@@ -862,9 +865,9 @@ class SpatialEDT:
             to_plot.loc[:,subset_col] = to_plot[subset_col].astype('str')
             ax = axs.ravel()[ii]
             if subset_col != "None":
-                sns.boxplot(to_plot, x = var_column, y = subset_col, ax = ax)
+                sns.boxplot(to_plot, x = var_column, y = subset_col, orient = "h", ax = ax)
             else:
-                sns.boxplot(to_plot, x = var_column, ax = ax)
+                sns.boxplot(to_plot, x = var_column, orient = "h", ax = ax)
             ax.set_title(i)
             
         ii += 1
