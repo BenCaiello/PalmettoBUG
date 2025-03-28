@@ -648,7 +648,7 @@ class ImageAnalysis:
         else:
             img_files =  sorted(Path(image_folder).rglob(f"*{image_list[0]}.tiff"))  # *** 
         
-        if (re_do == False) and (image_list == ["ALL"]):  
+        if (re_do is False) and (image_list == ["ALL"]):  
             new_list = []
             for i in img_files:
                 path = str(i).replace("\\", '/')
@@ -793,7 +793,7 @@ class ImageAnalysis:
         ints_folder = sorted(Path(output_intensities_folder).rglob("[!.]*.csv"))   # ***
         regions_folder = sorted(Path(output_regions_folder).rglob("[!.]*.csv"))    # ***
         if _in_gui:
-            if (re_do == False) and (len(img_files) == len(ints_folder)) and (len(img_files) == len(regions_folder)):     
+            if (re_do is False) and (len(img_files) == len(ints_folder)) and (len(img_files) == len(regions_folder)):     
                 tk.messagebox.showwarning("Warning!", 
                     message = "All images have intensity and region files written! Did you intend to redo these measurements?")  
                 return
@@ -803,7 +803,7 @@ class ImageAnalysis:
                     message = "The number of masks in the masks folder and images in the img folder must be the same! Have you deleted a file?")
                 return
         else:
-            if (re_do == False) and (len(img_files) == len(ints_folder)) and (len(img_files) == len(regions_folder)):     
+            if (re_do is False) and (len(img_files) == len(ints_folder)) and (len(img_files) == len(regions_folder)):     
                 print("All images have intensity and region files written! Did you intend to redo these measurements?")  
                 return
 
@@ -811,7 +811,7 @@ class ImageAnalysis:
                 print("The number of masks in the masks folder and images in the img folder must be the same! Have you deleted a file?")
                 return
         
-        if re_do == False:
+        if re_do is False:
             def filterer(dest_folder, img_files, mask_files):
                 ## originally written for the intensity folder first, hence the (ints_ and _int) pre-/suffixes
                 ints_files = [str(i).replace("\\","/") for i in dest_folder]

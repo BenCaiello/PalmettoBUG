@@ -11,9 +11,6 @@ import os
 from pathlib import Path
 from typing import Union
 import warnings
-warnings.filterwarnings("ignore", message = "Transforming to str index")   ## anndata implicit modification warning that is not necessary
-warnings.filterwarnings("ignore", message = "Observation names are not unique")  ## anndata UserWarning that is not necessary
-
 
 import scipy
 import anndata as ann
@@ -23,6 +20,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from .._vendor import sigfig
+
+warnings.filterwarnings("ignore", message = "Transforming to str index")   ## anndata implicit modification warning that is not necessary
+warnings.filterwarnings("ignore", message = "Observation names are not unique")  ## anndata UserWarning that is not necessary
 
 __all__ = ["WholeClassAnalysis"]
 
@@ -307,7 +307,7 @@ class WholeClassAnalysis:
 
         figure = plt.figure()
         ax = plt.gca()
-        axes = sns.boxplot(percent_areas, x = 'class', y = 'area', hue = 'condition', ax = ax)
+        sns.boxplot(percent_areas, x = 'class', y = 'area', hue = 'condition', ax = ax)
         ax.set_title("% Area of each class type in each condition:")
         if filename is not None:
             figure.savefig(self.save_dir + f"/{filename}.png", bbox_inches = "tight") 

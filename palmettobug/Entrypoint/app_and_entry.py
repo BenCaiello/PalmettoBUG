@@ -18,7 +18,7 @@ import zipfile
 import requests
 import customtkinter as ctk
 import numpy as np
-import pandas as pd
+# import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image
 
@@ -700,7 +700,6 @@ def fetch_IMC_example(new_directory):
     '''
     if not os.path.exists(new_directory):
         raise Exception("Target directory does not exist")
-    new_analyses_dir = new_directory + "/Analyses"
     IMC_data = requests.get("https://zenodo.org/records/14983582/files/Example_IMC.zip?download=1", stream = True)
     with open(new_directory + "/IMC_data.zip", 'wb') as write_to:
         for i in IMC_data.iter_content(chunk_size = 1024**2):

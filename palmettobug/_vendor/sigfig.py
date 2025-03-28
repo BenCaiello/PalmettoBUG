@@ -1,3 +1,4 @@
+# ruff: noqa
 '''
 This file is an "vendorizing" of the sigfig package: https://github.com/drakegroup/sigfig
 
@@ -29,6 +30,12 @@ Changes:
     -- removed a mysterious symbol from the first comment in the copied code (maybe a ctrl+C / ctrl+V artifact? Not visible on github where it was copied from)
     -- replaced assert --> if not...raise 
     -- add __all__ for docs
+
+Note on linting: Like with most of the libraries I semi-vendorized, I have the `ruff: noqa` comment at the top to block linting. Howveer, also like the other vendorizing files,
+I did see the results of an initial linting by ruff (3-28-25) --> however, unlike the other vendorized files, there were questionable patterns that might deserve editing at some point:
+    --> using `==` instead of `is` for comparisons to True / False
+    --> using `==` instead of isinstance() for types
+    --> using bare exceptions
 '''
 __all__ = []
 ######### Begin copied code:

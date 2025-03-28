@@ -1,3 +1,4 @@
+# ruff: noqa
 '''
 This file "vendorizes" the following package: https://github.com/filippocastelli/pyometiff
 
@@ -14,7 +15,7 @@ Changes (date: precise day uncertain, edits made January-March 2025):
 -- Removed unused and most duplicate imports    (ex: renamed as for etree to be consistently "et")
 -- Removed typing output statement from some functions to make pylance happy
 -- added copy of BSD-3 license to relevant code section
--- Move a __future__ import from the BSD-3 licensed section ot the top of the file
+-- Move a __future__ import from the BSD-3 licensed section to the top of the file
 -- replaced assert --> if not...raise    (or similar replacement)
 -- add __all__ (for docs)
 

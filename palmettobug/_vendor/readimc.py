@@ -39,8 +39,8 @@ import itertools
 import re
 from abc import ABC, abstractmethod
 from os import PathLike
-from typing import BinaryIO, List, Optional, Union, Dict, Tuple, TYPE_CHECKING, Sequence
-from warnings import warn
+from typing import BinaryIO, List, Optional, Union, Dict, Tuple, Sequence
+# from warnings import warn
 import math
 from dataclasses import dataclass, field
 
