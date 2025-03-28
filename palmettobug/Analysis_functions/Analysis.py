@@ -65,6 +65,8 @@ from ..Utils.sharedClasses import warning_window, Analysis_logger
 
 warnings.filterwarnings("ignore", message = "Transforming to str index")   ## anndata implicit modification warning that is not necessary
 warnings.filterwarnings("ignore", message = "Observation names are not unique")  ## anndata UserWarning that is not necessary
+warnings.filterwarnings("ignore", message = "the default backend for leiden")    ## I'm intentionally using leiden
+warnings.filterwarnings("ignore", message = "Modifying `X` on a view")    ## I always want to overwrite / modify the anndata object! -- except when I am intentionally using .copy()
 
 plt.style.use('ggplot')
 
@@ -628,11 +630,11 @@ class Analysis:
         filterer = self.data.obs[column].astype('str') != str(to_drop) 
         if (column == "sample_id") or (column == "patient_id") or (column == "condition"):
             filter2 = (self.metadata[column].astype('str')  != str(to_drop))
-            self.metadata = self.metadata[filter2]
+            self.metadata = self.metadata[filter2].copy()
 
-        self.data = self.data[filterer]
+        self.data = self.data[filterer].copy()
         if self.unscaled_data is not None:
-            self.unscaled_data = self.unscaled_data[filterer]
+            self.unscaled_data = self.unscaled_data[filterer].copy()
         #self.data.obs = self.data.obs.reset_index().drop('index', axis = 1)
 
         if column in self.metadata.columns:
@@ -640,10 +642,10 @@ class Analysis:
         
         if self.UMAP_embedding is not None:
             filterer = (self.UMAP_embedding.obs[column].astype('str') != str(to_drop))
-            self.UMAP_embedding = self.UMAP_embedding[filterer] 
+            self.UMAP_embedding = self.UMAP_embedding[filterer].copy()
         if self.PCA_embedding is not None:
             filterer = (self.PCA_embedding.obs[column].astype('str') != str(to_drop))
-            self.PCA_embedding = self.PCA_embedding[filterer] 
+            self.PCA_embedding = self.PCA_embedding[filterer].copy()
 
     def do_COMBAT(self, 
                   batch_column: str, 
@@ -758,7 +760,7 @@ class Analysis:
                 for i in self.data.obs[split_by_column].unique():
                     slicer = self.data.obs[split_by_column] == i
                     data_to_scale[slicer] = quantile_normalize(data_to_scale[slicer])
-        self.data.X = data_to_scale.copy()
+        self.data.X = data_to_scale
         self._scaling = scaling_algorithm
 
     def do_leiden_clustering(self, 
