@@ -877,7 +877,7 @@ class Analysis:
         for_fs = self.data.copy()
         if marker_class != "All":
             slicer = panel['marker_class'] == marker_class
-            for_fs = for_fs[:,slicer]
+            for_fs = for_fs[:,slicer].copy()
             if slicer.sum() == 0:
                 return None
 

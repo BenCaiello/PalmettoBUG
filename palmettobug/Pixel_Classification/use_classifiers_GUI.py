@@ -644,10 +644,14 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.accept_button.grid(row = 6, column = 1, padx = 3, pady = 3)
 
         def loaded_classifier(self) -> None:
-            open_json = open(self.master.active_classifier_dir + f"/{self.master.name}_details.json", 'r' , encoding="utf-8")
-            loaded_json = open_json.read()
-            self.dictionary = json.loads(loaded_json)
-            open_json.close()
+            try:
+                open_json = open(self.master.active_classifier_dir + f"/{self.master.name}_details.json", 'r' , encoding="utf-8")
+                loaded_json = open_json.read()
+                self.dictionary = json.loads(loaded_json)
+                open_json.close()
+            except FileNotFoundError:
+                warning_window("Warning! could not load .json file with the details of this classifier! \n" 
+                                "Have you manually renamed the classifier or the .json file?")
 
         class biological_labels:
             '''

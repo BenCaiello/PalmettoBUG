@@ -2612,7 +2612,10 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
 
                     def refresh_export_column_choice(enter = ""):
                         column = data_table.obs[i].astype('str')
-                        self.column_choice.configure(value = column.unique())
+                        if list(column.unique()) == []:
+                            self.column_choice.configure(values = "")
+                            return
+                        self.column_choice.configure(values = list(column.unique()))
 
                     self.column_choice.bind("<Enter>", refresh_export_column_choice)
 

@@ -74,20 +74,18 @@ def test_ROI_histograms(my_analysis):
     assert isinstance(figure, matplotlib.figure.Figure), "ROI histogram plot did not return a matplotlib figure"
 
 def test_do_UMAP(my_analysis):
-    warnings.warn("1")
     my_analysis.do_UMAP()
     assert (my_analysis.UMAP_embedding is not None), "do UMAP did not create an anndata embedding"
     assert isinstance(my_analysis.UMAP_embedding, anndata.AnnData), "do UMAP did not create an anndata embedding"
 
 def test_do_PCA(my_analysis):
-    warnings.warn("1")
     my_analysis.do_PCA()
     assert (my_analysis.PCA_embedding is not None), "do PCA did not create an anndata embedding"
     assert isinstance(my_analysis.PCA_embedding, anndata.AnnData), "do PCA did not create an anndata embedding"
 
 def test_do_flowsom(my_analysis):
-    warnings.warn("1")
     fs = my_analysis.do_flowsom()
+    warnings.warn("1")
     figure = my_analysis._plot_stars_CNs(fs)
     try:
         metaclustering = my_analysis.data.obs['metaclustering']
