@@ -65,7 +65,6 @@ from ..Utils.sharedClasses import warning_window, Analysis_logger
 
 warnings.filterwarnings("ignore", message = "Transforming to str index")   ## anndata implicit modification warning that is not necessary
 warnings.filterwarnings("ignore", message = "Observation names are not unique")  ## anndata UserWarning that is not necessary
-warnings.filterwarnings("ignore", message = "the default backend for leiden")    ## I'm intentionally using leiden
 warnings.filterwarnings("ignore", message = "Modifying `X` on a view")    ## I always want to overwrite / modify the anndata object! -- except when I am intentionally using .copy()
 
 plt.style.use('ggplot')
@@ -654,7 +653,7 @@ class Analysis:
         ''' 
         Performs scanpy's combat implementation on self.data 
         '''
-        self.data.X = sc.pp.combat(self.data.copy(), key = batch_column, covariates = covariates, inplace = False)
+        self.data.X = sc.pp.combat(self.data.copy(), key = batch_column, covariates = covariates, inplace = False).copy()
 
     def do_scaling(self, 
                    scaling_algorithm: str = "%quantile", 
@@ -751,7 +750,7 @@ class Analysis:
                     slicer = self.data.obs[split_by_column] == i
                     data_to_scale[slicer] = skpre.scale(data_to_scale[slicer], axis = 0)
         elif scaling_algorithm == "unscale":
-            self.data.X = self.unscaled_data
+            self.data.X = self.unscaled_data.copy()
             self.unscaled_data = None
         elif scaling_algorithm == "qnorm":
             if split_by_column == "":
@@ -816,6 +815,7 @@ class Analysis:
             for_fs.obs['condition'] = for_fs.obs['condition'].astype(for_obs_cat)
             self.UMAP_embedding = for_fs
 
+        warnings.filterwarnings("ignore", message = "the default backend for leiden")    ## I'm intentionally using leiden
         sc.tl.leiden(for_fs, 
                     resolution = resolution, 
                     random_state = seed,
