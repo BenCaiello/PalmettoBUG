@@ -40,7 +40,8 @@ from ..Utils.sharedClasses import (CtkSingletonWindow,
                                    run_napari, 
                                    folder_checker,
                                    overwrite_approval, 
-                                   display_image_button)
+                                   display_image_button,
+                                   warning_window)
 
 pd.set_option('future.no_silent_downcasting', True)
 

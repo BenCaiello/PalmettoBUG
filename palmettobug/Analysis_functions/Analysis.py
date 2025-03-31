@@ -3213,13 +3213,15 @@ class Analysis:
         # Step 2: Assign numbers to the labels, including 'none'
         unique_labels = data[clustering].unique()
         zip_dict = {}
+        zip_dict2 = {}
         for i,ii in enumerate(unique_labels):
             zip_dict[ii] = i + 1   # 0 is a special number in images!
+            zip_dict2[ii] = str(i + 1)
         data['label'] = data[clustering].replace(zip_dict)
         data.drop("file_name", axis = 1).to_csv(f'{destination_folder}/{name}.csv', index = False)
         simple_df = pd.DataFrame()
         simple_df['biological_label'] = unique_labels
-        simple_df['class_number'] = simple_df.replace(zip_dict)
+        simple_df['class_number'] = simple_df.replace(zip_dict2)
         simple_df.to_csv(f'{destination_folder}/biological_labels.csv', index = False)
 
         # Step 3: Iterate through masks for this analysis, creating classy mask .tiffs
