@@ -52,9 +52,9 @@ def test_scaling(my_analysis):
 def test_comBat(my_analysis):
     original_X = my_analysis.data.X.copy()
     greater_than_zero = (original_X > 0)
-    print(1)
+    warnings.warn("1")
     my_analysis.do_COMBAT(batch_column = "patient_id")
-    print(1)
+    warnings.warn("1")
     #print((my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum())
     assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < (len(original_X[greater_than_zero]) / 10) , "ComBat did not change all the data points > 0!"
 
@@ -192,6 +192,10 @@ def test_export_DR(my_analysis):
     assert type(df) == pd.DataFrame, "DR export did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.UMAP_embedding), "DR export did not have the same length as the source embedding!"
 
+def test_to_classy_masks(my_analysis):
+    data_df = my_analysis.export_clustering_classy_masks
+    assert len(data_df) == len(my_analysis.back_up_data)
+
 ##############################################################
 
 if __name__ == "__main__":
@@ -228,7 +232,8 @@ if __name__ == "__main__":
                 test_do_count_GLM,
                 test_do_state_exprs_ANOVAs,
                 test_export_data,
-                test_export_DR]
+                test_export_DR,
+                test_to_classy_masks]
 
         test_names = ["test_filtering",
                     "test_scaling",
@@ -257,7 +262,8 @@ if __name__ == "__main__":
                     "test_do_count_GLM",
                     "test_do_state_exprs_ANOVAs",
                     "test_export_data",
-                    "test_export_DR"]
+                    "test_export_DR",
+                    "test_to_classy_masks"]
 
         test_fail = []
         for i,ii in zip(tests, test_names):
