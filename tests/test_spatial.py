@@ -175,14 +175,14 @@ if __name__ == "__main__":
         test_fail = []
         for i,ii in zip(tests, test_names):
             try:
-                print(f"test {ii}:")
+                test_name = f"test {ii}:"
                 i()
-                print("passed")
+                print(f"{test_name} passed")
             except AssertionError as e:
-                print(f"failed with assertion error: {e}")
+                print(f"{test_name} failed with assertion error: {e}")
                 test_fail.append(ii)
             except Exception as e:
-                print(f"failed with an unexpected error: {e}")
+                print(f"{test_name} failed with an unexpected error: {e}")
                 test_fail.append(ii)
         if len(test_fail) == 0:
             print("Passed all tests!")
