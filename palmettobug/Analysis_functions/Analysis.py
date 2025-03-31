@@ -815,7 +815,6 @@ class Analysis:
             for_fs.obs['condition'] = for_fs.obs['condition'].astype(for_obs_cat)
             self.UMAP_embedding = for_fs
 
-        warnings.filterwarnings("ignore", message = "the default backend for leiden")    ## I'm intentionally using leiden
         sc.tl.leiden(for_fs, 
                     resolution = resolution, 
                     random_state = seed,
@@ -3218,6 +3217,10 @@ class Analysis:
             zip_dict[ii] = i + 1   # 0 is a special number in images!
         data['label'] = data[clustering].replace(zip_dict)
         data.drop("file_name", axis = 1).to_csv(f'{destination_folder}/{name}.csv', index = False)
+        simple_df = pd.DataFrame()
+        simple_df['biological_label'] = unique_labels
+        simple_df['class_number'] = simple_df.replace(zip_dict)
+        simple_dict.to_csv(f'{destination_folder}/biological_labels.csv', index = False)
 
         # Step 3: Iterate through masks for this analysis, creating classy mask .tiffs
                 # this iteration step would follow the same / similar methods as the classy mask functions that already exist

@@ -1137,20 +1137,6 @@ class text_window(ctk.CTkToplevel):
 
         with open(filepath, encoding = "utf-8") as file:
             text_to_display = file.read()
-            text_to_display = text_to_display.replace("||","|")
-
-        start = re.search("\|(\s*)\|",text_to_display)
-        start = start.span()[0]
-        text_to_display_replace = text_to_display[start:]
-        lister = re.findall(r".\|", text_to_display_replace)
-        lister = list(set(lister))
-        for i in lister:
-            if i[0] == " ":
-                text_to_display_replace = text_to_display_replace.replace(i,"\t|")
-            else:
-                text_to_display_replace = text_to_display_replace.replace(i,f"{i[0]}\t|")
-
-        text_to_display = "".join([text_to_display[0:start], text_to_display_replace])
 
         text_frame.insert(0.0, text_to_display)
         text_frame.configure(state = "disabled")

@@ -47,6 +47,12 @@ The GUI is built mostly prominently on code from:
 
 4. Additionally, PalmettoBUG offers pixel classification with ideas and/or code drawn from QuPath https://github.com/qupath/qupath supervised pixel classifiers and from the Ark-Analysis https://github.com/angelolab/ark-analysis unsupervised pixel classifier, Pixie. Pixel classification can then be used to segment cells, expand cell masks into non-circular shapes, classify cells into lineages for analysis, crop images to only areas of interest, or to perform simplistic analyes of pixel classification regions as-a-whole.
 
+**Vendored packages**
+
+Some packages are (semi)-vendored in PalmettoBUG -- specifically, I copied only the essential code (not entire packages into new python files), with minimal changes from a number of packages. See palmettobug/_vendor files for more details and links to the original packages' GitHub repositories.
+
+Packages that were vendored: fcsparser, fcsy, flowsom, pyometiff, qnorm, readimc, sigfig, and steinbock
+
 ## Installation:
 
 Its installation (in a clean, **Python 3.10** environment!) should be as simple as running:
