@@ -38,41 +38,41 @@ def test_init_Spatial():
 
 def test_cell_maps():
     plot = my_spatial.plot_cell_maps(plot_type = "points", id = "5")
-    assert type(plot) == matplotlib.figure.Figure, "Plot Cell maps for a single ROI (points) did not return a matplotlib figure"
+    assert isinstance(plot, matplotlib.figure.Figure), "Plot Cell maps for a single ROI (points) did not return a matplotlib figure"
     plot2 = my_spatial.plot_cell_maps(plot_type = "masks", id = "6")
-    assert type(plot2) == matplotlib.figure.Figure, "Plot Cell maps for a single ROI (masks) did not return a matplotlib figure"
+    assert isinstance(plot2, matplotlib.figure.Figure), "Plot Cell maps for a single ROI (masks) did not return a matplotlib figure"
     my_spatial.plot_cell_maps(plot_type = "points")
     assert(len(os.listdir(my_spatial.SpaceANOVA.output_dir + "/cell_maps")) == 10), "Plot Cell maps for all ROIs (masks) did not write a plot for each ROI to the appropriate location"
 
 def test_do_neighbors_and_plots():
     my_spatial.do_neighbors(radius_or_neighbors = "Neighbors", number = 20)
     plot = my_spatial.plot_neighbor_interactions()
-    assert type(plot) == matplotlib.figure.Figure, "Plot Neighborhood Interactions did not return a matplotlib figure"
+    assert isinstance(plot, matplotlib.figure.Figure), "Plot Neighborhood Interactions did not return a matplotlib figure"
     plot2 = my_spatial.plot_neighbor_enrichment(facet_by = "condition")
-    assert type(plot2) == matplotlib.figure.Figure, "Plot Neighborhood Enrichment (with facetting) did not return a matplotlib figure"
+    assert isinstance(plot2, matplotlib.figure.Figure), "Plot Neighborhood Enrichment (with facetting) did not return a matplotlib figure"
 
 def test_neighbor_centrality_plots():
     plot = my_spatial.plot_neighbor_centrality()
-    assert type(plot) == matplotlib.figure.Figure, "Plot Centrality (closeness) did not return a matplotlib figure"
+    assert isinstance(plot, matplotlib.figure.Figure), "Plot Centrality (closeness) did not return a matplotlib figure"
     plot2 = my_spatial.plot_neighbor_centrality(score = "degree_centrality")
-    assert type(plot2) == matplotlib.figure.Figure, "Plot Centrality (degree) did not return a matplotlib figure"
+    assert isinstance(plot2, matplotlib.figure.Figure), "Plot Centrality (degree) did not return a matplotlib figure"
     plot3 = my_spatial.plot_neighbor_centrality(score = "average_clustering")
-    assert type(plot3) == matplotlib.figure.Figure, "Plot Centrality (average) did not return a matplotlib figure"
+    assert isinstance(plot, matplotlib.figure.Figure), "Plot Centrality (average) did not return a matplotlib figure"
 
 def test_do_neighborhood_CNs():
     plot = my_spatial.do_neighborhood_CNs()
-    assert type(plot) == matplotlib.figure.Figure, "do Neighborhood Clustering (FlowSOM) did not return a matplotlib figure"
+    assert isinstance(plot, matplotlib.figure.Figure), "do Neighborhood Clustering (FlowSOM) did not return a matplotlib figure"
     assert 'CN' in my_analysis.data.obs.columns, "do Neighborhood Clustering (FlowSOM) did not add CN column to exp.data.obs"
     plot2 = my_spatial.plot_CN_graph()
-    assert type(plot2) == matplotlib.figure.Figure, "plot CN graph did not return a matplotlib figure"
+    assert isinstance(plot2, matplotlib.figure.Figure), "plot CN graph did not return a matplotlib figure"
 
 def test_plot_CN_heatmap():
     plot = my_spatial.plot_CN_heatmap()
-    assert type(plot) == matplotlib.figure.Figure, "plot CN heatmap did not return a matplotlib figure"
+    assert isinstance(plot, matplotlib.figure.Figure), "plot CN heatmap did not return a matplotlib figure"
 
 def test_plot_CN_abundance():
     plot = my_spatial.plot_CN_abundance(clustering = 'merging')
-    assert type(plot) == matplotlib.figure.Figure, "plot CN abundance did not return a matplotlib figure"
+    assert isinstance(plot, matplotlib.figure.Figure), "plot CN abundance did not return a matplotlib figure"
 
 def test_do_SpaceANOVA_ripleys_stats():
     my_spatial.SpaceANOVA._comparison_dictionary = None
@@ -83,9 +83,9 @@ def test_do_SpaceANOVA_ripleys_stats():
 def test_plot_spaceANOVA_function():
 
     plot = my_spatial.plot_spaceANOVA_function(stat = 'g', comparison = my_spatial.SpaceANOVA._comparison_list[0])
-    assert type(plot) == matplotlib.figure.Figure, "plot SpaceANOVA function (for one image) did not return a matplotlib figure"
+    assert isinstance(plot, matplotlib.figure.Figure), "plot SpaceANOVA function (for one image) did not return a matplotlib figure"
     plot2 = my_spatial.plot_spaceANOVA_function(stat = 'K', comparison = my_spatial.SpaceANOVA._comparison_list[1], f_stat = 'f', hline = 1)
-    assert type(plot2) == matplotlib.figure.Figure, "plot SpaceANOVA function (for one image + f_stat, hline) did not return a matplotlib figure"
+    assert isinstance(plot2, matplotlib.figure.Figure), "plot SpaceANOVA function (for one image + f_stat, hline) did not return a matplotlib figure"
     my_spatial.plot_spaceANOVA_function(stat = 'L')
     number_of_plots = len(my_spatial.SpaceANOVA.good_cell_types) * len(my_spatial.SpaceANOVA.good_cell_types)
     assert len(os.listdir(my_spatial.SpaceANOVA.output_dir + "/Functional_plots")) == (number_of_plots + 2), "plot SpaceANOVA function (for whole folder of image) did not export the expected files"
@@ -97,7 +97,7 @@ def test_run_SpaceANOVA_statistics():
 
 def test_plot_spaceANOVA_heatmap():
     plot = my_spatial.plot_spaceANOVA_heatmap(stat = "p")
-    assert type(plot) == matplotlib.figure.Figure, "plot SpaceANOVA heatmap did not return a matplotlib figure"
+    assert isinstance(plot, matplotlib.figure.Figure), "plot SpaceANOVA heatmap did not return a matplotlib figure"
 
 def test_edt():
     my_analysis.filter_data(to_drop = "0")
@@ -118,17 +118,17 @@ def test_edt():
 
 def test_edt_heatmap():
     plot = my_spatial.plot_edt_heatmap(groupby_col = "merging")
-    assert type(plot) == matplotlib.figure.Figure, "plot edt heatmap did not return a matplotlib figure"
+    assert isinstance(plot, matplotlib.figure.Figure), "plot edt heatmap did not return a matplotlib figure"
 
 def test_plot_edt_boxplot():
     second_edt = list(my_analysis.data.var[my_analysis.data.var['marker_class'] == "spatial_edt"]['antigen'])[1]
     # print(second_edt)
     plot = my_spatial.plot_edt_boxplot(second_edt)
-    assert type(plot) == matplotlib.figure.Figure, "plot edt boxplot did not return a matplotlib figure"
+    assert isinstance(plot, matplotlib.figure.Figure), "plot edt boxplot did not return a matplotlib figure"
 
 def test_run_edt_statistics():
     df = my_spatial.run_edt_statistics(groupby_column = "merging")
-    assert type(df) == pd.DataFrame, "edt statistics did not return a pandas dataframe"
+    assert isinstance(df, pd.DataFrame), "edt statistics did not return a pandas dataframe"
     assert len(df) == ((np.array(my_analysis.data.var['marker_class'] == "spatial_edt").sum()) * len(my_analysis.data.obs['merging'].unique())), "edt_statistics did not retrun the expected number of comparison"
 
 
