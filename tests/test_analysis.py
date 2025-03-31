@@ -85,7 +85,6 @@ def test_do_PCA(my_analysis):
 
 def test_do_flowsom(my_analysis):
     fs = my_analysis.do_flowsom()
-    warnings.warn("1")
     figure = my_analysis._plot_stars_CNs(fs)
     try:
         metaclustering = my_analysis.data.obs['metaclustering']
