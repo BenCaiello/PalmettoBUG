@@ -3220,7 +3220,7 @@ class Analysis:
         simple_df = pd.DataFrame()
         simple_df['biological_label'] = unique_labels
         simple_df['class_number'] = simple_df.replace(zip_dict)
-        simple_dict.to_csv(f'{destination_folder}/biological_labels.csv', index = False)
+        simple_df.to_csv(f'{destination_folder}/biological_labels.csv', index = False)
 
         # Step 3: Iterate through masks for this analysis, creating classy mask .tiffs
                 # this iteration step would follow the same / similar methods as the classy mask functions that already exist
