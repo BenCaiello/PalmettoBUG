@@ -3220,7 +3220,7 @@ class Analysis:
         data['label'] = data[clustering].replace(zip_dict)
         data.drop("file_name", axis = 1).to_csv(f'{destination_folder}/{name}.csv', index = False)
         simple_df = pd.DataFrame()
-        simple_df['biological_label'] = unique_labels
+        simple_df['biological_label'] = list(unique_labels)
         simple_df['class_number'] = simple_df.replace(zip_dict2)
         simple_df.to_csv(f'{destination_folder}/biological_labels.csv', index = False)
 
