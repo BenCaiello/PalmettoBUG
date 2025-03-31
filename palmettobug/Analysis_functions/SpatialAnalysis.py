@@ -32,7 +32,7 @@ from ..Pixel_Classification.use_classifiers import merge_folder
 from .SpatialANOVA import SpatialANOVA, plot_spatial_stat_heatmap
 
 warnings.filterwarnings("ignore", message = "Importing read_text")   ## future warning in anndata that squidpy has not caught up to yet. Irritating to see everytime on startup
-import squidpy as sq
+import squidpy as sq # noqa: E402
 
 __all__ = ["SpatialAnalysis"]
 

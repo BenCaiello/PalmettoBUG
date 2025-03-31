@@ -31,7 +31,7 @@ of the starting screen of the program.
 For imaging experiments, you must have either .mcd files (the common
 export file type from Standard BioTools’ Hyperion images) or .tif /
 .tiff files. **MCD and TIFF formats are the only file types supported by
-PalmettoBUG!** If you want to analyze image saved in an alternate
+PalmettoBUG!** If you want to analyze images saved in an alternate
 format, you must convert them to .tiffs first – in most cases there
 should be an opensource tools available to accomplish that conversion,
 as .tiffs are an extremely common format for images.
