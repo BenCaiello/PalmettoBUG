@@ -750,7 +750,7 @@ class Analysis:
                     slicer = self.data.obs[split_by_column] == i
                     data_to_scale[slicer] = skpre.scale(data_to_scale[slicer], axis = 0)
         elif scaling_algorithm == "unscale":
-            self.data.X = self.unscaled_data.copy()
+            #self.data.X = self.unscaled_data.copy()
             self.unscaled_data = None
         elif scaling_algorithm == "qnorm":
             if split_by_column == "":
