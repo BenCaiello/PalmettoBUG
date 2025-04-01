@@ -45,7 +45,7 @@ def test_regionprops_write():
     analysis_dir = image_proc.directory_object.Analyses_dir + "/test_analysis"
     intensities_dir = analysis_dir + "/intensities"
     assert(len(os.listdir(analysis_dir + "/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
-    assert(len(pd.read_csv(intensities_dir + "/CRC_1_ROI_001.ome.csv") == 2177), "Unexpected number of cells in image 1"
+    assert(len(pd.read_csv(intensities_dir + "/CRC_1_ROI_001.ome.csv") == 2177)), "Unexpected number of cells in image 1"
 
 def test_setup_analysis():
     panel_file, metadata, Analysis_panel_dir, metadata_dir = image_proc.to_analysis()
