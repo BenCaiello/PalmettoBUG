@@ -28,19 +28,20 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install uv
+        pip install uv pytest
         uv pip install . --system
     - name: Lint with ruff
       run: |
         uvx ruff check palmettobug/ --exit-zero
-    - name: Test (sequential order of execution important, need to get it to eventually work using pytest)
+    - name: pytest
       run: |
-        python tests/test_img_proc.py
-        python tests/test_analysis.py
-        python tests/test_make_px_classifier.py
-        python tests/test_spatial.py
-        pip freeze
-    #   uv pip install pytest
-    #   uv run pytest
-    #     python tests/test_fetch.py
+        pytest tests/test_pytest_all.py
+    #- name: Manual Test
+    #  run: |
+    #    python tests/test_img_proc.py
+    #    python tests/test_analysis.py
+    #    python tests/test_make_px_classifier.py
+    #    python tests/test_spatial.py
+    #    pip freeze
+    
 
