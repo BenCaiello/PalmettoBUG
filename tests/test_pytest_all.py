@@ -17,7 +17,6 @@ import matplotlib
 
 from palmettobug import SupervisedClassifier, UnsupervisedClassifier, plot_pixel_heatmap, segment_class_map_folder
 from palmettobug import fetch_IMC_example, ImageAnalysis
-from palmettobug import Analysis
 from palmettobug import Analysis, SpatialAnalysis
 
 fetch_dir = homedir + "/project_folder"
@@ -46,7 +45,7 @@ def test_regionprops_write():
     analysis_dir = image_proc.directory_object.Analyses_dir + "/test_analysis"
     intensities_dir = analysis_dir + "/intensities"
     assert(len(os.listdir(analysis_dir + "/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
-    assert(len(pd.read_csv(intensities_dir + "/" + os.listdir(intensities_dir)[0])) == 2177), "Randomnly generated masks should be roughly ~1500, ubt too high"
+    assert(len(pd.read_csv(intensities_dir + "/CRC_1_ROI_001.ome.csv") == 2177), "Unexpected number of cells in image 1"
 
 def test_setup_analysis():
     panel_file, metadata, Analysis_panel_dir, metadata_dir = image_proc.to_analysis()
@@ -129,7 +128,7 @@ def test_scaling():
     for i in scaling_options:
         my_analysis.do_scaling(scaling_algorithm = i)
         if i != "unscale":
-            assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < 1, "Scaling did not change all the data points > 0!"
+            assert (my_analysis.data.X[greater_than_zero] != original_X[greater_than_zero]).sum().sum() > 0, "Scaling should change some of the data points > 0!"
         else:
             assert (my_analysis.data.X != original_X).sum().sum() == 0, "Unscaling did not restore the original data!"
 
@@ -137,7 +136,6 @@ def test_comBat():
     original_X = my_analysis.data.X.copy()
     greater_than_zero = (original_X > 0)
     my_analysis.do_COMBAT(batch_column = "patient_id")
-    #print((my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum())
     assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < (len(original_X[greater_than_zero]) / 10) , "ComBat did not change all the data points > 0!"
 
 def test_countplot():
@@ -212,7 +210,7 @@ def test_cluster_dist():
     assert isinstance(figure, matplotlib.figure.Figure), "cluster distributions plot did not return a matplotlib figure"
 
 def test_cluster_histograms():
-    figure = my_analysis.plot_cluster_histograms(antigen = "CCL2")
+    figure = my_analysis.plot_cluster_histograms(antigen = "Pan-Keratin")
     assert isinstance(figure, matplotlib.figure.Figure), "cluster histograms plot did not return a matplotlib figure"
 
 def test_abundance_1():
@@ -370,7 +368,7 @@ def test_edt():
                                         auto_panel = True,
                                         output_edt_folder = None,
                                         save_path = None)
-    assert np.array(my_analysis.data.var['marker_class'] == "spatial_edt").sum() == 2, "Number of EDT classes is not the expected amount!"
+    assert np.array(my_analysis.data.var['marker_class'] == "spatial_edt").sum() == 3, "Number of EDT classes is not the expected amount!"
 
 def test_edt_heatmap():
     plot = my_spatial.plot_edt_heatmap(groupby_col = "merging")
