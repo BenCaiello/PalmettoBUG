@@ -963,7 +963,9 @@ def spatial_by_edt_folder(masks_folder: Union[str, Path],
     if available_file_names is not None:
         masks = [i for i,ii in zip(masks, os.listdir(masks_folder)) if f"{ii[:ii.rfind('.')]}.fcs" in available_file_names]
         #print(masks)
-        class_maps = [i for i,ii in zip(class_maps, os.listdir(class_map_folder)) if f"{ii[:ii.rfind('.')]}.fcs" in available_file_names]       
+        class_maps = [i for i,ii in zip(class_maps, os.listdir(class_map_folder)) if f"{ii[:ii.rfind('.')]}.fcs" in available_file_names]  
+        masks.sort()
+        class_maps.sort()     
         #print(class_maps)
         
     for iii, (i,ii) in enumerate(zip(masks, class_maps)):
