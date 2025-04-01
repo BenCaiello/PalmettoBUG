@@ -1517,12 +1517,12 @@ class plot_cluster_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         #self.facet.grid(column = 0, row = 8, padx = 5, pady = 5)
 
         label_facet = ctk.CTkLabel(self, text = "If facetting, choose the column:")
-        label_facet.grid(column = 0, row = 9)
+        #label_facet.grid(column = 0, row = 9)
 
         self.subsetting_column = ctk.CTkOptionMenu(self, 
                                                    values = COLNAMES, 
                                                    variable = ctk.StringVar(value ="sample_id"))
-        self.subsetting_column.grid(column = 1, row = 9, padx = 5, pady = 5)
+        #self.subsetting_column.grid(column = 1, row = 9, padx = 5, pady = 5)
 
         button_plot = ctk.CTkButton(self, text = "Plot", command = lambda: self.plot_cluster_heatmap(features = self.features.get(), 
                                                                                                 k = self.k.get(),
