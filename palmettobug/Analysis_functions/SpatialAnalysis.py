@@ -732,7 +732,7 @@ class SpatialEDT:
                 print("Distance edt data and currently loaded data do not match in length!"
                       "\nAborting distances load. Did you use the same masks folder for distances calculations and for segmentation, \n"
                       "Or have you edited that masks folder since starting this experiment (creating a mismatch in the number of \n"
-                      "masks in that folder and number cel events in the loaded analysis)?")
+                      "masks in that folder and number cell events in the loaded analysis)?")
             return
         self.exp._distance_edt_data = distance_transforms
         if self.exp._in_gui: 

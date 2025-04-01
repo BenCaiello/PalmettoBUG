@@ -3232,7 +3232,8 @@ class Analysis:
             temp_labels = list(data[data["file_name"] == as_fcs]['label'])
             regionprops = skimage.measure.regionprops(mask)
             if len(regionprops) != len(temp_labels):
-                print(f"Error! Number of labels and number of masks do not match for ROI = {i}! Aborting classy masking")     
+                print(f"Error! Number of labels {len(temp_labels)} and number of masks {len(regionprops)} do not match for ROI = {i} in {self.input_mask_folder}! \n"
+                "Aborting classy masking")     
                             ##>>## complete error message / in gui version (?), etc.
                 return None
             for j,jj in zip(skimage.measure.regionprops(mask), list(data['label'])):
