@@ -37,19 +37,10 @@ def test_raw_to_img():
     assert(len(images) == 10), "Wrong number of images exported to images/img"               ## all the images are transferred
     shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
 
-def test_fake_masks():   ########### bundle real masks with data, as well (?)
-    os.mkdir(proj_directory + "/masks/fake")
-    for i in os.listdir(proj_directory + "/images/img"):
-        image = tf.imread(proj_directory + "/images/img/" + i)
-        fake_mask_array = np.random.rand(image.shape[1], image.shape[2])*1500     ## Goal: create roughly 2000 "masks" per images (unlike real masks, these will be discontinuous)
-        fake_mask_array[fake_mask_array < 1] = 0
-        fake_mask_array = fake_mask_array.astype('int32')
-        tf.imwrite(proj_directory + "/masks/fake/" + i, fake_mask_array)
-
 def test_regionprops_write():
     image_proc.directory_object.make_analysis_dirs("test_analysis")
     input_img_folder = proj_directory + "/images/img"
-    input_mask_folder = proj_directory + "/masks/fake"
+    input_mask_folder = proj_directory + "/masks/example_deepcell_masks"
     image_proc.make_segmentation_measurements(input_img_folder = input_img_folder, input_mask_folder = input_mask_folder)
     analysis_dir = image_proc.directory_object.Analyses_dir + "/test_analysis"
     intensities_dir = analysis_dir + "/intensities"
@@ -69,6 +60,8 @@ def test_setup_analysis():
     assert("condition" in list(pd.read_csv(image_proc.directory_object.Analysis_internal_dir + "/metadata.csv").columns)), "Automatically generated metadata.csv file must have a 'condition' column!"
 
 def test_load_SupPx():
+    global my_classifier_name
+    my_classifier_name = "lumen_epithelia_laminapropria.json"
     global pixel_class_object
     pixel_class_object = SupervisedClassifier(proj_directory)
     classes = ["background", "epithelia", "lamina_propria"] 
@@ -365,7 +358,7 @@ def test_edt():
     my_analysis.filter_data(to_drop = "8")
     my_analysis.filter_data(to_drop = "9")
     panel, results = my_spatial.do_edt(pixel_classifier_folder = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria", 
-                                        masks_folder = proj_directory + "/masks/fake", 
+                                        masks_folder = proj_directory + "/masks/example_deepcell_masks", 
                                         maps = "/classification_maps",
                                         smoothing = 10, 
                                         stat = 'mean', 
