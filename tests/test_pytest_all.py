@@ -104,11 +104,15 @@ def test_train_predict_supervised_classifier():
     assert tf.imread(prediction_paths[2]).max() <= 3, "There should be no pixels >3 (the number of prediction classes)"
 
 ########### CRITICAL! -- depends on test_img_proc having been run first!
-proj_directory = homedir + "/project_folder/Example_IMC"
-Analysis_panel = proj_directory + "/Analyses/Analysis_panel.csv"
-metadata = proj_directory + "/Analyses/metadata.csv"
-shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
-shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
+def test_setup_directories():
+    global proj_directory
+    proj_directory = homedir + "/project_folder/Example_IMC"
+    global Analysis_panel
+    Analysis_panel = proj_directory + "/Analyses/Analysis_panel.csv"
+    global metadata
+    metadata = proj_directory + "/Analyses/metadata.csv"
+    shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
+    shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
 
 def test_load():
     global my_analysis
