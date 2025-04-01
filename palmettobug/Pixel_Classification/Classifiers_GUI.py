@@ -1302,7 +1302,7 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.advanced = self.advanced_frame(self)
         self.advanced.grid(row = 2, column = 0 , pady = 3, padx = 3, sticky = "nsew")
 
-    class channel_frame(ctk.CTkFrame):
+    class channel_frame(ctk.CTkScrollableFrame):
         def __init__(self, master):
             super().__init__(master)
             self.master = master
