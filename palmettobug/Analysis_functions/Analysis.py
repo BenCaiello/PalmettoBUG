@@ -813,6 +813,7 @@ class Analysis:
             for_obs_cat = pd.CategoricalDtype(categories = for_fs.obs['condition'].astype('str').unique(), ordered = True)
             for_fs.obs['condition'] = for_fs.obs['condition'].astype('str')
             for_fs.obs['condition'] = for_fs.obs['condition'].astype(for_obs_cat)
+            for_fs.obs['true_index'] = for_fs.index.astype('int').copy()
             self.UMAP_embedding = for_fs
 
         sc.tl.leiden(for_fs, 
@@ -828,7 +829,6 @@ class Analysis:
         self.UMAP_embedding.obs = self.UMAP_embedding.obs.reset_index()
         if self.PCA_embedding is not None:
             #print(self.PCA_embedding.obs.columns)
-            for_fs.obs['true_index'] = for_fs.obs['index'].astype('int')
             try:
                 self.PCA_embedding.obs = self.PCA_embedding.obs.drop('leiden',axis = 1)   ## drop if leiden already exists
             except Exception:
@@ -1987,8 +1987,8 @@ class Analysis:
             return griddy.figure
         
     def plot_cluster_histograms(self,  
+                                antigen,
                                 groupby_column: str = 'metaclustering', 
-                                antigen: str = "C3aR", 
                                 filename: Union[str, None] = None,
                                 **kwargs) -> plt.figure:                                             # *** deriv_CATALYST (ish, plot output)
         '''
@@ -2058,9 +2058,13 @@ class Analysis:
                 df = df1[df1['imageID'].astype('str') == jj]
                 values = np.array(df['exprs'])
                 if (len(values) > 1) and (values.sum() != 0):
-                    out = gaussian_kde(values)(plot_over)
-                    out = out / np.max(out)   ## normalize between 0 -- > 1 to guarantee share y
-                    axs[i].plot(plot_over, out, color = color_dict[condition], **kwargs)
+                    try:
+                        out = gaussian_kde(values)(plot_over)
+                        out = out / np.max(out)   ## normalize between 0 -- > 1 to guarantee share y
+                        axs[i].plot(plot_over, out, color = color_dict[condition], **kwargs)
+                    except scipy.linalg.LinAlgError:
+                        wwarnings.warn(f'Linear Algebra Error in Gaussian KDE function from scipy! Grouping {jj} will not be available in the plot!')
+
 
             axs[i].set_yticks([0,0.5,1], labels = ["0","0.5","1"], size = text_size)
             axs[i].set_xticks([0,0.5,1], labels = ["0","0.5","1"], size = text_size)
