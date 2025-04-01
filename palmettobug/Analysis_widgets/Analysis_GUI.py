@@ -1516,7 +1516,7 @@ class plot_cluster_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         self.facet = ctk.CTkCheckBox(master = self, text = "Make Facetted Heatmap \n (does not auto-display)?", onvalue = True, offvalue = False)
         #self.facet.grid(column = 0, row = 8, padx = 5, pady = 5)
 
-        label_facet = ctk.CTkLabel(self, text = "If facetting, choose the column:")
+        # label_facet = ctk.CTkLabel(self, text = "If facetting, choose the column:")
         #label_facet.grid(column = 0, row = 9)
 
         self.subsetting_column = ctk.CTkOptionMenu(self, 
