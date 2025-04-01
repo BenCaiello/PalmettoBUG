@@ -38,6 +38,7 @@ def test_raw_to_img():
     shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
 
 def test_regionprops_write():
+    global image_proc
     image_proc.directory_object.make_analysis_dirs("test_analysis")
     input_img_folder = proj_directory + "/images/img"
     input_mask_folder = proj_directory + "/masks/example_deepcell_masks"
@@ -45,8 +46,7 @@ def test_regionprops_write():
     analysis_dir = image_proc.directory_object.Analyses_dir + "/test_analysis"
     intensities_dir = analysis_dir + "/intensities"
     assert(len(os.listdir(analysis_dir + "/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
-    assert(len(pd.read_csv(intensities_dir + "/" + os.listdir(intensities_dir)[0])) > 1400), "Randomnly generated masks should be roughly ~1500, but too low"
-    assert(len(pd.read_csv(intensities_dir + "/" + os.listdir(intensities_dir)[0])) < 1600), "Randomnly generated masks should be roughly ~1500, ubt too high"
+    assert(len(pd.read_csv(intensities_dir + "/" + os.listdir(intensities_dir)[0])) == 2177), "Randomnly generated masks should be roughly ~1500, ubt too high"
 
 def test_setup_analysis():
     panel_file, metadata, Analysis_panel_dir, metadata_dir = image_proc.to_analysis()
@@ -62,6 +62,8 @@ def test_setup_analysis():
 def test_load_SupPx():
     global my_classifier_name
     my_classifier_name = "lumen_epithelia_laminapropria.json"
+    global images_dir
+    images_dir = proj_directory + "/images/img"
     global pixel_class_object
     pixel_class_object = SupervisedClassifier(proj_directory)
     classes = ["background", "epithelia", "lamina_propria"] 
