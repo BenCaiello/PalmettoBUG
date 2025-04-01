@@ -196,7 +196,7 @@ def test_to_classy_masks(my_analysis):
 
 def test_scatterplot(my_analysis):
     figure = my_analysis.plot_scatter(antigen1 = "CD3", antigen2 = "CD4")
-    assert isinstance(figure, matplotlib.figure.Figure), "scatterplot did not make a matplotlib figiure"
+    assert isinstance(figure, matplotlib.figure.Figure), "scatterplot did not make a matplotlib figure"
 
 ##############################################################
 
