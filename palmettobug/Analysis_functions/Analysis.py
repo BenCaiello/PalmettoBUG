@@ -2063,7 +2063,7 @@ class Analysis:
                         out = out / np.max(out)   ## normalize between 0 -- > 1 to guarantee share y
                         axs[i].plot(plot_over, out, color = color_dict[condition], **kwargs)
                     except scipy.linalg.LinAlgError:
-                        wwarnings.warn(f'Linear Algebra Error in Gaussian KDE function from scipy! Grouping {jj} will not be available in the plot!')
+                        warnings.warn(f'Linear Algebra Error in Gaussian KDE function from scipy! Grouping {jj} will not be available in the plot!')
 
 
             axs[i].set_yticks([0,0.5,1], labels = ["0","0.5","1"], size = text_size)
