@@ -813,7 +813,7 @@ class Analysis:
             for_obs_cat = pd.CategoricalDtype(categories = for_fs.obs['condition'].astype('str').unique(), ordered = True)
             for_fs.obs['condition'] = for_fs.obs['condition'].astype('str')
             for_fs.obs['condition'] = for_fs.obs['condition'].astype(for_obs_cat)
-            for_fs.obs['true_index'] = for_fs.index.astype('int').copy()
+            for_fs.obs['true_index'] = for_fs.obs.index.astype('int').copy()
             self.UMAP_embedding = for_fs
 
         sc.tl.leiden(for_fs, 

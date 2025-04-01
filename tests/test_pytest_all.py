@@ -354,6 +354,10 @@ def test_plot_spaceANOVA_heatmap():
     assert isinstance(plot, matplotlib.figure.Figure), "plot SpaceANOVA heatmap did not return a matplotlib figure"
 
 def test_edt():
+    try:
+        warnings.warn(f"{str(my_analysis.data.obs)}")
+    except:
+        pass
     my_analysis.filter_data(to_drop = "0")
     my_analysis.filter_data(to_drop = "8")
     my_analysis.filter_data(to_drop = "9")
