@@ -178,7 +178,7 @@ def test_do_flowsom():
     assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
 
 def test_to_classy_masks():
-    print(metadata.to_string())
+    print(pd.read_csv(metadata).to_string())
     print(my_analysis.data.obs.to_string())
     data_df = my_analysis.export_clustering_classy_masks(clustering = "metaclustering")
     assert len(data_df) == len(my_analysis.back_up_data)
