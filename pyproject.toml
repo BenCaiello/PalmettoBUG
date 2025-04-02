@@ -35,6 +35,8 @@ leidenalg = "*"
 sortedcontainers = "*"
 defusedxml = "*"
 
+zarr = "<3"  ## needed until anndata updates
+
 [tool.poetry.group.other]
 optional = true
 
