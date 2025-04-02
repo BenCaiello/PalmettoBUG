@@ -98,8 +98,6 @@ def test_train_predict_supervised_classifier():
 
 ########### CRITICAL! -- depends on test_img_proc having been run first!
 def test_setup_directories():
-    global proj_directory
-    proj_directory = homedir + "/project_folder/Example_IMC"
     global Analysis_panel
     Analysis_panel = proj_directory + "/Analyses/Analysis_panel.csv"
     global metadata
