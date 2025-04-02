@@ -241,6 +241,10 @@ def test_do_cluster_merging():
     assert ('merging' in my_analysis.data.obs.columns), "do_merging did not add a merging!"
     assert len(my_analysis.data.obs['merging'].unique()) == 3, "do_merging did not add the expected number of merging categories!"
 
+def test_to_classy_masks():
+    data_df = my_analysis.export_clustering_classy_masks()
+    assert len(data_df) == len(my_analysis.back_up_data)
+
 def test_export_clustering():
     df, path = my_analysis.export_clustering(groupby_column = "merging")
     assert len(os.listdir(my_analysis.clusterings_dir)) == 1, "Clustering save did not export!"
@@ -271,10 +275,6 @@ def test_export_DR():
     df = my_analysis.export_DR()
     assert isinstance(df, pd.DataFrame), "DR export did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.UMAP_embedding), "DR export did not have the same length as the source embedding!"
-
-def test_to_classy_masks():
-    data_df = my_analysis.export_clustering_classy_masks()
-    assert len(data_df) == len(my_analysis.back_up_data)
 
 def test_scatterplot():
     figure = my_analysis.plot_scatter(antigen1 = "CD3", antigen2 = "CD4")
