@@ -15,14 +15,15 @@ Final development plans:
             -- scatterplot option, clustering --> classy mask option, and classy mask / pixel class --> PNG options
             -- Added parameters to existing functions (is_torch, rlen, etc.)
             -- update for replicability with notebooks (same analysis, *mostly* the same steps, etc.)
-            -- update to remove / reduce 'proprietary' screenshots (probably fair use, but won't hurt)
+            -- update to remove / reduce screenshots of prop-licensed software (probably fair use, but won't hurt to do)
         - update text / incorporate proofreading edits
 
     2). Code:
-        - Excessive warnings: address (if possible, or if genuine errors are occuring) or perhaps silence
         - SpaceANOVA --
-            1. how to handled cell types dropped from the analysis (keep them in the permutation correction calculation, probably? Currently they are dropped from that as well, changing the results for other cell types)
-            2. how to handle p-value adjustment when celltype1 vs. celltype 2 comparison is highly correlated with the reverse comparison (celltype 2 vs celltype 1), but not identical.
+            1. how to handle p-value adjustment when celltype1 vs. celltype 2 comparison is highly correlated with the reverse comparison (celltype 2 vs celltype 1), but not identical.
+        - Fix testing errors (uncertain of origin)
+        - Test more python versions, continue trying to loosen dependency requirements / upgrade python versions (3.11, 3.12, etc.)
+                -- ideally, as few limits as possible in my pyproject.toml, mainly its dependencies of dependencies that cause problems right now
         - Other bugs (there are always some) .... keep testing
 
 ## What is PalmettoBUG
