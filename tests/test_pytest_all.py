@@ -37,7 +37,6 @@ def test_raw_to_img():
     shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
 
 def test_regionprops_write():
-    global image_proc
     image_proc.directory_object.make_analysis_dirs("test_analysis")
     input_img_folder = proj_directory + "/images/img"
     input_mask_folder = proj_directory + "/masks/example_deepcell_masks"
@@ -179,6 +178,8 @@ def test_do_flowsom():
     assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
 
 def test_to_classy_masks():
+    print(metadata.to_string())
+    print(my_analysis.data.obs.to_string())
     data_df = my_analysis.export_clustering_classy_masks(clustering = "metaclustering")
     assert len(data_df) == len(my_analysis.back_up_data)
 
