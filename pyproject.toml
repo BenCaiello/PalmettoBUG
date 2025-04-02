@@ -9,7 +9,7 @@ repository = "https://github.com/BenCaiello/PalmettoBUG"
 
 [tool.poetry.dependencies]
 python = ">=3.9, <3.11"
-numpy = "*"
+numpy = "1.*"
 pandas = ">=2.0"
 dask = "<2025.1.0"
 matplotlib = ">=3.0.0"
