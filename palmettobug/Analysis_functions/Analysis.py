@@ -3221,7 +3221,7 @@ class Analysis:
         zip_dict = {}
         zip_dict2 = {}
         for i,ii in zip(unique_sample_ids, unique_labels):
-            zip_dict[ii] = i + 1   # 0 is a special number in images!
+            zip_dict[ii] = int(i) + 1   # 0 is a special number in images!
             zip_dict2[ii] = str(i + 1)
         data['label'] = data[clustering].replace(zip_dict)
         data.drop("file_name", axis = 1).to_csv(f'{destination_folder}/{name}.csv', index = False)
