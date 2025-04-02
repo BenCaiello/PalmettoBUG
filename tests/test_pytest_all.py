@@ -178,6 +178,10 @@ def test_do_flowsom():
     assert '20' in metaclustering,  "do_flowsom did not create the expected values in metaclustering column"
     assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
 
+def test_to_classy_masks():
+    data_df = my_analysis.export_clustering_classy_masks(clustering = "metaclustering")
+    assert len(data_df) == len(my_analysis.back_up_data)
+
 def test_do_leiden_clustering():
     fs = my_analysis.do_leiden_clustering()
     try:
@@ -240,10 +244,6 @@ def test_do_cluster_merging():
     my_analysis.do_cluster_merging(file_path = proj_directory + "/temp.csv")
     assert ('merging' in my_analysis.data.obs.columns), "do_merging did not add a merging!"
     assert len(my_analysis.data.obs['merging'].unique()) == 3, "do_merging did not add the expected number of merging categories!"
-
-def test_to_classy_masks():
-    data_df = my_analysis.export_clustering_classy_masks()
-    assert len(data_df) == len(my_analysis.back_up_data)
 
 def test_export_clustering():
     df, path = my_analysis.export_clustering(groupby_column = "merging")
