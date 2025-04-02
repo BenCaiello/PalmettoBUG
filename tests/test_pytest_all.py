@@ -177,12 +177,6 @@ def test_do_flowsom():
     assert '20' in metaclustering,  "do_flowsom did not create the expected values in metaclustering column"
     assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
 
-def test_to_classy_masks():
-    print(pd.read_csv(metadata).to_string())
-    print(my_analysis.data.obs.to_string())
-    data_df = my_analysis.export_clustering_classy_masks(clustering = "metaclustering")
-    assert len(data_df) == len(my_analysis.back_up_data)
-
 def test_do_leiden_clustering():
     fs = my_analysis.do_leiden_clustering()
     try:
@@ -280,6 +274,10 @@ def test_export_DR():
 def test_scatterplot():
     figure = my_analysis.plot_scatter(antigen1 = "CD3", antigen2 = "CD4")
     assert isinstance(figure, matplotlib.figure.Figure), "scatterplot did not make a matplotlib figure"
+
+def test_to_classy_masks():
+    data_df = my_analysis.export_clustering_classy_masks(clustering = "merging")
+    assert len(data_df) == len(my_analysis.back_up_data)
 
 def test_load_clustering():
     my_analysis.load_clustering(path = my_analysis.clusterings_dir + "/merging.csv")
