@@ -210,7 +210,8 @@ class SpatialANOVA():
                   column: Union[str, int], 
                   ) -> None:
         ''' 
-        A Simple function to help drop unwanted images / types / conditions from the data table (must be called BEFORE self._ingest_data / self.do_spatial_analysis) 
+        (deprecated)
+        A simple function to help drop unwanted images / types / conditions from the data table (must be called BEFORE self._ingest_data / self.do_spatial_analysis) 
 
         WARNING: only works if the data loaded into this class is from a pandas dataframe. If loaded from an anndata object, you must edit that anndata object directly
         This is because the usual anndata object that can be loaded into this is the .data attribute of a palmettobug Analysis class, which should be edited from the
@@ -381,7 +382,8 @@ class SpatialANOVA():
                 if compare_to_threshold_copy[cellType_key].max() < self.threshold:
                     bad_cell_types.append(str(i))
                     print(f"The celltype {str(i)} is only present in one condition -- ANOVAs and F-statistics will not be available for that celltype!")
-                    break               
+                    break   
+        bad_cell_types.append('dropped')
         self.good_cell_types = [i for i in all_cell_types if i not in bad_cell_types]
         self._comparison_list = []
         all_types = np.array(self.good_cell_types)

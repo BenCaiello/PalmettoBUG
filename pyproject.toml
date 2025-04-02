@@ -9,8 +9,8 @@ repository = "https://github.com/BenCaiello/PalmettoBUG"
 
 [tool.poetry.dependencies]
 python = ">=3.9, <3.11"
-numpy = "1.*"
-pandas = "2.*"
+numpy = "*"
+pandas = ">=2.0"
 dask = "<2025.1.0"
 matplotlib = ">=3.0.0"
 seaborn = "*"
@@ -32,7 +32,6 @@ igraph = "*"
 loguru = "*"
 mudata = "*"
 leidenalg = "*"
-# sympy = "<=1.13.1"
 sortedcontainers = "*"
 defusedxml = "*"
 
