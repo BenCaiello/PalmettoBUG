@@ -1323,7 +1323,7 @@ class Analysis:
                 # hue_norm = (0,1)
                 palette = 'coolwarm'
             elif hue in self.data.obs.columns:
-                data[hue] = list(self.data.obs[hue])
+                data[hue] = list(self.data.obs[hue].copy())
         figure = plt.figure()
         ax = plt.gca()
         sns.scatterplot(data, 
@@ -3132,11 +3132,11 @@ class Analysis:
             os.mkdir(self.clusterings_dir)
         ##### Sets up a table for spatial analysis
         table = pd.DataFrame()
-        table['cellType'] = self.data.obs[groupby_column].astype('str')
-        table['sample_id'] = self.data.obs['sample_id']
-        table['condition'] = self.data.obs['condition']
-        table['patient_id'] = self.data.obs['patient_id']
-        table['file_name'] = self.data.obs['file_name']
+        table['cellType'] = self.data.obs[groupby_column].astype('str').copy()
+        table['sample_id'] = self.data.obs['sample_id'].copy()
+        table['condition'] = self.data.obs['condition'].copy()
+        table['patient_id'] = self.data.obs['patient_id'].copy()
+        table['file_name'] = self.data.obs['file_name'].copy()
         
         ## loading spaceANOVA from clustering has been superseded by loading from the Analysis onbject itself, therefore extranveous columns are no longer needed
         '''
@@ -3216,9 +3216,10 @@ class Analysis:
         
         # Step 2: Assign numbers to the labels, including 'none'
         unique_labels = data[clustering].unique()
+        unique_sample_ids = data['sample_id'].unique()
         zip_dict = {}
         zip_dict2 = {}
-        for i,ii in enumerate(unique_labels):
+        for i,ii in zip(unique_sample_ids, unique_labels):
             zip_dict[ii] = i + 1   # 0 is a special number in images!
             zip_dict2[ii] = str(i + 1)
         data['label'] = data[clustering].replace(zip_dict)
