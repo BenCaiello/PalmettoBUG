@@ -160,7 +160,7 @@ class SpatialANOVA():
         if self.exp is None:     ### we've loaded from a pandas dataframe, not from an anndata object
             pass
         else:
-            if (for_cell_maps) and (self.exp.back_up_data is not None):
+            if self.exp.back_up_data is not None:
                 self.filenames = self.exp.back_up_data.obs['file_name']
                 self.data_table = pd.DataFrame()
                 self.data_table['x'] = self.exp.back_up_data.obsm['spatial'][:,0]
@@ -351,9 +351,12 @@ class SpatialANOVA():
 
         for i in self._all_comparison_list:
             conditions = i.split("___")
-            all_g, all_K, all_L = self._do_all_K_L_g(type1 = conditions[0], type2 = conditions[1], permutations = permutations, 
-                                                     perm_state = seed, center_on_zero = center_on_zero)
-            self._comparison_dictionary[i] = {"K":all_K, "L":all_L, "g":all_g}
+            type1 = conditions[0]
+            type2 = conditions[1]
+            if (type1 != "dropped") and (type2 != "dropped"):
+                all_g, all_K, all_L = self._do_all_K_L_g(type1 = type1, type2 = type2, permutations = permutations, 
+                                                        perm_state = seed, center_on_zero = center_on_zero)
+                self._comparison_dictionary[i] = {"K":all_K, "L":all_L, "g":all_g}
         if silence_zero_warnings is True:
             warnings.filterwarnings("default", message = "divide by zero encountered in divide")  ## undo prior warnings modifications
             warnings.filterwarnings("default", message = "invalid value encountered in divide")                    
