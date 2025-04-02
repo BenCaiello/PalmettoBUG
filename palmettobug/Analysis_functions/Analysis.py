@@ -3207,16 +3207,17 @@ class Analysis:
         # Step 1: use back-up data & recover labels (either 'none' if filtered/dropped before clustering, or clustering labels)
         if self.back_up_data is not None:
             data = self.back_up_data.obs.copy()
+            unique_sample_ids = data['sample_id'].unique()
             data[clustering] = 'none'
             data.index = data.index.astype('str')
             data.loc[self.data.obs.index, clustering] = list(self.data.obs[clustering].astype('str'))
             data = data[[clustering,"file_name"]].copy()
         else:
+            unique_sample_ids = self.data.obs['sample_id'].unique()
             data = self.data.obs[[clustering,"file_name"]].copy()
         
         # Step 2: Assign numbers to the labels, including 'none'
         unique_labels = data[clustering].unique()
-        unique_sample_ids = data['sample_id'].unique()
         zip_dict = {}
         zip_dict2 = {}
         for i,ii in zip(unique_sample_ids, unique_labels):
