@@ -139,7 +139,7 @@ def test_sample_id_len1():
     counts = my_analysis.data.obs.groupby(['sample_id','file_name'], observed = True).count().reset_index()[['sample_id','file_name','patient_id']]
     counts.index = counts['sample_id']
     print(my_analysis.fcs_dir_names)
-    assert counts.loc['0','patient_id'] == 2177, f"{pd.read_csv(proj_directory + "/Analyses/test_analysis/main/metadata.csv").to_string()}"
+    assert counts.loc['0','patient_id'] == 2177, f"{pd.read_csv(proj_directory + '/Analyses/test_analysis/main/metadata.csv').to_string()}"
     assert counts.loc['2','patient_id'] == 3391
     assert counts.loc['3','patient_id'] == 1851
     assert counts.loc['4','patient_id'] == 2565
