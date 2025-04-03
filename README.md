@@ -13,7 +13,6 @@ Final development plans:
         - Update images and descriptions with new features & data
             -- Premessa / bead-normalization translation --> have a page for this (would require fresh example data?)
             -- scatterplot option, clustering --> classy mask option, and classy mask / pixel class --> PNG options
-            -- Added parameters to existing functions (is_torch, rlen, etc.)
             -- update for replicability with notebooks (same analysis, *mostly* the same steps, etc.)
             -- update to remove / reduce screenshots of prop-licensed software (probably fair use, but won't hurt to do)
         - update text / incorporate proofreading edits
