@@ -657,13 +657,13 @@ class Analysis:
         #if self.unscaled_data is None:   ## now scaling the data will always undo a batch correction (since batch correction will never touch the scaling backup)
         #    self.unscaled_data = self.data.X.copy()
         self.data.X = sc.pp.combat(self.data.copy(), key = batch_column, covariates = covariates, inplace = False).copy()
-        if self.is_batch > 0:
+        if self.is_batched > 0:
             print('Warning! You have performed a batch correction twice on the same data! Are you sure this was intentional?')
-        if (self.unscaled_data is None) and (self.is_batch != 1):
+        if (self.unscaled_data is None) and (self.is_batched != 1):
             self.is_batched = 1    ## batch correction is permanent for this instance of an Analysis
             print('This batch correction is permanent (until Analysis reload)')
         else:
-            self.is_batch = 2  ## batch correction will be lost if scaling is performed again (that would also reset self.is_batch = 0)
+            self.is_batched = 2  ## batch correction will be lost if scaling is performed again (that would also reset self.is_batch = 0)
             print('This batch correction will be lost / overwritten if a further scaling of the data is performed')
 
     def do_scaling(self, 
@@ -772,9 +772,9 @@ class Analysis:
                     data_to_scale[slicer] = quantile_normalize(data_to_scale[slicer])
         self.data.X = data_to_scale
         self._scaling = scaling_algorithm
-        if self.is_batch == 2:
+        if self.is_batched == 2:
             print('Caution! Rescaling the data has overwritten / reset a prior batch correction!')
-            self.is_batch = 0
+            self.is_batched = 0
 
     def do_leiden_clustering(self, 
                           seed: int = 1234, 

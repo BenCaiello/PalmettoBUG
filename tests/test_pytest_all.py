@@ -136,7 +136,7 @@ def test_comBat():
     assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < (len(original_X[greater_than_zero]) / 10) , "ComBat did not change all the data points > 0!"
 
 def test_sample_id_len1():
-    counts = myanalysis.data.obs.groupby(['sample_id','file_name'], observed = True).count()[['sample_id','file_name','patient_id']]
+    counts = my_analysis.data.obs.groupby(['sample_id','file_name'], observed = True).count()[['sample_id','file_name','patient_id']]
     assert counts.loc['0','patient_id'] == 2177
     assert counts.loc['2','patient_id'] == 3391
     assert counts.loc['3','patient_id'] == 1851
@@ -197,7 +197,7 @@ def test_do_flowsom():
     assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
 
 def test_sample_id_len2():
-    counts = myanalysis.data.obs.groupby(['sample_id','file_name'], observed = True).count()[['sample_id','file_name','patient_id']]
+    counts = my_analysis.data.obs.groupby(['sample_id','file_name'], observed = True).count()[['sample_id','file_name','patient_id']]
     assert counts.loc['0','patient_id'] == 2177
     assert counts.loc['2','patient_id'] == 3391
     assert counts.loc['3','patient_id'] == 1851
