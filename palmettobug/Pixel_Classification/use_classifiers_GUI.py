@@ -126,9 +126,9 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.label.grid(padx = 3, pady = 3, column = 0, row = 0, sticky = "ew", columnspan = 2)
 
             def refresh1():
-                self.classifier_option_menu.configure(values = os.listdir(self.master.classifier_dir))
+                self.classifier_option_menu.configure(values = sorted(os.listdir(self.master.classifier_dir)))
 
-            classifier_options = os.listdir(self.master.classifier_dir)
+            classifier_options = sorted((self.master.classifier_dir))
             self.classifier_option_menu = ctk.CTkOptionMenu(master = self, 
                                                             values = classifier_options, 
                                                             variable = ctk.StringVar(value = ""), 
@@ -160,7 +160,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             bio_labels_window(self.master)
 
         def refresh1(self) -> None:
-            self.classifier_option_menu.configure(values = os.listdir(self.master.classifier_dir))
+            self.classifier_option_menu.configure(values = sorted(os.listdir(self.master.classifier_dir)))
 
     class filter_frame(ctk.CTkFrame):
         def __init__(self, master):
@@ -186,8 +186,8 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             label2.grid(padx = 3, pady = 3, column = 1, row = 2)
 
             def refresh2():
-                self.select_image_folder.configure(values = os.listdir(self.master.image_directory) )
-            image_folder_options = os.listdir(self.master.image_directory) 
+                self.select_image_folder.configure(values = sorted(os.listdir(self.master.image_directory)) )
+            image_folder_options = sorted(os.listdir(self.master.image_directory)) 
             self.select_image_folder = ctk.CTkOptionMenu(master = self, 
                                                          variable = ctk.StringVar(value = "img"), 
                                                          values = image_folder_options) 
@@ -418,7 +418,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
             if panel_file is None:
                 ## make initial panel file:
-                fcs_files  = os.listdir(self.master.active_classifier_dir + "/Whole_class_analysis/intensities")
+                fcs_files  = sorted(os.listdir(self.master.active_classifier_dir + "/Whole_class_analysis/intensities"))
                 dataframe1 = pd.read_csv(self.master.active_classifier_dir + "/Whole_class_analysis/intensities/" + fcs_files[0])
                 try:
                     dataframe1 = dataframe1.drop('Object', axis = 1)
@@ -435,7 +435,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 panel_file = self.Analysis_panel
 
                 ## make metadata file:
-                file_list = os.listdir(self.master.active_classifier_dir + "/Whole_class_analysis/intensities")
+                file_list = sorted(os.listdir(self.master.active_classifier_dir + "/Whole_class_analysis/intensities"))
                 metadata = pd.DataFrame()
                 metadata['file_name']  = file_list
                 metadata['sample_id'] = metadata.reset_index()['index']
@@ -470,10 +470,10 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             label.grid(row = 1, column = 0, padx = 3, pady = 3)
 
             def refresh3():
-                masks_options = os.listdir(self.master.main_directory + "/masks")
+                masks_options = sorted(os.listdir(self.master.main_directory + "/masks"))
                 self.mask_option_menu.configure(values = masks_options)
 
-            masks_options = os.listdir(self.master.main_directory + "/masks")   
+            masks_options = sorted(os.listdir(self.master.main_directory + "/masks"))
             self.mask_option_menu = ctk.CTkOptionMenu(master = self, values = masks_options, variable = ctk.StringVar(value = ""))
             self.mask_option_menu.grid(padx = 3, pady = 3, column = 1, row = 1)
             self.mask_option_menu.bind("<Enter>", lambda enter: refresh3())
@@ -485,10 +485,10 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             label3.grid(row = 3, column = 0, padx = 3, pady = 3)
 
             def refresh4():
-                classy_masks_options = [i for i in os.listdir(self.master.main_directory + "/classy_masks") if i[-4:] != '.csv']  
+                classy_masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/classy_masks")) if i[-4:] != '.csv']  
                 self.classy_mask_option_menu.configure(values = classy_masks_options)
 
-            classy_masks_options = [i for i in os.listdir(self.master.main_directory + "/classy_masks") if i[-4:] != '.csv']                                                                                         
+            classy_masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/classy_masks")) if i[-4:] != '.csv']                                                                                         
             self.classy_mask_option_menu = ctk.CTkOptionMenu(master = self, values = classy_masks_options, variable = ctk.StringVar(value = ""))
             self.classy_mask_option_menu.grid(padx = 3, pady = 3, column = 1, row = 3)
             self.classy_mask_option_menu.bind("<Enter>", lambda enter: refresh4())
@@ -618,10 +618,10 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             label.grid(padx = 3, pady = 3, column = 0, row = 1)
 
             def refresh5():
-                masks_options = os.listdir(self.master.main_directory + "/masks")
+                masks_options = sorted(os.listdir(self.master.main_directory + "/masks"))
                 self.mask_option_menu.configure(values = masks_options)
 
-            masks_options = os.listdir(self.master.main_directory + "/masks") 
+            masks_options = sorted(os.listdir(self.master.main_directory + "/masks"))
             self.mask_option_menu = ctk.CTkOptionMenu(master = self, values = masks_options, variable = ctk.StringVar(value = ""))
             self.mask_option_menu.grid(padx = 3, pady = 3, column = 1, row = 1)
             self.mask_option_menu.bind("<Enter>", lambda enter: refresh5())
@@ -757,8 +757,8 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             masks_folder = self.master.main_directory + "/masks/" + masks_folder
 
             ## tests:
-            classifier_files = os.listdir(classifier_masks_folder)
-            masks_files = os.listdir(masks_folder)
+            classifier_files = sorted(os.listdir(classifier_masks_folder))
+            masks_files = sorted(os.listdir(masks_folder))
             if len(classifier_files) == len(masks_files):
                 not_shared_names = [i for i,ii in zip(classifier_files,masks_files) if i != ii]
                 if len(not_shared_names) > 0:
@@ -821,7 +821,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 if not os.path.exists(self.master.active_classifier_dir + "/merged_classification_maps"):
                     os.mkdir(self.master.active_classifier_dir + "/merged_classification_maps")
                 
-                for i in os.listdir(classifier_masks_folder):
+                for i in sorted(os.listdir(classifier_masks_folder)):
                     merged_class = merge_classes(tf.imread(classifier_masks_folder + "/" + i), metadata)
                     tf.imwrite(self.master.active_classifier_dir + "/merged_classification_maps/" + i, 
                                merged_class.astype('int'))
@@ -884,10 +884,10 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label_8.grid(column = 0, row = 2)
 
         def refresh7():
-            self.image_folders = os.listdir(self.master.Experiment_object.directory_object.img_dir)
+            self.image_folders = sorted(os.listdir(self.master.Experiment_object.directory_object.img_dir))
             self.image_folder.configure(values = self.image_folders)
 
-        self.image_folders = os.listdir(self.master.Experiment_object.directory_object.img_dir)
+        self.image_folders = sorted(os.listdir(self.master.Experiment_object.directory_object.img_dir))
         self.image_folder = ctk.CTkOptionMenu(self, values = self.image_folders, variable = ctk.StringVar(value = "img"))
         self.image_folder.grid(column = 1, row = 2, padx = 5, pady = 5)
         self.image_folder.bind("<Enter>", lambda enter: refresh7())
@@ -936,7 +936,7 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
         label_napari.grid(row = 0, column = 1, padx = 3, pady = 3)
 
         napari_options = ctk.CTkOptionMenu(master = self, 
-                                           values = os.listdir(self.image_folder), 
+                                           values = sorted(os.listdir(self.image_folder)), 
                                            variable = ctk.StringVar(value = ""), 
                                            command = self.napari_launch)
         napari_options.grid(row = 1, column = 1, padx = 3, pady = 3)
@@ -1074,8 +1074,8 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
         merged_classifications_per_cell["labels"] = read_in["classification"].astype('str').replace(replace_dict_labels)
         merged_classifications_per_cell.to_csv(one_folder_up + "/secondary_cell_classification.csv", index = False)
 
-        image_path_list = ["".join([self.master.output_folder,"/",i])  for i in os.listdir(self.master.output_folder)]
-        write_path_list = ["".join([one_folder_up,"/secondary_masks/",i])  for i in os.listdir(self.master.output_folder)]
+        image_path_list = ["".join([self.master.output_folder,"/",i])  for i in sorted(os.listdir(self.master.output_folder))]
+        write_path_list = ["".join([one_folder_up,"/secondary_masks/",i])  for i in sorted(os.listdir(self.master.output_folder))]
         if not os.path.exists(one_folder_up + "/secondary_masks/"):
             os.mkdir(one_folder_up + "/secondary_masks/")
 
@@ -1436,7 +1436,7 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             if choice == "pixel classification":
                 self.option2.configure(values = [i for i in if_pixel_classifier if i in os.listdir(self.master.master.active_classifier_dir)])
             elif choice == "classy masks":
-                self.option2.configure(values = os.listdir(f"{self.master.master.main_directory}/classy_masks"))
+                self.option2.configure(values = sorted(os.listdir(f"{self.master.master.main_directory}/classy_masks")))
 
         self.option1.configure(command = refresh_option2)
 

@@ -53,7 +53,7 @@ def plot_classes(class_map_folder, output_folder):
     '''
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
-    for i in os.listdir(class_map_folder):
+    for i in sorted(os.listdir(class_map_folder)):
         px_class = tf.imread(f"{class_map_folder}/{i}").astype('int')
         figure = tf.imshow(px_class)[0]
         figure.savefig(f"{output_folder}/{i[:-5]}.png", bbox_inches = "tight")
@@ -109,7 +109,7 @@ def merge_folder(folder_to_merge: Union[Path, str],
         output_folder = folder_to_merge[:folder_to_merge.rfind("/")] + "/merged_classification_maps"
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
-    for i in os.listdir(folder_to_merge):
+    for i in sorted(os.listdir(folder_to_merge)):
         class_map = tf.imread("".join([folder_to_merge,"/",i])).astype('int')
         merged = merge_classes(class_map, merging_table = merging_table)
         tf.imwrite("".join([output_folder, "/", i]), merged) 
@@ -167,8 +167,8 @@ def slice_folder(class_to_keep: Union[int, list[int]],
 
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
-    classifier_maps = [i for i in os.listdir(class_map_folder) if i[-5:] == '.tiff']
-    images = [i for i in os.listdir(image_folder) if i[-5:] == '.tiff']
+    classifier_maps = [i for i in sorted(os.listdir(class_map_folder)) if i[-5:] == '.tiff']
+    images = [i for i in sorted(os.listdir(image_folder)) if i[-5:] == '.tiff']
     for i, ii in zip(classifier_maps, images):
         if i != ii:
             if _in_gui:
@@ -311,8 +311,8 @@ def mode_classify_folder(mask_folder: Union[Path, str],
         os.mkdir(output_folder)
     
     ## prevent unintentional overwriting of variables outside the function:
-    masks = [i for i in os.listdir(mask_folder) if i[-5:] == ".tiff"]
-    classifier_masks = [i for i in os.listdir(classifier_map_folder) if i[-5:] == ".tiff"]
+    masks = [i for i in sorted(os.listdir(mask_folder)) if i[-5:] == ".tiff"]
+    classifier_masks = [i for i in sorted(os.listdir(classifier_map_folder)) if i[-5:] == ".tiff"]
 
     overlapping = [i for i in masks if i in classifier_masks]
     if not ((len(overlapping) == len(masks)) and (len(overlapping) == len(classifier_masks))):
@@ -521,8 +521,8 @@ def secondary_flowsom(mask_folder: Union[Path, str],
     '''
     mask_folder = str(mask_folder)
     classifier_map_folder = str(classifier_map_folder)
-    masks = [i for i in os.listdir(mask_folder) if i[-5:] == ".tiff"]
-    classifier_maps = [i for i in os.listdir(classifier_map_folder) if i[-5:] == ".tiff"]
+    masks = [i for i in sorted(os.listdir(mask_folder)) if i[-5:] == ".tiff"]
+    classifier_maps = [i for i in sorted(os.listdir(classifier_map_folder)) if i[-5:] == ".tiff"]
 
     overlapping = [i for i in masks if i in classifier_maps]
     if not ((len(overlapping) == len(masks)) and (len(overlapping) == len(classifier_maps))):
@@ -612,7 +612,7 @@ def classify_from_secondary_flowsom(mask_folder: Union[Path, str],
         os.mkdir(output_folder)
     
     ## prevent unintentional overwriting of variables outside the function:
-    mesmer_masks = [i for i in os.listdir(mask_folder) if i[-5:] == ".tiff"]
+    mesmer_masks = [i for i in sorted(os.listdir(mask_folder)) if i[-5:] == ".tiff"]
     metaclustering_for_all_cells = list(flowsom_data.get_cell_data().obs['metaclustering'] + 1)
 
     start = 0
@@ -702,8 +702,8 @@ def _heatmap_secondary_flowsom(classy_mask_folder: Union[Path, str], #### supers
         numpy_seed = numpy_seed[type_array]
     numpy_seed = numpy_seed[:,np.newaxis]
 
-    classy_masks = os.listdir(classy_mask_folder)
-    images = os.listdir(img_folder)
+    classy_masks = sorted(os.listdir(classy_mask_folder))
+    images = sorted(os.listdir(img_folder))
 
     overlapping = [i for i in classy_masks if i in images]
     if not ((len(overlapping) == len(classy_masks)) and (len(overlapping) == len(images))):
@@ -806,9 +806,9 @@ def extend_masks_folder(classifier_map_folder: Union[Path, str],
     if not os.path.exists(output_directory_folder):
         os.mkdir(output_directory_folder)
 
-    mesmer_masks = [i for i in os.listdir(mask_folder) if i[-5:] == ".tiff"]
-    classifier_masks = [i for i in os.listdir(classifier_map_folder) if i[-5:] == ".tiff"]
-    classy_mesmer_masks = [i for i in os.listdir(classy_mask_folder) if i[-5:] == ".tiff"]
+    mesmer_masks = [i for i in sorted(os.listdir(mask_folder)) if i[-5:] == ".tiff"]
+    classifier_masks = [i for i in sorted(os.listdir(classifier_map_folder)) if i[-5:] == ".tiff"]
+    classy_mesmer_masks = [i for i in sorted(os.listdir(classy_mask_folder)) if i[-5:] == ".tiff"]
     classifier_masks.sort()
     mesmer_masks.sort()
     classy_mesmer_masks.sort()
