@@ -1014,10 +1014,10 @@ class TableWidget(ctk.CTkScrollableFrame):
         if self.type == "metadata":
             checks = True
             try:
-                fcs_files  = os.listdir(self.Analysis_internal_dir + "/Analysis_fcs")
+                fcs_files  = sorted(os.listdir(self.Analysis_internal_dir + "/Analysis_fcs"))
             except FileNotFoundError:
                 try:
-                    fcs_files  = os.listdir(self.Analysis_internal_dir + "/main/Analysis_fcs")
+                    fcs_files  = sorted(os.listdir(self.Analysis_internal_dir + "/main/Analysis_fcs"))
                 except FileNotFoundError:
                     warning_window("Could not read fcs folder to perform checks of metadata file")
                     checks = False
