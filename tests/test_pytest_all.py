@@ -137,6 +137,7 @@ def test_comBat():
 
 def test_sample_id_len1():
     counts = my_analysis.data.obs.groupby(['sample_id','file_name'], observed = True).count().reset_index()[['sample_id','file_name','patient_id']]
+    counts.index = counts['sample_id']
     assert counts.loc['0','patient_id'] == 2177
     assert counts.loc['2','patient_id'] == 3391
     assert counts.loc['3','patient_id'] == 1851
@@ -198,6 +199,7 @@ def test_do_flowsom():
 
 def test_sample_id_len2():
     counts = my_analysis.data.obs.groupby(['sample_id','file_name'], observed = True).count().reset_index()[['sample_id','file_name','patient_id']]
+    counts.index = counts['sample_id']
     assert counts.loc['0','patient_id'] == 2177
     assert counts.loc['2','patient_id'] == 3391
     assert counts.loc['3','patient_id'] == 1851
