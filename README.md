@@ -18,9 +18,7 @@ Final development plans:
         - update text / incorporate proofreading edits
 
     2). Code:
-        - SpaceANOVA --
-            1. how to handle p-value adjustment when celltype1 vs. celltype 2 comparison is highly correlated with the reverse comparison (celltype 2 vs celltype 1), but not identical.
-        - Fix testing errors (uncertain of origin)
+        - Fix testing errors (uncertain of origin) --> fixed, but now  update all calls to os.listdir() that care about ordering with a .sort() afterwards....
         - Test more python versions, continue trying to loosen dependency requirements / upgrade python versions (3.11, 3.12, etc.)
                 -- ideally, as few limits as possible in my pyproject.toml, mainly its dependencies of dependencies that cause problems right now
         - Other bugs (there are always some) .... keep testing
