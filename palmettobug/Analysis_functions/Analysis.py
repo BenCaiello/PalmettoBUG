@@ -268,6 +268,7 @@ class Analysis:
         self.PCA_embedding = None
         self.fcs_directory = self.directory  + "/Analysis_fcs"
         self.fcs_dir_names = os.listdir(self.fcs_directory)
+        self.fcs_dir_names.sort()
 
         if len(self.fcs_dir_names) != len(self.metadata):
             if self._in_gui:
