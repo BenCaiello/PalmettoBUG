@@ -152,14 +152,12 @@ into html. Other packages used in this process include: nbsphinx (for jupyter no
 and sphinx-rtd-theme.
 
 The media / images (and odp files) in the /docs folder of the GitHub repository were created in 
-Microsoft PowerPoint from screenshots (using Windows Snipping Tool) of the PalmettoBUG program & its output files, as well as screenshots of 
-other programs (like Napari & Windows File Explorer) that are used while analysing the example data  
-Additionally, (of course) PowerPoint objects such as arrows, shapes, etc. were used to compose and arrange the figures, before a 
-final screenshot was taken to save the images as they are displayed here.
+Microsoft PowerPoint and LibreOffice from screenshots (using Windows Snipping Tool) of the PalmettoBUG program & its output files, as well as
+other programs (like Napari & Windows File Explorer) that were used while analysing the example data  
 These screenshots are used under the assumption of fair use given the limited use of such screenshots, the open-source / academic / non-commercial 
 nature of the PalmettoBUG program and its documentation, and the lack of financial consequences from such screenshots -- if this is inaccurate I am happy to remove 
-any offending parts of this documentation. (such copyright concerns could only likely apply to icons in / screenshots of Windows File Explorer, where I may begin to 
-make edits in the documentation anyway, in order to reduce any such concerns)
+any offending parts of this documentation. (such copyright concerns could only likely apply to icons in / screenshots of Windows File Explorer / Microsoft Excel, 
+but I've already begun replacing these with screenshots where I can, using open source alternatives (LibreOffice, Files)).
 
 
 .. |image1| image:: media/Welcome1.png
