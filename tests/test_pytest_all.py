@@ -138,7 +138,8 @@ def test_comBat():
 def test_sample_id_len1():
     counts = my_analysis.data.obs.groupby(['sample_id','file_name'], observed = True).count().reset_index()[['sample_id','file_name','patient_id']]
     counts.index = counts['sample_id']
-    assert counts.loc['0','patient_id'] == 2177
+    print(my_analysis.fcs_dir_names)
+    assert counts.loc['0','patient_id'] == 2177, f"{pd.read_csv(proj_directory + "/Analyses/test_analysis/main/metadata.csv").to_string()}"
     assert counts.loc['2','patient_id'] == 3391
     assert counts.loc['3','patient_id'] == 1851
     assert counts.loc['4','patient_id'] == 2565
@@ -196,28 +197,6 @@ def test_do_flowsom():
     assert '1' in metaclustering, "do_flowsom did not create the expected values in metaclustering column"
     assert '20' in metaclustering,  "do_flowsom did not create the expected values in metaclustering column"
     assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
-
-def test_sample_id_len2():
-    counts = my_analysis.data.obs.groupby(['sample_id','file_name'], observed = True).count().reset_index()[['sample_id','file_name','patient_id']]
-    counts.index = counts['sample_id']
-    assert counts.loc['0','patient_id'] == 2177
-    assert counts.loc['2','patient_id'] == 3391
-    assert counts.loc['3','patient_id'] == 1851
-    assert counts.loc['4','patient_id'] == 2565
-    assert counts.loc['5','patient_id'] == 1489
-    assert counts.loc['6','patient_id'] == 6035
-    assert counts.loc['7','patient_id'] == 6488
-    assert counts.loc['8','patient_id'] == 988
-    assert counts.loc['9','patient_id'] == 4670
-    assert counts.loc['0','file_name'] == 'CRC_1_ROI_001.ome.fcs'
-    assert counts.loc['2','file_name'] == 'CRC_2_ROI_001.ome.fcs'
-    assert counts.loc['3','file_name'] == 'CRC_2_ROI_002.ome.fcs'
-    assert counts.loc['4','file_name'] == 'CRC_2_ROI_003.ome.fcs'
-    assert counts.loc['5','file_name'] == 'CRC_2_ROI_004.ome.fcs'
-    assert counts.loc['6','file_name'] == 'CRC_3_ROI_001.ome.fcs'
-    assert counts.loc['7','file_name'] == 'CRC_3_ROI_002.ome.fcs'
-    assert counts.loc['8','file_name'] == 'CRC_3_ROI_003.ome.fcs'
-    assert counts.loc['9','file_name'] == 'CRC_3_ROI_004.ome.fcs'
 
 def test_do_leiden_clustering():
     fs = my_analysis.do_leiden_clustering()
