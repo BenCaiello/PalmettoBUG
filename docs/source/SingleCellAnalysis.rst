@@ -210,7 +210,10 @@ There are four major actions in this bank of buttons:
    (https://scanpy.readthedocs.io/en/stable/api/generated/scanpy.pp.combat.html).
 
    .. important::
-      Batch correction can only be un-done by reloading the experiment.
+      If a batch correction step is performed BEFORE any scaling of the data, then it
+      can only be un-done by reloading the experiment. However, if a batch correction step 
+      is performed after scaling the data, then a second scaling of the data (including unscaling)
+      will discard that batch correction. 
 
 ..
 

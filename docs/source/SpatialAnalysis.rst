@@ -215,6 +215,19 @@ p-values are adjusted by the Benjamini-Hochberg correction for False
 Discovery, to take into account the large number of comparison being
 made (one for each cell-type celltype pair).
 
+.. important::
+
+   As currently set up, PalmettoBUG automatically uses all the derived p-values in the 
+   FDR adjustment process. However, it may not be wise to treat symmetrical comparisons 
+   (such as T-cell --> B-cell and B-cell --> T-cell) as independent tests needing correction for multi-comparison.
+   Symmetrical comparisons like these are NOT 100 % IDENTICAL, however they are understandably 
+   highly related to each other -- I was not sure how to handle the FDR correction for these, so for now 
+   the default behaviour is just to correct them all as if they were independent hypothesis tests. If
+   this is not preferred (it is likely too harsh in correcting for multicomparisons?), it should be fairly straightforward 
+   to take the matrix of unadjusted p-values calculated by PalmettoBUG and do a different p-value 
+   adjustment in another software.
+
+
 Distance-to-Pixel Class
 ~~~~~~~~~~~~~~~~~~~~~~~
 
