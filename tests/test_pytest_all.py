@@ -135,6 +135,27 @@ def test_comBat():
     my_analysis.do_COMBAT(batch_column = "patient_id")
     assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < (len(original_X[greater_than_zero]) / 10) , "ComBat did not change all the data points > 0!"
 
+def test_sample_id_len1():
+    counts = myanalysis.data.obs.groupby(['sample_id','file_name'], observed = True).count()[['sample_id','file_name','patient_id']]
+    assert counts.loc['0','patient_id'] == 2177
+    assert counts.loc['2','patient_id'] == 3391
+    assert counts.loc['3','patient_id'] == 1851
+    assert counts.loc['4','patient_id'] == 2565
+    assert counts.loc['5','patient_id'] == 1489
+    assert counts.loc['6','patient_id'] == 6035
+    assert counts.loc['7','patient_id'] == 6488
+    assert counts.loc['8','patient_id'] == 988
+    assert counts.loc['9','patient_id'] == 4670
+    assert counts.loc['0','file_name'] == 'CRC_1_ROI_001.ome.fcs'
+    assert counts.loc['2','file_name'] == 'CRC_2_ROI_001.ome.fcs'
+    assert counts.loc['3','file_name'] == 'CRC_2_ROI_002.ome.fcs'
+    assert counts.loc['4','file_name'] == 'CRC_2_ROI_003.ome.fcs'
+    assert counts.loc['5','file_name'] == 'CRC_2_ROI_004.ome.fcs'
+    assert counts.loc['6','file_name'] == 'CRC_3_ROI_001.ome.fcs'
+    assert counts.loc['7','file_name'] == 'CRC_3_ROI_002.ome.fcs'
+    assert counts.loc['8','file_name'] == 'CRC_3_ROI_003.ome.fcs'
+    assert counts.loc['9','file_name'] == 'CRC_3_ROI_004.ome.fcs'
+
 def test_countplot():
     figure = my_analysis.plot_cell_counts()
     assert isinstance(figure, matplotlib.figure.Figure), "Count plot did not return a matplotlib figure"
@@ -174,6 +195,27 @@ def test_do_flowsom():
     assert '1' in metaclustering, "do_flowsom did not create the expected values in metaclustering column"
     assert '20' in metaclustering,  "do_flowsom did not create the expected values in metaclustering column"
     assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
+
+def test_sample_id_len2():
+    counts = myanalysis.data.obs.groupby(['sample_id','file_name'], observed = True).count()[['sample_id','file_name','patient_id']]
+    assert counts.loc['0','patient_id'] == 2177
+    assert counts.loc['2','patient_id'] == 3391
+    assert counts.loc['3','patient_id'] == 1851
+    assert counts.loc['4','patient_id'] == 2565
+    assert counts.loc['5','patient_id'] == 1489
+    assert counts.loc['6','patient_id'] == 6035
+    assert counts.loc['7','patient_id'] == 6488
+    assert counts.loc['8','patient_id'] == 988
+    assert counts.loc['9','patient_id'] == 4670
+    assert counts.loc['0','file_name'] == 'CRC_1_ROI_001.ome.fcs'
+    assert counts.loc['2','file_name'] == 'CRC_2_ROI_001.ome.fcs'
+    assert counts.loc['3','file_name'] == 'CRC_2_ROI_002.ome.fcs'
+    assert counts.loc['4','file_name'] == 'CRC_2_ROI_003.ome.fcs'
+    assert counts.loc['5','file_name'] == 'CRC_2_ROI_004.ome.fcs'
+    assert counts.loc['6','file_name'] == 'CRC_3_ROI_001.ome.fcs'
+    assert counts.loc['7','file_name'] == 'CRC_3_ROI_002.ome.fcs'
+    assert counts.loc['8','file_name'] == 'CRC_3_ROI_003.ome.fcs'
+    assert counts.loc['9','file_name'] == 'CRC_3_ROI_004.ome.fcs'
 
 def test_do_leiden_clustering():
     fs = my_analysis.do_leiden_clustering()
