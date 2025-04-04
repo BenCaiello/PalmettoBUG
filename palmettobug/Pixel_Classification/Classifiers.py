@@ -1888,4 +1888,4 @@ def segment_class_map_folder(pixel_classifier_directory: Union[Path, str],
 
         #segmentation = skimage.segmentation.watershed(-watershed_map, mask = all_isolated_pixels_removed)
 
-        tf.imwrite("".join([output_folder,"/",i]),segmentation.astype('float'))
+        tf.imwrite("".join([output_folder,"/",i]), segmentation.astype('float'))
