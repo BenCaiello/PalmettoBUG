@@ -50,6 +50,7 @@ def test_raw_to_img():
 def test_unsupervised_classifier():
     global unsup
     unsup = UnsupervisedClassifier(proj_directory, classifier_name = "test_unsup")
+    global panel
     panel = pd.read_csv(proj_directory + "/panel.csv")
     unsup_panel = pd.DataFrame()
     possible_additional_features = ['GRAD_MAG', 'HESSIAN_DET', 'HESSIAN_MAX', 'HESSIAN_MIN', 'LAPLACIAN', 'STRUCT_CO', 'STRUCT_MAX', 'STRUCT_MIN', 'WGT_STDV']                                             ## Gaussian is always used for channels that are kept in the classifier
@@ -94,7 +95,7 @@ def test_direct_seg():
 def test_slice_by_class():
     slice_folder(class_to_keep = 2,
                     class_map_folder = unsup.output_dir, 
-                    image_folder = image_directory, 
+                    image_folder = img_directory, 
                     output_folder = proj_directory + "/images/sliced_by_epithelia",
                     padding = 0, zero_out = False) 
     assert len(os.listdir(proj_directory + "/images/sliced_by_epithelia")) == 10, "Wrong number of images in sliced images folder!"
@@ -106,7 +107,7 @@ def test_merging_px_classes():
     merging_table['merging'] = [(i % 4) for i in range(0,20,1)]   ## four fake test classes -- [1,2,3,4]
     merging_table['label'] = merging_table['merging'].replace({1:"test_1", 2:"test_2", 3:"test_3", 4:"test_4"})
     global merging_dir
-    merging_dir = proj_directory + "/Pixel_classification/test_unsup/merged_classification_maps"
+    merging_dir = proj_directory + "/Pixel_classification/Unsupervised_test_unsup/merged_classification_maps"
     merge_folder(folder_to_merge = unsup.output_dir, 
                  merging_table = merging_table, 
                  output_folder = merging_dir)
@@ -132,7 +133,7 @@ def test_classy_mask_flowsom():
     mask_folder = proj_directory + "/masks/example_deepcell_masks"
 
     name = "Test_2ndary_FlowwSOM"
-    run_folder = project_directory + f"/classy_masks/{name}"
+    run_folder = proj_directory + f"/classy_masks/{name}"
     classy_fs_output_folder = run_folder + f"/{name}"
     if not os.path.exists(run_folder):
         os.mkdir(run_folder) 
@@ -158,43 +159,43 @@ def test_extend_masks():
     assert len(os.listdir(output_directory_folder)) == 10, "Wrong number of extended masks exported!"
 
 def test_maps_to_PNGs():
-    output_dir = proj_directory + "/Pixel_classification/test_unsup/class_maps_to_PNGs"
+    output_dir = proj_directory + "/Pixel_classification/Unsupervised_test_unsup/class_maps_to_PNGs"
     plot_classes(class_map_folder = unsup.output_dir, output_folder = output_dir)
     assert len(os.listdir(output_dir)) == 10, "Wrong number of PNGs exported!"
 
 def test_whole_class_analysis_load():
-    whole_class_directory = proj_directory + "/Pixel_classification/test_unsup/whole_class_analysis"
+    whole_class_directory = proj_directory + "/Pixel_classification/Unsupervised_test_unsup/whole_class_analysis"
     os.mkdir(whole_class_directory)
 
     metadata = pd.read_csv(proj_directory +  "/Analyses/metadata.csv")
     panel = pd.read_csv(proj_directory +  "/Analyses/Analysis_panel.csv")
 
     image_proc.make_segmentation_measurements(proj_directory + "/images/img", 
-                                            proj_directory + "/Pixel_classification/test_unsup/merged_classification_maps", 
+                                            proj_directory + "/Pixel_classification/Unsupervised_test_unsup/merged_classification_maps", 
                                             output_intensities_folder = whole_class_directory + "/intensities", 
                                             output_regions_folder  = whole_class_directory + "/regionprops", 
                                             statistic = 'mean',
                                             re_do = True)
-    global WholeClassAnalysis
-    WholeClassAnalysis(directory = whole_class_directory, classifier_df = merging_table, metadata = metadata, 
+    global wca
+    wca = WholeClassAnalysis(directory = whole_class_directory, classifier_df = merging_table, metadata = metadata, 
                              Analysis_panel = panel)
-    fig = WholeClassAnalysis.plot_percent_areas()
+    fig = wca.plot_percent_areas()
     assert isinstance(fig, matplotlib.figure.Figure), "Whole Class Analysis percent areas did not return a matplotlib figure"
 
 def test_wca_dist():
-    facet_grid = WholeClassAnalysis.plot_distribution_exprs(unique_class = 'epithelia', plot_type = 'Violin')
+    facet_grid = wca.plot_distribution_exprs(unique_class = 'epithelia', plot_type = 'Violin')
     assert isinstance(facet_grid.figure, matplotlib.figure.Figure), "Whole Class Analysis distribution plot did not return a matplotlib figure"
 
 def test_wca_stat():
-    df = WholeClassAnalysis.whole_marker_exprs_ANOVA(marker_class = 'type', groupby_column = 'class', variable = 'condition', statistic = 'ANOVA', area = True)
+    df = wca.whole_marker_exprs_ANOVA(marker_class = 'type', groupby_column = 'class', variable = 'condition', statistic = 'ANOVA', area = True)
     assert isinstance(df, pandas.DataFrame), "Whole Class Stats did not return a pandas dataframe!"
 
 def test_wca_heatmap():
-    WholeClassAnalysis.plot_heatmap("p_adj")
+    wca.plot_heatmap("p_adj")
     assert isinstance(facet_grid.figure, matplotlib.figure.Figure), "Whole Class Analysis statistics heatmap plot did not return a matplotlib figure"
 
 def test_wca_export():
-    df = WholeClassAnalysis.export_data(filename = None, 
+    df = wca.export_data(filename = None, 
                         subset_columns = None, 
                         subset_types = None, 
                         groupby_columns = None, 
