@@ -32,7 +32,7 @@ def test_raw_to_img():
     image_proc = ImageAnalysis(proj_directory, from_mcds = True)
     image_proc.directory_object.makedirs()
     image_proc.raw_to_img(0.85)
-    images = [f"{proj_directory}/images/img/{i}" for i in os.listdir(proj_directory + "/images/img")]
+    images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
     assert(len(images) == 10), "Wrong number of images exported to images/img"               ## all the images are transferred
     shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
 
@@ -89,8 +89,8 @@ def test_train_predict_supervised_classifier():
     shutil.copytree(f"{homedir}/notebooks/PixelClassifiers/training_labels", pixel_class_object.classifier_training_labels)
     _ = pixel_class_object.train_folder(images_dir)
     pixel_class_object.predict_folder(images_dir)
-    prediction_paths = ["".join([pixel_class_object.output_directory,"/",i]) for i in os.listdir(pixel_class_object.output_directory)]  
-    image_paths = ["".join([images_dir,"/",i]) for i in os.listdir(images_dir)]  
+    prediction_paths = ["".join([pixel_class_object.output_directory,"/",i]) for i in sorted(os.listdir(pixel_class_object.output_directory))]  
+    image_paths = ["".join([images_dir,"/",i]) for i in sorted(os.listdir(images_dir))]  
     assert len(prediction_paths) == 10, "There are not 10 px class predictions (one for each image)!"
     assert (tf.imread(prediction_paths[0]).shape == tf.imread(image_paths[0]).shape[1:]), "The X/Y dimensions of the source images and output class maps should be the same!"
     assert (tf.imread(prediction_paths[1]).astype('int') != tf.imread(prediction_paths[1])).sum() == 0, "The pixel class maps shoul be integers!"
