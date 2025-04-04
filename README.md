@@ -13,12 +13,12 @@ Final development plans:
         - Update images and descriptions with new features & data
             -- single-cell analysis doc images -- CyTOF example data or IMC example data (then update)
             -- Premessa / bead-normalization translation --> have a page for this (would require fresh example data?)
-            -- classy mask / pixel class --> PNG options
             -- update to remove / reduce screenshots of prop-licensed software (probably fair use, but won't hurt to do)
-        - update text / incorporate proofreading edits
+        - update text of docs & slides 1x more / incorporate proofreader edits
+        - Notebooks: add examples of missing functions (scatterplot, clustering-->classy masks, pxclass-->PNGs)
+        - Look at API documentation -- it is almost certianly a mess right now
 
     2). Code:
-        - (optional) De-vendorise FlowSOM? It is on PyPI now & I don't see conflicting dependencies
         - Test more python versions (3.11, 3.12, etc.), create new env / pip freeze files for the updated dependency & python version lists 
 
 
@@ -48,7 +48,7 @@ The GUI is built mostly prominently on code from:
 
 Some packages are (semi)-vendored in PalmettoBUG -- specifically, I copied only the essential code (not entire packages into new python files), with minimal changes from a number of packages. See palmettobug/_vendor files for more details and links to the original packages' GitHub repositories.
 
-Packages that were vendored: fcsparser, fcsy, flowsom, pyometiff, qnorm, readimc, sigfig, and steinbock
+Packages that were vendored: fcsparser, fcsy, pyometiff, qnorm, readimc, sigfig, and steinbock
 
 ## Installation:
 

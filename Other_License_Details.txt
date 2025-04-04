@@ -17,7 +17,6 @@ Files (see file headers for more specifics / modifications of the packages):
         -- All files in this folder are copied (and modified) from existing software packages:
             -- fcsparser       MIT license, Copyright (c) 2018 Eugene Yurtsev    https://github.com/eyurtsev/fcsparser 
             -- fcsy            MIT, Copyright (c) 2018, yc                       https://github.com/nehcgnay/fcsy
-            -- flowsom         GPL-3,                                            https://github.com/saeyslab/FlowSOM_Python 
             -- pyometiff       GPL-3, Copyright (c) 2021, Filippo Maria Castelli https://github.com/filippocastelli/pyometiff 
             -- qnorm,          MIT, Copyright (c) 2020, Maarten van der Sande    https://github.com/Maarten-vd-Sande/qnorm
             -- readimc         MIT, Copyright (c) 2021 University of Zurich      https://github.com/BodenmillerGroup/readimc
