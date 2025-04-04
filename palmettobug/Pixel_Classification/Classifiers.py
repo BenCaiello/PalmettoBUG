@@ -1165,7 +1165,7 @@ class UnsupervisedClassifier():
         for i in list_of_images:
             image = _read_image(img_directory, i)
             classification = classify_one(image, flowsom_dictionary, quantile = self.quantile)
-            tf.imwrite((output_directory + "/" + i), (classification.T.astype('int')))
+            tf.imwrite((output_directory + "/" + i), (classification.T.astype('int32')))
 
 
 def make_feature_dict_from_panel(panel: pd.DataFrame) -> dict:

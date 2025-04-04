@@ -109,7 +109,7 @@ def merge_folder(folder_to_merge: Union[Path, str],
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
     for i in sorted(os.listdir(folder_to_merge)):
-        class_map = tf.imread("".join([folder_to_merge,"/",i])).astype('int')
+        class_map = tf.imread("".join([folder_to_merge,"/",i])).astype('int32')
         merged = merge_classes(class_map, merging_table = merging_table)
         tf.imwrite("".join([output_folder, "/", i]), merged) 
 
