@@ -27,7 +27,8 @@ from .ImageProcessing.ImageAnalysisClass import (ImageAnalysis,
                                                setup_for_FCS)
 
 from .Pixel_Classification.Classifiers import SupervisedClassifier, UnsupervisedClassifier, plot_pixel_heatmap, plot_class_centers, segment_class_map_folder
-from .Pixel_Classification.use_classifiers import (merge_classes, 
+from .Pixel_Classification.use_classifiers import (plot_classes,
+                                                   merge_classes, 
                                                    merge_folder,
                                                    slice_folder,
                                                    mode_classify_folder,
@@ -57,6 +58,7 @@ __all__ = ["run_GUI",
            "UnsupervisedClassifier",
            "plot_pixel_heatmap",
            "plot_class_centers",
+           "plot_classes",
            "segment_class_map_folder",
            "extend_masks_folder",
            "slice_folder",

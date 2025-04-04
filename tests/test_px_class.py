@@ -26,7 +26,8 @@ from palmettobug import (fetch_IMC_example,
                         secondary_flowsom,
                         classify_from_secondary_flowsom,
                         extend_masks_folder,
-                        plot_classes)
+                        plot_classes,
+                        WholeClassAnalysis)
 
 fetch_dir = homedir + "/px_class_test/"
 os.mkdir(fetch_dir)
@@ -79,7 +80,7 @@ def test_pixel_class_heatmap():
                                           image_folder = img_directory, 
                                           channels = list(panel[panel['keep'] == 1]['name']), 
                                           panel = panel)
-    assert isinstance(clustergrid.figure, matplotlib.figure.Figure)
+    assert isinstance(clustergrid.figure, matplotlib.figure.Figure), "Pixel Heatmap did not return a matplotlib figure"
 
 def test_direct_seg():
     segment_class_map_folder(pixel_classifier_directory = unsup.output_dir, 
@@ -99,6 +100,7 @@ def test_slice_by_class():
     assert len(os.listdir(proj_directory + "/images/sliced_by_epithelia")) == 10, "Wrong number of images in sliced images folder!"
 
 def test_merging_px_classes():
+    global merging_table
     merging_table = pd.DataFrame()
     merging_table['class'] = [i for i in range(0,20,1)]
     merging_table['merging'] = [(i % 4) for i in range(0,20,1)]   ## four fake test classes -- [1,2,3,4]
@@ -161,4 +163,42 @@ def test_maps_to_PNGs():
     assert len(os.listdir(output_dir)) == 10, "Wrong number of PNGs exported!"
 
 def test_whole_class_analysis_load():
-    pass 
+    whole_class_directory = proj_directory + "/Pixel_classification/test_unsup/whole_class_analysis"
+    os.mkdir(whole_class_directory)
+
+    metadata = pd.read_csv(proj_directory +  "/Analyses/metadata.csv")
+    panel = pd.read_csv(proj_directory +  "/Analyses/Analysis_panel.csv")
+
+    image_proc.make_segmentation_measurements(proj_directory + "/images/img", 
+                                            proj_directory + "/Pixel_classification/test_unsup/merged_classification_maps", 
+                                            output_intensities_folder = whole_class_directory + "/intensities", 
+                                            output_regions_folder  = whole_class_directory + "/regionprops", 
+                                            statistic = 'mean',
+                                            re_do = True)
+    global WholeClassAnalysis
+    WholeClassAnalysis(directory = whole_class_directory, classifier_df = merging_table, metadata = metadata, 
+                             Analysis_panel = panel)
+    fig = WholeClassAnalysis.plot_percent_areas()
+    assert isinstance(fig, matplotlib.figure.Figure), "Whole Class Analysis percent areas did not return a matplotlib figure"
+
+def test_wca_dist():
+    facet_grid = WholeClassAnalysis.plot_distribution_exprs(unique_class = 'epithelia', plot_type = 'Violin')
+    assert isinstance(facet_grid.figure, matplotlib.figure.Figure), "Whole Class Analysis distribution plot did not return a matplotlib figure"
+
+def test_wca_stat():
+    df = WholeClassAnalysis.whole_marker_exprs_ANOVA(marker_class = 'type', groupby_column = 'class', variable = 'condition', statistic = 'ANOVA', area = True)
+    assert isinstance(df, pandas.DataFrame), "Whole Class Stats did not return a pandas dataframe!"
+
+def test_wca_heatmap():
+    WholeClassAnalysis.plot_heatmap("p_adj")
+    assert isinstance(facet_grid.figure, matplotlib.figure.Figure), "Whole Class Analysis statistics heatmap plot did not return a matplotlib figure"
+
+def test_wca_export():
+    df = WholeClassAnalysis.export_data(filename = None, 
+                        subset_columns = None, 
+                        subset_types = None, 
+                        groupby_columns = None, 
+                        statistic= 'mean',
+                        include_marker_class_row = False)
+    assert isinstance(df, pandas.DataFrame), "Whole class export funciton did not return a pandas dataframe!"
+                    
