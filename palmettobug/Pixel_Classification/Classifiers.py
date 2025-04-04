@@ -59,7 +59,7 @@ import scipy
 import skimage
 import seaborn as sns 
 
-from .._vendor.flowsom import FlowSOM
+from flowsom import FlowSOM
 
 pd.set_option('future.no_silent_downcasting', True)
 
