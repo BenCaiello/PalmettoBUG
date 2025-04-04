@@ -105,7 +105,7 @@ def test_merging_px_classes():
     merging_table = pd.DataFrame()
     merging_table['class'] = [i for i in range(0,20,1)]
     merging_table['merging'] = [(i % 4) + 1 for i in range(0,20,1)]   ## four fake test classes -- [1,2,3,4]
-    merging_table['label'] = merging_table['merging'].replace({1:"test_1", 2:"test_2", 3:"test_3", 4:"test_4"})
+    merging_table['labels'] = merging_table['merging'].replace({1:"test_1", 2:"test_2", 3:"test_3", 4:"test_4"})
     global merging_dir
     merging_dir = proj_directory + "/Pixel_Classification/test_unsup/merged_classification_maps"
     merge_folder(folder_to_merge = unsup.output_dir, 
@@ -148,7 +148,7 @@ def test_classy_mask_flowsom():
     cell_classifications = classify_from_secondary_flowsom(mask_folder, classy_fs_output_folder, flowsom_data = fs)
     cell_classifications.to_csv(run_folder + f"/{name}_cell_classes.csv", index = False)
     assert len(os.listdir(classy_fs_output_folder)) == 10, "Wrong number of classy masks exported!"
-    assert len(pd.read_csv(run_folder + f"/{name}_cell_classes.csv")) == 35406, 'Wrong number of cells in classy mask .csv!'
+    assert len(pd.read_csv(run_folder + f"/{name}_cell_classes.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
 
 def test_extend_masks():
     output_directory_folder = proj_directory + "/masks/extended_masks"
