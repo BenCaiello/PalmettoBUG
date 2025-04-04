@@ -11,16 +11,14 @@ Final development plans:
 
     1). Documentation: 
         - Update images and descriptions with new features & data
+            -- single-cell analysis doc images -- CyTOF example data or IMC example data (then update)
             -- Premessa / bead-normalization translation --> have a page for this (would require fresh example data?)
-            -- scatterplot option, clustering --> classy mask option, and classy mask / pixel class --> PNG options
-            -- update for replicability with notebooks (same analysis, *mostly* the same steps, etc.)
+            -- classy mask / pixel class --> PNG options
             -- update to remove / reduce screenshots of prop-licensed software (probably fair use, but won't hurt to do)
         - update text / incorporate proofreading edits
 
     2). Code:
-        - Test more python versions (3.11, 3.12, etc.), create new env / pip freeze files for the updated dependency & python version lists
-        - Tests:
-            - Expand testing suite (use pixel classifier options, unsupervised classifiers, etc.) 
+        - Test more python versions (3.11, 3.12, etc.), create new env / pip freeze files for the updated dependency & python version lists 
 
 
 ## What is PalmettoBUG
