@@ -499,7 +499,7 @@ class SupervisedClassifier:
         number_of_classes = [i for i in range(1,classifier_details['number_of_classes'] + 1,1)]
 
         counter = 0
-        for i in os.listdir(training_label_directory):
+        for i in sorted(os.listdir(training_label_directory)):
             label_layer = tf.imread(training_label_directory + "/" + i)
             if len(label_layer.shape) > 2:     ## this handles cases where a napari layer was generated with >1 dimension
                 label_layer = np.apply_along_axis(np.sum, axis = 0, arr = label_layer) 
@@ -617,7 +617,7 @@ class SupervisedClassifier:
         if output_folder is None:
             output_folder = self.output_directory
         img_folder = str(img_folder)
-        for image_name in os.listdir(img_folder):
+        for image_name in sorted(os.listdir(img_folder)):
             image = tf.imread(img_folder + "/" + image_name).T
             self.predict(image, image_name, output_folder = output_folder)
 
@@ -1061,7 +1061,7 @@ class UnsupervisedClassifier():
 
         ## Get quantile averages & list of images:
         quantile_avg = get_quantile_averages(img_directory, channels_to_use, quantile = quantile)
-        list_of_images = os.listdir(img_directory)
+        list_of_images = sorted(os.listdir(img_directory))
 
         counter = 0
         for image_name in list_of_images:
@@ -1161,7 +1161,7 @@ class UnsupervisedClassifier():
         if not os.path.exists(output_directory):
             os.mkdir(output_directory)
 
-        list_of_images = os.listdir(img_directory)
+        list_of_images = sorted(os.listdir(img_directory))
         for i in list_of_images:
             image = _read_image(img_directory, i)
             classification = classify_one(image, flowsom_dictionary, quantile = self.quantile)
@@ -1313,7 +1313,7 @@ def get_quantile_averages(img_directory: Union[Path, str],
     '''
     img_directory = str(img_directory)
     quantile_list = []
-    for i in os.listdir(img_directory):
+    for i in sorted(os.listdir(img_directory)):
         img = tf.imread("".join([img_directory, "/", i]))
         if  img.shape[0] > img.shape[1]:    ##### Presumes the channels have the fewest dimensions 
                                             # (as in, the ROI is not thinner in one dimensions than the number of channels)
@@ -1642,8 +1642,8 @@ def plot_pixel_heatmap(pixel_folder, image_folder, channels, panel, silence_divi
         warnings.filterwarnings("ignore", message = "invalid value encountered in divide")
     slicer = np.array([i in channels for i in panel[panel['keep'] == 1]['name']])
     output_df = pd.DataFrame()
-    pixel_files = os.listdir(pixel_folder)
-    image_files = os.listdir(image_folder)
+    pixel_files = sorted(os.listdir(pixel_folder))
+    image_files = sorted(os.listdir(image_folder))
     to_use_files = [i for i in pixel_files if i in image_files]
     for i in to_use_files:
         pixel_map = tf.imread("".join([pixel_folder, "/", i]))
@@ -1694,7 +1694,7 @@ def smooth_folder(input_folder: Union[Path, str],
     '''
     input_folder = str(input_folder)
     output_folder = str(output_folder)
-    input_file_names = os.listdir(input_folder)
+    input_file_names = sorted(os.listdir(input_folder))
     for i in input_file_names:
         path_to_file = "".join([input_folder,"/",i])
         class_map = tf.imread(path_to_file)
@@ -1862,8 +1862,8 @@ def segment_class_map_folder(pixel_classifier_directory: Union[Path, str],
     output_folder = str(output_folder)
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
-    class_map_names = os.listdir(pixel_classifier_directory)
-    class_maps_paths = ["".join([pixel_classifier_directory,"/",i]) for i in os.listdir(pixel_classifier_directory)]
+    class_map_names = sorted(os.listdir(pixel_classifier_directory))
+    class_maps_paths = ["".join([pixel_classifier_directory,"/",i]) for i in sorted(os.listdir(pixel_classifier_directory))]
     for i, ii in zip(class_map_names, class_maps_paths):
         map = tf.imread(ii)
         map[map == background] = 0

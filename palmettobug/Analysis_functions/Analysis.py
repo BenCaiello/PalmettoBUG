@@ -267,8 +267,7 @@ class Analysis:
         self.UMAP_embedding = None
         self.PCA_embedding = None
         self.fcs_directory = self.directory  + "/Analysis_fcs"
-        self.fcs_dir_names = os.listdir(self.fcs_directory)
-        self.fcs_dir_names.sort()
+        self.fcs_dir_names = sorted(os.listdir(self.fcs_directory))
 
         if len(self.fcs_dir_names) != len(self.metadata):
             if self._in_gui:
@@ -530,7 +529,7 @@ class Analysis:
         if regionprops_directory is None:
             regionprops_directory = self.directory[:self.directory.rfind("/")] + "/regionprops/"
         regionprops_directory = str(regionprops_directory)
-        roi_areas = os.listdir(regionprops_directory)
+        roi_areas = sorted(os.listdir(regionprops_directory))
         region_props_tables = ["".join([regionprops_directory,"/",ii]) for ii in roi_areas]
         regionprops = pd.DataFrame()
         for i in region_props_tables:
@@ -3153,7 +3152,7 @@ class Analysis:
         table['patient_id'] = self.data.obs['patient_id'].copy()
         table['file_name'] = self.data.obs['file_name'].copy()
         
-        ## loading spaceANOVA from clustering has been superseded by loading from the Analysis onbject itself, therefore extranveous columns are no longer needed
+        ## loading spaceANOVA from clustering has been superseded by loading from the Analysis onbject itself, therefore extraneous columns are no longer needed
         '''
         try:
             regionprops_directory = self.directory[:self.directory.rfind("/")] + "/regionprops/"
@@ -3247,7 +3246,7 @@ class Analysis:
 
         # Step 3: Iterate through masks for this analysis, creating classy mask .tiffs
                 # this iteration step would follow the same / similar methods as the classy mask functions that already exist
-        for i in os.listdir(self.input_mask_folder):
+        for i in sorted(os.listdir(self.input_mask_folder)):
             mask = tf.imread(f"{self.input_mask_folder}/{i}").astype('int32')
             as_fcs = i[:i.rfind(".")] + ".fcs"
             temp_labels = list(data[data["file_name"] == as_fcs]['label'])

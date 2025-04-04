@@ -146,7 +146,7 @@ class WholeClassAnalysis:
         
         else:
             fcs_directory = self.directory  + "/intensities"
-            fcs_dir_names = os.listdir(fcs_directory)
+            fcs_dir_names = sorted(os.listdir(fcs_directory))
 
             if len(fcs_dir_names) != len(self._metadata):
                 print("Metadata file_name column and number of csv files in analysis do not match --\n" 
@@ -274,7 +274,7 @@ class WholeClassAnalysis:
             data_whole_means['condition'] = data_whole_means['sample_id'].astype('str').replace(ind_var_to_sample_id)
             data_whole_means = pd.melt(data_whole_means, id_vars = ['condition',"class","sample_id"])
             grand_csv = pd.DataFrame()
-            for i in os.listdir(whole_regionprops_dir):
+            for i in sorted(os.listdir(whole_regionprops_dir)):
                 csv = pd.read_csv(whole_regionprops_dir + "/" + i)
                 grand_csv = pd.concat([grand_csv,csv], axis = 0)
                 
@@ -431,7 +431,7 @@ class WholeClassAnalysis:
         data_whole_means = pd.melt(data_whole_means, id_vars = ['condition',"class","sample_id"])
         grand_csv = pd.DataFrame()
         whole_regionprops_dir = self.directory  + "/regionprops"
-        for i in os.listdir(whole_regionprops_dir):
+        for i in sorted(os.listdir(whole_regionprops_dir)):
             csv = pd.read_csv(whole_regionprops_dir + "/" + i)
             grand_csv = pd.concat([grand_csv,csv], axis = 0)
         grand_csv['class'] = list(data_whole_df['class'])

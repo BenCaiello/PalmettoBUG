@@ -178,8 +178,8 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
         output_figures = output_folder + "/normalization_figures"
         if not os.path.exists(output_figures):
             os.mkdir(output_figures)
-    beads_fcsS = ["".join([bead_fcs_folder,"/",i]) for i in os.listdir(bead_fcs_folder)]
-    to_normalize_fcsS = ["".join([to_normalize_fcs_folder,"/",i]) for i in os.listdir(to_normalize_fcs_folder)]
+    beads_fcsS = ["".join([bead_fcs_folder,"/",i]) for i in sorted(os.listdir(bead_fcs_folder))]
+    to_normalize_fcsS = ["".join([to_normalize_fcs_folder,"/",i]) for i in sorted(os.listdir(to_normalize_fcs_folder))]
     for i,ii in zip(beads_fcsS, to_normalize_fcsS):
         _, prenorms_df = fcsparser.parse(ii, channel_naming = "$PnS")
         prenorms_df = DataFrame(prenorms_df.sort_values('Time'))
