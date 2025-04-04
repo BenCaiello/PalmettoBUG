@@ -31,7 +31,7 @@ from palmettobug import (fetch_IMC_example,
 
 fetch_dir = homedir + "/px_class_test/"
 os.mkdir(fetch_dir)
-proj_directory = fetch_dir + "/Example_IMC"
+proj_directory = fetch_dir + "Example_IMC"
 
 np.random.default_rng(42)
 
@@ -101,6 +101,9 @@ def test_slice_by_class():
     assert len(os.listdir(proj_directory + "/images/sliced_by_epithelia")) == 10, "Wrong number of images in sliced images folder!"
 
 def test_merging_px_classes():
+    print(os.listdir(proj_directory))
+    print(os.listdir(proj_directory + "/Pixel_Classification))
+    print(os.listdir(proj_directory + "/Pixel_Classification/Unsupervised_test_unsup))
     global merging_table
     merging_table = pd.DataFrame()
     merging_table['class'] = [i for i in range(0,20,1)]
@@ -148,7 +151,7 @@ def test_classy_mask_flowsom():
     cell_classifications = classify_from_secondary_flowsom(mask_folder, classy_fs_output_folder, flowsom_data = fs)
     cell_classifications.to_csv(run_folder + f"/{name}_cell_classes.csv", index = False)
     assert len(os.listdir(classy_fs_output_folder)) == 10, "Wrong number of classy masks exported!"
-    assert len(pd.read_csv(run_folder + f"/{name}.csv")) == 35406, 'Wrong number of cells in classy mask .csv!'
+    assert len(pd.read_csv(run_folder + f"/{name}_cell_classes.csv")) == 35406, 'Wrong number of cells in classy mask .csv!'
 
 def test_extend_masks():
     output_directory_folder = proj_directory + "/masks/extended_masks"
