@@ -2159,7 +2159,7 @@ class edt_reload_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label1.grid(column = 0, row = 1, padx = 3, pady = 3)
 
         self.choice = ctk.CTkOptionMenu(master = self, 
-                                                values = sorted(os.listdir(self.folder),) 
+                                                values = sorted(os.listdir(self.folder)),
                                                 variable = ctk.StringVar(value = ""))
         self.choice.grid(column = 1, row = 1, padx = 3, pady = 3)
 
