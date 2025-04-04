@@ -26,7 +26,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import anndata as ann
 
-from .._vendor.flowsom import FlowSOM, plot_stars, FlowSOM_colors
+#from .._vendor.flowsom import FlowSOM, plot_stars
+
+## anticipate de-vendorization:
+from flowsom import FlowSOM
+from flowsom.pl import plot_stars
+
 from ..Pixel_Classification.Classifiers import smooth_isolated_pixels
 from ..Pixel_Classification.use_classifiers import merge_folder
 from .SpatialANOVA import SpatialANOVA, plot_spatial_stat_heatmap
@@ -1260,7 +1265,7 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         Plots the minimum spanning tree / star plot from the FlowSOM package
         '''
         figure = plot_stars(self.neighbors_flowsom, 
-                         markers=None, cmap = FlowSOM_colors(), 
+                         markers=None, 
                          background_values = self.neighbors_flowsom.get_cluster_data().obs['metaclustering'], 
                          title=None)
         figure.set_size_inches(18,18)

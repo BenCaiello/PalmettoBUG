@@ -59,7 +59,10 @@ import tifffile as tf
 
 from .._vendor import sigfig
 from .._vendor import fcsparser
-from .._vendor.flowsom import FlowSOM, plot_stars, FlowSOM_colors
+#from .._vendor.flowsom import FlowSOM, plot_stars
+## anticipate de-vendorization:
+from flowsom import FlowSOM
+from flowsom.pl import plot_stars
 from .._vendor.qnorm import quantile_normalize
 from ..Utils.sharedClasses import warning_window, Analysis_logger
 
@@ -946,7 +949,7 @@ class Analysis:
         Plots the minimum spanning tree / star plot from the FlowSOM package
         '''
         figure = plot_stars(fs,
-                         markers=None, cmap = FlowSOM_colors(), 
+                         markers=None, 
                          background_values = fs.get_cluster_data().obs['metaclustering'], 
                          title=None)
         figure.set_size_inches(18,18)
