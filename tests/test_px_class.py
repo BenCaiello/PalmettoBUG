@@ -103,14 +103,14 @@ def test_slice_by_class():
 def test_merging_px_classes():
     print(os.listdir(proj_directory))
     print(os.listdir(proj_directory + "/Pixel_Classification"))
-    print(os.listdir(proj_directory + "/Pixel_Classification/Unsupervised_test_unsup"))
+    print(os.listdir(proj_directory + "/Pixel_Classification/test_unsup"))
     global merging_table
     merging_table = pd.DataFrame()
     merging_table['class'] = [i for i in range(0,20,1)]
     merging_table['merging'] = [(i % 4) + 1 for i in range(0,20,1)]   ## four fake test classes -- [1,2,3,4]
     merging_table['label'] = merging_table['merging'].replace({1:"test_1", 2:"test_2", 3:"test_3", 4:"test_4"})
     global merging_dir
-    merging_dir = proj_directory + "/Pixel_Classification/Unsupervised_test_unsup/merged_classification_maps"
+    merging_dir = proj_directory + "/Pixel_Classification/test_unsup/merged_classification_maps"
     merge_folder(folder_to_merge = unsup.output_dir, 
                  merging_table = merging_table, 
                  output_folder = merging_dir)
@@ -162,19 +162,19 @@ def test_extend_masks():
     assert len(os.listdir(output_directory_folder)) == 10, "Wrong number of extended masks exported!"
 
 def test_maps_to_PNGs():
-    output_dir = proj_directory + "/Pixel_Classification/Unsupervised_test_unsup/class_maps_to_PNGs"
+    output_dir = proj_directory + "/Pixel_Classification/test_unsup/class_maps_to_PNGs"
     plot_classes(class_map_folder = unsup.output_dir, output_folder = output_dir)
     assert len(os.listdir(output_dir)) == 10, "Wrong number of PNGs exported!"
 
 def test_whole_class_analysis_load():
-    whole_class_directory = proj_directory + "/Pixel_Classification/Unsupervised_test_unsup/whole_class_analysis"
+    whole_class_directory = proj_directory + "/Pixel_Classification/test_unsup/whole_class_analysis"
     os.mkdir(whole_class_directory)
 
     metadata = pd.read_csv(proj_directory +  "/Analyses/metadata.csv")
     panel = pd.read_csv(proj_directory +  "/Analyses/Analysis_panel.csv")
 
     image_proc.make_segmentation_measurements(proj_directory + "/images/img", 
-                                            proj_directory + "/Pixel_Classification/Unsupervised_test_unsup/merged_classification_maps", 
+                                            proj_directory + "/Pixel_Classification/test_unsup/merged_classification_maps", 
                                             output_intensities_folder = whole_class_directory + "/intensities", 
                                             output_regions_folder  = whole_class_directory + "/regionprops", 
                                             statistic = 'mean',
