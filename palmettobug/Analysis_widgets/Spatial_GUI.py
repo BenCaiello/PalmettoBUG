@@ -664,7 +664,7 @@ class plot_cell_maps_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.label_2 = ctk.CTkLabel(self, text = "Choose one test image:")
         self.label_2.grid(column = 1, row = 6, padx = 5, pady = 5)
 
-        image_list = [(i[:i.rfind(".ome.fcs")]) for i in sorteD(os.listdir(self.directory + "/Analysis_fcs"))]
+        image_list = [(i[:i.rfind(".ome.fcs")]) for i in sorted(os.listdir(self.directory + "/Analysis_fcs"))]
 
         self.choose_an_image = ctk.CTkOptionMenu(self, values = image_list, variable = ctk.StringVar(value = ""))
         self.choose_an_image.grid(column = 1, row = 7, padx = 5, pady = 5)
@@ -1377,7 +1377,7 @@ class CNannotationWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.label3.grid(column = 4, row = 0)
 
             def refreshOption(enter = ""):
-                made_mergings = ["blank"] + [i for i in sorteD(os.listdir(self.master.directory + "/mergings/")) if i.find("CN") != -1] 
+                made_mergings = ["blank"] + [i for i in sorted(os.listdir(self.master.directory + "/mergings/")) if i.find("CN") != -1] 
                 self.reload_merge.configure(values = made_mergings)
 
             self.reload_merge = ctk.CTkOptionMenu(self, 
