@@ -102,8 +102,8 @@ def test_slice_by_class():
 
 def test_merging_px_classes():
     print(os.listdir(proj_directory))
-    print(os.listdir(proj_directory + "/Pixel_Classification))
-    print(os.listdir(proj_directory + "/Pixel_Classification/Unsupervised_test_unsup))
+    print(os.listdir(proj_directory + "/Pixel_Classification"))
+    print(os.listdir(proj_directory + "/Pixel_Classification/Unsupervised_test_unsup"))
     global merging_table
     merging_table = pd.DataFrame()
     merging_table['class'] = [i for i in range(0,20,1)]
