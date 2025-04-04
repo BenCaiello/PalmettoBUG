@@ -332,9 +332,9 @@ def mode_classify_folder(mask_folder: Union[Path, str],
                                                                                       class_map, 
                                                                                       merging_table = merging_table)
         if merged_classifier_mask is not None:
-            tf.imwrite("".join([merged_classifier_map_folder, "/", i]), merged_classifier_mask)  
+            tf.imwrite("".join([merged_classifier_map_folder, "/", i]), merged_classifier_mask) 
         cell_class_df_total = pd.concat([cell_class_df_total, cell_class_df], axis = 0)
-        tf.imwrite("".join([output_folder, "/", i]), output)  
+        tf.imwrite("".join([output_folder, "/", i]), output.astype('int32'))  
     return cell_class_df_total 
 
 def make_cell_classification_mask(mask: np.ndarray[Union[float, int]], 
@@ -627,7 +627,7 @@ def classify_from_secondary_flowsom(mask_folder: Union[Path, str],
             slice = i.image
             mask[box[0]:box[2],box[1]:box[3]][slice] = ii
             cell_class_list.append(ii)
-        tf.imwrite("".join([output_folder, "/", j]), mask)   
+        tf.imwrite("".join([output_folder, "/", j]), mask.astype('int32'))   
 
     cell_class_df = pd.DataFrame()
     cell_class_df['classification'] = cell_class_list  
