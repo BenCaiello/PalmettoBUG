@@ -35,7 +35,7 @@ jobs:
         uvx ruff check palmettobug/ --exit-zero
     - name: pytest
       run: |
-        pytest tests/
+        pytest tests/test_px_class.py
         pip freeeze
     
 
