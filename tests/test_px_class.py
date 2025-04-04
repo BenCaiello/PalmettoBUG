@@ -183,15 +183,15 @@ def test_whole_class_analysis_load():
     assert isinstance(fig, matplotlib.figure.Figure), "Whole Class Analysis percent areas did not return a matplotlib figure"
 
 def test_wca_dist():
-    facet_grid = wca.plot_distribution_exprs(unique_class = 'epithelia', plot_type = 'Violin')
+    facet_grid = wca.plot_distribution_exprs(unique_class = 'test_2', plot_type = 'Violin')
     assert isinstance(facet_grid.figure, matplotlib.figure.Figure), "Whole Class Analysis distribution plot did not return a matplotlib figure"
 
 def test_wca_stat():
     df = wca.whole_marker_exprs_ANOVA(marker_class = 'type', groupby_column = 'class', variable = 'condition', statistic = 'ANOVA', area = True)
-    assert isinstance(df, pandas.DataFrame), "Whole Class Stats did not return a pandas dataframe!"
+    assert isinstance(df, pd.DataFrame), "Whole Class Stats did not return a pandas dataframe!"
 
 def test_wca_heatmap():
-    wca.plot_heatmap("p_adj")
+    facet_grid = wca.plot_heatmap("p_adj")
     assert isinstance(facet_grid.figure, matplotlib.figure.Figure), "Whole Class Analysis statistics heatmap plot did not return a matplotlib figure"
 
 def test_wca_export():
@@ -201,5 +201,5 @@ def test_wca_export():
                         groupby_columns = None, 
                         statistic= 'mean',
                         include_marker_class_row = False)
-    assert isinstance(df, pandas.DataFrame), "Whole class export funciton did not return a pandas dataframe!"
+    assert isinstance(df, pd.DataFrame), "Whole class export funciton did not return a pandas dataframe!"
                     
