@@ -3095,10 +3095,10 @@ class Analysis:
         '''
         if kind == "umap":
             to_export = pd.DataFrame(self.UMAP_embedding.obsm['X_umap'], columns = ["UMAP1","UMAP2"])
-            to_export['cell number from original data'] = list(self.UMAP_embedding.obs['index'])
+            to_export['cell number from original data'] = list(self.UMAP_embedding.obs['true_index'])
         elif kind == "pca":
             to_export = pd.DataFrame(self.PCA_embedding.obsm['X_umap'], columns = ["PC1","PC2"])
-            to_export['cell number from original data'] = list(self.PCA_embedding.obs['index'])
+            to_export['cell number from original data'] = list(self.PCA_embedding.obs['true_index'])
         else:
             print("kind must == 'umap', or 'pca'!")
             return
@@ -3224,20 +3224,20 @@ class Analysis:
         # Step 1: use back-up data & recover labels (either 'none' if filtered/dropped before clustering, or clustering labels)
         if self.back_up_data is not None:
             data = self.back_up_data.obs.copy()
-            unique_sample_ids = data['sample_id'].unique()
+            #unique_sample_ids = data['sample_id'].unique()
             data[clustering] = 'none'
             data.index = data.index.astype('str')
             data.loc[self.data.obs.index, clustering] = list(self.data.obs[clustering].astype('str'))
             data = data[[clustering,"file_name"]].copy()
         else:
-            unique_sample_ids = self.data.obs['sample_id'].unique()
+            #unique_sample_ids = self.data.obs['sample_id'].unique()
             data = self.data.obs[[clustering,"file_name"]].copy()
         
         # Step 2: Assign numbers to the labels, including 'none'
         unique_labels = data[clustering].unique()
         zip_dict = {}
         zip_dict2 = {}
-        for i,ii in zip(unique_sample_ids, unique_labels):
+        for i,ii in zip(range(1, len(unique_labels) + 1, 1), unique_labels):
             zip_dict[ii] = int(i) + 1   # 0 is a special number in images!
             zip_dict2[ii] = str(int(i) + 1)
         data['label'] = data[clustering].replace(zip_dict)
@@ -3249,7 +3249,7 @@ class Analysis:
 
         # Step 3: Iterate through masks for this analysis, creating classy mask .tiffs
                 # this iteration step would follow the same / similar methods as the classy mask functions that already exist
-        for i in sorted(os.listdir(self.input_mask_folder)):
+        for i in available_masks:
             mask = tf.imread(f"{self.input_mask_folder}/{i}").astype('int32')
             as_fcs = i[:i.rfind(".")] + ".fcs"
             temp_labels = list(data[data["file_name"] == as_fcs]['label'])
