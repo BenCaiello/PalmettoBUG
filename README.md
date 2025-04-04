@@ -18,10 +18,12 @@ Final development plans:
         - update text / incorporate proofreading edits
 
     2). Code:
-        - Fix testing errors (uncertain of origin) --> fixed, but now  update all calls to os.listdir() that care about ordering with a .sort() afterwards....
-        - Test more python versions, continue trying to loosen dependency requirements / upgrade python versions (3.11, 3.12, etc.)
-                -- ideally, as few limits as possible in my pyproject.toml, mainly its dependencies of dependencies that cause problems right now
-        - Other bugs (there are always some) .... keep testing
+        - Test more python versions (3.11, 3.12, etc.), create new env / pip freeze files for the updated dependency & python version lists
+        - Tests:
+            - Expand testing suite (use pixel classifiers, unsupervised classifiers, scatterplot, etc.) 
+            - try to add parallel testing instead of one long script as is currently the case
+            - move or remove entirely the old manual testing scripts 
+
 
 ## What is PalmettoBUG
 

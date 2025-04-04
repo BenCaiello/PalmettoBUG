@@ -664,7 +664,7 @@ class plot_cell_maps_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.label_2 = ctk.CTkLabel(self, text = "Choose one test image:")
         self.label_2.grid(column = 1, row = 6, padx = 5, pady = 5)
 
-        image_list = [(i[:i.rfind(".ome.fcs")]) for i in os.listdir(self.directory + "/Analysis_fcs")]
+        image_list = [(i[:i.rfind(".ome.fcs")]) for i in sorteD(os.listdir(self.directory + "/Analysis_fcs"))]
 
         self.choose_an_image = ctk.CTkOptionMenu(self, values = image_list, variable = ctk.StringVar(value = ""))
         self.choose_an_image.grid(column = 1, row = 7, padx = 5, pady = 5)
@@ -1377,7 +1377,7 @@ class CNannotationWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.label3.grid(column = 4, row = 0)
 
             def refreshOption(enter = ""):
-                made_mergings = ["blank"] + [i for i in os.listdir(self.master.directory + "/mergings/") if i.find("CN") != -1] 
+                made_mergings = ["blank"] + [i for i in sorteD(os.listdir(self.master.directory + "/mergings/")) if i.find("CN") != -1] 
                 self.reload_merge.configure(values = made_mergings)
 
             self.reload_merge = ctk.CTkOptionMenu(self, 
@@ -1507,7 +1507,7 @@ class CNwindowSaveLoad(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         labelD.grid(row = 2, column = 3, padx = 3, pady = 3)
 
         def refresh(enter = ""):
-            saved_clusterings =  [i for i in os.listdir(self.master.master.master_exp.clusterings_dir) if (i.find("cellular_neighborhood") != -1)]
+            saved_clusterings =  [i for i in sorted(os.listdir(self.master.master.master_exp.clusterings_dir)) if (i.find("cellular_neighborhood") != -1)]
             self.path.configure(values = saved_clusterings)
 
         self.path = ctk.CTkOptionMenu(master = self, values = [""], variable = ctk.StringVar(value = ""))
@@ -2159,12 +2159,12 @@ class edt_reload_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label1.grid(column = 0, row = 1, padx = 3, pady = 3)
 
         self.choice = ctk.CTkOptionMenu(master = self, 
-                                                values = os.listdir(self.folder), 
+                                                values = sorted(os.listdir(self.folder),) 
                                                 variable = ctk.StringVar(value = ""))
         self.choice.grid(column = 1, row = 1, padx = 3, pady = 3)
 
         def refresh_edt_reload(enter = ""):
-            self.choice.configure(values = os.listdir(self.folder))
+            self.choice.configure(values = sorted(os.listdir(self.folder)))
 
         self.choice.bind("<Enter>", refresh_edt_reload)
 
