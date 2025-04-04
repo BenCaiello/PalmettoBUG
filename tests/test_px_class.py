@@ -24,7 +24,9 @@ from palmettobug import (fetch_IMC_example,
                         slice_folder,
                         mode_classify_folder,
                         secondary_flowsom,
-                        extend_masks_folder)
+                        classify_from_secondary_flowsom,
+                        extend_masks_folder,
+                        plot_classes)
 
 fetch_dir = homedir + "/px_class_test/"
 os.mkdir(fetch_dir)
@@ -100,7 +102,7 @@ def test_merging_px_classes():
     merging_table = pd.DataFrame()
     merging_table['class'] = [i for i in range(0,20,1)]
     merging_table['merging'] = [(i % 4) for i in range(0,20,1)]   ## four fake test classes -- [1,2,3,4]
-    merging_table['label'] = merging_table['merging'].replace{1:"test_1", 2:"test_2", 3:"test_3", 4:"test_4"}
+    merging_table['label'] = merging_table['merging'].replace({1:"test_1", 2:"test_2", 3:"test_3", 4:"test_4"})
     global merging_dir
     merging_dir = proj_directory + "/Pixel_classification/test_unsup/merged_classification_maps"
     merge_folder(folder_to_merge = unsup.output_dir, 
@@ -140,13 +142,13 @@ def test_classy_mask_flowsom():
                                n_clusters = 15, 
                                seed = 42)
 
-    cell_classifications = pbug.classify_from_secondary_flowsom(mask_folder, classy_fs_output_folder, flowsom_data = fs)
+    cell_classifications = classify_from_secondary_flowsom(mask_folder, classy_fs_output_folder, flowsom_data = fs)
     cell_classifications.to_csv(run_folder + f"/{name}_cell_classes.csv", index = False)
     assert len(os.listdir(classy_fs_output_folder)) == 10, "Wrong number of classy masks exported!"
     assert len(pd.read_csv(run_folder + f"/{name}.csv")) == 35406, 'Wrong number of cells in classy mask .csv!'
 
 def test_extend_masks():
-    output_directory_folder = pixel_directory + "/masks/extended_masks"
+    output_directory_folder = proj_directory + "/masks/extended_masks"
     extend_masks_folder(merging_dir, proj_directory + "/masks/example_deepcell_masks", 
                         output_folder, output_directory_folder,
                         merge_list = [1,2], 
@@ -154,7 +156,9 @@ def test_extend_masks():
     assert len(os.listdir(output_directory_folder)) == 10, "Wrong number of extended masks exported!"
 
 def test_maps_to_PNGs():
-    pass
+    output_dir = proj_directory + "/Pixel_classification/test_unsup/class_maps_to_PNGs"
+    plot_classes(class_map_folder = unsup.output_dir, output_folder = output_dir)
+    assert len(os.listdir(output_dir)) == 10, "Wrong number of PNGs exported!"
 
 def test_whole_class_analysis_load():
     pass 
