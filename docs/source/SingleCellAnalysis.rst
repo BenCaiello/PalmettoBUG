@@ -636,18 +636,19 @@ number from the original data for each point – allowing the
 dimensionality reduction to be merged with the original data before
 plotting.
 
-Loading Regionprops
-~~~~~~~~~~~~~~~~~~~
+Miscellaneous: Loading Regionprops & more
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The final PalmettoBUG capacity worth mentioning is the ability to load
-the region properties of the cell masks into the analysis as if they
-were antigens.
+**Load Regionprops**
+
+One of the final PalmettoBUG capacities worth mentioning is the ability to load
+the region properties of the cell masks into the analysis as if they were antigens.
 
 |image21|
 
 This button depends on the analysis having been derived from an imaging
 experiment. It will load the shape-based properties of the cell mask
-like area, perimeter, etc. into the analysis as if these properties were
+like **area, perimeter, etc.** into the analysis as if these properties were
 antigens / metal channels. This allows you to set these properties to a
 marker_class and then plot or cluster the data using them (+ any other
 antigens of the same marker_class), just as you would with any other
@@ -657,6 +658,29 @@ Region properties tend to have very different distributions / scales
 than normal antigens and the types of regionprops offered by the
 PalmettoBUG GUI are limited, so this is not anticipated to be an option
 that is commonly used.
+
+**Scatterplots**
+
+PalmettoBUG has a rudimentary scatterplot option to help visualize the distribution of 
+one channel's expression per cell vs. another channel's expression. Note that no gating is possible
+in PalmettoBUG for these plots, they are only available to aid in visualizing the data.
+
+**Clustering-to-ClassyMasks**
+
+If you want to directly visualize the spatial characteristics of a clustering (FlowSOM metaclustering, Leiden, or merging) that you made in 
+the Analysis tab of the program -- especially in Napari -- you can convert the clustering labels to "classy masks".
+
+Classy masks are created by assigning each unique clustering value to a unique integer value, then creating a copy of the original cell segmentation masks 
+where each cell mask takes on its unique clustering value. These converted masks are then written to the /classy_masks folder in the higher-level project directory 
+(outside the analysis), along with a table of each cell's clustering label & integer value. This is analogous to the classy masks derived from 
+pixel classifiers (see :doc:`UsingPixelClassifier`).
+Classy masks are different than regular segmentation masks because each cell in an image not longer has a unique value -- so cells are no longer uniquely identified --
+but instead can share a value if they belong to the same cluster. 
+
+These can be very useful to open in Napari, and overlay with the original image -- allowing you to scroll through the channels of the original image with the 
+classy masks on top to see if cell clustering labels visually make sense with the actual expression of the channels.
+
+Naturally, this option only works for imaging projects -- not solution-mode / FCS-only projects.
 
 
 Links

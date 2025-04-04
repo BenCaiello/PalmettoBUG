@@ -32,7 +32,6 @@ from ..Utils.Exceptions import NoSharedFilesError
 
 pd.set_option('future.no_silent_downcasting', True)
 
-
 __all__ = ["plot_classes",
             "merge_classes", 
             "merge_folder",
