@@ -101,9 +101,6 @@ def test_slice_by_class():
     assert len(os.listdir(proj_directory + "/images/sliced_by_epithelia")) == 10, "Wrong number of images in sliced images folder!"
 
 def test_merging_px_classes():
-    print(os.listdir(proj_directory))
-    print(os.listdir(proj_directory + "/Pixel_Classification"))
-    print(os.listdir(proj_directory + "/Pixel_Classification/test_unsup"))
     global merging_table
     merging_table = pd.DataFrame()
     merging_table['class'] = [i for i in range(0,20,1)]
@@ -130,7 +127,7 @@ def test_classy_mask_mode():
                                                 merging_table = None) 
     mask_classifications.to_csv(run_folder + f"/{name}.csv", index = False)   
     assert len(os.listdir(output_folder)) == 10, "Wrong number of classy masks exported!"
-    assert len(pd.read_csv(run_folder + f"/{name}.csv")) == 35406, 'Wrong number of cells in classy mask .csv!'
+    assert len(pd.read_csv(run_folder + f"/{name}.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
 
 def test_classy_mask_flowsom():
     mask_folder = proj_directory + "/masks/example_deepcell_masks"

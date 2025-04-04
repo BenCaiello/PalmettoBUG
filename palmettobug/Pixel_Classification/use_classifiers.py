@@ -111,7 +111,7 @@ def merge_folder(folder_to_merge: Union[Path, str],
     for i in sorted(os.listdir(folder_to_merge)):
         class_map = tf.imread("".join([folder_to_merge,"/",i])).astype('int32')
         merged = merge_classes(class_map, merging_table = merging_table)
-        tf.imwrite("".join([output_folder, "/", i]), merged) 
+        tf.imwrite("".join([output_folder, "/", i]), merged.astype('int32')) 
 
 
 def slice_folder(class_to_keep: Union[int, list[int]], 
@@ -332,7 +332,7 @@ def mode_classify_folder(mask_folder: Union[Path, str],
                                                                                       class_map, 
                                                                                       merging_table = merging_table)
         if merged_classifier_mask is not None:
-            tf.imwrite("".join([merged_classifier_map_folder, "/", i]), merged_classifier_mask) 
+            tf.imwrite("".join([merged_classifier_map_folder, "/", i]), merged_classifier_mask.astype('int32')) 
         cell_class_df_total = pd.concat([cell_class_df_total, cell_class_df], axis = 0)
         tf.imwrite("".join([output_folder, "/", i]), output.astype('int32'))  
     return cell_class_df_total 
@@ -828,7 +828,7 @@ def extend_masks_folder(classifier_map_folder: Union[Path, str],
         merged_class_mask = extend_classifier_masks(classifier_mask, cell_mask, classified_cell_mask, 
                                                     connectivity = connectivity, 
                                                     merge_list = merge_list)
-        tf.imwrite("".join([output_directory_folder,"/",i]),merged_class_mask)
+        tf.imwrite("".join([output_directory_folder,"/",i]), merged_class_mask.astype('int32'))
 
 
 def extend_classifier_masks(classifier_map: np.ndarray[int], 
