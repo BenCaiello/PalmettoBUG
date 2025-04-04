@@ -1019,7 +1019,7 @@ class ImageAnalysis:
         '''
         Helper method for self.to_Analysis --> generate the initial metadata file (patient and condition columns blank)
         '''
-        file_list = sorteD(os.listdir(self.directory_object.fcs_dir))
+        file_list = sorted(os.listdir(self.directory_object.fcs_dir))
         metadata = pd.DataFrame()
         metadata['file_name']  = file_list
         metadata['sample_id'] = metadata.reset_index()['index']
@@ -1103,7 +1103,7 @@ class direct_to_Analysis(ImageAnalysis):
         try:
             self.Analysis_panel = pd.read_csv(self.Analysis_panel_dir)
         except FileNotFoundError:
-            fcs_files = sorteD(os.listdir(self.directory_object.fcs_dir))
+            fcs_files = sorted(os.listdir(self.directory_object.fcs_dir))
             warnings.filterwarnings("ignore", message = "The default channel names")
             _, dataframe1 = fcsparser.parse(self.directory_object.fcs_dir + "/" + fcs_files[0])
             warnings.filterwarnings("default", message = "The default channel names")

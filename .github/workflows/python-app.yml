@@ -35,13 +35,7 @@ jobs:
         uvx ruff check palmettobug/ --exit-zero
     - name: pytest
       run: |
-        pytest tests/test_pytest_all.py
-    #- name: Manual Test
-    #  run: |
-    #    python tests/test_img_proc.py
-    #    python tests/test_analysis.py
-    #    python tests/test_make_px_classifier.py
-    #    python tests/test_spatial.py
-    #    pip freeze
+        pytest tests/
+        pip freeeze
     
 

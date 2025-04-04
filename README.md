@@ -20,7 +20,7 @@ Final development plans:
     2). Code:
         - Test more python versions (3.11, 3.12, etc.), create new env / pip freeze files for the updated dependency & python version lists
         - Tests:
-            - Expand testing suite (use pixel classifiers, unsupervised classifiers, scatterplot, etc.) 
+            - Expand testing suite (use pixel classifier options, unsupervised classifiers, etc.) 
             - try to add parallel testing instead of one long script as is currently the case
             - move or remove entirely the old manual testing scripts 
 
