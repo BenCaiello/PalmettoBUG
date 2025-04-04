@@ -26,7 +26,11 @@ import cv2 as cv
 import anndata 
 
 from .._vendor import pyometiff as pot
-from .._vendor.flowsom import FlowSOM 
+#from .._vendor.flowsom import FlowSOM 
+
+## anticipate de-vendorization:
+from flowsom import FlowSOM
+
 from ..Analysis_functions.Analysis import _quant
 from ..Utils.Exceptions import NoSharedFilesError
 

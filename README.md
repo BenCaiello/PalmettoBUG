@@ -18,6 +18,7 @@ Final development plans:
         - update text / incorporate proofreading edits
 
     2). Code:
+        - (optional) De-vendorise FlowSOM? It is on PyPI now & I don't see conflicting dependencies
         - Test more python versions (3.11, 3.12, etc.), create new env / pip freeze files for the updated dependency & python version lists 
 
 
