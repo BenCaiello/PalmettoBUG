@@ -749,7 +749,7 @@ def extend_masks_folder(classifier_map_folder: Union[Path, str],
                         connectivity: int = 1,
                         ) -> None:
     '''
-    Expandas cell masks into a matching region of pixel classification. Can be used, for example, to segment
+    Expands cell masks into a matching region of pixel classification. Can be used, for example, to segment
     irregularly shaped cell types into non-circular masks. Operates on a whole folder of images.
 
     Args:
