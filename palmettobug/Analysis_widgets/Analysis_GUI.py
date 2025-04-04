@@ -593,7 +593,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label_2.grid(column = 2, row = 2)
         
         def refresh1(enter = ""):
-            list_of_saved_clusterings = os.listdir(self.master.cat_exp.directory + "/clusterings")
+            list_of_saved_clusterings = sorted(os.listdir(self.master.cat_exp.directory + "/clusterings"))
             self.load_identifier.configure(values = list_of_saved_clusterings)
 
         self.load_identifier = ctk.CTkOptionMenu(master = self, values = [""], variable = ctk.StringVar(value = ""))
@@ -615,7 +615,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         def refresh2(enter = ""):
             try:
-                list_of_saved_classifiers = os.listdir(self.classy_dir)
+                list_of_saved_classifiers = sorted(os.listdir(self.classy_dir))
                 all_classifications = []
                 for i in list_of_saved_classifiers:
                     list_of_classifications = ["".join([self.classy_dir,"/",i,"/",f'{i}_cell_classes.csv']),
@@ -1722,7 +1722,7 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.label3.grid(column = 4, row = 0)
 
             def refreshOption(enter = ""):
-                made_mergings = ["blank"] + [i for i in os.listdir(self.master.master.directory + "/mergings/")] 
+                made_mergings = ["blank"] + [i for i in sorted(os.listdir(self.master.master.directory + "/mergings/"))] 
                 self.reload_merge.configure(values = made_mergings)
 
             self.reload_merge = ctk.CTkOptionMenu(self, 

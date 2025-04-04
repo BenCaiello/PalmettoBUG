@@ -314,7 +314,7 @@ class EntryPoint(ctk.CTkFrame):
             return
         
         if from_mcds is None:
-            example_files = os.listdir(self.master.directory + "/raw")
+            example_files = sorted(os.listdir(self.master.directory + "/raw"))
             extensions = [ i[(i.rfind(".") + 1):].lower() for i in example_files]
             extension = extensions[0]
             if extension == "mcd":
@@ -379,7 +379,7 @@ class EntryPoint(ctk.CTkFrame):
         
         ### Launch a window for taking in user inputs as to which channels are beads channels and which are channels to normalize
 
-        bead_1 = self.master.directory + "/beads/" + os.listdir(self.master.directory + "/beads")[0]
+        bead_1 = self.master.directory + "/beads/" + sorted(os.listdir(self.master.directory + "/beads"))[0]
         _, beads_1 = fcsparser.parse(bead_1, channel_naming = "$PnS")
         channels = beads_1.columns
         # print(channels)

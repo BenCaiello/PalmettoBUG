@@ -182,8 +182,8 @@ def txt_folder_to_tiff_folder(txt_folder: Union[Path, str],
     '''
     txt_folder = str(txt_folder)
     tiff_folder = str(tiff_folder)
-    txt_files = ["".join([txt_folder, "/", i]) for i in os.listdir(txt_folder)]
-    tiff_files_out = ["".join([tiff_folder, "/", i.rstrip("txt"),"ome.tiff"]) for i in os.listdir(txt_folder)]
+    txt_files = ["".join([txt_folder, "/", i]) for i in sorted(os.listdir(txt_folder))]
+    tiff_files_out = ["".join([tiff_folder, "/", i.rstrip("txt"),"ome.tiff"]) for i in sorted(os.listdir(txt_folder))]
     img_slicer = (panel['keep'] == 1)
     for i,ii in zip(txt_files, tiff_files_out):
         image = read_txt_file(i)[img_slicer,:,:]
@@ -345,7 +345,7 @@ def mask_expand(distance: int,
     if not os.path.exists(output_directory):
         os.mkdir(output_directory)
 
-    for i in os.listdir(image_source):
+    for i in sorted(os.listdir(image_source)):
         read_dir = "".join([image_source, "/", i])
         out_dir = "".join([output_directory, "/", i])
         read_in_mask = tf.imread(read_dir)
@@ -482,7 +482,7 @@ class ImageAnalysis:
                 read_dir = "".join([self.directory_object.main, "/panel.csv"])
                 self.panel = pd.read_csv(read_dir)      
             except FileNotFoundError:
-                image_list = os.listdir(self.directory_object.main + "/raw")
+                image_list = sorted(os.listdir(self.directory_object.main + "/raw"))
                 reader_string = "".join([self.directory_object.main, "/raw/", image_list[0]])
                 if image_list[0][-9:].lower() == ".ome.tiff":   
                     # when dealing with an .ome.tiff, I'd like to try to recover some useful metadata (only uses first image):
@@ -571,10 +571,10 @@ class ImageAnalysis:
             os.mkdir(output_directory)
 
         if from_mcds is True:
-            mcd_list = ["".join([input_directory,i]) for i in os.listdir(input_directory)]
+            mcd_list = ["".join([input_directory,i]) for i in sorted(os.listdir(input_directory))]
             MCD_gen = _MCD_Generator(mcd_list)
         else:
-            tiff_list = ["".join([input_directory,i]) for i in os.listdir(input_directory)]
+            tiff_list = ["".join([input_directory,i]) for i in sorted(os.listdir(input_directory))]
             MCD_gen = _TIFF_Generator(tiff_list)
 
         i = 1
@@ -626,70 +626,6 @@ class ImageAnalysis:
                                                                     file_name, 
                                                                     self.resolutions)
                     write_ome_tiff(image, ome_tiff_metadata, out)
-
-    '''def deepcell_segmentation(self, image_list: list[str] = ["ALL"], 
-                              re_do: Union[None, bool] = False, 
-                              image_folder: Union[None, str]= None, 
-                              output_folder: Union[None, str] = None,
-                              ) -> None:   
-                                    # ****stein_derived (implements / directly uses parts of steinbock.segmentation.deepcell.py file.
-                                        # Lines directly copied / derived marked with # ***)
-        
-        ### Runs mesmer segmentation, and writes masks (as plain [ome].tiffs) to a /masks folder in the directory ###
-        if image_folder is None:       
-            image_folder = self.directory_object.img_dir
-        if output_folder is None:
-            output_folder = self.directory_object.masks_dir
-        if not os.path.exists(output_folder):
-            os.mkdir(output_folder) 
-        if image_list == ["ALL"]:
-            img_files = sorted(Path(image_folder).rglob("[!.]*.tiff"))    # ***
-        else:
-            img_files =  sorted(Path(image_folder).rglob(f"*{image_list[0]}.tiff"))  # *** 
-        
-        if (re_do is False) and (image_list == ["ALL"]):  
-            new_list = []
-            for i in img_files:
-                path = str(i).replace("\\", '/')
-                right_side = path.rfind("/")
-                if path[(right_side + 1):] in os.listdir(output_folder):
-                    pass
-                else:
-                    new_list.append(i)
-            img_files = new_list
-
-        number_img = len(img_files)
-        if number_img == 0:
-            tk.messagebox.showwarning("Warning!", message = "No images to segment! (is the redo prior masks option not checked?)")
-            return
-        
-        segmentor = stein_unhook.try_segment_objects(img_files,        # *** (whole function call --> calling to stein_unhooked)
-            stein_unhook.Application.MESMER,   
-            channelwise_minmax = False,
-            channelwise_zscore = True,
-            channel_groups = self.panel[self.panel['keep'] == 1]['segmentation'],
-            aggr_func = np.mean,
-            pixel_size_um = (self.resolutions[0] * self.resolutions[1]),
-            segmentation_type = "whole-cell")
-        
-        for i in img_files:
-            path, mask = next(segmentor)
-            path = str(path).replace("\\", '/')
-            right_index = str(path).rfind('/')
-            left_index = str(path).rfind('.ome.tiff')
-            file_name = str(path)[right_index+1:left_index]
-            mask_numb = mask.astype("int").max().max()
-            if mask_numb == 0:
-                if _in_gui:
-                    warning_window(f"""{file_name} has no cell masks in it! No mask file will be written for this image. 
-                                            Re-run segmentation or delete this image from the analysis!""")
-                else:
-                    print(f"""{file_name} has no cell masks in it! No mask file will be written for this image. 
-                                Re-run segmentation or delete this image from the analysis!""")
-            else:
-                tf.imwrite(Path(output_folder, "".join([file_name, '.ome.tiff'])), mask.astype('float'), photometric='minisblack')
-                print(f"{file_name} has been Segmented, with {mask_numb} masks in it!") 
-            '''
 
 
     ### This function calculates and writes the intesities, regionprops csv files. 
@@ -919,8 +855,8 @@ class ImageAnalysis:
         input_mask_folder = str(input_mask_folder)
         output_regions_folder = str(output_regions_folder)
 
-        mask_files = ["".join([input_mask_folder,"/",i]) for i in os.listdir(input_mask_folder)]
-        regionprops_files = ["".join([output_regions_folder,"/",i]) for i in os.listdir(output_regions_folder)]
+        mask_files = ["".join([input_mask_folder,"/",i]) for i in sorted(os.listdir(input_mask_folder))]
+        regionprops_files = ["".join([output_regions_folder,"/",i]) for i in sorted(os.listdir(output_regions_folder))]
         for i,ii in zip(mask_files, regionprops_files):
             image = tf.imread(i).astype('int')
             n_slab_list = []
@@ -1060,7 +996,7 @@ class ImageAnalysis:
         if not os.path.exists(ouput_fcs_folder):
             os.mkdir(ouput_fcs_folder)
 
-        for i in os.listdir(input_intensity_directory):
+        for i in sorted(os.listdir(input_intensity_directory)):
             pd_df = pd.read_csv("".join([input_intensity_directory, "/", i]))
             fcs_df = DataFrame(pd_df, columns = pd_df.columns)
             filename = i[:i.rfind('.')]
@@ -1083,7 +1019,7 @@ class ImageAnalysis:
         '''
         Helper method for self.to_Analysis --> generate the initial metadata file (patient and condition columns blank)
         '''
-        file_list = os.listdir(self.directory_object.fcs_dir)
+        file_list = sorteD(os.listdir(self.directory_object.fcs_dir))
         metadata = pd.DataFrame()
         metadata['file_name']  = file_list
         metadata['sample_id'] = metadata.reset_index()['index']
@@ -1116,7 +1052,7 @@ def setup_for_FCS(directory):
     try:
         Analysis_panel = pd.read_csv(Analysis_panel_dir)
     except FileNotFoundError:
-        fcs_files  = os.listdir(directory_object.fcs_dir)
+        fcs_files = sorted(os.listdir(directory_object.fcs_dir))
         warnings.filterwarnings("ignore", message = "The default channel names")
         _, dataframe1 = fcsparser.parse(directory_object.fcs_dir + "/" + fcs_files[0])
         warnings.filterwarnings("default", message = "The default channel names")
@@ -1130,7 +1066,7 @@ def setup_for_FCS(directory):
             pass
         Analysis_panel.to_csv(Analysis_panel_dir, index = False) 
 
-    fcs_files  = os.listdir(directory_object.fcs_dir)
+    fcs_files = sorted(os.listdir(directory_object.fcs_dir))
     try:
         metadata = pd.read_csv(metadata_dir)
         
@@ -1167,7 +1103,7 @@ class direct_to_Analysis(ImageAnalysis):
         try:
             self.Analysis_panel = pd.read_csv(self.Analysis_panel_dir)
         except FileNotFoundError:
-            fcs_files  = os.listdir(self.directory_object.fcs_dir)
+            fcs_files = sorteD(os.listdir(self.directory_object.fcs_dir))
             warnings.filterwarnings("ignore", message = "The default channel names")
             _, dataframe1 = fcsparser.parse(self.directory_object.fcs_dir + "/" + fcs_files[0])
             warnings.filterwarnings("default", message = "The default channel names")
@@ -1191,7 +1127,7 @@ class direct_to_Analysis(ImageAnalysis):
                                              self.master, 
                                              alt_dir = self.directory_object.Analyses_dir, 
                                              logger = analysis_logger)
-        fcs_files  = os.listdir(self.directory_object.fcs_dir)
+        fcs_files  = sorted(os.listdir(self.directory_object.fcs_dir))
         try:
             self.metadata = pd.read_csv(self.metadata_dir)
             

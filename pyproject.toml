@@ -9,14 +9,13 @@ repository = "https://github.com/BenCaiello/PalmettoBUG"
 
 [tool.poetry.dependencies]
 # python = ">=3.9, <3.11"
-numpy = "1.*"     ## upgrade to numpy 2 not possible because of scikit-fda bug (at least)
+numpy = "1.*"                   ## upgrade to numpy 2 not possible because of scikit-fda bug (at least that bug, maybe others)
 pandas = ">=2.0"
-dask = "<2025.1.0"
 matplotlib = ">=3.0.0"
 seaborn = "*"
 customtkinter = ">=5.2.2"
 napari = "*" 
-PySide6 = "<6.5" ## <6.5 matches Napari's experimental pyside6 requirement -- test change for MacOS / Apple Silicon users
+PySide6 = "<6.5"                ## <6.5 matches Napari's experimental pyside6 requirement -- test change for MacOS / Apple Silicon users
 lxml = "*"
 tifffile = ">=2024.2.12" 
 opencv-python-headless = ">=4.9.0.80"
@@ -35,7 +34,8 @@ leidenalg = "*"
 sortedcontainers = "*"
 defusedxml = "*"
 
-zarr = "<3"  ## needed until anndata updates
+dask = "<2025.1.0"              ## needed until scverse's spatialdata package (and so squidpy) upgrades to no longer use the unsupported legacy dask api
+zarr = "<3"                     ## needed until anndata updates to be compatible with zarr v3
 
 [tool.poetry.group.other]
 optional = true
