@@ -203,6 +203,12 @@ this will be written as a sub-folder of */masks*, where it can be picked
 up by the rest of PalmettoBUG for the purposes of region measurements,
 etc.
 
+**Miscellaneous: Conversion to PNGs files**
+
+Near the directory display on the lower left, there is a button that will allow you to convert classifier maps
+or classy masks into .png files (using matplotlib). This is just a separate way of visualizing the maps/masks 
+and using Napari may be preferrable in most cases.
+
 .. |image1| image:: media/UsePxClass/UsePx1.png
    :width: 6.5in
    :height: 4.26458in
