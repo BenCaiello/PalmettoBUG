@@ -1,3 +1,4 @@
+import os
 import palmettobug
 from palmettobug.Entrypoint.app_and_entry import App
 
