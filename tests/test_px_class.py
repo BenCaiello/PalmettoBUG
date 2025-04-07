@@ -30,7 +30,8 @@ from palmettobug import (fetch_IMC_example,
                         WholeClassAnalysis)
 
 fetch_dir = homedir + "/px_class_test/"
-os.mkdir(fetch_dir)
+if not os.path.exists(fetch_dir):
+    os.mkdir(fetch_dir)
 proj_directory = fetch_dir + "Example_IMC"
 
 np.random.default_rng(42)
