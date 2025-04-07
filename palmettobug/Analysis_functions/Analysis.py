@@ -3249,7 +3249,7 @@ class Analysis:
 
         # Step 3: Iterate through masks for this analysis, creating classy mask .tiffs
                 # this iteration step would follow the same / similar methods as the classy mask functions that already exist
-        for i in available_masks:
+        for i in sorted(os.listdir(self.input_mask_folder)):
             mask = tf.imread(f"{self.input_mask_folder}/{i}").astype('int32')
             as_fcs = i[:i.rfind(".")] + ".fcs"
             temp_labels = list(data[data["file_name"] == as_fcs]['label'])
