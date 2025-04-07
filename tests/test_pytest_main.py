@@ -2,12 +2,12 @@ import sys
 import os
 import shutil
 
-homedir = __file__.replace("\\","/")
-homedir = homedir[:(homedir.rfind("/"))]
-homedir = homedir[:(homedir.rfind("/"))]
+#homedir = __file__.replace("\\","/")
+#homedir = homedir[:(homedir.rfind("/"))]
+#homedir = homedir[:(homedir.rfind("/"))]
 
 ### homedir = /path/to/project/palmettobug   -- as in, the folder name passed to sys.path.append is always 'palmettobug'
-sys.path.append(homedir)
+#sys.path.append(homedir)
 
 import tifffile as tf
 import numpy as np
