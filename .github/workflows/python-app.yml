@@ -38,7 +38,6 @@ jobs:
         pytest tests/
         pip freeze
 
-jobs:
   build2:
 
     runs-on: ubuntu-latest
