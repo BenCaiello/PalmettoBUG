@@ -5,7 +5,7 @@ from palmettobug.Entrypoint.app_and_entry import App
 homedir = __file__.replace("\\","/")
 homedir = homedir[:(homedir.rfind("/"))]
 homedir = homedir[:(homedir.rfind("/"))]
-fetch_dir = homedir + "/project_folder"
+fetch_dir = homedir + "/GUI_test"
 if not os.path.exists(fetch_dir):
     os.mkdir(fetch_dir)
 proj_directory = fetch_dir + "/Example_IMC"
