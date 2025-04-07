@@ -19,7 +19,9 @@ Final development plans:
         - Look at API documentation -- it is almost certianly a mess right now
 
     2). Code:
-        - Test more python versions (3.11, 3.12, etc.), create new env / pip freeze files for the updated dependency & python version lists 
+        - Expand tests, get code coverage badge/shield
+        - Environment lists (update all to reflect recent changes)
+        - Future: re-test later python versions (3.12, etc.) and updated dependencies (numpy v2+, etc.)
 
 
 ## What is PalmettoBUG
