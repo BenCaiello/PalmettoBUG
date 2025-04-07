@@ -43,7 +43,7 @@ def _median_500_window_df(dataframe: pd.DataFrame,
     This is a function that performs rolling median calculations on all the columns of a dataframe specified by columns_to_run_on
     '''
     dataframe = dataframe.copy()
-    print(dataframe.columns)
+    # print(dataframe.columns)
     for i in columns_to_run_on:
         dataframe[i] = dataframe[i].rolling(window, min_periods = int((window / 2) - 1), center = True, closed = 'neither').median()            
                                                                                                                          # min_periods = 99,
