@@ -19,7 +19,7 @@ Final development plans:
         - Look at API documentation -- it is almost certianly a mess right now
 
     2). Code:
-        - Expand tests, get code coverage badge/shield
+        - Expand tests (may not be possible, because of the GUI code and extensive use of pop-up windows), get code coverage badge/shield
         - Environment lists (update all to reflect recent changes)
         - Future: re-test later python versions (3.12, etc.) and updated dependencies (numpy v2+, etc.)
 

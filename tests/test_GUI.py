@@ -18,6 +18,9 @@ def test_setup_app():
     app = App(None)
     assert True   ## non-failure is enough for me right now, as it implies successful setting up of the widgets of the GUI
 
+def test_toggle_in_gui():
+    palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
+
 #def test_load_IMC():
 #    app.entrypoint.img_entry_func(fetch_dir, [1.0,1.0], from_mcds = True)
 #    assert True   ## non-failure is enough for me right now
