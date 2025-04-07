@@ -20,7 +20,8 @@ from palmettobug import fetch_IMC_example, ImageAnalysis
 from palmettobug import Analysis, SpatialAnalysis
 
 fetch_dir = homedir + "/project_folder"
-os.mkdir(fetch_dir)
+if not os.path.exists(fetch_dir):
+    os.mkdir(fetch_dir)
 proj_directory = fetch_dir + "/Example_IMC"
 np.random.default_rng(42)
 

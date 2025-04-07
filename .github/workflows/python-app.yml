@@ -35,8 +35,7 @@ jobs:
         uvx ruff check palmettobug/ --exit-zero
     - name: pytest
       run: |  
-        pytest -p pytest_cov          
-        python -m pytest --cov=palmettobug tests/   
+        python -m pytest -p pytest_cov  --cov=palmettobug tests/   
         pip freeze
 
 #  build2:                   #### having a second build is useful when testing alternate python versions, OS, etc.
