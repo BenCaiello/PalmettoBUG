@@ -1,0 +1,2 @@
+# Testing the fix mentioned in this forum: https://www.pythonfixing.com/2022/06/fixed-keyerror-frozen.html 
+# for python 3.12 import errors -- added an empty __init__.py file (in this case to my tests/ folder)
