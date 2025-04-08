@@ -16,8 +16,9 @@ Analysis_panel.csv
    One of the key data tables required by PalmettoBUG (can be made
    inside the GUI). It is used for the *Analysis* portion of the
    program, and assigns a *marker_class* to each channel of the dataset
-   (typically type, state, or none) that affects how that channels is
+   (type, state, or none...) that affects how that channels is
    used for *clustering* and plotting functions of the analysis.
+   This convention is derived from :ref:`CATALYST`
 
 Batch Correction
 ^^^^^^^^^^^^^^^^
@@ -29,10 +30,11 @@ Batch Correction
 
    Link: https://scanpy.readthedocs.io/en/stable/api/generated/scanpy.pp.combat.html
 
+.. _CATALYST:
 CATALYST
 ^^^^^^^^
 
-   An R *package* whose functions and associated *manuscript* served as
+   An R *package* whose functions and associated manuscript served as
    the inspiration and seed for much of the PalmettoBUG *analysis*
    functions. 
    
@@ -42,7 +44,7 @@ Clustering
 ^^^^^^^^^^
 
    Clustering means assigning the cells of a dataset to groups — in
-   PamettoBUG, there are five main types of clustering:
+   PalmettoBUG, there are five main types of clustering:
    “metaclustering”, “leiden”, “merging”, “classification”, and “CN”.
    These are distinguished by how they are created / derived, but are
    also important to remember, as these five clustering types show up as
@@ -60,7 +62,7 @@ Leiden
 ''''''
 
    A clustering derived by the Leiden unsupervised algorithm acting on a
-   UMAP of the single-cell expression data. See :ref:`Leiden Algorithm`
+   UMAP of the single-cell expression data. See :ref:`Leiden-Algorithm`
 
 Merging
 '''''''
@@ -73,7 +75,7 @@ Merging
 Classification
 ''''''''''''''
 
-   Any cell clustering derived from a pixel classifier. See :ref:`Pixel Classification`
+   Any cell clustering derived from a pixel classifier. See :ref:`Pixel-Classification`
 
 CN
 '''
@@ -94,7 +96,7 @@ Classification maps
 ..
 
    When these numerical classes are annotated / merged (this is
-   automatic for supervised classifiers), a “merged classification map”
+   semi-automatic for supervised classifiers), a “merged classification map”
    is created, where ‘background’ pixels are set to 0, and the numerical
    values of the pixels are re-assigned based on the labels supplied by
    the user.
@@ -103,7 +105,7 @@ Denoising
 ^^^^^^^^^
 
    Or image restoration. These are methods & algorithms that seek to
-   improve the signal-to-noise ratio in imaging channels. This tends to
+   improve the signal-to-noise ratio in imaging channels. They tend to
    blur / smooth an image’s raw values.
 
 Dimensionality Reduction
@@ -127,7 +129,7 @@ PCA
    the most important, linear, and orthogonal “components” of the
    dataset. PCA creates nearly as many components as there are
    dimensions in the dataset, but is also able to rank these components,
-   allowing just the top two most important components to be used for 2D
+   allowing just the top two, most important components to be used for
    plotting.
 
 UMAP
@@ -145,7 +147,7 @@ fANOVA
 
    functional ANOVA test – a statistical test that compares two or more
    populations of functions, instead of 2+ populations of individual
-   values. In the context of PalmettoBUg / SpaceANOVA, this means taking
+   values. In the context of PalmettoBUG / SpaceANOVA, this means taking
    into account the spatial relationship of celltypes across an entire
    range of distances, instead of only testing one distance at a time.
     
@@ -166,6 +168,7 @@ FCS files
    region measurements of the cells in the images using segmentation
    masks.
 
+.. _FlowSOM:
 FlowSOM
 ^^^^^^^
 
@@ -195,15 +198,14 @@ isoSegDenoise
    as PalmettoBUG, and similarly its outputs are easily and
    automatically picked up by PalmettoBUG.
 
-..
-
    It was separated from PalmettoBUG because some of its dependencies
    (specifically deepcell and possibly cellpose) have non-commercial
-   restrictions affecting their segmentation models, which might be
+   restrictions affecting their segmentation models, which is
    incompatible with PalmettoBUG’s GPL-3 license.
 
    Link: https://github.com/BenCaiello/isoSegDenoise
 
+.. _Leiden-Algorithm:
 Leiden Algorithm
 ^^^^^^^^^^^^^^^^
 
@@ -279,6 +281,7 @@ panel.csv
    initial *MCD* / *TIFF* files, and what channels to use during
    *segmentation*.
 
+.. _Pixel-Classification:
 Pixel Classification
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -297,8 +300,8 @@ Project
 
    In PalmettoBUG, a ‘project’ typically refers to an imaging-based
    experiment that is processed all within in a single computer
-   directory. As in, a replicate whose *image processing*,
-   *segmentation*, *analysis*, etc. occurred in a separate folder would
+   directory. As in, a replicate of a data analysis in PalmettoBUG whose *image processing*,
+   *segmentation*, *analysis*, etc. occurred in an entirely separate folder from the original would
    be a separate “project”, despite only being a replicate.
 
 Region Measurement

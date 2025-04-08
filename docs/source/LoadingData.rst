@@ -70,7 +70,7 @@ Common errors for loading the data include:
    project!** PalmettoBUG expects one or the other file type, not a
    mixture! If you have a mixture of .mcd’s and .tiff’s for some reason,
    create two separate projects and perform the first Image Processing
-   step for each (/raw  /images/img), then combine the projects by
+   step for each (/raw --> /images/img), then combine the projects by
    copying the output of that first step from one into the other. Also,
    be careful with mixing .tif and .tiff file extensions — PalmettoBUG
    automatically converts the .tif extension (with one f) to .tiff for
@@ -82,7 +82,7 @@ Common errors for loading the data include:
    the images of a dataset – if this is not true then using the full
    PalmettoBUG pipeline isn’t possible, and you are more likely to
    create errors and inaccurate results than useful data!
-3. Selecting a sub-folder of the directory you actually want. For
+3. **Selecting a sub-folder of the directory you actually want.** For
    example, you click the button to load a .tiff experiment. Then you
    navigate to the directory where you made a */raw* folder and placed
    your experiment’s .tiff files into it. However, you click on the
@@ -91,9 +91,7 @@ Common errors for loading the data include:
    load from *project_directory/raw,* instead of *project_directory* –
    it will then look for *project_directory/raw/raw* to look for the
    .tiff files, and not finding it will return an error and refuse to
-   load. This can be particularly tricky as in file explorer you can
-   select a folder by clicking once (without visually entering that
-   folder by clicking twice) and create this error accidentally.
+   load. 
 
 .. |image1| image:: media/Load1.png
    :width: 6.37361in

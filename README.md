@@ -11,11 +11,9 @@ Final development plans:
 
     1). Documentation: 
         - Update images and descriptions with new features & data
-            -- single-cell analysis doc images -- CyTOF example data or IMC example data (then update)
             -- Premessa / bead-normalization translation --> have a page for this (would require fresh example data?)
             -- update to remove / reduce screenshots of prop-licensed software (probably fair use, but won't hurt to do)
-        - update text of docs & slides 1x more / incorporate proofreader edits
-        - Notebooks: add examples of missing functions (scatterplot, clustering-->classy masks, pxclass-->PNGs)
+        - incorporate proofreader edits
         - Look at API documentation -- it is almost certianly a mess right now
 
     2). Code:

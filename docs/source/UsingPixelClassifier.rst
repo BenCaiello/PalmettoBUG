@@ -46,7 +46,8 @@ in the pipeline.
 
 Sometimes, as in the example image above, the class(es) of interest are
 near or at all the edges of the image. In this case, the filtering /
-cropping of the image will essentially leave the image unchanged.
+cropping of the image will essentially leave the size of the image unchanged,
+although you still can drop non-class pixels to zero, if desired.
 
 Whole-Class Analysis
 ~~~~~~~~~~~~~~~~~~~~
@@ -72,7 +73,8 @@ region measurement in the main single-cell analysis directed pipeline,
 this step asks you to select images and a statistic to read from the
 classes, usually mean. After this, you must provide a panel / metadata
 file (again, just like for the single-cell analysis portion of the
-program), then finally the analysis itself can be launched.
+program). Once region measurements and a panel/metadata have been set up, then
+the analysis itself can finally be launched.
 
 |image4|
 
@@ -86,25 +88,24 @@ compare classes between conditions.
 Additionally, this window allows you to export the data inside this
 whole-class analysis to a .csv file, which can be useful if want to
 examine this data more thoroughly in a separate software with more
-options for this.
+options.
 
 Classifying Cells
 ~~~~~~~~~~~~~~~~~
 
 Classifying cells may be the most commonly used purpose for a pixel
 classifier, and it is a necessary intermediate step before extending
-masks with a classifier. What this does is assign a pixel class derived
-from the classifier to each cell mask in a folder of cell segmentation
-masks. This creates a “classy mask” where the unique, identifying values
-of the original cell masks are replaced with the assigned class numbers
+masks with a classifier. What this does is group cell segmentation masks into groups (cell types)
+using a pixel classifier. This creates a “classy mask” where the unique, identifying values
+of the original cell segmentation masks are replaced with the assigned class numbers
 for each mask. As this is done, the class assignments are recorded in
 order and written to a csv (allowing these to be loaded into a
 single-cell analysis made from the *same cell masks*).
 
 The goal in classifying cells can be to load those cell groupings into a
 single-cell analysis, as an alternate way to annotate cell types
-compared to the cell-level clusterings available in the single-cell
-module. Additionally, classifying cells can just be a way to prepare for
+compared to what is offered in the single-cell analysis
+tab of PalmettoBUG. Additionally, classifying cells can just be a way to prepare for
 extending cell masks.
 
 There are two ways to classify cell masks: mode and FlowSOM.
@@ -143,11 +144,11 @@ steps in PalmettoBUG if you give the same label to two different
 clusters, they will be merged into one. Note that when doing the
 annotation, you can either use the same labels as were in the
 classifier, or you can use custom / free-form labels. **If you are
-intending to extend the cell masks with these labels, you MUST use the
+intending to extend cell masks with these labels, you MUST use the
 same labels as in the classifier!** This is required when matching the
 cell masks to the regions they can be expanded into. However, if you are
 only interested in grouping the cells into cell types for the sake of
-single-analysis, you can freely use custom labels.
+loading into a single-analysis, you can freely use custom labels.
 
 |image6|
 
@@ -162,17 +163,17 @@ files.
 Mask Extension
 ~~~~~~~~~~~~~~
 
-Mask extension is a very useful tool for certain tricky segmentation
+Mask extension is a useful tool for certain tricky segmentation
 problems, particularly for irregularly shaped cells, which can be
 difficult for generalist algorithms to segment.
 
 This method takes a set of pixel classification maps from the loaded
-classifier, a set of classified cell masks with matching classes, and a
-set of segmentation masks (these must match the classified cells masks).
+classifier, a set of classy masks with matching classes, and a
+set of segmentation masks (these must match the classy cells masks).
 The user then selects class(es) to extend the cell masks into.
 PalmettoBUG will then identify the segmentation masks belonging to the
-class(es) of interest, and extend those cell masks into the surrounding
-regions that were predicted to be in the matching class.
+class(es) of interest, using the classy masks, and extend those cell masks into the surrounding
+regions that were predicted to be in the matching pixel classification class.
 
 |image7|
 
@@ -183,20 +184,21 @@ seeding the water shedding step from each of the centroids of the cell
 masks of the matching class.
 
 For example, using the image above, a supervised classifier was created
-to roughly predict the epithelial regions of a colon tissue image, and a
-generalist algorithm (like DeepCell) was used to segment the region into
-cells. These cell segmentation masks were then classified into epithelia
-or background categories using the pixel class predictions. Finally, the
-cell masks that had been classified as epithelial were extended into the
-surrounding pixels that had been predicted to belong to the epithelia.
+to roughly predict the lumen ('background'), epithelia, and lamina propria
+regions of a colon tissue image, and a
+generalist algorithm (like DeepCell) was used to segment the image into
+cells. These cell segmentation masks were then classified into lumen, epithelia, or 
+lamina propria cells using the pixel class predictions. Finally, the
+cell masks that had been classified as epithelia / lamina propria cells were extended into the
+surrounding pixels that had been predicted to belong to the matching class.
 Cells classified in the background class were not extended, while the
 extended epithelial cell masks were only grown into pixels inside the
-epithelia.
+epithelia, and so on.
 
 Note that the starting segmentation masks are not allowed to be shrunk
 by this process – cell masks will neither lose pixels because of
 mismatched class nor lose any pixels to a neighboring cell during the
-water shedding.
+watershedding process.
 
 When created, a name for the new folder of extended masks is needed –
 this will be written as a sub-folder of */masks*, where it can be picked
@@ -207,7 +209,7 @@ etc.
 
 Near the directory display on the lower left, there is a button that will allow you to convert classifier maps
 or classy masks into .png files (using matplotlib). This is just a separate way of visualizing the maps/masks 
-and using Napari may be preferrable in most cases.
+-- and using Napari may be preferrable for that in most cases.
 
 .. |image1| image:: media/UsePxClass/UsePx1.png
    :width: 6.5in
