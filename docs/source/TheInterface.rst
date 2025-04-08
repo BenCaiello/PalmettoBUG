@@ -2,7 +2,7 @@ Understanding the PalmettoBUG Interface
 =======================================
 
 This page of the documentation is dedicated to all the peculiarities,
-idiosyncrasie, and graphics-focused details s of the PalmettotBUG GUI.
+idiosyncrasie, and graphics-focused details of the PalmettotBUG GUI.
 
 The Directory Display:
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -15,20 +15,20 @@ they look like this:
 |image1|
 
 This display serves a simplistic alternative to using your computer’s
-normal file explorer program to navigate inside the PalmettoBUG project
+normal file management program to navigate inside the PalmettoBUG project
 directory. It lists the files and folder inside your project, and lets
 you see as the folder populate with outputs & allows you to inspect some
 of them. Anything that can be done in the PalmettoBUG directory display
 could also be effectively done outside PalmettoBUG, as long as you know
-where to look, so this is mainly just there as a potential convenience.
+where to look, so this is mainly there as a convenience.
 
 Clicking on a folder will open that folder in the directory display.
 Clicking on a file can open that file, if it is one of a few file types
-that PalmettoBUG frequently creates: .tiff, .csv, pr .png. Specifically,
+that PalmettoBUG frequently creates: .tiff, .csv, or .png. Specifically,
 clicking a .tiff file will open it in a new Napari window, clicking a
 .csv file will open it as a table inside PalmettoBUG – and specially
 named .csv’s (like *Analysis_panel.csv)* are given special treatment –
-while clicking a .png file (except the first two tabs) will display that
+while clicking a .png file (except in the first two tabs) will display that
 .png file inside PalmettoBUG.
 
 You can also toggle the display to be in “delete mode”, where clicking
@@ -94,42 +94,13 @@ depending on how problematic they seem to be, or if there is a better
 system that is easy to implement. For example, I could change the GUI to
 no longer offer default file / folder names.
 
-   1). Overwriting existing files is normal / no warning is given. If
-   you specify the same file path as an existing folder / file at any
-   given step, then PalmettoBUG will happily overwrite anything it needs
-   to. This most frequently comes into play at the many steps where
-   PalmettoBUG asks you for an output folder (common for image
-   processing steps, where a procedure is performed on every image in a
-   folder) or for an output filename (common when generating a plot).
-   Overwriting also characterizes the cell grouping behavior of the
-   Analysis portions of the program. For example, there can only be 1
-   metaclustering column (same for merging/leiden/CN, etc.) in the data
-   at a given time, so running a 2\ :sup:`nd` FlowSOM will effectively
-   erase the first metaclustering.
-
-..
-
-   PalmettoBUG’s love of overwriting can become a particular risk for
-   file / folder names because of peculiarity number 2:
-
-   2). Default folder / filenames are given at most steps. These are
+   1). Default folder / filenames are given at most steps. These are
    offered as examples of file names, to allow the easiest on-ramp to
    learning the PalmettoBUG pipeline by giving good examples of what the
-   filenames might be. However, if you forget / choose not to change
-   these defaults at a step you do *more than once* in the pipeline you
-   will overwrite the output of the first step (see peculiarity #1
-   above)! This is usually not a massive problem, because as long as you
-   know what you’ve done at each step, you should be able to fairly
-   easily re-create whatever it is that you overwrote (this is
-   particularly simple & fast for most of the plotting functions). It is
-   obviously still irritating having to retrace your steps, but it is
-   also possible to overlook the fact you overwrote the plot / images
-   that you intended to use & end up displaying an incorrect plot or
-   performing a downstream calculation on the wrong set of images!
+   filenames might be. You will want to changes these default names so
+   that they make sense for your project!
 
-..
-
-   3). Napari / isoSegDenoise are launched as separate processes. Except
+   2). Napari / isoSegDenoise are launched as separate processes. Except
    when creating training labels for supervised pixel classifiers,
    Napari windows launched inside the program, as well as the
    isoSegDenoise sister program, are managed in a separate process from

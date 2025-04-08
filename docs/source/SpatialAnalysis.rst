@@ -91,7 +91,7 @@ SpaceANOVA
 ~~~~~~~~~~
 
 The section of spatial analysis options, SpaceANOVA, is a python
-translation of an R with the same name
+translation of an R package with the same name
 (https://github.com/sealx017/SpaceANOVA). Specifically, what this allows
 you to do is calculate Ripley’s statistics (K / L) as well as the
 pair-correlation function (referred to as ‘g’ in the program) between
@@ -107,8 +107,13 @@ The key takeaways from the graphical example above is that the Ripley’s
 statistics provide a way to see if cell types are associating with each
 other more or less than would be expected by chance, creating a function
 with values at every radius of interest. In PalmettoBUG, these types of
-graphs can be calculated for every cell type  cell type pair, with a
+graphs can be calculated for every cell type --> cell type pair, with a
 few parameters, such as the range of radii, selected by the user:
+
+.. note::
+   The comparison celltype A --> celltype B usually produces a slightly different
+   statistic than celltype B --> celltype A, although typically these two statistics
+   are very similar. 
 
 |image8|
 
@@ -116,16 +121,14 @@ Some parameters of particular note are:
 
    1). The permutation correction. This makes the SpaceANOVA analysis
    slower, but is almost always recommended. What this does is calculate
-   the average Ripley’s K for a cell type over all the images in the
-   selected number of random permutations (where the cell type labels
-   are randomly shuffled each time). This permutation K is then
+   the average Ripley’s K for a cell type over the
+   selected number of random permutations where the cell type labels
+   are randomly shuffled within each image. This permutation K is then
    subtracted from the K calculated from the actual data (unshuffled),
-   which corrects the output for any peculiarities of the data itself –
+   which helps correct the final output for any peculiarities of the data itself –
    such as inhomogeneities / holes in the tissue that could shift the
-   value K function even when the cell types are randomly distributed in
+   value of the K function even when the cell types are randomly distributed in
    the tissue.
-
-..
 
    2). The random seed. This is used for the shuffling of data in the
    permutation correction, but also for a few other steps in the
@@ -139,17 +142,17 @@ Some parameters of particular note are:
    threshold parameter lets you select the minimum number of cells of a
    particular cell type needed within an image for PalmettoBUG to
    proceed with calculating statistics for that cell type in that image.
-   Notably, if it occurs that a given cell type does not meet the
-   threshold in any image of a given condition – PalmettoBUG will not
-   use comparisons for that cell type / condition in the subsequent
-   functional ANOVA test. However, even if one condition fails to meet
-   the threshold like this, PalmettoBUG will still be able to plot the
-   other conditions in the dataset that do still have valid statistics /
-   images that met the threshold. *PalmettoBUG will also print a warning
-   to the terminal any time an image or an entire condition fails to
-   meet the threshold – this end up being a lot of messages!*
 
-..
+   .. note::
+      It can happen that a given cell type does not meet the
+      threshold in ANY image of a given condition. In this case, PalmettoBUG will not
+      use comparisons for that cell type / condition in the subsequent
+      functional ANOVA test. However, even if a condition fails to meet
+      the per image threshold like this, PalmettoBUG will still be able to plot the
+      other conditions in the dataset that do still have valid statistics /
+      images that met the threshold. *PalmettoBUG will also print a warning
+      to the terminal any time an image or an entire condition fails to
+      meet the threshold – this often ends up being a lot of messages!*
 
    4). Radii min, max, step. These parameters set the range of radius
    values to calculate over. As in for the defaults (min = 0, max = 100,
@@ -173,9 +176,11 @@ Some parameters of particular note are:
 Once the SpaceANOVA calculation for the Ripley’s statistics has been
 performed, the buttons for plotting and statistics become available. For
 plotting the statistics themselves, PalmettoBUG lets you select a
-particular cell type – cell type comparison as well as the Ripley’s stat
+particular cell type –-> cell type comparison as well as the Ripley’s stat
 you are interested in, and also whether you like to add “F-values” to
-the plot. These F-values are the F-statistics from ANOVA tests performed
+the plot. 
+
+These F-values are the F-statistics from ANOVA tests performed
 at every individual radius in the calculations, comparing the statistic
 of choice between the conditions in the dataset. This requires that
 there are 2+ available conditions for that cell type comparison
@@ -191,15 +196,15 @@ determine if two conditions differ overall.
 
 For statistically comparing the difference between how cell types
 cluster in conditions, SpaceANOVA uses functional ANOVA (fANOVA). This
-performs an ANOVA test on the entire Ripley’s function curve from the
+performs an ANOVA test on the entire Ripley’s function curve between the
 different conditions (using scikit-fda’s implementation of fANOVA:
 https://fda.readthedocs.io/en/stable/modules/inference/autosummary/skfda.inference.anova.oneway_anova.html).
 This approach means that the entire range of distance radii is tested at
 once for significance, and not a single cherry-picked distance. However,
 if the functional ANOVA finds a significant difference between the
-conditions over the entire range, but you are interested in knowing
+conditions over the entire range and you are interested in knowing
 which particular distance(s) the different between is most significant,
-then the F-value plots can be used (as discussed above).
+then the F-value plots can be used (as discussed in the paragraph above).
 
 PalmettoBUG automatically calculates the fANOVA values when you click
 the “SpaceANOVA statistics” button. You will then be able to either
@@ -218,9 +223,9 @@ made (one for each cell-type celltype pair).
 .. important::
 
    As currently set up, PalmettoBUG automatically uses all the derived p-values in the 
-   FDR adjustment process. However, it may not be wise to treat symmetrical comparisons 
-   (such as T-cell --> B-cell and B-cell --> T-cell) as independent tests needing correction for multi-comparison.
-   Symmetrical comparisons like these are NOT 100 % IDENTICAL, however they are understandably 
+   FDR adjustment process. However, it may not be wise to treat reverse-order comparisons 
+   (such as T-cell --> B-cell vs. B-cell --> T-cell) as independent tests needing correction for multi-comparison.
+   Comparisons like these are NOT 100 % IDENTICAL, however they are understandably 
    highly related to each other -- I was not sure how to handle the FDR correction for these, so for now 
    the default behaviour is just to correct them all as if they were independent hypothesis tests. If
    this is not preferred (it is likely too harsh in correcting for multicomparisons?), it should be fairly straightforward 
@@ -234,7 +239,7 @@ Distance-to-Pixel Class
 Sometimes the spatial question you want to ask does not only cells, but
 also non-cellular structures. In PalmettoBUG, the best way to identify
 non-cellular structures is with a (typically supervised) pixel
-classifier. This set of spatial functions allows you to take the output
+classifier. PalmettoBUG allows you to take the output
 of a classifier and calculate the distance between cells masks and the
 pixel class. Examples of what could theoretically be done include cell
 distance from beta-amyloid plaques, or distance from fibrotic regions,
@@ -245,7 +250,7 @@ of interest on the slide must be created. **How to create a pixel
 classifier & predict classification maps is not covered here!** See the
 documentation for pixel classifiers to learn about those steps.
 
-The distance calculation is performed using a Euclidean Distance
+Then, a distance calculation can be performed using a Euclidean Distance
 Transform (EDT) on the pixel classes of interest, which is why this
 module is frequently referred to with the label EDT.
 
@@ -268,20 +273,21 @@ The key parameters for the EDT calculation are as follows:
    *every* image in the dataset. Because PalmettoBUG pixel classifier’s
    can have two different kind of prediction maps (the original
    classifier predictions in a */classification_maps* subfolder or
-   merged/annotated predictions in a */merged_classification_maps*
+   merged predictions in a */merged_classification_maps*
    subfolder), this must be specified in the drop down immediately below
    classifier selection. 
    
    .. note::
    
       If you use the /*merged…maps* folder for a supervised classifier, the background class will not
-      have an EDT calculated.
+      have an EDT calculated. This is often preferable, unless the "background" class has some biological 
+      meaning of its own!
 
 ..
 
    3). Marker_class. This determines how the newly added EDT channel(s)
    are treated once merged into the analysis – will they be “type”,
-   “state”, “none”, or a new class “spatial_edt” marker? The default is
+   “state”, “none”, or a new marker_class “spatial_edt”? The default is
    the new “spatial_edt” class, because it is assumed that you will want
    to treat the EDT channels differently than the regular channels and
    because “spatial_edt” channels are treated specially in the GUI **–
@@ -294,15 +300,16 @@ The key parameters for the EDT calculation are as follows:
    4). Smoothing threshold. Isolated regions of the pixel class of
    interest in the pixel classification maps that are smaller than the
    smoothing threshold will be excluded. This is included because pixel
-   classifiers (especially unsupervised ones) can find very regions of a
+   classifiers (especially unsupervised ones) can find very small regions of a
    given class, which might be biologically irrelevant. Further, a
    Euclidean distance transform is very sensitive to the presence of
-   even a single pixel of the class of interest, as that could create –
-   on its own – a large circular region of lower values around it.
+   even a single pixel of the class of interest, as a single pixel of the class of interest
+   can create a large circular region of lower EDT values around it.
 
 ..
 
-   5). Statistic. Much like when reading the region properties during
+   5). Statistic. This determines what aggreagate statistic is used to 
+   summarize the EDT value inside a cell mask. Much like when reading the region properties during
    the main pipeline of the program, the statistic when reading the EDT
    values from the mask region does not have to the be the mean value
    (even though this is typical) of the pixels inside the mask. Mean,
@@ -313,14 +320,19 @@ The key parameters for the EDT calculation are as follows:
 
    6). Normalization. Images with more pixels in the class-of-interest
    will naturally tend to have lower EDT values across the image (and
-   vice-versa), which will in turn affect the EDT values of the cells.
+   vice-versa) -- although this is also affected by the distribution of the class 
+   within thimage. Having a generally lower EDT value in an image will in turn 
+   affect the EDT values of the cells. Typically, though, you are not interested
+   in only if there is more the pixel class in an image, but whether particular cell
+   types are more or less associated with the pixel class than you would expect by chance.
    Checking the normalization option means that the EDT value for every
    cell will be divided by the average EDT value across the entire image
    that cell came from, which is intended to help control this effect.
+   Note that normalization only works if the aggregrate statistic is median or mean, not minimum.
 
 .. Attention::
-   Wwhen calculating the EDT values\ **, PalmettoBUG will
-   calculate EDT values for each cell using every class in the selected
+   When calculating the EDT values\ **, PalmettoBUG will
+   calculate EDT values using every class in the selected
    classifier**, assigning them all the same marker_class. Typically, it is
    best to make dedicated supervised classifier for each object of
    interest, so this should not be an issue, although for some applications
@@ -334,12 +346,13 @@ possibilities about how you can use them.
 
 If you added them as “spatial_edt” marker class, then they will be
 accessible to the handful of dedicated EDT plotting functions in the
-spatial tab – which will be focus of this section. However, if you chose
-a different marker_class they will be accessible to ANY function that
-uses that marker_class, *including in the analysis tab!* This means any
-plot, clustering, dimensionality reduction, etc. covered in the
+spatial tab – which will be focus of this section. However, they are always
+accessible to ANY function that can use the selected marker_class, *including in the analysis tab!* 
+This means any plot, clustering, dimensionality reduction, etc. covered in the
 Single-Cell Analysis documentation could take an EDT channel as an
-input, depending on the marker_class chosen.
+input. However, if you do choose 'type' as a marker_class
+(for example), then your EDT calculations will be plotted along with all the other channels set to 
+'type', which is usually more confusing than useful.
 
 *The outputs of the dedicated EDT functions are shown below:*
 

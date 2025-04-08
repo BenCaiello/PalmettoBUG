@@ -55,7 +55,7 @@ in the SAME environment.
 
       >>> pip install isosegdenoise[tensorflow]
 
-   This will install tensorflow / keras, and by default when these packages are available in the iSD environmnt, the program will prefer to use tensorflow over PyTorch.
+   This will install tensorflow / keras, and by default when these packages are available in the iSD environment, the program will prefer to use tensorflow over PyTorch.
 
 There are many dependencies for the packages and can use a good deal of disc space. 
 If you run into errors you believe are a result of dependency issues, you can look at the
@@ -70,7 +70,6 @@ will find two animated .odp files (open source format similar to .pptx files,
 open-able by PowerPoint or other slideshow software) which can serve an alternate 
 documentation for the PalmettoBUG GUI. These can be particularly powerful because of their
 animations that lay out how to use the various buttons of the GUI in **excruciating** detail.
-These slideshows were created & edited in PowerPoint.
 
 Also on the GitHub (in an /environments folder) will be a few text documents listing
 all the dependencies installed in test environments I used for PalmettoBUG / isoSegDenoise. If you are
@@ -78,8 +77,9 @@ having trouble with installation, or want to replicate an environemnt that I tes
    
    >>> pip install -r "/path/to/environments/file.txt"
 
-Which should recreate the environment in question, allowing you to easily install PalmettoBUG & isoSegDenoise 
-into it without needing any additional dependencies, and without needing to worry about dependency conflicts.
+Which should recreate the environment in question, allowing you to easily install PalmettoBUG 
+into it without needing any additional dependencies (except -- potentially -- those associated with isoSegDenoise), 
+and without needing to worry about dependency conflicts.
 
 Example Data
 ~~~~~~~~~~~~~
@@ -144,8 +144,8 @@ There is a good amount of copied / derived code in PalmettoBUG, which naturally 
 Details of Documentation creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The pages of this documentation were created in Microsoft Word (odt_docs) or in jupyterlab (notebooks).
-The odt files were then translated into .rst files using the pandoc library. These .rst files were subsequently
+The pages of this documentation were created in Microsoft Word or in jupyterlab (notebooks).
+The documents were then translated into .rst files using the pandoc library. These .rst files were subsequently
 edited into their final form (this mainly meant getting the proper relative links between pages and to images and fixing formatting).
 Then, sphinx (using the automated readthedocs pipeline) was used to convert the .rst files 
 into html. Other packages used in this process include: nbsphinx (for jupyter notebook files), sphinx-autoapi & the napoleon sphinx extension (for api docs),

@@ -109,7 +109,7 @@ Key settings for a supervised classifier include:
    in the image at once it is better to do two different classifiers
    (unless you add a dedicated double positive class). However, if you
    want to find multiple classes are mutually exclusive (such as
-   different cell types), then a single classifier is preferrable.
+   different cell types), then a single classifier may be preferrable.
 
 .. note::
 
@@ -136,7 +136,7 @@ channel / label numbers to the desired channels / labels.
 .. warning:: 
 
    While Napari is open in this step (this does not apply
-   when Napari is opened any other way), the PalmettoBUG windows will be
+   when Napari is opened by other steps / methods in PalmettoBUG), the PalmettoBUG windows will be
    non-responsive, and if you try to move a PalmettoBUG window the
    entire program may crash! This error is because of how Python handles
    threads. So open any windows you may need (like the classifier
@@ -156,7 +156,7 @@ to those controls.
 
 Once you are on your desired channel, be sure that the top image-stack
 (“layer”) is selected, to gain access to the labeling tools in the
-*upper-left*. You will want to set the label to the number you want
+*upper-left*. You will want to set the label to the number you are going to make training labels for
 (remember background = 1, etc.), and then select the paintbrush icon
 above the label number to begin labeling the image. Change the brush
 size and use the erase icon for fine control of the labeling. Repeat for
@@ -172,7 +172,7 @@ of view in the data, then hopefully the more competent the classifier
 will be at handling all the diverse images of your project. In general,
 it is good to make labels in multiple locations and contexts across the
 images, and to have different classes’ labels next to each other at
-points, since labeling the border regions between classes can help the
+least some of the time, since labeling the border regions between classes can help the
 classifier better distinguish between the classes.
 
 Finally, once you are satisfied with the labelings that you have
@@ -181,10 +181,9 @@ created, train the classifier.
 .. note::
 
    The set of images that the classifier will be trained on
-   is set by the image folder selected in the training frame – if you
+   is set by the image folder selected when launching images for training label generation – if you
    change that folder between creating the training labels and training
-   the classifier, then the images used for training may not look
-   exactly like the images you actually trained the classifier on!
+   the classifier, then the images used in training will be different from the images you used to make the training labels!
 
 Prediction
 ~~~~~~~~~~
@@ -196,9 +195,9 @@ your classifier on the images in the denoised image folder, you should
 predict with those images, too.
 
 Next, set the prediction to do the entire folder of images or just one
-image. If only predicting from one image is selected, which can be
+image. If only predicting from one image is selected (which can be
 useful to get a quick look at how the classifier appears to be
-performing without needing to wait for the entire folder to be run, then
+performing without needing to wait for the entire folder to be run) then
 use the drop-down menu for selecting an image. This drop-down is ignored
 if you choose to predict the entire folder.
 
@@ -217,11 +216,11 @@ that you want accurately, and to do this you should launch the
 classification map(s) in Napari. This can be done in the directory
 display from inside PalmettoBUG, or you can open Napari in a separate
 terminal from PalmettoBUG and navigate to the relevant directories
-using your system native file explorer app. If you use the directory
+using your system native file managing app. If you use the directory
 display inside PalmettoBUG’s pixel classification tabs, then the
-image will also be loaded into Napari beneath the classification
+source image will also be loaded into Napari beneath the classification
 prediction, allowing you to easily go back and forth between the
-predictions and the original image.
+pixel class predictions and the original image.
 
 Creating Unsupervised Classifiers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -236,7 +235,7 @@ MIBIScope <https://github.com/angelolab/toffy/tree/main>`__
 The specific way these classifiers work is that a subset of all the
 pixels in the images are sampled, and a FlowSOM is trained on that
 subset, fitting to find a user-defined number of metaclusters in the
-data. Then, that trained FlowSOM can be used to predict ALL the pixels
+data. Then, that subset-trained FlowSOM can be used to predict ALL the pixels
 in the images. Before being used for training / prediction, the
 intensity values of the pixels are normalized within each channel by
 dividing all by the 99.9% quantile, followed by normalizing within each
@@ -249,9 +248,7 @@ supervised classifiers:
    1). Training inputs. While supervised classifiers require training
    labels made by the user, unsupervised classifiers train directly on a
    sample of the pixels without needing any similar supervision. This is
-   why they are named this way
-
-..
+   why the two types of classifier are named the way they are.
 
    2). The output classes of an unsupervised classifier have no
    biologically-relevant label (the classes must be annotated / merged
@@ -265,10 +262,8 @@ supervised classifiers:
    classifiers should create much more classes than a supervised
    classifier – any excess / redundant groups can be annotated and
    merged together later. Overall, unsupervised classifiers use the same
-   FlowSOM à merging process that is typically utilized to find cell
+   FlowSOM merging process that is typically utilized to find cell
    types in the Analysis tab of the program.
-
-..
 
    4). Some of the hyper-parameters for training are different between
    the types of classifiers. More detail on these in the next section.
@@ -305,8 +300,8 @@ new window. Note that whatever name you choose for the classifier will
 have “Unsupervised\_” appended to it. As in, if the name you select is
 “Classifier_1” (the default), the actual name will be
 “Unsupervised_Classifier_1”. This helps keep the two types of classifier
-distinct and clearly labeled, and can assist PalmettoBUG in identifying
-which type a re-loaded classifier is.
+distinct and clearly labeled, and assists PalmettoBUG in identifying
+which category a re-loaded classifier is.
 
 |image7|
 
@@ -321,11 +316,9 @@ presented with a large number of options:
    every selected channel (which is why it is not visible in the list of
    features).
 
-..
-
    2). The image folder for training and number of pixels to sub-sample.
    Unlike supervised classifiers, there does not need to be any training
-   labels, a subset of the pixels in the images themselves are used.
+   labels, but instead a subset of the pixels in the images themselves are used.
 
 .. note::
 
@@ -334,12 +327,11 @@ presented with a large number of options:
    excessive use of computer memory, and if the number is too large, you
    may crash your computer!
 
-..
 
    3). Sigma blurring & Quantile normalization. These affect the
    features passed into the classifier. Specifically, the sigma value is
    similar to the sigmas in a supervised classifier – it controls how
-   blurred the channel features are – except here only 1 sigma is
+   blurred the channel features are – except for unsupervised classifiers only 1 sigma is
    allowed. The %quantile normalization number determines how the data
    are normalized within each channel (default all channels are divided
    by their 0.999 / 99.9% quantile values).
@@ -353,8 +345,6 @@ presented with a large number of options:
    than the number of pixels trained on), and greater training
    iterations can improve the stability of the FlowSOM, although it
    takes more time to train.
-
-..
 
    5). Random seed. This is needed for reproducibility of both the
    random sampling of pixels in the images as well as the random
@@ -394,7 +384,7 @@ image, and then if applicable select the single image to classify.
 |image8|
 
 When an unsupervised classifier makes a prediction for an entire image
-folder, a heatmap is automatically generated (this heatmap can also be
+folder, a heatmap is automatically generated at the end (this heatmap can also be
 made using the “Make heatmap from previously created predictions” button
 in the upper left frame). This heatmap gives an idea of the expression
 of the selected channels in each predicted class of the classifier, and

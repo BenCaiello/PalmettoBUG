@@ -25,12 +25,12 @@ table (Analysis_panel) there are two editable columns, ‘antigen’, and
 ‘marker_class’:
 
    1). ‘antigen’ column: this is here mainly for when loading an
-   analysis from FCS files directly, as this column will contain the
+   analysis from FCS files directly, as when loading from
+   image processing, these names are usually already correct and don’t
+   need editing. This column will contain the
    names of the antigens as displayed in plots, and in the GUI options.
    You want these names to be biologically relevant, and not confusing
-   or biologically irrelevant labels like “Nd142Di”. When loading from
-   image processing, these names are usually already correct and don’t
-   need editing.
+   or biologically irrelevant labels like “Nd142Di”. 
 
 ..
 
@@ -42,9 +42,10 @@ table (Analysis_panel) there are two editable columns, ‘antigen’, and
    lineage marker for clustering the cells should be set to ‘type’.
    Finally, antigens that you wish to use as indications of the state of
    a given cell type, or if you want to do statistics on any antigen’s
-   expression after clustering, you set to ‘state’.
+   expression after clustering, you set to ‘state’. This convention
+   is inherited / borrowed from :ref:`CATALYST <Links>`.
 
-For the second (metadata) table, there are again two column that can be
+For the second (metadata) table, there are again two columns that can be
 edited, ‘patient_id’ and ‘condition’, but instead of assigning values to
 the antigens in the dataset, we are assigning values to the images /
 regions of interest / individual FCS files in the dataset:
@@ -91,11 +92,13 @@ solution-mode experiment, then you will need to manually step up these
 folders, and then load the directory. For imaging projects in
 PalmettoBUG, every sub-folder of */Analyses* (i.e., every individual
 analysis made for the imaging project) will be a valid folder for
-loading in this way. *Note ho this means that you can load the
-single-cell analysis portion of an imaging project in 2 ways – either
-from the starting page, selecting the analysis sub-folder, or by loading
-entire imaging project and loading from the image processing tab as
-described above.*
+loading in this way. 
+.. note::
+   This means that you can load the
+   single-cell analysis portion of an imaging project in 2 ways – either
+   from the starting page, loading from FCS & selecting the analysis sub-folder, 
+   or by loading entire imaging project then entering the analysis from the image 
+   processing tab as described above.
 
 |image4|
 
@@ -103,8 +106,8 @@ Once you have selected the correct folder, the loading process is very
 similar as above – you will provide the information for the two tables
 (*Analysis_panel* and *metadata*) in an identical pop-up window. Again,
 if you are reloading the analysis, then the prior *Analysis_panel* and
-*metadata* files will be used so you do not have to re-do them unless
-desired.
+*metadata* files will be used so you do not have to re-do or edit them (unless
+you want to).
 
 Beginning a Single Cell Analysis: initial plots
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -124,10 +127,11 @@ These plots are all mainly concerned with broad patterns in the data,
 such as whether your treatment and control groups have identifiably
 different expression patterns, as well as the identification of outliers
 that may need to be dropped before proceeding with the analysis. For
-example, if a sample_id has too few cells in it, has a large distance on
+example, you might consider dropping a sample / ROI (as in, a unique sample_id) 
+from the analysis if it has too few cells in it, is distant on
 the MDS plot from all the other sample_id’s, and/or has a highly
 divergent marker expression pattern on the heatmap/smoothed histogram
-plots, you might consider dropping it from the analysis.
+plots.
 
 These plots can also give you a indication of whether batch correction
 might be needed, such if the samples in your patient_id clusters tightly
@@ -164,7 +168,7 @@ will be useful clustering the cells or not.
    windows that create data tables), you will typically be prompted for a
    filename. **A default filename is always present as an example, but
    might not match the plot you are actually intending on making!** Be sure
-   to rename these.
+   to rename these as needed, and to avoid overwriting prior plots.
 
 Scaling and Cleaning Data
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -196,7 +200,7 @@ There are four major actions in this bank of buttons:
    selection of a grouping in the data – whether that’s sample_id,
    patient_id, condition, or even a cell clustering/annotation – and
    drop one of the unique groups within that grouping out of the data.
-   This is commonly cone to remove outlier samples or to drop cell types
+   This is commonly done to remove outlier samples or to drop cell types
    that are not of interest (erythrocytes in a solution-mode immune
    dataset for example). 
    
@@ -220,7 +224,7 @@ There are four major actions in this bank of buttons:
    4). Scaling. I address scaling last because there is the most to say
    about it. PalmettoBUG lets you perform a few different methods of
    scaling which I will address below. Unlike filtering & batch
-   correction, scaling can be un-done without reloading the experiment,
+   correction, scaling can always be un-done without reloading the experiment,
    as the data before scaling is preserved, allowing easy switching
    between different scaling options. However, still note that when an
    experiment is reloaded the data will automatically be in its unscaled
@@ -230,7 +234,7 @@ There are four major actions in this bank of buttons:
 **Scaling details**
 
 The scaling option in PalmettoBUG scales data within in channel /
-antigen of the data. There are several different ways to scale the datainside PalmettoBUG:
+antigen of the data. There are several different ways to scale the data inside PalmettoBUG:
 
 .. Important::
    The data is always **first** transformed using the data = arcsinh(data / 5) transformation commonly used in mass
@@ -260,10 +264,10 @@ antigen of the data. There are several different ways to scale the datainside Pa
    2). %quantile scaling. This form of scaling is very similar to
    min-max, with one difference: the channels are not only scaled to
    values between 0-1, but extremely bright cells (those above a
-   provided quantile threshold) are not allowed to influence the
-   distribution of data. Specifically, any cells with higher values than
+   provided quantile threshold) do not influence the
+   distribution of data as much. Specifically, any cells with higher values than
    the value at the provided quantile (often 99.9%, but can be chosen by
-   the user) will be reduced to that quantile value. This can help deal
+   the user) will all be set == 1. This can help deal
    with extremely bright outlier cells in the data, while still provided
    the benefit of min-max scaling by placing all the channels in the
    range 0-1.
@@ -287,7 +291,7 @@ antigen of the data. There are several different ways to scale the datainside Pa
    rank-based procedure (see wikipedia
    https://en.wikipedia.org/wiki/Quantile_normalization and/or the
    python package being used https://github.com/Maarten-vd-Sande/qnorm)
-   to aggressively reshape the data from every channel into the same
+   to aggressively reshape the data from every channel into both a similar
    distribution and the same range of values at the same time.
 
 **While scaling was covered in this second section of the documentation,
@@ -310,7 +314,7 @@ data Is visualizing the data using a dimensionality reduction algorithm.
 In PalmettoBUG, the two dimensionality reduction algorithms available
 are PCA or UMAP. UMAP tends to produce more visually distinct and
 interpretable groups and shapes once plotted, while PCA is faster to run
-and is easier to interpret the individual X & Y value, these being the
+and may be easier to interpret the individual X & Y value, as these are the
 top two principal components in the data.
 
 Dimensionality reductions are typically run on a down-sampled subset of
@@ -323,9 +327,9 @@ representation of the samples in downstream plots and 3). the final dot
 plots created after dimensionality reduction can easily get over-crowded
 and hard to interpret, so limiting the number of cells can help prevent
 that. This down-sampling is also applied when running PCA, even though
-PCA is a much faster algorithm. If you don’t want this down-sampling,
+PCA is a much faster algorithm. *If you don’t want this down-sampling,
 set the down-sampling number to be greater than the number of cells in
-the largest FCS / ROI.
+the largest FCS / ROI.*
 
 Once the dimensionality reduction is created, it can be plotted either
 for the whole dataset or as a set of facetted subsets of the dataset.
@@ -333,7 +337,7 @@ For example, you can plot a separate UMAP for each condition in the
 dataset, to see if the cells in the same condition form groups.
 Dimensionality reductions are also very helpful after clustering (see
 next section), as they can help visualize the cell clustering and
-indicate how distinct the discovered cell groupings are.
+indicate how distinct the discovered cell clusters are.
 
 *Example of Dimensionality Reduction plots:*
 
@@ -354,8 +358,7 @@ random seed:
    self-organizing map (SOM) as a grid of points within the data, that
    will then be fit to the shape of the data (see an example of what
    that looks like:
-   https://upload.wikimedia.org/wikipedia/commons/6/61/2D_data_training_SOM.gif
-   **or embed this directly in the documentation!)** . The grid points
+   https://upload.wikimedia.org/wikipedia/commons/6/61/2D_data_training_SOM.gif ). The grid points
    of the SOM are then grouped together into a preset, user-specified
    number of “metaclusters” by an automatic merging process to produce
    the final clustering groups.
@@ -364,7 +367,7 @@ random seed:
 
    2). UMAP + Leiden clustering. In this method, a UMAP embedding is
    performed using all the cells in the dataset (this can be a slow
-   process), following Leiden clustering on that UMAP embedding. In this
+   process), followed by Leiden clustering on that UMAP embedding. In this
    style of clustering, the final number of groups is determined by the
    algorithm itself, and not preset by the user to a specific number of
    final clusters. This means that getting the hyperparameters of this
@@ -395,8 +398,7 @@ expectations (identifiable cell lineages) as well as to assist in the
 annotation and merging of the clusters in those final biological labels.
 
 *My favorites for annotation are the violin plots, dimensionality
-reduction plots, and heatmaps* (using the defaults for both algorithms
-on the sample FCS data. Note how the violin plots are HUGE, and
+reduction plots, and heatmaps* (Note how the violin plots are HUGE, and
 typically require some zooming in to see the details, but that excellent
 level of details is why they are so useful):
 
@@ -434,9 +436,8 @@ in the prior section is just to assign every cell to a number which by
 itself carries no explicit biological meaning. Our job now is to
 identify what cell type each clustering number is most likely to be.
 Usually, this is accomplished by identifying the cells high in a
-particular marker (say Ter119) and assigning them to the expected cell
-type that expresses that marker (for Ter119, this would be
-erythrocytes).
+particular marker (say CD4) and assigning them to the expected cell
+type that expresses that marker (such as CD4+ T cells).
 
 To do this in PalmettoBUG, we use a merging table, where the first
 column contains every cluster’s number and the second column contains a
@@ -489,7 +490,7 @@ cell clustering or annotation.
 |image18|
 
 When saving, if a cell grouping is available to save, then it will
-appear in the drop down as an option, and similarly when loading is a
+appear in the drop down as an option, and similarly when loading, if a
 saved clustering is available it will show up in the drop down menu
 (this works by looking in the expected */main/clusterings* folder in the
 analysis directory for any saves). When a grouping is saved, it is saved
@@ -513,11 +514,11 @@ program will refuse to load it.
 The same window that handles clustering save / load also handles the
 loading of cell type annotations derived from a pixel classifier – if
 you are interested in that capacity, go to the pixel classification
-documentation! I’ll only mention here that if a pixel-derived
+documentation pages! I’ll only mention here that if a pixel-derived
 classification does exist, it should be visible in the drop down, and
-that if you do use this then it will be referred to as “classification”,
-and can be saved, used to make plots, statistics, etc. the same as any
-other cell grouping.
+that if you do use this then it will be referred to as “classification” by the 
+Analysis tab's widgets, and can be saved, used to make plots, statistics, etc. the 
+same as any other cell grouping.
 
 Statistics
 ~~~~~~~~~~
@@ -602,7 +603,7 @@ into PalmettoBUG:
    file, currently **no spatial information** is. This means that if you
    re-load the CSV of an imaging experiment back into PalmettoBUG, you
    will be able to do the single-cell analysis steps & plotting as show
-   in this document, you will not be able to do spatial analysis.
+   in this document, but you will not be able to do spatial analysis.
 
 ..
 
@@ -613,11 +614,12 @@ into PalmettoBUG:
    / reload the analysis immediately before exporting!**
 
    3). If your intention is to ONLY reload back into PalmettoBUG, then
-   you will want to transfer the marker_class information as well. There
-   is a check box for this purpose in the exportation window, however,
-   you will NOT want to do this if you intend on loading the CSV into
+   you will want to transfer the marker_class information ('type' / 'state' / 'none') as well. There
+   is a check box for this purpose in the exportation window which writes 
+   the marker_class information to the final row of the exported CSV
+   However, you will NOT want to do this if you intend on loading the CSV into
    any other program (it will probably cause errors unless you manually
-   remove that final row).
+   remove that final row of marker_class information).
 
 You can also choose to only export a subset of the data or choose to
 export aggregate statistics from data. For example, you could choose to
@@ -625,7 +627,7 @@ only export the counts of celltypes in samples 1-5. These abilities are
 provided so that you can easily drop unwanted data when exporting, and
 allow you to prepare the data so that it is more straightforward to
 analyze by another software. Of course, if you do export an aggregate
-statistic instead of the raw data, do not try to load the CSSV back into
+statistic instead of the raw data, do not try to load the CSV back into
 PalmettoBUG!
 
 Finally, you also can export the (X, Y) coordinates from the
@@ -644,8 +646,6 @@ Miscellaneous: Loading Regionprops & more
 One of the final PalmettoBUG capacities worth mentioning is the ability to load
 the region properties of the cell masks into the analysis as if they were antigens.
 
-|image21|
-
 This button depends on the analysis having been derived from an imaging
 experiment. It will load the shape-based properties of the cell mask
 like **area, perimeter, etc.** into the analysis as if these properties were
@@ -658,6 +658,8 @@ Region properties tend to have very different distributions / scales
 than normal antigens and the types of regionprops offered by the
 PalmettoBUG GUI are limited, so this is not anticipated to be an option
 that is commonly used.
+
+|image21|
 
 **Scatterplots**
 
@@ -706,10 +708,10 @@ as either code or the techniques / ideas from these are used in PalmettoBUG's si
 .. |image2| image:: media/SingleCellAnalysis/SCAnalysis1.png
    :width: 4.93942in
    :height: 3.44809in
-.. |image3| image:: media/SingleCellAnalysis/SCAnalysis2.png
+.. |image4| image:: media/SingleCellAnalysis/SCAnalysis2.png
    :width: 5.8578in
    :height: 3.42096in
-.. |image4| image:: media/SingleCellAnalysis/SCAnalysis3.png
+.. |image3| image:: media/SingleCellAnalysis/SCAnalysis3.png
    :width: 6.5in
    :height: 3.74097in
 .. |image5| image:: media/SingleCellAnalysis/SCAnalysis4.png
