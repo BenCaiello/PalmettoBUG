@@ -10,7 +10,7 @@ image processing tab:
 The Panel 
 ~~~~~~~~~~
 
-On the left half of the GUI you should see the :ref:`steinbock <Links>`-style Panel
+On the left half of the GUI you should see the :ref:`steinbock <Links1>`-style Panel
 file, with four columns. Each column serves a different purpose:
 
 1. Channel – this column cannot be edited in the GUI, and represents the
@@ -319,6 +319,7 @@ As for what happens after clicking “Go to Analysis!” – well for
 that we’ll need to turn the page into the :doc:`SingleCellAnalysis`
 documentation.
 
+.. _Links1:
 Links
 ~~~~~
 

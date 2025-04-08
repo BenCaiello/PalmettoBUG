@@ -1,14 +1,23 @@
 Glossary
 ========
 
+.. _Analysis:
 Analysis
 ^^^^^^^^
 
    In PalmettoBUG an ‘analysis’ usually refers to the single-cell
-   calculations and plots operating on *FCS* files, which is to say all
+   calculations and plots operating on :ref:`FCS`, which is to say all
    the functions associated with the 4\ :sup:`th` tab of the program.
    For imaging experiments, this occurs after measurements for each cell
    are read from the segmentation masks, and converted to FCS files.
+
+.. _annotation:
+Annotation
+^^^^^^^^^^
+
+   Or :ref:`merging`. The process of assigning biologically relevant labels to the output
+   of an :ref:`unsupervised-algorithm` used to cluster cells or pixels. This typically also involves combining two
+   or more groups of the clustering into a single label, hence the common alternative name "merging". 
 
 Analysis_panel.csv
 ^^^^^^^^^^^^^^^^^^
@@ -34,8 +43,8 @@ Batch Correction
 CATALYST
 ^^^^^^^^
 
-   An R *package* whose functions and associated manuscript served as
-   the inspiration and seed for much of the PalmettoBUG *analysis*
+   An R package whose functions and associated manuscript (https://f1000research.com/articles/6-748/v3) served as
+   the inspiration and seed for much of the PalmettoBUG :ref:`Analysis`
    functions. 
    
    Link: https://github.com/HelenaLC/CATALYST/ 
@@ -64,11 +73,12 @@ Leiden
    A clustering derived by the Leiden unsupervised algorithm acting on a
    UMAP of the single-cell expression data. See :ref:`Leiden-Algorithm`
 
+.. _merging:
 Merging
 '''''''
 
-   A manual annotation of an unsupervised clustering (FlowSOM / Leiden),
-   assigning the numerical groups produced by those algorithms to
+   A manual :ref:`annotation` of an :ref:`unsupervised-algorithm` used for clustering 
+   (:ref:`FlowSOM` / :ref:`Leiden-Algorithm`), assigning the numerical groups produced by those algorithms to
    biologically relevant groupings, often merging two or more of the
    numerical groups into one label.
 
@@ -85,6 +95,7 @@ CN
    a FlowSOM or Leiden to create unsupervised clusters that can then be
    annotated. CN clustering is only possible with imaging datasets.
 
+.. _classification-maps:
 Classification maps
 ^^^^^^^^^^^^^^^^^^^
 
@@ -93,14 +104,13 @@ Classification maps
    ‘channel’ / layer. This channel contains the class predictions, which
    are unique integer values representing each unique class.
 
-..
-
    When these numerical classes are annotated / merged (this is
    semi-automatic for supervised classifiers), a “merged classification map”
    is created, where ‘background’ pixels are set to 0, and the numerical
    values of the pixels are re-assigned based on the labels supplied by
    the user.
 
+.. _denoising:
 Denoising
 ^^^^^^^^^
 
@@ -132,6 +142,7 @@ PCA
    allowing just the top two, most important components to be used for
    plotting.
 
+.. _UMAP:
 UMAP
 ^^^^
 
@@ -142,6 +153,7 @@ UMAP
 
    Link: https://scanpy.readthedocs.io/en/stable/generated/scanpy.tl.umap.html
 
+.. _fANOVA:
 fANOVA
 ^^^^^^
 
@@ -151,7 +163,7 @@ fANOVA
    into account the spatial relationship of celltypes across an entire
    range of distances, instead of only testing one distance at a time.
     
-
+.. _FCS:
 FCS files
 ^^^^^^^^^
 
@@ -160,10 +172,8 @@ FCS files
    associated metadata. Commonly exported by flow cytometers and flow
    cytometry software.
 
-..
-
    FCS files are one of the starting file types, and they can be used to
-   initiate an ‘\ *analysis’* in PalmettoBUG. They are also an
+   initiate an :ref:`Analysis` in PalmettoBUG. They are also an
    intermediate in the PalmettoBUG pipeline, produced after taking
    region measurements of the cells in the images using segmentation
    masks.
@@ -180,20 +190,21 @@ FlowSOM
 
    Link: https://github.com/saeyslab/FlowSOM_Python
 
+.. _image-processing:
 Image Processing
 ^^^^^^^^^^^^^^^^
 
    In PalmettoBUG / its documentation, this typically refers to the
    steps of the pipeline available in the second tab of the program,
    including the *isoSegDenoise* sub-program. This would include
-   converting *MCD* files / hot pixel filtering, *segmentation*,
-   *denoising*, and *region measurements*.
+   converting :ref:`MCD` / hot pixel filtering, :ref:`segmentation`,
+   :ref:`denoising`, and :ref:`region-measurement`.
 
 isoSegDenoise
 ^^^^^^^^^^^^^
 
    A pure-python associate package with PalmettoBUG, offering its own
-   GUI for the denoising of images and the segmentation of cells. It
+   GUI for the :ref:`denoising` of images and the :ref:`segmentation` of cells. It
    expects the same directory structure, and the same file types, etc.
    as PalmettoBUG, and similarly its outputs are easily and
    automatically picked up by PalmettoBUG.
@@ -210,7 +221,7 @@ Leiden Algorithm
 ^^^^^^^^^^^^^^^^
 
    A method for grouping neighboring points in a network. In
-   PalmettoBUG, it is used after a *UMAP* embedding of the cells, such
+   PalmettoBUG, it is used after a :ref:`UMAP` embedding of the cells, such
    that cells in similar locations of the UMAP projection will be
    clustered together. Unlike *FlowSOM*, it does not take a preset
    metaclustering number, and the final number of clusters it finds is
@@ -219,10 +230,11 @@ Leiden Algorithm
 
    Link: https://scanpy.readthedocs.io/en/stable/generated/scanpy.tl.leiden.html 
 
+.. _masks:
 Masks
 ^^^^^
 
-   The output of *segmentation*. These are derived from the images of
+   The output of :ref:`segmentation`. These are derived from the images of
    the dataset, having the same X / Y dimensions, but only 1 ‘channel’ /
    layer. This layer contains integer values for the pixels – each
    unique cell having a unique value – and zeros for pixels that lie
@@ -230,8 +242,9 @@ Masks
    masks, all the pixels of a given integer value are treated as a
    single cell.
 
-MCD file
-^^^^^^^^
+.. _MCD:
+MCD Files
+^^^^^^^^^
 
    A file format exported by Standard BioTools’ Hyperion imaging system.
    It is essentially a group of TIFF files (one for each ROI and
@@ -241,8 +254,6 @@ MCD file
    (brightfield images of the slides – these are usually only important
    for finding the tissue of interest during acquisition and not
    directly processed by PalmettoBUG).
-
-..
 
    MCD files are one of the starting file types that can be used to
    initiate an imaging project in PalmettoBUG.
@@ -276,10 +287,10 @@ panel.csv
 ^^^^^^^^^
 
    One of the key data table files needed by PalmettoBUG (can be made
-   inside the GUI). This is concerned with *image processing* steps, and
+   inside the GUI). This is concerned with :ref:`image-processing` steps, and
    specifies the name of the channels, what channels to keep from the
-   initial *MCD* / *TIFF* files, and what channels to use during
-   *segmentation*.
+   initial :ref:`MCD` / :ref:`TIFF`, and what channels to use during
+   :ref:`segmentation`.
 
 .. _Pixel-Classification:
 Pixel Classification
@@ -290,8 +301,6 @@ Pixel Classification
    other transformations on the data, such as extending segmentation
    masks.
 
-..
-
    In PalmettoBUG, this can also refer to the third tab of the program,
    and its two sub-tabs (creating and using a pixel classifier).
 
@@ -300,14 +309,15 @@ Project
 
    In PalmettoBUG, a ‘project’ typically refers to an imaging-based
    experiment that is processed all within in a single computer
-   directory. As in, a replicate of a data analysis in PalmettoBUG whose *image processing*,
-   *segmentation*, *analysis*, etc. occurred in an entirely separate folder from the original would
+   directory. As in, a replicate of a data analysis in PalmettoBUG whose :ref:`image-processing`,
+   :ref:`segmentation`, :ref:`Analysis`, etc. occurred in an entirely separate folder from the original would
    be a separate “project”, despite only being a replicate.
 
+.. _region-measurement:
 Region Measurement
 ^^^^^^^^^^^^^^^^^^
 
-   This is the step in the program where cell *segmentation masks* +
+   This is the step in the program where cell segmentation :ref:`masks` +
    images are converted into single-cell data that can be written as csv
    or *FCS* files. Specifically, pixels with all the same value in the
    masks are treated as ‘cells’, and their spatial / shape
@@ -315,13 +325,14 @@ Region Measurement
    pixels’ intensities in each image channel are aggregated (usually by
    the mean or median) for each cell and written to ‘intensities’ csv
    files, which can then be easily converted to FCS files for
-   *analysis*.
+   :ref:`Analysis`.
 
+.. _segmentation:
 Segmentation
 ^^^^^^^^^^^^
 
    The process of identifying single cells in an image, in the end
-   creating a *mask* that can be used for *region measurement*. In
+   creating a :ref:`mask` that can be used for :ref:`region-measurement`. In
    PalmettoBUG, this can be done using pre-trained, generalist
    deep-learning networks from prior publications — Deepcell / Mesmer
    and Cellpose models — or by using a pixel classifier.
@@ -331,17 +342,16 @@ Spatial Analysis
 
    In PalmettoBUG, this refers to the fifth and last tab of the program,
    as well as the functions that are available there. This includes cell
-   *neighborhoods*, *SpaceANOVA*, *spatial EDT*, etc. This is tightly
-   associated with, and dependent on, the *analysis* portion of the
+   neighborhoods, SpaceANOVA, spatial EDT, etc. This is tightly
+   associated with, and dependent on, the :ref:`Analysis` portion of the
    program.
 
 SpaceANOVA
 ^^^^^^^^^^
 
-   An R *package* whose method (see *manuscript*) was translated into
-   Python for use inside PalmettoBUG. Briefly, it uses *Ripley’s
-   statistics* + *fANOVA* to test the spatial associations of
-   *clusterings* / cell types in a dataset.
+   An R package whose method (see https://pubs.acs.org/doi/10.1021/acs.jproteome.3c00462) was translated into
+   Python for use inside PalmettoBUG. Briefly, it uses Ripley’s statistics + :ref:`fANOVA`` to test the spatial associations of
+   clusterings / cell types in a dataset.
 
    Link: https://github.com/sealx017/SpaceANOVA
 
@@ -349,9 +359,9 @@ Spatial EDT
 ^^^^^^^^^^^
 
    This is technique in PalmettoBUG that uses a pixel classifier’s
-   *classification maps* to generate Euclidean distance transforms of
+   :ref:`classification-maps`` to generate Euclidean distance transforms of
    images for each pixel class, with the EDT values being the distance
-   from that pixel classes. *Region measurement* can then be performed
+   from that pixel classes. :ref:`region-measurement` can then be performed
    to find the distance values of cells from the pixel classes. In this
    way, the distance between cells and non-cellular structures can be
    probed.
@@ -359,11 +369,11 @@ Spatial EDT
 Steinbock
 ^^^^^^^^^
 
-   A python *package* from the Bodenmiller group that served as the
+   A python package from the Bodenmiller group that served as the
    inspiration & seed for much of image processing portion of the
    PalmettoBUG pipeline.
 
-   Link: https://github.com/BodenmillerGroup/steinbock
+   Link: https://github.com/BodenmillerGroup/steinbock and https://www.nature.com/articles/s41596-023-00881-0
 
 Supervised Algorithm
 ^^^^^^^^^^^^^^^^^^^^
@@ -371,9 +381,10 @@ Supervised Algorithm
    Any classification / clustering algorithm that requires a training
    set of labeled pixels / cells to learn the classes it will predict.
    This also means that its predictions can immediately be identified /
-   correlated to biologically relevant labels. PalmettoBUG only uses a
-   supervised algorithm for *pixel classification*.
+   correlated to biologically relevant labels. The only time PalmettoBUG uses a
+   supervised algorithm is for a type of :ref:`Pixel-Classification`.
 
+.. _unsupervised-algorithm:
 Unsupervised Algorithm
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -381,10 +392,11 @@ Unsupervised Algorithm
    training set to learn before prediction, although they do take user
    input for hyperparameters. One consequence of this is that their
    output classes / clusters are numerical, not having any known
-   biological meaning until *annotated* by the user. The most commonly
-   used unsupervised algorithm in PalmettoBUG is *FlowSOM*, but *Leiden*
+   biological meaning until :ref:`annotation` by the user. The most commonly
+   used unsupervised algorithm in PalmettoBUG is :ref:`FlowSOM`, but :ref:`Leiden-Algorithm`
    clustering is also available for cells.
 
+.. _TIFF:
 TIFF files
 ^^^^^^^^^^
 
@@ -395,8 +407,6 @@ TIFF files
    number of channels. When read into python, they are easily
    represented by numpy arrays.
 
-..
-
    TIFF files are one of the starting file types that can be used to
    initiate an imaging project in PalmettoBUG.
 
@@ -404,4 +414,4 @@ TIFF files
    metadata and more consistently structure metadata, however their
    pixel values are read in the same way. PalmettoBUG always writes and
    processes with .ome.tiff files after the first step (conversion from
-   the initial *MCD* or TIFF files).
+   the initial :ref:`MCD` or TIFF files).

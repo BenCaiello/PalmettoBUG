@@ -93,6 +93,7 @@ folders, and then load the directory. For imaging projects in
 PalmettoBUG, every sub-folder of */Analyses* (i.e., every individual
 analysis made for the imaging project) will be a valid folder for
 loading in this way. 
+
 .. note::
    This means that you can load the
    single-cell analysis portion of an imaging project in 2 ways – either
@@ -684,7 +685,7 @@ classy masks on top to see if cell clustering labels visually make sense with th
 
 Naturally, this option only works for imaging projects -- not solution-mode / FCS-only projects.
 
-
+.. _Links:
 Links
 ~~~~~
 
