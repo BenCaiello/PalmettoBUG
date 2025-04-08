@@ -501,6 +501,10 @@ class GPL_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             \t singletons (https://github.com/jmaroeder/python-singletons, MIT, python): Utils/shared_classes, for windows and loggers
             \t scikit-image (https://github.com/scikit-image/scikit-image, BSD-3, python): pixel classifier segmentation
             \t ctk_theme_builder (https://github.com/avalon60/ctk_theme_builder, MIT, python): many of the pre-made GUI themes
+
+        Additionally, some packages' code is directly copied, with some modification inside PalmettoBUG itself ("vendored"):
+            Vendored packages == fcsparser, fcsy, pyometiff, qnorm, readimc, sigfig, and steinbock  (see _vendor folder inside PalmettoBUG package)
+
         The listed packages are noted because of their use beyond merely importation / use of API / use of documentation files for the many library dependencies of this project,
         and because of their extensive use in different parts of the program. See individual .py files for details & any other packages that parts of the program may have derived from.
         As far as I am aware, all imported libraries are themselves permissively or GPL compatibly licensed.
