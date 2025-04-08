@@ -50,7 +50,7 @@ def toggle_in_gui():
     global _in_gui
     _in_gui = not _in_gui
 
-def plot_classes(class_map_folder, output_folder):
+def plot_classes(class_map_folder, output_folder, **kwargs):
     '''
     Goal: allow classy masks and pixel classification outputs to be written as .png files
     '''
@@ -58,7 +58,7 @@ def plot_classes(class_map_folder, output_folder):
         os.mkdir(output_folder)
     for i in sorted(os.listdir(class_map_folder)):
         px_class = tf.imread(f"{class_map_folder}/{i}").astype('int')
-        figure = tf.imshow(px_class)[0]
+        figure = tf.imshow(px_class, **kwargs)[0]
         figure.savefig(f"{output_folder}/{i[:-5]}.png", bbox_inches = "tight")
         plt.close()
 
