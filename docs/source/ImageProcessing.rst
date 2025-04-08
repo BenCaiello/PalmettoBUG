@@ -366,7 +366,7 @@ as either code or techniques / ideas from these are used in PalmettoBUG's & isoS
    :height: 2.50725in
 .. |image11| image:: media/ImageProcessing/ImageProcessing11.png
    :width: 5.52445in
-   :height: 3.35187in
+   :height: 4.2in
 .. |image12| image:: media/ImageProcessing/ImageProcessing12.png
    :width: 5.63214in
    :height: 3.0351in

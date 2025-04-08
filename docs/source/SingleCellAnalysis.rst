@@ -746,8 +746,8 @@ as either code or the techniques / ideas from these are used in PalmettoBUG's si
    :width: 6.5in
    :height: 3.83958in
 .. |image15| image:: media/SingleCellAnalysis/SCAnalysis14.png
-   :width: 6.34909in
-   :height: 3.41263in
+   :width: 6.5in
+   :height: 3.4in
 .. |image16| image:: media/SingleCellAnalysis/SCAnalysis15.png
    :width: 6.28597in
    :height: 3.54272in
@@ -764,5 +764,5 @@ as either code or the techniques / ideas from these are used in PalmettoBUG's si
    :width: 6.5in
    :height: 4.41806in
 .. |image21| image:: media/SingleCellAnalysis/SCAnalysis20.png
-   :width: 6.5in
-   :height: 3.99653in
+   :width: 7.2in
+   :height: 4.0in

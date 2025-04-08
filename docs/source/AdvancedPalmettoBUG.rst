@@ -283,19 +283,19 @@ Knowing the directory structure can help in a couple main ways:
 
 .. |image1| image:: media/Advanced1.png
    :width: 6.5in
-   :height: 4.30347in
+   :height: 4.9in
 .. |image2| image:: media/Advanced2.png
    :width: 3.94669in
    :height: 4.41262in
 .. |image3| image:: media/Advanced3.png
    :width: 6.5in
-   :height: 3.425in
+   :height: 5.1525in
 .. |image5| image:: media/Advanced4.png
-   :width: 5.56551in
-   :height: 3.71807in
-.. |image4| image:: media/Advanced5.png
    :width: 6.5in
    :height: 3.06806in
+.. |image4| image:: media/Advanced5.png
+   :width: 5.56551in
+   :height: 3.71807in
 .. |image6| image:: media/Advanced6.png
    :width: 6.5in
-   :height: 2.69375in
+   :height: 3.25in
