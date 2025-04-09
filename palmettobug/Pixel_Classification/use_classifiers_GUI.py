@@ -1445,6 +1445,9 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                                                                             self.option2.get()))
         button.grid(padx = 3, pady = 3)
 
+        self.checkbox = ctk.CTkCheckBox(master = self, onvalue = True, off value = False, text = "Check to plot classes as up to 20 diverging colors")
+        self.checkbox.grid(padx = 3, pady = 3)
+
         self.after(200, self.focus())
 
     def convert_to_png(self, map_type = "pixel classification", choice = "classification_maps"):
@@ -1464,5 +1467,8 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             os.mkdir(path_to_ouput)
 
         ## Step 2: convert folder & write png's to a parallel folder to the original (with _PNG appended to the name or somesuch)
-        plot_classes(path_to_folder, path_to_ouput)
+        if self.checkbox.get():
+            plot_classes(path_to_folder, path_to_ouput, cmap = "tab20")
+        else:
+            plot_classes(path_to_folder, path_to_ouput)
         self.destroy()
