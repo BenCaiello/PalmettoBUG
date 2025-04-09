@@ -260,8 +260,6 @@ antigen of the data. There are several different ways to scale the data inside P
    mean that those channels could dominate the clustering, while dimmer
    channels are ignored.
 
-..
-
    2). %quantile scaling. This form of scaling is very similar to
    min-max, with one difference: the channels are not only scaled to
    values between 0-1, but extremely bright cells (those above a
@@ -285,8 +283,6 @@ antigen of the data. There are several different ways to scale the data inside P
    scikit-learn’s documentation:
    `https://scikit-learn.org/1.5/auto_examples/preprocessing/plot_all_scaling.html#sphx-glr-auto-examples-preprocessing-plot-all-scaling-py <https://scikit-learn.org/1.5/auto_examples/preprocessing/plot_all_scaling.html#sphx-glr-auto-examples-preprocessing-plot-all-scaling-py>`__
    (note that quantile transformer in that link is NOT qnorm!).
-
-..
 
    5). Quantile Normalization (qnorm). This type of scaling uses a
    rank-based procedure (see wikipedia
