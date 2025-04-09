@@ -107,11 +107,21 @@ Launching isoSegDenoise
 The next major step in the pipeline is typically cell segmentation,
 unless optional image denoising is desired. These steps (denoising and
 segmentation) are performed in the sister program to PalmettoBUG –
-isoSegDenoise (or iSD). If the isoSegDenoise package has been installed
-in the same conda environment as PalmettoBUG, then the iSD interface can
-be launched from the indicated button in PalmettoBUG. Launching from
-this button will also automatically load the current project in
-PalmettoBUG into iSD for a seamless transition between the two programs.
+isoSegDenoise (or iSD). 
+
+.. warning::
+   The reason why isoSegDenoise is separate from PalmettoBUG is because of the non-commercial / academic restrictions licensing
+   of DeepCell / Mesmer (and possibly non-commercial licensing of some Cellpose Models, through the licenses of the datasets those 
+   models were trained on, although that is less clear).
+   ONLY these models are subject to these restrictions, all other portions of isoSegDenoise are also permissively licensed, and open-source (BSD-3).
+
+   Restrictions like these are not present in PalmettoBUG itself, which is a fully free / open-source software (GPL3), and not compatible
+   with non-commercial restrictions on its use.
+
+If the isoSegDenoise package has been installed in the same conda environment as PalmettoBUG, 
+then the iSD interface can be launched from the indicated button in PalmettoBUG. Launching from
+this button will also automatically load the current project in PalmettoBUG into iSD for a seamless
+transition between the two programs.
 
 |image5|
 
