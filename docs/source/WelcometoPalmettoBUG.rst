@@ -153,7 +153,7 @@ and sphinx-rtd-theme.
 
 The media / images (and odp files) in the /docs folder of the GitHub repository were created in 
 Microsoft PowerPoint and LibreOffice from screenshots (using Windows Snipping Tool) of the PalmettoBUG program & its output files, as well as
-other programs (like Napari & Windows File Explorer) that were used while analysing the example data  
+other programs (like Napari, & Windows File Explorer, etc.) that were used while analysing the example data  
 These screenshots are used under the assumption of fair use given the limited use of such screenshots, the open-source / academic / non-commercial 
 nature of the PalmettoBUG program and its documentation, and the lack of financial consequences from such screenshots -- if this is inaccurate I am happy to remove 
 any offending parts of this documentation. (such copyright concerns could only likely apply to icons in / screenshots of Windows File Explorer / Microsoft Excel, 

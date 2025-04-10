@@ -1,12 +1,9 @@
 '''
-This module handles the widgets in the second tab of the program, which coordinate image processing (such as converison from /raw to /images/img)
-None of the functions in this module should be exposed int eh public (non-GUI) API. 
-
-
+This module handles the widgets in the second tab of the program, which coordinate image processing (such as conversion from /raw to /images/img)
+None of the functions in this module should be exposed in the public (non-GUI) API. 
 
 This file is licensed under the GPL3 license. No significant portion of the code here is known to be derived from another project 
-        (in the sense of needing to be separately / simulataneously licensed)
-        
+(in the sense of needing to be separately / simulataneously licensed)        
 '''
 
 import os
