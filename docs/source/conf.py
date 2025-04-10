@@ -21,6 +21,7 @@ extensions = ['sphinx_rtd_theme',
 'nbsphinx'
 ]
 autoapi_dirs = ['../../palmettobug']
+autoapi_ignore = ['_vendor', 'Assets', '*widget*', '*_GUI*', '*migrations*']   ## *migrations* is a default, so I leave it in here
 
 
 templates_path = ['_templates']
