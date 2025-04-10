@@ -533,7 +533,7 @@ class Analysis:
             regionprops_directory = self.directory[:self.directory.rfind("/")] + "/regionprops/"
         regionprops_directory = str(regionprops_directory)
         roi_areas = sorted(os.listdir(regionprops_directory))
-        region_props_tables = ["".join([regionprops_directory,"/",ii]) for ii in roi_areas if (ii[-4] + ".fcs") in self.fcs_dir_names]
+        region_props_tables = ["".join([regionprops_directory,"/",ii]) for ii in roi_areas if (ii[:-4] + ".fcs") in self.fcs_dir_names]
         regionprops = pd.DataFrame()
         for i in region_props_tables:
             read_in = pd.read_csv(i)
