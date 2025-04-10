@@ -1445,7 +1445,7 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                                                                             self.option2.get()))
         button.grid(padx = 3, pady = 3)
 
-        self.checkbox = ctk.CTkCheckBox(master = self, onvalue = True, off value = False, text = "Check to plot classes as up to 20 diverging colors")
+        self.checkbox = ctk.CTkCheckBox(master = self, onvalue = True, offvalue = False, text = "Check to plot classes as up to 20 diverging colors")
         self.checkbox.grid(padx = 3, pady = 3)
 
         self.after(200, self.focus())
