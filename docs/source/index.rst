@@ -19,10 +19,10 @@ palmettoBUG documentation
    UsingPixelClassifier
    TheInterface
    AdvancedPalmettoBUG
+   bead_norm
    Glossary
    FAQ
    Citing&Acknowledgements
-
 
 .. toctree::
    :maxdepth: 2
