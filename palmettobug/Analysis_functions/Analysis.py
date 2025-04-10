@@ -272,6 +272,13 @@ class Analysis:
         self.fcs_directory = self.directory  + "/Analysis_fcs"
         self.fcs_dir_names = sorted(os.listdir(self.fcs_directory))
 
+        new_fcs_filenames = []
+        truth_array = np.zeros(len(self.metadata)).astype('bool')
+        for i in list(self.metadata['file_name']):
+            if i in self.fcs_dir_names:
+                new_fcs_filenames.append(i)
+                truth_array = truth_array + np.array(self.metadata['file_name'] == i).astype('bool')
+
         if len(self.fcs_dir_names) != len(self.metadata):
             if self._in_gui:
                 warning_window("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
@@ -281,13 +288,6 @@ class Analysis:
             else:
                 print("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
                       "only keeping data present in both for analysis!") 
-
-        new_fcs_filenames = []
-        truth_array = np.zeros(len(self.metadata)).astype('bool')
-        for i in list(self.metadata['file_name']):
-            if i in self.fcs_dir_names:
-                new_fcs_filenames.append(i)
-                truth_array = truth_array + np.array(self.metadata['file_name'] == i).astype('bool')
 
         self.metadata = self.metadata[truth_array]
         self.fcs_dir_names = new_fcs_filenames
@@ -332,8 +332,9 @@ class Analysis:
         metadata_long = pd.DataFrame()
         sample_id_array = np.zeros([0])
         counter = 0
+        sample_ids = list(self.metadata['sample_id'])
         for i,ii in zip(self.length_of_images[:-1], self.length_of_images[1:]):
-            slicer = np.full(shape = [ii - i], fill_value = counter)
+            slicer = np.full(shape = [ii - i], fill_value = sample_ids[counter])
             sample_id_array = np.append(sample_id_array,slicer)
             counter += 1
             
