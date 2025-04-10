@@ -281,16 +281,16 @@ class Analysis:
             else:
                 print("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
                       "only keeping data present in both for analysis!") 
-            new_fcs_filenames = []
-            truth_array = np.zeros(len(self.metadata)).astype('bool')
-            for i in list(self.metadata['file_name']):
-                if i in self.fcs_dir_names:
-                    new_fcs_filenames.append(i)
-                    truth_array = truth_array + np.array(self.metadata['file_name'] == i).astype('bool')
 
-            self.metadata = self.metadata[truth_array]
-            self.fcs_dir_names = new_fcs_filenames
+        new_fcs_filenames = []
+        truth_array = np.zeros(len(self.metadata)).astype('bool')
+        for i in list(self.metadata['file_name']):
+            if i in self.fcs_dir_names:
+                new_fcs_filenames.append(i)
+                truth_array = truth_array + np.array(self.metadata['file_name'] == i).astype('bool')
 
+        self.metadata = self.metadata[truth_array]
+        self.fcs_dir_names = new_fcs_filenames
         self.fcs_path_list = ["".join([self.fcs_directory,"/",i]) for i in self.fcs_dir_names]
 
         intensities = pd.DataFrame()
@@ -533,7 +533,7 @@ class Analysis:
             regionprops_directory = self.directory[:self.directory.rfind("/")] + "/regionprops/"
         regionprops_directory = str(regionprops_directory)
         roi_areas = sorted(os.listdir(regionprops_directory))
-        region_props_tables = ["".join([regionprops_directory,"/",ii]) for ii in roi_areas]
+        region_props_tables = ["".join([regionprops_directory,"/",ii]) for ii in roi_areas if (ii[-4] + ".fcs") in self.fcs_dir_names]
         regionprops = pd.DataFrame()
         for i in region_props_tables:
             read_in = pd.read_csv(i)
