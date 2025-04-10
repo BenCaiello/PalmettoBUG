@@ -2,8 +2,9 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/BenCaiello/PalmettoBUG/python-app.yml)
 ![Pepy Total Downloads](https://img.shields.io/pepy/dt/palmettobug)
 ![PyPI - Version](https://img.shields.io/pypi/v/palmettobug)
+![Read the Docs](https://img.shields.io/readthedocs/PalmettoBUG)
 ![Static Badge](https://img.shields.io/badge/License-GPL3-blue)
-
+Badges made in: https://shields.io/
 
 ## Warning! This package is still under development!
 
