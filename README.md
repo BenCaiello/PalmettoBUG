@@ -4,6 +4,7 @@
 ![PyPI - Version](https://img.shields.io/pypi/v/palmettobug)
 ![Read the Docs](https://img.shields.io/readthedocs/PalmettoBUG)
 ![Static Badge](https://img.shields.io/badge/License-GPL3-blue)
+
 Badges made in: https://shields.io/
 
 ## Warning! This package is still under development!
@@ -12,14 +13,13 @@ Final development plans:
 
     1). Documentation: 
         - Update images and descriptions with new features & data
-            -- Premessa / bead-normalization translation --> have a page for this (would require fresh example data?)
-            -- update to remove / reduce screenshots of prop-licensed software (probably fair use, but won't hurt to do)
+            -- update to remove / reduce screenshots of prop-licensed software (file explorer, probably fair use, but won't hurt to do)
         - incorporate proofreader edits
         - Look at API documentation -- it is almost certianly a mess right now
 
     2). Code:
-        - Expand tests (may not be possible, because of the GUI code and extensive use of pop-up windows), get code coverage badge/shield
-        - Environment lists (update all to reflect recent changes)
+        - Expand tests (may not be possible, because of the nature of GUI code and extensive use of pop-up windows), get code coverage badge/shield
+        - Environment lists (update ALL to reflect recent changes)! Currently these files are inaccurate!
         - Future: re-test later python versions (3.12, etc.) and updated dependencies (numpy v2+, etc.)
 
 
