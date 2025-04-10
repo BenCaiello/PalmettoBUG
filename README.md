@@ -1,11 +1,12 @@
 # PalmettoBUG
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/BenCaiello/PalmettoBUG/python-app.yml)
+![Coverage](https://github.com/BenCaiello/PalmettoBUG/actions/workflows/python-app.yml/coverage-badge.svg)
 ![Pepy Total Downloads](https://img.shields.io/pepy/dt/palmettobug)
 ![PyPI - Version](https://img.shields.io/pypi/v/palmettobug)
 ![Read the Docs](https://img.shields.io/readthedocs/PalmettoBUG)
 ![Static Badge](https://img.shields.io/badge/License-GPL3-blue)
 
-Badges made in: https://shields.io/
+Badges, except coverage, made in: https://shields.io/
 
 ## Warning! This package is still under development!
 
