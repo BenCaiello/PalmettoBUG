@@ -279,15 +279,21 @@ class Analysis:
                 new_fcs_filenames.append(i)
                 truth_array = truth_array + np.array(self.metadata['file_name'] == i).astype('bool')
 
-        if len(self.fcs_dir_names) != len(self.metadata):
+        if (len(self.fcs_dir_names) != len(self.metadata)) or (len(new_fcs_filenames) != len(self.fcs_dir_names)):
+            missing_in_metadata = [i for i in self.fcs_dir_names if i not in new_fcs_filenames]
+            missing_in_FCS = [i for i in self.metadata['file_name'] if i not in new_fcs_filenames]
             if self._in_gui:
                 warning_window("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
                                "only keeping data present in both for analysis!")
                 Analysis_log.info("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
-                                  "only keeping data present in both for analysis!") 
+                                  "only keeping data present in both for analysis! \n"
+                                 f"FCS files absent in metdata: {str(missing_in_metadata)} \n"
+                                 f"metadata entries absent in FCS files: {str(missing_in_FCS)}") 
             else:
                 print("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
-                      "only keeping data present in both for analysis!") 
+                      "only keeping data present in both for analysis!"
+                     f"FCS files absent in metdata: {str(missing_in_metdata)} \n"
+                     f"metadata entries absent in FCS files: {str(missing_in_FCS)}") 
 
         self.metadata = self.metadata[truth_array]
         self.fcs_dir_names = new_fcs_filenames
@@ -1406,6 +1412,98 @@ class Analysis:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
         plt.close()  
         return figure
+
+    def plot_facetted_DR_by_antigen(self, 
+                                    marker_class: list = ['type'],   ## will need to allow the function to accept more than one grouping at once (?)
+                                    kind: str = "UMAP",
+                                    suptitle: bool = True,
+                                    number_of_columns: int = 3, 
+                                    color_bank: Union[list[str], None] = None, 
+                                    filename: Union[str, None] = None, 
+                                    **kwargs) -> plt.figure:
+        '''
+        Like the plot_facetted_DR method below, but specific to when you want to facet by the antigens & color each facet by the respective antigen
+        '''
+        if number_of_columns <= 1:
+            print("number_of_columns must be > 1!")
+            return
+        if kind == "UMAP":
+            down_anndata = self.UMAP_embedding.copy()
+        elif kind == "PCA":
+            down_anndata = self.PCA_embedding.copy()
+        if ("All" not in marker_class) and (len(marker_class) != 0):    ## None ==> show all
+            slicer = (self.panel['marker_class'] == marker_class[0]).astype('int')
+            for j in marker_class:
+                slicer = slicer + (self.panel['marker_class'] == j).astype('int')
+            down_anndata = down_anndata[:, (slicer > 0)]
+        downsample_UMAP_df = pd.DataFrame(down_anndata.obsm['X_umap'])
+        for i in down_anndata.obs.columns:
+            down_anndata.obs[i] = down_anndata.obs[i].astype('category')
+        try:
+            down_anndata.obs = down_anndata.obs.drop('index', axis = 1)
+        except KeyError:
+            pass
+        
+        down_anndata.obs.index = downsample_UMAP_df.index
+        downsample_UMAP_df = pd.merge(downsample_UMAP_df.reset_index(), down_anndata.obs.reset_index(), on = 'index')
+
+        color_subsets = down_anndata.var['antigen'].unique()
+
+        number_of_panels = len(color_subsets)
+        if int(number_of_panels) == int(number_of_columns):
+            number_of_columns -= 1    ## automatically reshape if it is too small
+
+        number_of_rows = (number_of_panels // number_of_columns) + 1            ## + 1 because the // operation rounds down
+        if (number_of_rows == 1) and (number_of_columns > 2):
+            number_of_columns -= 1  
+            number_of_rows = (number_of_panels // number_of_columns) + 1  
+
+        if int(number_of_panels % number_of_columns) == 0:
+            number_of_rows = number_of_rows - 1   ## avoid a blank row at the end
+
+        plt.style.use('ggplot')
+        figX = number_of_columns * 2.35
+        figY = number_of_rows * 1.9
+        figure, axs = plt.subplots(number_of_rows,
+                                   number_of_columns, 
+                                   sharex = True, 
+                                   sharey = True, 
+                                   figsize = (figX, figY))
+        axs = axs.ravel()
+
+        for i, color_by in enumerate(down_anndata.var['antigen'].unique()):
+            downsample_UMAP_df['color'] = down_anndata.X[:,(down_anndata.var['antigen'] == color_by)]
+            maximum_legend = len(color_by)
+            patch_bank1 = [Patch(color = '#E9E9E9', label = color_by)]
+            axs[i].scatter(x = downsample_UMAP_df[0], 
+                            y = downsample_UMAP_df[1], 
+                            c = downsample_UMAP_df['color'], 
+                            s = 1, 
+                            alpha = 0.5, 
+                            **kwargs)
+            axs[i].set_title(ii, size = 10)
+
+        for k in range(i+1, number_of_rows*number_of_columns, 1):
+            axs[k].set_axis_off()
+
+        x_anchor = (((1.0 + (maximum_legend * 0.02))
+                    - (number_of_columns-2)*(0.125 / (abs(number_of_columns - 3) + 1)))
+                    - ((number_of_columns - 3)*0.035))
+        
+        figure.legend(handles = [i for i in patch_bank1], 
+                    bbox_to_anchor = (x_anchor, 
+                                        0.9)) # 0.9 sets the top of the legend to the top of the figure. 
+                                            # This should work in most cases well enough (I think).
+                                            # The first parameter scales with the lenght of the strings
+                                            # in the legend, and the number of columns
+        sup_Y = 1.02 + (number_of_rows * -0.01)
+        if suptitle:
+            figure.suptitle(f'{kind} plots subsetted by {subsetting_column}', y = sup_Y)
+        if filename is not None:
+            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
+        plt.close()  
+        return figure      
+
 
     def plot_facetted_DR(self,
                          color_by: str, 

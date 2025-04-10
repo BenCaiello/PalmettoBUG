@@ -224,6 +224,10 @@ def test_facetted_DR():
     figure = my_analysis.plot_facetted_DR(color_by = "metaclustering", subsetting_column = "sample_id")
     assert isinstance(figure, matplotlib.figure.Figure), "Facetted DR plot did not return a matplotlib figure"
 
+def test_facetted_by_antigen_DR():
+    figure = my_analysis.plot_facetted_DR_by_antigen(marker_class = ["type","state"], kind = "UMAP")
+    assert isinstance(figure, matplotlib.figure.Figure), "Antigen Facetted DR plot did not return a matplotlib figure"
+
 def test_medians_heatmap():
     figure = my_analysis.plot_medians_heatmap()
     assert isinstance(figure, matplotlib.figure.Figure), "medians Heatmap plot did not return a matplotlib figure"
