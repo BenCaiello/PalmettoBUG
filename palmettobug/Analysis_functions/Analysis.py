@@ -292,7 +292,7 @@ class Analysis:
             else:
                 print("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
                       "only keeping data present in both for analysis!"
-                     f"FCS files absent in metdata: {str(missing_in_metdata)} \n"
+                     f"FCS files absent in metdata: {str(missing_in_metadata)} \n"
                      f"metadata entries absent in FCS files: {str(missing_in_FCS)}") 
 
         self.metadata = self.metadata[truth_array]
@@ -1481,7 +1481,7 @@ class Analysis:
                             s = 1, 
                             alpha = 0.5, 
                             **kwargs)
-            axs[i].set_title(ii, size = 10)
+            axs[i].set_title(color_by, size = 10)
 
         for k in range(i+1, number_of_rows*number_of_columns, 1):
             axs[k].set_axis_off()
@@ -1498,7 +1498,7 @@ class Analysis:
                                             # in the legend, and the number of columns
         sup_Y = 1.02 + (number_of_rows * -0.01)
         if suptitle:
-            figure.suptitle(f'{kind} plots subsetted by {subsetting_column}', y = sup_Y)
+            figure.suptitle(f'{kind} plots subsetted by Antigen', y = sup_Y)
         if filename is not None:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
         plt.close()  
