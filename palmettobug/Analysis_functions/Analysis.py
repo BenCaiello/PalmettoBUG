@@ -3,34 +3,34 @@ This module contains a single Analysis Class which handles the back-end of the m
 is available in the public (non-GUI) API of PalmettoBUG.
 
 This is used in the GUI by the fourth tab of the program. 
-
-
-While PalmettoBUG as a whole, and this script, is licensed under the GPL3 license, large portion of this file can be considered to be derived
-from the CATALYST R package::
-    
-    (https://github.com/HelenaLC/CATALYST/tree/main) license: GPL >= 2
-
-functions that are clearly derived from CATALYST are marked with a::
-
-    # *** deriv_CATLAYST (note)
-
-Specfically, much of the functionality & form of the CATALYST package was consciously translated into python from R
-Prominently, the panel / metadata structure, column names (such as the type / state/  none treatment of marker_class column), etc. of CATALYST 
-is preserved as well as much of the functionalities of CATALYST.
-
-Only a few functions (for example, the NRS plot and some of those involving specific data calculations preceding graphing) involved strict 
-translation of R --> python. While for many, the appearance of the final plot was translated in whatever means would most closely replicate the 
-result seen in CATALYST
-
-Some functions are new / not in CATALYST (ex:  the cluster vs. cluster comparisons, like the violin/bar/heatmap) or implementated differently 
-(for example, the FlowSOM performed here has scaling option inspired by pixie / ark-analysis [https://github.com/angelolab/ark-analysis -- MIT license])
-
-The statistics block is made to have somewhat similar output as CATALYST / diffcyt (a similar R package: :
-
-    https://github.com/lmweber/diffcyt [MIT + file license]),
-
-however the implementation here is quite different.
 '''
+## License / derivation info (commented to avoid inclusion in API docs):
+
+#While PalmettoBUG as a whole, and this script, is licensed under the GPL3 license, large portion of this file can be considered to be derived
+#from the CATALYST R package::
+#   
+#    (https://github.com/HelenaLC/CATALYST/tree/main) license: GPL >= 2
+#
+#functions that are clearly derived from CATALYST are marked with a::
+#
+#    # *** deriv_CATLAYST (note)
+#
+#Specfically, much of the functionality & form of the CATALYST package was consciously translated into python from R
+#Prominently, the panel / metadata structure, column names (such as the type / state/  none treatment of marker_class column), etc. of CATALYST 
+#is preserved as well as much of the functionalities of CATALYST.
+#
+#Only a few functions (for example, the NRS plot and some of those involving specific data calculations preceding graphing) involved strict 
+#translation of R --> python. While for many, the appearance of the final plot was translated in whatever means would most closely replicate the 
+#result seen in CATALYST
+#
+#Some functions are new / not in CATALYST (ex:  the cluster vs. cluster comparisons, like the violin/bar/heatmap) or implementated differently 
+#(for example, the FlowSOM performed here has scaling option inspired by pixie / ark-analysis [https://github.com/angelolab/ark-analysis -- MIT license])
+#
+#The statistics block is made to have somewhat similar output as CATALYST / diffcyt (a similar R package: :
+#
+#    https://github.com/lmweber/diffcyt [MIT + file license]),
+#
+#however the implementation here is quite different.
 
 import os
 from typing import Union
@@ -59,10 +59,9 @@ import tifffile as tf
 
 from .._vendor import sigfig
 from .._vendor import fcsparser
-#from .._vendor.flowsom import FlowSOM, plot_stars
-## anticipate de-vendorization:
 from flowsom import FlowSOM
 from flowsom.pl import plot_stars
+
 from .._vendor.qnorm import quantile_normalize
 from ..Utils.sharedClasses import warning_window, Analysis_logger
 
@@ -126,6 +125,13 @@ class Analysis:
             self.save_dir/{filename}.png
 
         Methods that return data tables are similar, but export to self.data_table_dir (not self.save_dir)
+
+    Args:
+        in_gui (bool):
+            Whether this class is inside the GUI (True) or not (False). Used primarily 
+            for determining whether to have tkinter pop-up warnings (True) or print-to-console warnings (False)
+
+            Most of the critical steps in setting up an Analysis occurs in the data loading methods, not in the initialization of the class.
 
     Key Attributes:         
         data (anndata.AnnData): This is an anndata object containing the numerical values of the channels in data.X, the event 
@@ -589,7 +595,7 @@ class Analysis:
         
         NOTE: don't call more than once!! You can duplicate data columns that way.
 
-        Reads in the Regionprops_panel from self.directory/Regionprops_panel.csv
+        If regionprops_panel is left as None, will read in the Regionprops_panel from self.directory/Regionprops_panel.csv
         '''
         length_check = (len(self.regionprops_data) != len(self.data.obs))
         drop_check = (len(self.data.obs) < np.max(self.data.obs.index.astype('int')))
@@ -631,8 +637,7 @@ class Analysis:
                    column: str = "sample_id",
                    ) -> None:                                                # *** deriv_CATALYST (in name & effect, not actually translated)
         '''
-        This function drops all rows matching sample_id_to_drop in the provided column from self.data. 
-        It also clears any dimensinality reduction previously performed
+        This function drops all rows matching to_drop in the provided column from self.data. 
         '''
         if self.back_up_data is None:
             self.back_up_data = self.data.copy()
@@ -645,7 +650,6 @@ class Analysis:
         self.data = self.data[filterer].copy()
         if self.unscaled_data is not None:
             self.unscaled_data = self.unscaled_data[filterer].copy()
-        #self.data.obs = self.data.obs.reset_index().drop('index', axis = 1)
 
         if column in self.metadata.columns:
             self.metadata = self.metadata[self.metadata[column] != str(to_drop)]
@@ -662,10 +666,10 @@ class Analysis:
                   covariates = None,
                   ) -> None:
         ''' 
-        Performs scanpy's combat implementation on self.data 
+        Performs scanpy's combat implementation on self.data. See their documentation for more details
+
+        batch_column specifies a column in self.data.obs to use as the batch grouping for the correction (usually 'patient_id')
         '''
-        #if self.unscaled_data is None:   ## now scaling the data will always undo a batch correction (since batch correction will never touch the scaling backup)
-        #    self.unscaled_data = self.data.X.copy()
         self.data.X = sc.pp.combat(self.data.copy(), key = batch_column, covariates = covariates, inplace = False).copy()
         if self.is_batched > 0:
             print('Warning! You have performed a batch correction twice on the same data! Are you sure this was intentional?')
@@ -771,8 +775,7 @@ class Analysis:
                     slicer = self.data.obs[split_by_column] == i
                     data_to_scale[slicer] = skpre.scale(data_to_scale[slicer], axis = 0)
         elif scaling_algorithm == "unscale":
-            #self.data.X = self.unscaled_data.copy()
-            self.unscaled_data = None
+            self.unscaled_data = None   # since data_to_scale is unchanged from self.unscaled_data.copy(), when it is used to overwrite self.data.X, we'll have unscaled the data
         elif scaling_algorithm == "qnorm":
             if split_by_column == "":
                 data_to_scale = quantile_normalize(data_to_scale)
@@ -818,6 +821,9 @@ class Analysis:
                 if a UMAP of the entire dataset has been previously performed, set this to True
                 to skip the time-consuming steps required for UMAP, and simply use the previously calculated dimensionality 
                 reduction. Will not filter for marker_class (assumes that was already done in the creation of the UMAP)
+
+        Returns:
+            True or False, depending on whether the marker_class chosen exists in the panel
         '''
         panel = self.panel
         for_fs = self.data.copy()
@@ -834,7 +840,7 @@ class Analysis:
             sc.tl.umap(for_fs, 
                         min_dist = min_dist, 
                         random_state = seed)
-            for_fs = ann.Anndata(self.data.X.copy(), obs = for_fs.obs, var = self.data.var.copy(), obsm = for_fs.obsm, uns = for_fs.uns)
+            for_fs = ann.AnnData(self.data.X.copy(), obs = for_fs.obs, var = self.data.var.copy(), obsm = for_fs.obsm, uns = for_fs.uns)
             for_obs_cat = pd.CategoricalDtype(categories = for_fs.obs['condition'].astype('str').unique(), ordered = True)
             for_fs.obs['condition'] = for_fs.obs['condition'].astype('str')
             for_fs.obs['condition'] = for_fs.obs['condition'].astype(for_obs_cat)
@@ -974,7 +980,7 @@ class Analysis:
                          **kwargs) -> plt.figure:                                        # *** deriv_CATALYST (in terms of imitating output 
                                                                                                                 # graph appearance)
         ''' 
-        Plots cell counts per [group_by], colored by [color_by], as a bar plot 
+        Plots cell counts per [group_by], colored by [color_by], as a bar plot. **kwargs are passed to seaborn.objects.Plot()
         '''
         if color_by == 'NULL':
             color_by = None
@@ -985,10 +991,8 @@ class Analysis:
         plot = plot.add(so.Bar(), so.Stack(), legend=True).label(title = "Countplot")
         if filename is not None:
             plot.save(self.save_dir + "/" + filename, bbox_inches = "tight") 
-
         fig = plt.figure()
         plot.on(fig).plot()
-
         plt.close()
         return fig
 
@@ -1002,7 +1006,8 @@ class Analysis:
         Plots an MDS embedding of the sample_ids in the dataset as a scatterplot, only using the antigens with marker_class [antigens_to_show] 
         in the panel and colored by [color_by] 
 
-        Also returns a dataframe of the MDS results to allow further examination / comparison of the sample_ids
+        Also returns a dataframe of the MDS results to allow further examination / comparison of the sample_ids. This dataframe can be written
+        to self.data_table_dir if [print_stat] == True. 
         '''
         metadata = self.metadata.copy()
         panel = self.panel.copy()
@@ -1335,6 +1340,10 @@ class Analysis:
         return downsample_anndata
 
     def plot_scatter(self, antigen1, antigen2, hue = None, filename = None, size = 1, alpha = 0.5, **kwargs):
+        '''
+        Makes a scatterplot of [antigen1] vs. [antigen2], colored by [hue]. Will write a png file from the plot to 
+        self.save_dir if filename is not None. 
+        '''
         data = pd.DataFrame(self.data.X.copy(), columns = self.data.var['antigen'].copy())
         # hue_norm = None
         palette = None
@@ -1834,7 +1843,8 @@ class Analysis:
         Unique in that this function only exports an .SVG file to the disk and return only the path to that file (does not return the plot 
         like the other functions)
 
-        This function is old, and not well-tested / supported so it may have errors!
+        This function is old, and not well-tested / supported so it may have errors! Also this depends on svg_stack, which is no longer a 
+        mandatory dependency of PalmettoBUG
         '''
         try:
             import svg_stack # type: ignore
@@ -1962,7 +1972,7 @@ class Analysis:
                                                                                                         # more than in the function itself)
         '''
         Creates a "merging"" column inside self.data.obs by merging & annotating an existing column in self.data.obs [groupby_column] with a 
-        pandas dataframe with two columns:
+        pandas dataframe (read-in by pd.read_csv(file_path)) with two columns:
 
             -- "original_cluster" (the values of the [groupby_column])
 
@@ -2112,7 +2122,7 @@ class Analysis:
                                 filename: Union[str, None] = None,
                                 **kwargs) -> plt.figure:                                             # *** deriv_CATALYST (ish, plot output)
         '''
-        Plots kde-smoothed histogram of a particular marker / antigen's expression across all the clusters in the supplied [clustering] column
+        Plots kde-smoothed histogram of a particular marker / antigen's expression across all the clusters in the supplied [groupby_column] column
         '''
         data = self.data.copy()
         metadata = self.metadata.copy()
@@ -2261,7 +2271,7 @@ class Analysis:
                                  filename: Union[str, None] = None,
                                  **kwargs) -> plt.figure:                                             # *** deriv_CATALYST (plot appearance / output)
         ''' 
-        Plots the abundance of each celltype (from the supplied [meta_or_merge] column in self.data.obs) in each sample id as each a bar, 
+        Plots the abundance of each celltype (from the supplied [groupby_column] column in self.data.obs) in each sample id as each a bar, 
         box, or a stripplot (with plot_type == "barplot","boxplot","stripplot"). 
 
         Separate boxplot / stripplots are made from each condition in the supplied [hue] column to allow comparisons.
@@ -2442,16 +2452,13 @@ class Analysis:
 
         Args:
             groupby_column (str): 
-                The colum in self.data.obs where the cell type information is contained
+                The column in self.data.obs where the cell type information is contained
 
             variable (str): 
                 The column in self.data.obs where the independent variable information is found (default = 'condition')
 
-            condition1 / condition2 (strings or None): 
+            conditions (list of strings or empty list): 
                 list of unique values in self.data.obs[variable] to be compared by ANOVA if None, then wil perform an ANOVA test on all the conditions in the dataset. 
-
-            filename (string or None): 
-                The filename for the statistics table exported as a csv file to self.data_table_dir. If None, then no csv will be exported to self.data_table_dir
 
         Returns:
             (pandas dataframe) representing the statistics calculated by this function
