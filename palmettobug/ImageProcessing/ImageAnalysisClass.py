@@ -2,19 +2,19 @@
 This module contains the classes / functions used in the back-end of image processing (its front end is the second tab of the program).
 
 Many classes / functions in this file are available in the public (non-GUI) API of PalmettoBUG.
-
-
-
-While the PalmettoBUG project as a whole is licensed under the GPL3 license, including this file, portions of this file ::
-
-        {  functions marked with >>>> # ****stein_derived (notes)  }
-                                                       
-are derivative / partially copy&paste with modification from the steinbock package (Copyright University of Zurich, 2021, MIT license)
-additionally the "Steinbock_Unhooked" module that is loaded into this script is ENTIRELY composed of modified steinbock package code
-
-additionally, throughout the design of this script, concepts / structures from CATALYST (https://github.com/HelenaLC/CATALYST/tree/main) 
-and steinbock are used, such as the panel / metadata file structures, column names, usage, etc.
 '''
+## License / derived-from info (commented out so as to not be lumped into the API docs)
+
+#While the PalmettoBUG project as a whole is licensed under the GPL3 license, including this file, portions of this file ::
+#
+#        {  functions marked with >>>> # ****stein_derived (notes)  }
+#                                                       
+# are derivative / partially copy&paste with modification from the steinbock package (Copyright University of Zurich, 2021, MIT license)
+# additionally the "Steinbock_Unhooked" module that is loaded into this script is ENTIRELY composed of modified steinbock package code
+#
+# additionally, throughout the design of this script, concepts / structures from CATALYST (https://github.com/HelenaLC/CATALYST/tree/main) 
+# and steinbock are used, such as the panel / metadata file structures, column names, usage, etc.
+
 
 import os
 import warnings
@@ -86,6 +86,9 @@ def imc_entrypoint(directory: Union[Path, str],
 
         from_mcds (boolean): 
             whether the /raw subfolder contains .mcd files (= True) or .tiff files (= False)
+
+    returns:
+        a palmettobug.ImageAnalysis object
     '''
     directory = str(directory)
     try:
@@ -122,12 +125,23 @@ def imc_entrypoint(directory: Union[Path, str],
     experiment.directory_object.makedirs()
     return experiment
 
-def read_txt_file(path, num_meta_data_columns = 6):
+def read_txt_file(path: Union[str, Path], num_meta_data_columns: int = 6):
     '''
     Reads a single txt file (these are backups for if mcd files become corrupted).
 
     Assumes that the txt file itself is not corrupted & has six [Arg: num_meta_data_columns] metadata columns before the channels.
-    Also assumes a complete file with X / Y columns, whose values accurately correspond to the X / Y of the image to be generated. 
+    Also assumes a complete file with X / Y columns, whose values accurately correspond to the X / Y of the image to be generated.
+
+    Args:
+        path (str or Path): 
+            the full path to the single .txt file to be read-in
+
+         num_meta_data_columns (integer): 
+            The number of metadata columns in the file. Default is 6, which worked for the files I tested this function on, 
+            but I don't know what is standard / what kind of variability there is in the metadata for these types of files.
+
+    returns:
+        numpy array, which can be saved as an (.ome).tiff
     '''
     image_df = pd.read_csv(str(path), delimiter = "\t")
     image_channels_only = image_df.iloc[:,num_meta_data_columns:]
@@ -143,6 +157,7 @@ def txt_folder_to_tiff_folder(txt_folder: Union[Path, str],
                               hpf: Union[float, int] = 50, 
                               ome_tiff_metadata: bool = False, 
                               resolutions: list[float] = [1.0,1.0], 
+                              num_meta_data_columns: int = 6,
                               ) -> None:
     '''
     Iteratively runs read_txt_file() on each file in a directory, and output .ome.tiffs (at least by file extension) to an output directory.
@@ -173,6 +188,10 @@ def txt_folder_to_tiff_folder(txt_folder: Union[Path, str],
         resolutions (list of two floats > 0): 
             the resolution of the images in X and Y dimensions, in micrometers per pixel. Only used if ome_tiff_metadata == True. 
 
+        num_meta_data_columns (integer):
+            The number of metadata columns in the file. Default is 6, which worked for the files I tested this function on, 
+            but I don't know what is standard / what kind of variability there is in the metadata for these types of files. 
+
     Inputs / Outputs:
         Inputs: 
             reads each file inside txt_folder (expecting all to be .txt files of the format exported during IMC as backups of .mcd files. )
@@ -186,7 +205,7 @@ def txt_folder_to_tiff_folder(txt_folder: Union[Path, str],
     tiff_files_out = ["".join([tiff_folder, "/", i.rstrip("txt"),"ome.tiff"]) for i in sorted(os.listdir(txt_folder))]
     img_slicer = (panel['keep'] == 1)
     for i,ii in zip(txt_files, tiff_files_out):
-        image = read_txt_file(i)[img_slicer,:,:]
+        image = read_txt_file(i, num_meta_data_columns = num_meta_data_columns)[img_slicer,:,:]
         if (hpf > 0) and (hpf < 1):
             image = _my_auto_hpf(image, hpf)
         elif hpf != 0:
@@ -205,7 +224,8 @@ def launch_denoise_seg_program(directory: Union[Path, str],
                                resolutions: list[float] = [1.0, 1.0],
                                ) -> None:
     '''
-    This launches the 'isoSegDenoise' sister program, with the provided directory pre-loaded.
+    This launches the 'isoSegDenoise' sister program, with the provided directory pre-loaded, presuming that the isoSegDenoise package is
+    installed in the same python environment as PalmettoBUG.
 
     Args:
         directory (str or Path): 
@@ -356,6 +376,19 @@ class ImageAnalysis:
     '''
     This handles Image Processing steps of PalmettoBUG, such as conversion from mcd's and segmentation measurements
 
+    Args:
+        directory (str, Path, or None):
+            The directory to step up the image analysis / PalmettoBUg project inside of. Is expecting the directory to already exist & there
+            to be .mcd or .tif / .tiff files in a /raw subfolder of directory.
+            If None, then initiates an ImageAnalysis object without needing to set up the directory. This can be useful if you don't need the 
+            /raw --> /images/img conversion step and you intend to manually set the input / output folder paths at each step.
+
+        resolutions (list of float): 
+            Default = [1.0, 1.0]. Represents the width of the pixels in [X, Y] directions in micrometers.
+
+        from_mcds (bool): 
+            If True, assumes that there will be MCD files in /raw. If False, presumes there are .tif/.tiff files in /raw. 
+
     Key Attributes:
         directory (str): 
             the path to a folder containing a /raw/ subfolder where the MCD or TIFF files are
@@ -428,7 +461,7 @@ class ImageAnalysis:
     '''
     def __init__(self, directory: Union[Path, str, None], resolutions: list[float,float] = [1.0, 1.0], from_mcds: bool = True):
         '''
-        Directory can be set to None, on order to not set up the panel / directory. This allows this class to initialized without data, which can be 
+        Directory can be set to None, in order to not set up the panel / directory. This allows this class to initialized without data, which can be 
         useful if not intending following the standard PalmettoBUG directory structure. X and Y are the resolution of the images (in micrometers), 
         and from_mcds indicates whether the /raw files are mcds (True) or .tiffs (False)
         '''
@@ -535,7 +568,7 @@ class ImageAnalysis:
 
             2. hot pixel filtering will be performed before exporting to the /images/img folder if hpf > 0
 
-        It depends on self.from_mcds to know whether to expect MCd or TIFF files in the /raw folder.
+        It depends on self.from_mcds to know whether to expect MCD or TIFF files in the /raw folder.
 
         Args:
             hpf (int >= 0): 
@@ -1033,6 +1066,10 @@ def setup_for_FCS(directory):
     This sets up a folder for single-cell analysis using the CATALYST-derived module of PalmettoBUG. 
 
     Can be used for a solution-mode experiment (direct from FCS files) or as part of the set up when transitioning from image processing to single-cell analysis.
+
+    Args:
+        directory (str):
+            The directory to set up from single-cell analysis
 
     Returns:
         Analysis_panel (a pandas dataframe of the initially generated Analysis_panel file, needs the marker_class column to be filled in by the user)

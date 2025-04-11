@@ -3,21 +3,20 @@ This module contains classes that can be used by multiple other modules in the p
 table entry / display classes.
 It does also contains the table widget/launch class for the public PalmettoBUG non-GUI API, as a separate class from the table widget/launch
 classes used in the GUI itself.
-
-
-While the PalmettoBUG project as a whole is licensed under GPL3 -- some of the code listed below is derivative of GPL comaptible licenses 
-    
-    (marked inside each class / function)
-
-singletons package:
-    
-    https://github.com/jmaroeder/python-singletons/blob/master/src/singletons/singleton.py  (Copyright (c) 2019, James Roeder, MIT License)
-
-Directory structures (but not code) derived from:
-steinbock package: https://github.com/BodenmillerGroup/steinbock (MIT license), and the
-CATALYST package (R): https://github.com/HelenaLC/CATALYST  (GPL>=2)
-
 '''
+## License / sources info (commented out to not include in API docs)
+
+#While the PalmettoBUG project as a whole is licensed under GPL3 -- some of the code listed below is derivative of GPL comaptible licenses 
+#    
+#    (marked inside each class / function)
+#
+#singletons package:
+#    
+#    https://github.com/jmaroeder/python-singletons/blob/master/src/singletons/singleton.py  (Copyright (c) 2019, James Roeder, MIT License)
+#
+#Directory structures (but not code) derived from:
+#steinbock package: https://github.com/BodenmillerGroup/steinbock (MIT license), and the
+#CATALYST package (R): https://github.com/HelenaLC/CATALYST  (GPL>=2)
 
 import tkinter as tk
 import os
@@ -397,39 +396,26 @@ class DirSetup:
         if not os.path.exists(self.saved_clusterings):
             os.mkdir(self.saved_clusterings)
 
-'''
-from valkka.multiprocess import MessageProcess
-class NapariProcessClass(MessageProcess):
-    def __init__(self):
-        super().__init__()
-
-
-    def run_napari(self, image_name: np.ndarray[Union[int, float]], 
-            channel_axis: Union[None, int] = None,
-            ) -> None:
-        #This function launches napari with the provided image & mask. The mask is shown as a layer over the image.
-        image = tf.imread(image_name)
-        if image.dtype != 'int':
-            masks = None
-        elif image.dtype == 'int':
-            masks = image.copy()
-            image = np.zeros(masks.shape)
-        if channel_axis is not None:
-            viewer, layer = napari.imshow(image, channel_axis = channel_axis)
-        else:
-            viewer, layer = napari.imshow(image)    
-        if masks is not None:
-            viewer.add_labels(masks, name = "layer")
-        napari.run()
-'''
-
-
 def run_napari(image: np.ndarray[Union[int, float]], 
             masks: Union[None, np.ndarray[int]] = None, 
             channel_axis: Union[None, int] = None,
             ) -> None:
     '''
     This function launches napari with the provided image & mask. The mask is shown as a layer over the image.
+    
+    Args:
+        image (numpy array): 
+            the numpy array to display in napari (3D -- X, Y, and channels / Z)
+
+        masks (numpy array (of integers) or None): 
+            if None, only the image is displayed. If not None, then this is added as a label layer in Napari
+            Should have the same X,Y dimensions as the image, but only one channel layer
+
+        channel_axis (None, or integer): 
+            passed to the napari.imshow() function, determines which dimension of image numpy array will be treated as the channels
+            By default, Napari treats the channel axis as a spatial dimension (it expects 3D imaging), which is fine as I think this allows easier scrolling through the 
+            channels. However, if you prefer Napari to open separate layers for each channel, then specify the channel axis with this parameter and Napari should
+            do that instead of treating the channels like an extra spatial dimension. 
     '''
     if channel_axis is not None:
         viewer, layer = napari.imshow(image, channel_axis = channel_axis)
@@ -1217,17 +1203,8 @@ class TableLaunch_nonGUI(ctk.CTk):
     This class launches a customtkinter GUI window, in order to display the contents of a table. 
     It can make setting up the panel/metadata/Analysis_panel files easier / faster, instead of manually setting values in python or 
     requiring the user to go to a second program (like excel) to enter values.
-    '''
-    def __init__(self, 
-                dataframe: Union[str, Path, pd.DataFrame], 
-                export_path: Union[str, Path],
-                table_type: str = "other", 
-                labels_editable: bool = True,  
-                width: int = 1, 
-                height: int = 1,
-                ) -> None:
-        '''
-        Args:
+
+    Args:
             dataframe (Path, string, or pandas dataframe): 
                 either the dataframe, or the path to a .csv file, which will be displayed in the window
 
@@ -1259,7 +1236,17 @@ class TableLaunch_nonGUI(ctk.CTk):
             Input: 
                 if dataframe is a file path, not a pandas dataframe, wil attempt to read a csv at that filepath
             Output: 
-                when the accept button is pressed, will attempt to write the dataframe set up in the GUI to export_path as a csv file. 
+                when the accept button is pressed, will attempt to write the dataframe set up in the GUI to export_path as a csv file.
+    '''
+    def __init__(self, 
+                dataframe: Union[str, Path, pd.DataFrame], 
+                export_path: Union[str, Path],
+                table_type: str = "other", 
+                labels_editable: bool = True,  
+                width: int = 1, 
+                height: int = 1,
+                ) -> None:
+        ''' 
         '''
         super().__init__()
         self.title('Table Examination')

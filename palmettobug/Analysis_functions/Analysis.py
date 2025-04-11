@@ -834,6 +834,7 @@ class Analysis:
             sc.tl.umap(for_fs, 
                         min_dist = min_dist, 
                         random_state = seed)
+            for_fs = ann.Anndata(self.data.X.copy(), obs = for_fs.obs, var = data.var.copy(), obsm = for_fs.obsm, uns = for_fs.uns)
             for_obs_cat = pd.CategoricalDtype(categories = for_fs.obs['condition'].astype('str').unique(), ordered = True)
             for_fs.obs['condition'] = for_fs.obs['condition'].astype('str')
             for_fs.obs['condition'] = for_fs.obs['condition'].astype(for_obs_cat)

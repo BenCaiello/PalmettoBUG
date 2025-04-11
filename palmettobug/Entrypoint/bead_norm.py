@@ -136,7 +136,7 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
 
                     r".+Di"
 
-            It is best to explicitly define the channels to normalize. 
+            It is best to explicitly define the channels to normalize, as this regex may not capture the channels in your data successfully! 
 
         include_figures (bool): 
             whether to export figures of the normalization (True) or not (False)

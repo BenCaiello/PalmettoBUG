@@ -26,7 +26,9 @@ autoapi_ignore = ['*_vendor*',
                 '*widget*', 
                 '*Widget*', 
                 '*_GUI*', 
-                '*app_and_entry*', 
+                '*app_and_entry*',
+                '*Exception*',
+                '*ANOVA*', 
                 '*migrations*']   ## *migrations* is the default in autoapi_ignore, so I leave it in here
 
 
