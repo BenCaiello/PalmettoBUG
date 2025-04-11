@@ -1242,7 +1242,7 @@ class Analysis:
         sc.pp.neighbors(for_DR, n_neighbors = n_neighbors, random_state = seed)  
                      ## not loss of backwards replicability -- set to random_state to 0 to match umaps before 11-8-24
         sc.tl.umap(for_DR, min_dist = min_dist, random_state = seed, **kwargs)
-        data = anndata.AnnData(data.X, obs = for_DR.obs, var = data.var, obsm = for_DR.obsm, uns = for_DR.uns)
+        data = ann.AnnData(data.X, obs = for_DR.obs, var = data.var, obsm = for_DR.obsm, uns = for_DR.uns)
 
         for_obs_cat = pd.CategoricalDtype(categories = data.obs['condition'].astype('str').unique(), ordered = True)
         data.obs['condition'] = data.obs['condition'].astype('str')
