@@ -117,6 +117,13 @@ class Analysis:
         a calculation on the data (such as statistics, UMAP / PCA, or scaling). Those starting with "plot_" always generate a plot, usually returning
         a matplotlib figure.
 
+    Args:
+        in_gui (bool):
+            Whether this class is inside the GUI (True) or not (False). Used primarily 
+            for determining whether to have tkinter pop-up warnings (True) or print-to-console warnings (False)
+
+            Most of the critical steps in setting up an Analysis occurs in the data loading methods, not in the initialization of the class.
+
     Input / Output:
         if a method contains a "filename" keyword arugment (with default = None), then supplying that argument will trigger the export of 
         the method's return data to the directory. As in, for a plotting method, supplying a filename means that the it will not only return a 
@@ -125,13 +132,6 @@ class Analysis:
             self.save_dir/{filename}.png
 
         Methods that return data tables are similar, but export to self.data_table_dir (not self.save_dir)
-
-    Args:
-        in_gui (bool):
-            Whether this class is inside the GUI (True) or not (False). Used primarily 
-            for determining whether to have tkinter pop-up warnings (True) or print-to-console warnings (False)
-
-            Most of the critical steps in setting up an Analysis occurs in the data loading methods, not in the initialization of the class.
 
     Key Attributes:         
         data (anndata.AnnData): This is an anndata object containing the numerical values of the channels in data.X, the event 
@@ -840,7 +840,7 @@ class Analysis:
             sc.tl.umap(for_fs, 
                         min_dist = min_dist, 
                         random_state = seed)
-            for_fs = ann.AnnData(self.data.X.copy(), obs = for_fs.obs, var = self.data.var.copy(), obsm = for_fs.obsm, uns = for_fs.uns)
+            for_fs = ann.AnnData(self.data.X.copy(), obs = for_fs.obs, var = self.data.var.copy(), obsm = for_fs.obsm, obsp = for_fs.obsp, uns = for_fs.uns)
             for_obs_cat = pd.CategoricalDtype(categories = for_fs.obs['condition'].astype('str').unique(), ordered = True)
             for_fs.obs['condition'] = for_fs.obs['condition'].astype('str')
             for_fs.obs['condition'] = for_fs.obs['condition'].astype(for_obs_cat)
@@ -1248,7 +1248,7 @@ class Analysis:
         sc.pp.neighbors(for_DR, n_neighbors = n_neighbors, random_state = seed)  
                      ## not loss of backwards replicability -- set to random_state to 0 to match umaps before 11-8-24
         sc.tl.umap(for_DR, min_dist = min_dist, random_state = seed, **kwargs)
-        data = ann.AnnData(data.X, obs = for_DR.obs, var = data.var, obsm = for_DR.obsm, uns = for_DR.uns)
+        data = ann.AnnData(data.X, obs = for_DR.obs, var = data.var, obsm = for_DR.obsm, obsp = for_DR.obsp, uns = for_DR.uns)
 
         for_obs_cat = pd.CategoricalDtype(categories = data.obs['condition'].astype('str').unique(), ordered = True)
         data.obs['condition'] = data.obs['condition'].astype('str')

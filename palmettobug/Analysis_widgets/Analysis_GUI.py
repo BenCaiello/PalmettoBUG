@@ -908,11 +908,11 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         def refresh3(enter = ""):
             allowed_columns_list = CLUSTER_NAMES
             if self.UMAP_or_PCA.get() == 'UMAP':
-                option_list = [i for i in self.master.cat_exp.UMAP_embedding.obs.columns if i in allowed_columns_list] + COLNAMES
+                option_list = [i for i in self.master.cat_exp.UMAP_embedding.obs.columns if i in allowed_columns_list] + COLNAMES + ['antigens']
             elif self.UMAP_or_PCA.get() == 'PCA':
-                option_list = [i for i in self.master.cat_exp.PCA_embedding.obs.columns if i in allowed_columns_list] + COLNAMES
+                option_list = [i for i in self.master.cat_exp.PCA_embedding.obs.columns if i in allowed_columns_list] + COLNAMES + ['antigens']
             else:
-                option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] + COLNAMES
+                option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] + COLNAMES + ['antigens']
             option_list = ["Do not Facet"] + option_list   
             self.sub_column.configure(values = option_list)
 
@@ -965,7 +965,7 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         if not overwrite_approval(f"{self.master.cat_exp.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
             return
-        if subsetting_column != "Do not Facet":
+        if (subsetting_column != "Do not Facet") and (subsetting_column != "antigens"):
             if kind == 'UMAP':
                 figure = self.master.cat_exp.plot_facetted_DR(filename = filename, 
                                                             color_by = color_column, 
@@ -976,8 +976,14 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                             color_by = color_column, 
                                                             subsetting_column = subsetting_column, 
                                                             kind = kind)
-        else:
+        elif (subsetting_column == "Do not Facet"):
             self.plot_single(kind = kind, color_by = color_column, filename = filename)
+        elif (subsetting_column == "antigens"):
+            all_but_none = list(self.master.cat_exp.data.var['marker_class'].unique())
+            all_but_none = [i for i in all_but_none if i != "none"]
+            figure = self.master.cat_exp.plot_facetted_DR_by_antigen(filename = filename,
+                                                                     marker_class = all_but_none,
+                                                                     kind = kind)
         self.master.save_and_display(filename = filename,sizeX = 550, sizeY = 550)
         Analysis_widget_logger.info(f"""Plotted Facetted UMAP with: 
                                                 kind = {kind},
@@ -1019,14 +1025,23 @@ class Plot_ExprsHeatMap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                             variable = ctk.StringVar(value = "type"))
         self.type_state.grid(column= 1, row= 1, padx = 5, pady = 5)
 
+        label_2 = ctk.CTkLabel(self, text = "Group By:")
+        label_2.grid(column = 0, row = 2)
+
+        self.group = ctk.CTkOptionMenu(master = self, 
+                                       values = COLNAMES, 
+                                       variable = ctk.StringVar(value = "type"))
+        self.group.grid(column= 1, row= 2, padx = 5, pady = 5)
+
         label_4 = ctk.CTkLabel(self, text = "Filename:")
         label_4.grid(column = 0, row = 4)
 
         self.filename = ctk.CTkEntry(self, textvariable = ctk.StringVar(value = "Expression_Heatmap"))
         self.filename.grid(column = 1, row = 4, padx = 5, pady = 5)
 
-        button_plot = ctk.CTkButton(self, text = "Plot", command = lambda: self.plot_Heatmap(features = self.type_state.get(), 
-                                                                                                filename = self.filename.get().strip()))
+        button_plot = ctk.CTkButton(self, text = "Plot", command = lambda: self.plot_Heatmap(group = self.group.get(),
+                                                                                             features = self.type_state.get(), 
+                                                                                             filename = self.filename.get().strip()))
         button_plot.grid(column = 0, row = 5, padx = 5, pady = 5)
 
         self.pop_up = ctk.CTkCheckBox(master = self, text = "Make detailed Plot Editing Pop-up?", onvalue = True, offvalue = False)
@@ -1034,13 +1049,13 @@ class Plot_ExprsHeatMap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
 
-    def plot_Heatmap(self, features: str = "type", filename: str = "Plot_4") -> None:
+    def plot_Heatmap(self, group = 'sample_id', features: str = "type", filename: str = "Plot_4") -> None:
         if filename_checker(filename, self):
             return
         if not overwrite_approval(f"{self.master.cat_exp.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
             return
-        figure = self.master.cat_exp.plot_medians_heatmap(marker_class = features, groupby = "sample_id", filename = filename)
-        Analysis_widget_logger.info(f"Plotted Expression Heatmap: marker_class = {features}, groupby = 'sample_id', filename = {filename}.png")
+        figure = self.master.cat_exp.plot_medians_heatmap(marker_class = features, groupby = group, filename = filename)
+        Analysis_widget_logger.info(f"Plotted Expression Heatmap: marker_class = {features}, groupby = {group}, filename = {filename}.png")
         self.master.save_and_display(filename = filename,sizeX = 550, sizeY = 550)
         if self.pop_up.get() is True:
             Plot_window_display(figure)
