@@ -1,15 +1,16 @@
 '''
-The SpatialNeighbors class draws heavily on Squidpy, mainly serving as a way of wrapping squidpy funcitons in a way that will help them
-play nice with PalmettoBUG's existing data structures   (this file was added after many others, on 11-21-24).
-SpatialEDT class performs the pixel-class driven euclidean distance transform calculation. 
-
-SpatialAnalysis serves a unifying class FOR THE nonGUI API coordinating all the spatial functions/methods in PalmettoBUG 
+The SpatialAnalysis class serves a unifying class FOR THE nonGUI API coordinating all the spatial functions/methods in PalmettoBUG 
 IT IS NOT USED IN THE GUI AT PRESENT! Instead, the individual spatial classes are called by the GUI. These were made firstm
 before the coordinating class, which is why there is a disconnect between the implementation in the GUI and outside it.
-
-This file is licensed under the GPL3 license. No significant portion of the code here is known to be derived from another project 
-(in the sense of needing to be separately / simultaneously licensed)
 '''
+# License / derivation info
+
+# This file is licensed under the GPL3 license. No significant portion of the code here is known to be derived from another project 
+# (in the sense of needing to be separately / simultaneously licensed)
+
+#The SpatialNeighbors class draws heavily on Squidpy, mainly serving as a way of wrapping squidpy functions in a way that will help them
+# play nice with PalmettoBUG's existing data structures 
+
 import os
 from typing import Union
 from pathlib import Path
@@ -44,14 +45,17 @@ __all__ = ["SpatialAnalysis"]
 class SpatialAnalysis:
     '''
     This class serves as a coordinating class for the three spatial analysis sub-classes. In the GUI, these subclasses are currently called directly (for historical reasons
-    and because there is no real reason to update that). However, for use of PalmettoBUG in scripting, it is convenient to have a unified class where all the spatial methods
-    can be accessed.
+    and because there is no real reason to update that). However, for use of PalmettoBUG in scripting outside the GUI, it is convenient to have a unified class where all the 
+    spatial methods can be accessed.
 
-    The methods of this class are wrappers on methods of the 3 sublclasses. Because of this, it can be divided into a number of groupings:
+    The methods of this class are wrappers on methods of the 3 subclasses. Because of this, it can be divided into a number of groupings:
 
-        >>> data loading, cell maps, neighbors, neighborhoods, spaceANOVA, and edt    (in order)
+        >>> add data, cell maps, neighbors, neighborhoods, spaceANOVA, and edt    (in order)
 
-    kEY Attributes:
+    Args:
+        (None) -- the key set-up steps in this class are called in the methods of this class, not when it is initialized
+
+    Key Attributes:
         exp:
             This is the connected Analysis object, containing the anndata (exp.data) which holds most of the data used for calculations
 
@@ -89,7 +93,7 @@ class SpatialAnalysis:
                 the cells are represented as their mask shapes on a black background ("masks" uses a squidpy plotting function). 
 
             id (string, integer, or None): 
-                If None, will make cell maps for every smpale_id / image in the dataset. If not None, will only make a plot for the specified image.
+                If None, will make cell maps for every sample_id / image in the dataset. If not None, will only make a plot for the specified image.
                 id's should either be the sample_id (for which a string or integer form will work) or the file_name of the desired image.
 
             clustering (string): 
@@ -137,6 +141,9 @@ class SpatialAnalysis:
 
             number (integer): 
                 either the length of the search radius in pixels, or the number of nearest neighbors per cell (depending on radius_or_neighbors parameter)
+
+        Returns:
+            (None)
         '''
         self.neighbors.do_neighbors(radius_or_neighbors = radius_or_neighbors, number = number)
 
@@ -204,8 +211,16 @@ class SpatialAnalysis:
     def plot_neighbor_centrality(self, clustering: str = "merging", score: str = "closeness_centrality", filename: Union[str,None] = None):
         '''
         Wraps squidpy's gr/pl.centrality_scores functions. clustering corresponds to "cluster_key" in squidpy's API, and score corresponds to "score". 
-        As with othe rfunciton sin PalmettoBUG, if filename is not None, then it will be used to write the plot to the disk as a png, otherwise only
-        the plot itself will be returned (where is can be edited or saved manually). 
+        
+        Args:
+           clustering (string): 
+                The cell type grouping ('merging', ' metaclustering', etc.) to plot centrality scores for
+
+            score (string):
+                The type of centrality score to plot: ['degree_centrality','closeness_centrality','average_clustering']
+
+            filename (string or None):
+                If not None, specifies the filename to save the plot under (as a PNG) in the standard /Spatial_plots folder of the analysis folder.
         '''
         plot = self.neighbors.plot_centrality(clustering = clustering, score = score, filename = filename)
         return plot
@@ -412,7 +427,6 @@ class SpatialAnalysis:
             output_directory (string or None): 
                 If None, the plots are exported to the automatic / standard directory in the PalmettoBUG project. if not None, should the path to a folder where
                 the plots can be exported. (ONLY used if comparison is None)
-        
         '''
         if f_stat is None:
             if comparison is None:
@@ -583,6 +597,11 @@ class SpatialAnalysis:
     def do_reload_edt(self, dataframe, marker_class):
         '''
         Loads a column of data into the anndata of the experiment (meant for saved edt information, but could be used for any type of channel)
+
+        Args:
+            dataframe (pandas DataFrame, or Path/string):
+                If not a pandas DataFrame, will attempt to pandas.read_csv(dataframe) first. This dataframe should be as long as the number of cells in the data
+                and have columns representing spatial_edt data for each cell. Its format should match the format of table exported by do_edt
         '''
         if not isinstance(dataframe, pd.DataFrame):
             dataframe = pd.read_csv(str(dataframe))
@@ -591,6 +610,8 @@ class SpatialAnalysis:
     def plot_edt_heatmap(self, groupby_col, marker_class = "spatial_edt", filename = None):
         '''
         Plots a heatmap for spatial edt -- default marker_class is spatial_edt, and export folder (if filename is provided) is in /Spatial_plots
+
+        groupby_col specifies a clustering (such as 'merging', 'metaclustering', etc.) to group the heatmap by
         '''
         if filename is not None:
             plot = self.edt.plot_edt_heatmap(groupby_col = groupby_col, 
@@ -644,10 +665,35 @@ class SpatialAnalysis:
                                                 filename = '')
         return plot
 
-    def run_edt_statistics(self, groupby_column, marker_class = "spatial_edt", statistic = "mean", test = "anova", filename = None):
+    def run_edt_statistics(self, 
+                           groupby_column: str, 
+                           marker_class: str = "spatial_edt", 
+                           statistic: str = "mean", 
+                           test: str = "anova", 
+                           filename: Union[str, None] = None):
         '''
-        A wrapper on do_state_exprs from the Analysis class, but with the default marker_class of 'spatial_edt', and a output folder
-        in /Spatial_plots
+        A wrapper on do_state_exprs from the palmettobug.Analysis class, but with the default marker_class of 'spatial_edt', and a output folder
+        in /Spatial_plots.
+
+        Args:
+            groupby_column (string): 
+                a clustering of the data (such as 'leiden', 'merging', etc.)
+
+            marker_class (string):
+                'spatial_edt' (default), 'type','state','none','All' -- if specifying any marker_class except 'spatial_edt', then there is little reason to use
+                this function, as you could just use palmettobug.Analysis.do_state_exprs
+
+            statistic (string):
+                'mean' or 'median' -- which aggregation method to use when calculating the average value in each ROI / sample_id
+
+            test (string):
+                'anova' or 'kruskal' -- whether to use an ANOVA or a Kruskal-Wallis test to do the stats
+
+            filename (string or None): 
+                If not None, specifies the filename to save the statistics table under (as a CSV) in the /Spatial_plots folder.
+
+        Returns:
+            a pandas dataframe, containing the statistics
         '''
         if filename is not None:
             filename = self.SpaceANOVA.output_dir + "/" + filename + ".csv"

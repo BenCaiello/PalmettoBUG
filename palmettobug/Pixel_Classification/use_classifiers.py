@@ -5,11 +5,12 @@ by pixel classifiers, etc.
 It, however, does not contain the WholeClassAnalysis class which coordinates analysis of classes as a whole.
 
 Many of the functions in this module are available through the public (non-GUI) API of PalmettoBUG.
-
-
-This file is licensed under the GPL3 license. No significant portion of the code here is believed to be derived from another project 
-(in the sense of needing to be separately / simultaneously licensed)
 '''
+# License / derivation info
+
+# This file is licensed under the GPL3 license. No significant portion of the code here is believed to be derived from another project 
+# (in the sense of needing to be separately / simultaneously licensed)
+
 import os
 import tkinter as tk
 from typing import Union
@@ -25,11 +26,9 @@ import tifffile as tf
 import cv2 as cv
 import anndata 
 
-from .._vendor import pyometiff as pot
-#from .._vendor.flowsom import FlowSOM 
+from flowsom import FlowSOM  ## formerly vendored
 
-## anticipate de-vendorization:
-from flowsom import FlowSOM
+from .._vendor import pyometiff as pot
 
 from ..Analysis_functions.Analysis import _quant
 from ..Utils.Exceptions import NoSharedFilesError
@@ -52,8 +51,20 @@ def toggle_in_gui():
 
 def plot_classes(class_map_folder, output_folder, **kwargs):
     '''
-    Goal: allow classy masks and pixel classification outputs to be written as .png files
+    Allows classy masks and pixel classification outputs to be written as .png files
+
+    Args:
+        class_map_folder (string or Path):
+            The folder from which .tiff files are read for conversioninto .png files. 
+
+        output_folder (string or Path):
+            The folder where the PNG files will be written. Should exist or be make-able by os.mkdir()
+
+        **kwargs:
+            are passed to matplotlib.pyplot.imshow()
     '''
+    class_map_folder = str(class_map_folder)
+    output_folder = str(output_folder)
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
     for i in sorted(os.listdir(class_map_folder)):
@@ -69,6 +80,24 @@ def merge_classes(classifier_mask: np.ndarray[int],
     This function takes in a classifier output (numpy array, dtype = int) and a merging table (pandas DataFrame with a particular format) 
     and outputs a new numpy array where all classses in the original array have been converted to the corresponding value in the merging 
     column of the merging-table dataframe. 
+
+    Args:
+        classifier_mask (np.ndarray of integers):
+            A pixel class prediction. 
+
+        merging_table (pandas DataFrame):
+            The table that details how the original classes of classifier_mask will be merged, and what the final numbers will be
+            Has a column 'class' for the current integer class labels of classifier_mask, and column 'merging' denoting what new integer labels
+            should be for each of the original classes. 
+            
+            By convention, as class labeled 'background' should have its merging value set to 0, and NO MERGING CLASS should == 1.
+            1 is a special number when merging supevised classifiers, and when classifying cell masks using the 'mode' method.
+
+            Usually also has a column dedicated to the biologically relevant (non integer) labels that each new merging class is intended to
+            represent.
+
+    Returns:
+        A numpy ndarray (integers), with the same shape as classifier_mask, but with the new merged class labels replacing the original class labels.
     '''
     classifier_mask = classifier_mask.copy()
     new_mask = np.zeros(classifier_mask.shape)
@@ -93,7 +122,12 @@ def merge_folder(folder_to_merge: Union[Path, str],
         merging_table (pandas dataframe): 
             A pandas dataframe containing a 'class' column that denoting a class in the input class maps, and a 
             'merging' column denoting the new values of that class in the merged output class maps. Usually there is also a 'label' column, 
-            which denotes the biological label, as a string, that corresponds to each class merging. 
+            which denotes the biological label, as a string, that corresponds to each class merging.
+
+            NOTE:
+                DO NOT: use the number 1 as one of you merging labels if you intend on doing mode-based cell classification 
+                with the merged pixel classifier predictions. 
+                DO: use the number 0 as the merging label of 'background' classes -- this will effectively drop them from the merged predictions
 
         output_folder (Path, string, or None): 
             the path to a the folder where the merged classification maps are to be exported, with the same 
@@ -108,6 +142,9 @@ def merge_folder(folder_to_merge: Union[Path, str],
             writes a new .tiff file into output_folder for every file in folder_to_merge (preserving the same filenames)
     '''
     folder_to_merge = str(folder_to_merge)
+    if 1 is in merging_table['merging']:
+        print('Warning! One of your merging classes == 1. This can create errors when running mode-based cell classification,' 
+              'and 1 is preferably reserved as a merging number.')
     if output_folder is None:
         output_folder = folder_to_merge[:folder_to_merge.rfind("/")] + "/merged_classification_maps"
     if not os.path.exists(output_folder):
@@ -126,7 +163,7 @@ def slice_folder(class_to_keep: Union[int, list[int]],
                  zero_out: bool = False,
                  ) -> None:
     '''
-    This function performs slice_image_by_region() [see function below] on every image in a folder. 
+    This function performs slice_image_by_region() [a non-public function, see code file] on every image in a folder. 
     This means that each image in the folder will be reduced to the bounding box that contains only the specified classes_to_keep.
 
     For example: you could use this function, after classifying villi regions of an intestinal tissue section, to reduce the images
@@ -134,7 +171,7 @@ def slice_folder(class_to_keep: Union[int, list[int]],
 
     Args:
         class_to_keep (integer or a list of integers): 
-            The class(s) -- as in, the integer values of the class maps -- to subset the images on
+            The class(es) to subset the images on
 
         class_map_folder (Path or string): 
             the path to a folder containing the classification maps (as tiffs) that will determine where the images are sliced / subsetted
@@ -283,7 +320,7 @@ def mode_classify_folder(mask_folder: Union[Path, str],
                          ) -> pd.DataFrame:
     '''
     This function classifies cells using a pixel classifier and also creates "classy mask" .tiff files which can be useful for merging / expanding
-    cell masks. 
+    cell masks. It uses a simplistic method where the mode of the class values inside a cell masks is the class assigned to that mask.
 
     Args:
         mask_folder (Path or string): 
@@ -346,23 +383,27 @@ def make_cell_classification_mask(mask: np.ndarray[Union[float, int]],
                                   merging_table: pd.DataFrame = None, 
                                   ) -> tuple[np.ndarray[float], np.ndarray[int], pd.DataFrame]:
     '''
-    This function takes a mesmer-style segmentation (unique float/integer labels for every region) and a classifier map and creates a 
+    This function takes a mesmer-style segmentation (unique float/integer labels > 0 for every mask) and a classifier map and creates a 
     version of the mask where each region is labeled instead by the mode-based integer classification of the cell-regions.
 
-    Cells that do not fall into any class (mode in drop_list) are given a classNumber = (len(merging_table) + 1)   
+    Cells that do not fall into any class (mode is background) are given class == 1. This is because the only way 0's can exist following standard
+    PalmettoBUG methods is if the classes were merged, setting background to 0. Background is defined as pixels == 1 in supervised classifiers, so
+    setting cell masks to 1 restores this. 
 
     Args:
         mask (numpy array): 
-            The array representation of the cell mask, usually read from a .tiff file. Often with datatype float, but 
-            every number in the array should effectively be an integer (e.g., 1.0)
+            The array representation of the cell mask, usually read from a .tiff file. Often with data type == float, but 
+            every number in the array should effectively be an integer (like 1.0, 2.0, etc.)
 
         classifier_mask (numpy array): 
             the array representation of the pixel classification output.
 
         merging_table (pandas dataframe or None): 
             a dataframe indicating how to merge different classification values in the classifier_mask. 
-            Particularly needed when using unsupervised classifiers with 'excess' clusters. If None, then no merging will 
-            occur & number_of_classes must be provided.
+            Particularly needed when using unsupervised classifiers with 'excess' clusters. If None (default), then no merging will 
+            occur.
+            This works by calling palmettobug.merge_classes() on each pixel classification before using it -- so if you have already
+            done this step and are providing a merged class map to this function, then this parameter should be left == None.
     
     Returns:
         tuple(np.ndarray, np.ndarray, pd.DataFrame):
@@ -491,7 +532,7 @@ def secondary_flowsom(mask_folder: Union[Path, str],
         classifier_map_folder (Path or string): 
             The path to a folder containing ht epixel classification maps to be used to classify the cells' masks. 
 
-                NOTE! >>> The files in mask_folder & classifier_map_folder should have the same filenames names and be in the same order! 
+                NOTE! >>> The files in mask_folder & classifier_map_folder should have the same filenames! 
 
         number_of_classes (integer or None): 
             the number of classes in the pixel classifier that generated the maps in classifier_map_folder. 

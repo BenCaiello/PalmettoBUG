@@ -7,40 +7,43 @@ Predominantly the SupervisedClassifier and the UnsupervisedClassifier classes ha
     >> SupervisedClassifier is a QuPath ANN_MLP pixel classifier mimic, & requires training from user-generating labels in Napari
 
     >> UnsupervisedClassifier is for an ark-analysis/Pixie-like unsupervised classifier based on FlowSOM clustering.
-
-
-This code is inspired by, and some areas directly translated from, QuPath. 
-
-Some of the functions of this file (marked with a triple asterisk::
-
-     # ***QuPath translation [partial/complete]
-    
-used code translated from java --> python, from QuPath. QuPath is similarly licensed under GPL3.0
-
-QuPath is copyright Copyright (C) 2018 - 2020 QuPath developers, The University of Edinburgh 
-
-(some files in QuPath are Copyright (C) 2014 - 2016 The Queen's University of Belfast, Northern Ireland -- but these appear not to be the files partially translated here)
-
-Source file from QuPath is mainly: qupath-core-processing/src/main/java/qupath/opencv/tools/MultiscaleFeatures.java. 
-Additionally structure of the OpenCV classifier JSON was obtained by examining the exported json classifiers exported by QuPath. 
-
-        > The structure of these JSONs, however, must be derived from the opencv formatting, which is what performs the ingestion / export of
-        the json file.
-
-        > This also means a level of compatibility between classifiers exported from QuPath and the classfiers used by PalmettoBUG 
-        (and any project using ANN_MLP from opencv).
-
-The directly translated functions identified are the functions that derive new features (Laplacian, hessians, gradient max, etc., etc.) from an image.
-
-Other functions (such as train / predict functions) may have been helped by looking at QuPath code, but the key points that might be 
-considered "translation" are either necessitated by the OpenCV API or diverge in terms of implementation / were implemented by my own 
-code structure and not directly translated.
- 
-The final segmentation function wsa also heavily based on some of the documentation of scikit-image, enough that I list it in the
-licenses_of_packages_derived_from.txt file in PalmettoBUG assets::
-
-    Scikit-image: https://github.com/scikit-image/scikit-image, license: BSD-3
 '''
+## License / derivation info (commented out to avoid inclusion in API docs)
+# like all files in PalmettoBUG, all code in under the GPL-3 license. However, some portions of code may derive from  
+# packages that have their own separate licenses.
+
+#This code is inspired by, and some areas directly translated from, QuPath. 
+#
+#Some of the functions of this file (marked with a triple asterisk::
+#
+#     # ***QuPath translation [partial/complete]
+    
+#used code translated from java --> python, from QuPath. QuPath is similarly licensed under GPL3.0
+#
+#QuPath is copyright Copyright (C) 2018 - 2020 QuPath developers, The University of Edinburgh 
+#
+#(some files in QuPath are Copyright (C) 2014 - 2016 The Queen's University of Belfast, Northern Ireland -- but these appear not to be the files partially translated here)
+#
+#Source file from QuPath is mainly: qupath-core-processing/src/main/java/qupath/opencv/tools/MultiscaleFeatures.java. 
+#Additionally structure of the OpenCV classifier JSON was obtained by examining the exported json classifiers exported by QuPath. 
+#
+#        > The structure of these JSONs, however, must be derived from the opencv formatting, which is what performs the ingestion / export of
+#        the json file.
+#
+#        > This also means a level of compatibility between classifiers exported from QuPath and the classfiers used by PalmettoBUG 
+#        (and any project using ANN_MLP from opencv).
+#
+#The directly translated functions identified are the functions that derive new features (Laplacian, hessians, gradient max, etc., etc.) from an image.
+#
+#Other functions (such as train / predict functions) may have been helped by looking at QuPath code, but the key points that might be 
+#considered "translation" are either necessitated by the OpenCV API or diverge in terms of implementation / were implemented by my own 
+#code structure and not directly translated.
+#
+#The final segmentation function wsa also heavily based on some of the documentation of scikit-image, enough that I list it in the
+#licenses_of_packages_derived_from.txt file in PalmettoBUG assets::
+#
+#    Scikit-image: https://github.com/scikit-image/scikit-image, license: BSD-3
+
 
 import os
 from typing import Union
@@ -97,7 +100,13 @@ def _quant(array: np.ndarray[float],
 
 class SupervisedClassifier:
     '''
-    This class handles the supervised pixel classifier creation, training, and prediction.
+    This class handles the supervised pixel classifier creation, training, and prediction. It is mainly set up by the 
+    setup_classifier method, not by the __init__ call.
+
+    Args:
+        homedir (str or Path):
+            the path to the directory where the Pixel Classification folder and subfolder will be placed 
+            (this is the main directory for PalmettoBUG)
 
     Key Attributes:
         classifier_path (str): 
@@ -128,8 +137,6 @@ class SupervisedClassifier:
     '''
     def __init__(self, homedir: Union[Path, str]):
         '''
-        homedir (str) -- the path to the directory where the Pixel Classification folder and subfolder will be placed 
-        (this is the main directory for PalmettoBUG)
         '''
         self._homedir = str(homedir)
         self._setup_directory()
@@ -408,7 +415,7 @@ class SupervisedClassifier:
 
     def launch_Napari_px(self, 
                          image_path: Union[Path, str], 
-                         display_all_channels: bool = True,
+                         display_all_channels: bool = False,
                          ) -> None:
         '''
         This launches napari for generating training labels, receving a path (image_path) to the image file you want to make labels for
@@ -438,12 +445,17 @@ class SupervisedClassifier:
         ''' 
         This saves the training labels to the training labels folder. Will only run if labels have previously been made 
         & this method has not been run already (as this method clears the labels after saving them to the disk)
+
+        Args:
+            output_folder (str, Path, or None): What folder to write the training labels to (must exist). If None, will use the default location
+            for a Pixel Classifier, same as used in the GUI. 
         '''
         if self._image_name is None:
             print('No training labels available to save!')
             return
         if output_folder is None:
             output_folder = self.classifier_training_labels
+        output_folder = str(output_folder)
         new_labels = self._user_labels.data
         tf.imwrite(output_folder + "/" + self._image_name, new_labels.astype('int32'))  
                     ## labels have the same name as the original image
@@ -463,7 +475,7 @@ class SupervisedClassifier:
         Features are generated for each image one-by-one, and their pixels inside label layers are collected -- Then the training is performed 
         on those collected pixels together. 
 
-        NOTE: If run on an already-trained classifier, then it is training with initial weights == the weights from the prior training (but 
+        NOTE: If run on an already-trained classifier, then it is training with initial weights equal to the weights from the prior training (but 
         that probably does not make much of a difference)
 
         Args:
@@ -926,18 +938,48 @@ class UnsupervisedClassifier():
     '''
     This class coordinates the creation, training, and prediction from an unsupervised pixel classifier.
 
+    Args:
+        homedir (str or Path):
+            The PalmettoBUG project directory
+
+        classifier_name (str):
+            The name of the pixel classifier being made -- will determine a number of file and folder names.
+
+        panel (pandas DataFrame, or None):
+            This data frame is unique to unsupervised Classifiers, and can be added later by setting this classes' panel attribute. See description
+            in Key Attributes
+
+        classifier_dictionary (dictionary, or None):
+            Training details of the classifier -- not needed if constructing the classifier using the setup_and_train method.
+            However, can be used to semi-reload an unsupervised classifier, by reading the _details.json file and supplying the resulting dictionary
+            to this argument. 
+
     Key Attributes:
         panel (pandas dataframe): 
-            the same steinbock-style panel file / panel.csv from the main image processing steps. Critically, has columns with the channel
-            names & a column 'keep' for whether that channel was carried over in the images of the dataset. 
+            This panel is unique to unsupervised classifier. It has an 'antigen' column listing all the kept (keep == 1 from the main panel.csv) 
+            antigens in the dataset, and then its own 'keep' column to indicate which channels to be used in the classifier training (1 = use, 0 = don't use).
+            After these two columns, there are a series of columns whose names correspond to various transformations of the data, such as "HESSIAN_MIN", etc. 
+
+                possible_additional_transformations = ['GRAD_MAG', 
+                                                       'HESSIAN_DET', 
+                                                       'HESSIAN_MAX', 
+                                                       'HESSIAN_MIN', 
+                                                       'LAPLACIAN', 
+                                                       'STRUCT_CO', 
+                                                       'STRUCT_MAX', 
+                                                       'STRUCT_MIN', 
+                                                       'WGT_STDV']  
+
+            In these columns, the values can either be 0 (meaning don't use this transformation for this channel) or 1, which indicates which transformations
+            to use of which channels in the training of the classifier. This allows you to use transformations for certain channels and not for others.
 
         training_dictionary (dict): 
             contains infomration on the training of the classifier for reproducibility. Gets exported to the disk as a _details.json for future reference.
 
         flowsom_dictionary (dict): 
             contains information on the trained FlowSOM classifier used in the process of prediciton, including the 
-            flowsom.FlowSOM instance itself. It is not saved to the disk as .json (I don't know for certain but I expect a flowsom.FlowSOM 
-            object is not able to be written to the disk easily). 
+            flowsom.FlowSOM instance itself. It is not saved to the disk as .json (I don't know for certain, but I expect a flowsom.FlowSOM 
+            object may not able to be written to the disk so easily. It is fundamentally a neural network, so there should be some way to do it.). 
 
         classifier_dir (str):
             The directory to the folder where the pixel classifier folder is to be setup
@@ -956,7 +998,7 @@ class UnsupervisedClassifier():
 
     but not the rest of the Pixie code.
     The only part that I'm aware of that borrows more directly from the original Pixie is how the 0.999% channel normalization numbers are 
-    aggregated & averaged for all images, instead of done on an image-by-iamge basis, as I had originally done.
+    aggregated & averaged for all images, instead on an image-by-image basis, as I had originally done. I'm not sure which is better, either.
 
     This implementation also includes new capacities compared to Pixie, such as the ability to generate QuPath-like features (hessians, laplacians, etc.) as input 
     channels for the FlowSOM, although it is uncertain how useful these additional features are.
@@ -1108,6 +1150,7 @@ class UnsupervisedClassifier():
                               "smoothing": smoothing, 
                               "number_of_classes": n_clusters}
         self.flowsom_dictionary = flowsom_dictionary
+        self.fs = fs
 
         ## make training dictionary for export to disk:
         ## it should likely contain all feasible (aka, serializable) info not already contained in the panel.csv --> at minimum needs 
@@ -1131,33 +1174,85 @@ class UnsupervisedClassifier():
     def predict(self, 
                 image_name: str, 
                 img_directory: Union[Path, str],
-                flowsom_dictionary: dict,
-                output_folder: Union[str, None] = None) -> None:
+                flowsom_dictionary: Union[None, dict] = None,
+                output_folder: Union[Path, str, None] = None) -> None:
         '''
-        Takes in an image directory + image name, and a training FlowSOM algorithm, and saves a prediction for that image in the pixel classifier's self.output_dir 
-        or in output_folder (if provided / not None)
+        Predicts the pixel classes of a single image
+
+        Args:
+            image_name (string):
+                A string with the name of the image in the img_directory to make the prediction for.
+                You can easily find a list of the possible options for this argument using os.listdir(img_directory)
+
+            img_directory (Path or string):
+                the folder of image to predict classes for
+
+            flowsom_dictionary (dictionary or None):
+                The dictionary containing the flowsom.FlowSOM instance, as well as the training details of the classifier, which allow it to predict.
+                If None, will try to use self.flowsom_dictionary
+
+            output_folder (Path, str or None):
+                the folder where the pixel classification predictions will be written. Must already exist or be create-able by os.mkdir()   
+                If None, will attempt to writ to self.output_dir (default is 'classification_maps' inside the pixel classifier's directory)
+
+        I / O:
+            Inputs:
+                read a file from f'{img_directory}/{image_name}'. This file should be a .tiff file with the same number of channels (in the same order) as the 
+                .tiff files that the Unsupervised classifier was trained on. Usually, it is the same folder & images for training and prediction.
+
+            Outputs:
+                writes a single 2 dimensional, single-channel .tiff file to f'{output_folder}/{image_name}' containing the pixel class predictions.
         '''
+        if flowsom_dictionary is None:
+            if self.flowsom_dictionary == {}:
+                print('This classifier is missing the "flowsom_dictionary" attribute! Has it not been trained?')
+                return
+            flowsom_dictionary = self.flowsom_dictionary
         img_directory = str(img_directory)
         if output_folder is None:
             output_directory = self.output_dir
         else:
-            output_directory = output_folder
+            output_directory = str(output_folder)
         image = _read_image(img_directory, image_name)
         classification = classify_one(image, flowsom_dictionary, quantile = self.quantile)
         tf.imwrite((output_directory + "/" + image_name), (classification.T.astype('int32')))
 
     def predict_folder(self, 
                        img_directory: Union[Path, str], 
-                       flowsom_dictionary: dict,
-                       output_folder: Union[str, None] = None) -> None:
+                       flowsom_dictionary: Union[None, dict] = None,
+                       output_folder: Union[Path, str, None] = None) -> None:
         ''' 
-        Applies self.predict to every image in a supplied folder 
+        Applies self.predict method to every image in a supplied folder 
+
+        Args:
+            img_directory (Path or string):
+                the folder of images to predict classes for. Every .tiff in this folder will have a prediction written for it.
+
+            flowsom_dictionary (dictionary or None):
+                The dictionary containing the flowsom.FlowSOM instance, as well as the training details of the classifier, which allow it to predict.
+                If None, will try to use self.flowsom_dictionary
+
+            output_folder (Path, string, or None):
+                the folder where the pixel classification predictions will be written. Must already exist or be create-able by os.mkdir()
+
+        I / O:
+            Inputs:
+                reads all the files from f'{img_directory}/'. This file should be a .tiff file with the same number of channels (in the same order) as the 
+                .tiff files that the Unsupervised classifier was trained on. Usually, it is the same folder & images for training and prediction.
+
+            Outputs:
+                writes 2 dimensional, single-channel .tiff files to f'{output_folder}/' containing the pixel class predictions.
         '''
+        if flowsom_dictionary is None:
+            if self.flowsom_dictionary == {}:
+                print('This classifier is missing the "flowsom_dictionary" attribute! Has it not been trained?')
+                return
+            flowsom_dictionary = self.flowsom_dictionary
         img_directory = str(img_directory)
         if output_folder is None:
             output_directory = self.output_dir
         else:
-            output_directory = output_folder
+            output_directory = str(output_folder)
         if not os.path.exists(output_directory):
             os.mkdir(output_directory)
 
@@ -1618,7 +1713,21 @@ def plot_class_centers(flowsom: FlowSOM,
                        **kwargs) -> tuple[plt.figure, pd.DataFrame]: 
     ''' 
     This plots the heatmap of the centroids of the metaclusters of a flowsom. It is useful to identifying what each 
-    metaclustering represents biologically 
+    metaclustering represents biologically. For pixel class work, this means the flowsom generated by an Unsupervised classifier
+
+    Note!: 
+        This function plots the centroids of the clusters determined during training, without respect to the predictions.
+        For a heatmap that uses the actual data from the pixel classifier post-prediction use plot_pixel_heatmap below.
+
+    Args:
+        flowsom (flowsom.FlowSOM):
+            Contains the information to be plotted.
+
+        panel (pd.Dataframe):
+            The panel of antigens (note -- may be deprecate-able and use cluster_data.var.index)
+
+    Returns:
+        a matplotlib figure and a pandas dataframe 
     '''
     fs = flowsom.get_cluster_data()
     cluster_data = np.nan_to_num((fs.X.T * np.array(fs.obs['percentages'])).T)
@@ -1635,9 +1744,41 @@ def plot_class_centers(flowsom: FlowSOM,
         plt.close()
     return plot, cluster_centers    ## in case you want the final dataframe
 
-def plot_pixel_heatmap(pixel_folder, image_folder, channels, panel, silence_division_warnings = False):
+def plot_pixel_heatmap(pixel_folder: Union[str, Path],
+                       image_folder: Union[str, Path], 
+                       channels: list[str], 
+                       panel: pd.DataFrame, 
+                       silence_division_warnings = False) -> tuple[plt.figure, pd.DataFrame]:
     '''
+    This plots a heatmap derived from the actual data of the pixel class regions predicted by a classifier (unlike plot_class_centers, which uses the training centroids).
+    Specifically, it shows the mean of 1%-99% quantile scaled data for each channel in each pixel class.
+
+    Args:
+        pixel_folder (str, Path):
+            The folder of predictions from a pixel classifier
+
+        image_folder (str, Path):
+            The folder of images that the channels intensities will be read from to construct the heatmap. Only files present in BOTH pixel_folder & image_folder
+            will be used.
+
+        channels (iterable of strings):
+            The names of the antigens to use in the panel. Will be matched against the antigens in panel, and then used to slice the images to only the channels of interest.
+            These antigen names are also what will be displayed on the heatmap axes.
+
+        panel (pd.DataFrame):
+            The panel file (panel.csv) of the PalmettoBUG project in question. Specifically, panel['keep'] == 0 channels are removed, and then the antigen names in channels
+            are matched against the antigen names in panel['name'] to slice the images to only the channels of interest. 
+
+        silence_division_warnings (bool):
+            One of the steps of this function involves a lot of division where zero-division / related errors can occur. 
+            Will silence these warnings if this parameter == True
+
+    Returns:
+        a matplotlib figure and a pandas dataframe containing the values displayed in the plot
+
     '''
+    pixel_folder = str(pixel_folder)
+    image_folder = str(image_folder)
     if silence_division_warnings is True:
         warnings.filterwarnings("ignore", message = "invalid value encountered in divide")
     slicer = np.array([i in channels for i in panel[panel['keep'] == 1]['name']])
@@ -1846,7 +1987,7 @@ def segment_class_map_folder(pixel_classifier_directory: Union[Path, str],
             finds the objects of interest be used (so usually only 1 class to segment on) 
 
         background (integer): 
-            The background class, which is set to zero
+            The background class, which wil be set to zero
 
     Returns:
         None 
