@@ -1235,13 +1235,15 @@ class Analysis:
         warnings.filterwarnings("ignore", message = "Transforming to str index")
         panel = self.panel
         data = self.data.copy()
+        data = self._downsample_for_UMAP(data, max_number = cell_number, seed = seed)
         if marker_class != "All":    
             slicer = panel['marker_class'] == marker_class 
-            data = data[:,slicer]
-        data = self._downsample_for_UMAP(data, max_number = cell_number, seed = seed)
-        sc.pp.neighbors(data, n_neighbors = n_neighbors, random_state = seed)  
+            for_DR = data[:,slicer].copy()
+        sc.pp.neighbors(for_DR, n_neighbors = n_neighbors, random_state = seed)  
                      ## not loss of backwards replicability -- set to random_state to 0 to match umaps before 11-8-24
-        sc.tl.umap(data, min_dist = min_dist, random_state = seed, **kwargs)
+        sc.tl.umap(for_DR, min_dist = min_dist, random_state = seed, **kwargs)
+        data = anndata.AnnData(data.X, obs = for_DR.obs, var = data.var, obsm = for_DR.obsm, uns = for_DR.uns)
+
         for_obs_cat = pd.CategoricalDtype(categories = data.obs['condition'].astype('str').unique(), ordered = True)
         data.obs['condition'] = data.obs['condition'].astype('str')
         data.obs['condition'] = data.obs['condition'].astype(for_obs_cat)
@@ -1269,16 +1271,17 @@ class Analysis:
         panel = self.panel
         data = self.data.copy()
 
+        data = self._downsample_for_UMAP(data, max_number = cell_number, seed = seed)
+
         if marker_class != "All":   
             slicer = panel['marker_class'] == marker_class 
-            data = data[:,slicer]
+            for_DR = data[:,slicer].copy()
 
-        data = self._downsample_for_UMAP(data, max_number = cell_number, seed = seed)
         for_obs_cat = pd.CategoricalDtype(categories = data.obs['condition'].astype('str').unique(), ordered = True)
         data.obs['condition'] = data.obs['condition'].astype('str')
         data.obs['condition'] = data.obs['condition'].astype(for_obs_cat)
         pca = PCA(svd_solver = "full")
-        pca.fit(data.X.T)
+        pca.fit(for_DR.X.T)
         x = pca.components_[0]
         y = pca.components_[1]
         data.obsm['X_umap'] = np.array([x,y]).T
@@ -1414,7 +1417,7 @@ class Analysis:
         return figure
 
     def plot_facetted_DR_by_antigen(self, 
-                                    marker_class: list = ['type'],   ## will need to allow the function to accept more than one grouping at once (?)
+                                    marker_class: list = ['type', 'state'],   ## will need to allow the function to accept more than one grouping at once (?)
                                     kind: str = "UMAP",
                                     suptitle: bool = True,
                                     number_of_columns: int = 3, 

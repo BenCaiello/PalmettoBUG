@@ -213,7 +213,7 @@ def test_do_leiden_clustering():
     assert str(number_of_leiden) in leiden, "do_ledien did not create the expected values in leiden column"
 
 def test_plot_UMAP():
-    figure = my_analysis.plot_UMAP()
+    figure = my_analysis.plot_UMAP(color_by = "HistoneH3")
     assert isinstance(figure, matplotlib.figure.Figure), "UMAP plot did not return a matplotlib figure"
 
 def test_plot_PCA():
