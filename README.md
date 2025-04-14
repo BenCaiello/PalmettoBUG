@@ -17,7 +17,6 @@ Final development plans:
             - save a file detailed the full environment used for the docs
 
     2). Code:
-        - Get code coverage badge/shield
         - Environment lists (update ALL to reflect recent changes)! Currently these files are inaccurate!
             - Redo runners (Linux / MacOS), Local (windows): do python 3.10 only / match to how notebooks / docs are made
                 - iSD gets its own environment files  (for local environment: tensorflow version, + GPU version, and plain version)

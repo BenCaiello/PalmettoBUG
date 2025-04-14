@@ -973,6 +973,16 @@ class Analysis:
     def _plot_stars_CNs(self, fs, filename: Union[str, None] = None):
         '''
         Plots the minimum spanning tree / star plot from the FlowSOM package
+
+        Args:
+            fs (flowsom.FlowSOM):
+                Returned by the self.do_flowsom method.
+
+            filename (str or None):
+                if not None, then the filename to save the plot under (as a png) in the self.save_dir folder
+
+        Returns:
+            a matplotlib.pyplot figure
         '''
         figure = plot_stars(fs,
                          markers=None, 
@@ -992,7 +1002,20 @@ class Analysis:
                          **kwargs) -> plt.figure:                                        # *** deriv_CATALYST (in terms of imitating output 
                                                                                                                 # graph appearance)
         ''' 
-        Plots cell counts per [group_by], colored by [color_by], as a bar plot. **kwargs are passed to seaborn.objects.Plot()
+        Plots cell counts as a bar plot
+
+        Args:
+            group_by (str):
+                The column in self.data.obs to use to group / divide the bars of the plot. 
+
+            color_by (str): 
+                The column in self.data.obs used to color the bars of the plot
+
+            filename (str or None):
+                if not None, then the filename to save the plot under (as a png) in the self.save_dir folder
+        
+        Returns:
+            a matplotlib.pyplot figure
         '''
         if color_by == 'NULL':
             color_by = None
@@ -1018,8 +1041,24 @@ class Analysis:
         Plots an MDS embedding of the sample_ids in the dataset as a scatterplot, only using the antigens with marker_class [antigens_to_show] 
         in the panel and colored by [color_by] 
 
-        Also returns a dataframe of the MDS results to allow further examination / comparison of the sample_ids. This dataframe can be written
-        to self.data_table_dir if [print_stat] == True. 
+        Args:
+            marker_class (str):
+                Either "type", "state", "none", or "All". Which antigens (see self.data.var) to use to calculate & create the MDS plot
+
+            color_by (str);
+                which column in self.data.obs to use to color the samples.
+
+            print_stat (bool):
+                whether to export the MDS embedding (True) to self.data_table_dir or not (False, default)
+
+            filename (str or None):
+                if not None, then the filename to save the plot under (as a png) in the self.save_dir folder
+
+            kwargs:
+                are passed to seaborn.scatterplot()
+
+        Returns:
+            a matplotlib.pyplot figure and a pandas dataframe
         '''
         metadata = self.metadata.copy()
         panel = self.panel.copy()
@@ -1071,6 +1110,19 @@ class Analysis:
         ''' 
         Plots the non-redundancy scores of each antigen in the category specified in [marker_class] as boxplots, with the distribution 
         deriving from the NRS scores from each sample_id
+
+        Args:
+            marker_class (str):
+                Either "type", "state", "none", or "All". Which antigens (see self.data.var) to use to calculate the NRS and plot
+
+            filename (str or None):
+                if not None, then the filename to save the plot under (as a png) in the self.save_dir folder
+
+            kwargs:
+                are passed to seaborn.boxplot()
+
+        Returns:
+            a matplotlib.pyplot figure            
         '''
         data = self.data.copy()
         if marker_class != "All":    
@@ -1121,6 +1173,25 @@ class Analysis:
                                                                                 #   (plain seaborn plots did not work exactly as I had wanted)
         '''
         Plot kde-smoothed histograms of each antigen / channel's expression, with separate lines for separate ROIs, colored by [color_by] 
+
+        Args:
+            color_by (str):
+                which column in self.data.obs to color the histogram tracings by
+
+            marker_class (str):
+                Either "type", "state", "none", or "All". Which antigens (see self.data.var) to display in the plot
+
+            suptitle (bool):
+                whether to attempt to add a title to the plot automatically. 
+
+            filename (str or None):
+                if not None, then the filename to save the plot under (as a png) in the self.save_dir folder
+
+            kwargs:
+                are passed to matplotlib.pyplot.axis.plot()
+
+        Returns:
+            a matplotlib.pyplot figure  
         '''
         data = self.data.copy()
         if marker_class != "All":    
@@ -1351,10 +1422,45 @@ class Analysis:
             pass
         return downsample_anndata
 
-    def plot_scatter(self, antigen1, antigen2, hue = None, filename = None, size = 1, alpha = 0.5, **kwargs):
+    def plot_scatter(self, antigen1: str, 
+                     antigen2: str, 
+                     hue: Union[str, None]= None, 
+                     filename: Union[str, None] = None, 
+                     size: Union[int, float] = 1, 
+                     alpha: Union[int, float] = 0.5, **kwargs):
         '''
         Makes a scatterplot of [antigen1] vs. [antigen2], colored by [hue]. Will write a png file from the plot to 
         self.save_dir if filename is not None. 
+
+        Args:
+            antigen1 (str):
+                The antigen (in self.data.var['antigen']) to plot along the x-axis of the plot
+
+            antigen2 (str):
+                The antigen (in self.data.var['antigen']) to plot along the y-axis of the plot
+
+            hue (str):
+                If not None, either in self.data.var['antigen'], self.data.obs.columns, or "Density". 
+                If None, then no color applied to points in the scatter. If in self.data.var['antigen'], points will be colored 
+                by the expression of the provided antigen. If in self.data.obs.columns, points will be colored by category in 
+                that column. If 'Density', will attempt to color the plot based on the density of points at that location on the plot
+
+            filename (str or None):
+                if not None, then the filename to save the plot under (as a png) in the self.save_dir folder
+
+            size (numeric):
+                the size of the points in the plot
+
+            alpha (numeric between 0-1):
+                the transparency of points in the plot. Number closer to 1 mean less transparent points, and vice versa
+
+            kwargs:
+                are passed to seaborn.scatterplot()
+
+        Returns:
+            a matplotlib.pyplot figure 
+            
+            
         '''
         data = pd.DataFrame(self.data.X.copy(), columns = self.data.var['antigen'].copy())
         # hue_norm = None
@@ -1391,12 +1497,33 @@ class Analysis:
         return figure
 
     def plot_UMAP(self,
-                color_by: str = 'metaclustering', 
+                color_by: Union[None, str] = 'metaclustering', 
                 palette = None,
                 filename: Union[str, None] = None, 
                 **kwargs) -> plt.figure:                                           # *** deriv_CATALYST (plot appearance / output)
         '''
-        Plots a UMAP embedding as a scatterplot, colored by [color_by]
+        Plots a UMAP embedding as a scatterplot, colored by [color_by]. Primarily a wrapper on scanpy.pl.umap() method
+        See that method's information for more details: https://scanpy.readthedocs.io/en/stable/api/generated/scanpy.pl.umap.html
+
+        Args:
+            color_by (str or None):
+                Either: 1). what column in self.data.obs to color the UMAP cells by 2). what antigen in self.data.var['antigen'] to color
+                the UMAP by, or 3). None to have no coloring of points
+            
+            palette:
+                how to color the points. See matplotlib colormaps, or the scanpy link above for more details.
+                Example: 'tab20' is a colormap that can be good for plots using a categorical variable (one of self.data.obs columns)
+                to color the cells, while 'viridis' or 'coolwarm' can be good for continuous variable (one of self.data.var['antigen'].unique())
+
+            filename (str or None):
+                if not None, then the filename to save the plot under (as a png) in the self.save_dir folder
+
+            kwargs:
+                are passed to scanpy.pl.umap()
+
+        Returns:
+            a matplotlib.pyplot figure 
+
         '''
         self.UMAP_embedding.var.index = self.UMAP_embedding.var['antigen']
         plt.style.use('ggplot')
@@ -1419,7 +1546,29 @@ class Analysis:
                  filename: Union[str, None] = None, 
                  **kwargs) -> plt.figure:                                                                           # *** deriv_CATALYST()
         '''
-        Plots a PCA embedding as a scatterplot, colored by [color_by]
+        Plots a PCA embedding as a scatterplot, colored by [color_by]. Primarily a wrapper on scanpy.pl.umap() method.
+        Even though PCa does not use a scanpy function, self.PCA_embedding is set up in such a way that scanpy.pl.umap() can be used to
+        plot it. 
+        See that method's information for more details: https://scanpy.readthedocs.io/en/stable/api/generated/scanpy.pl.umap.html
+
+        Args:
+            color_by (str or None):
+                Either: 1). what column in self.data.obs to color the UMAP cells by 2). what antigen in self.data.var['antigen'] to color
+                the PCA by, or 3). None to have no coloring of points
+            
+            palette:
+                how to color the points. See matplotlib colormaps, or the scanpy link above for more details.
+                Example: 'tab20' is a colormap that can be good for plots using a categorical variable (one of self.data.obs columns)
+                to color the cells, while 'viridis' or 'coolwarm' can be good for continuous variable (one of self.data.var['antigen'].unique())
+
+            filename (str or None):
+                if not None, then the filename to save the plot under (as a png) in the self.save_dir folder
+
+            kwargs:
+                are passed to scanpy.pl.umap()
+
+        Returns:
+            a matplotlib.pyplot figure 
         '''
         self.PCA_embedding.var.index = self.PCA_embedding.var['antigen']
         plt.style.use('ggplot')
@@ -1443,11 +1592,40 @@ class Analysis:
                                     kind: str = "UMAP",
                                     suptitle: bool = True,
                                     number_of_columns: int = 3, 
-                                    color_bank: Union[list[str], None] = None, 
                                     filename: Union[str, None] = None, 
                                     **kwargs) -> plt.figure:
         '''
-        Like the plot_facetted_DR method below, but specific to when you want to facet by the antigens & color each facet by the respective antigen
+        Like the plot_facetted_DR method below, but specific to when you want to facet by the antigens & color each facet by the respective antigen.
+        Notably, this method does not take a color / hue parameter, nor does it need a facetting column, as the assumption of this funciton being called is that
+        the antigens are being used for both.
+
+        Args:
+            marker_class (list of str);
+               A list of the valid marker_class values in the analysis (self.data.var['marker_class', or ]"All", "none", "type", "state", "spatial_edt", ...).
+               For each of the marker_classes listed, the antigen's for that class will be included in the final UMAP. This is inclusive, so if "All" if in the list
+               it doesn't matter what other classes are listed -- every antigen will be used. Default is ['type', 'state'] so that all except 'none' antigens will be 
+               displayed in most cases
+
+            kind (str):
+                "umap" or "pca" -- which type of dimensionality reduction is to be used.
+
+            suptitle (bool):
+                whether to attempt to automaticaly place a title on the whole plot (instead of only each facet getting a title). Not that this suptitle
+                can frequently be oddly placed since the number of facets in the plot changes where the title would most comfortably sit. 
+
+            number_of_columns (integer):
+                How many columns to have in the grid of the plot. The number of rows is automatically determined form this number 
+                and the number of facets required to plot every antigen.
+
+            filename (str or None):
+                if not None, then the filename to save the plot under (as a png) in the self.save_dir folder
+
+            kwargs:
+                are passed to matplotlib.pyplot.axis.scatter()
+
+        Returns:
+            a matplotlib.pyplot figure. Note that, unlike the subsequent facetted DR method, this plot will contain EVERY cell in the embedding in EVERY facet,
+            just the color applied to the points in each plot facet will be different. 
         '''
         if number_of_columns <= 1:
             print("number_of_columns must be > 1!")
@@ -1749,6 +1927,9 @@ class Analysis:
 
             kwargs: 
                 passed in seaborn.clustermap() call
+
+        Returns:
+            a matplotlib.pyplot figure
         '''
         #show_cluster_centers = False
         warnings.filterwarnings("ignore", message = "divide by zero encountered in divide") ########## zero divisions are very common
@@ -1983,14 +2164,25 @@ class Analysis:
                             ) -> None:                                           # *** deriv_CATALYST (in effect and in the merging.csv file structure, 
                                                                                                         # more than in the function itself)
         '''
-        Creates a "merging"" column inside self.data.obs by merging & annotating an existing column in self.data.obs [groupby_column] with a 
-        pandas dataframe (read-in by pd.read_csv(file_path)) with two columns:
+        Creates a "merging"" column inside self.data.obs by merging & annotating an existing column in self.data.obs [groupby_column]
 
-            -- "original_cluster" (the values of the [groupby_column])
+        Args:
+            file_path (str):
+                The full file path to a .csv file. This csv file will be read-in as a pandas dataframe. This dataframe is expected to 
+                have at least two columns:
+                    -- "original_cluster" 
 
-            -- "new_cluster" (The values for the new column that replace the corresponding original_cluster values)
+                    -- "new_cluster" 
             
-        groupby_column: could be "leiden" to merge leiden (not tested), but usually "metaclustering" (default)
+            groupby_column (str):
+                the name of the column in self.data.obs whose values are being merged / annotated. The unique values in this column should correspond
+                to the values in the 'original_cluster' column of the read-in dataframe described above. Usually, this is either "metaclustering" or "leiden"
+                but it does not have to be
+
+            output_column (str):  
+                the name of a new column that will be inserted into self.data.obs. This column will contain the annotated / assigned values from the 
+                read-in dataframe. As in, the "original_cluster" values in groupby_column will be replaced with their corresponding "new_cluster" values
+                and the new column added as self.data.obs[output_column]
         '''
         merging_file_path = str(file_path)
         try:
@@ -2135,6 +2327,24 @@ class Analysis:
                                 **kwargs) -> plt.figure:                                             # *** deriv_CATALYST (ish, plot output)
         '''
         Plots kde-smoothed histogram of a particular marker / antigen's expression across all the clusters in the supplied [groupby_column] column
+
+        Args:
+            antigen (str):
+                one of the values in self.data.var['antigen']. Determines which antigen in the dataset to plot
+
+            groupby_column (string): 
+                The column in self.data.obs to group the cells by (usually a way of identifying cell types, 
+                like metaclustering or merging, but can be a different grouping like sample_id). Creates facets 
+                of the plot
+
+            filename (string, or None): 
+                If not None, the name of the .png file to be saved in experiment.save_dir
+
+            kwargs: 
+                passed into matplotlib.pyplot.axis.plot() for each facet of the plot
+        
+        Returns:
+            a matplotlib figure
         '''
         data = self.data.copy()
         metadata = self.metadata.copy()
@@ -2234,6 +2444,26 @@ class Analysis:
         '''
         Plots a stacked barplot (where the stacks all add up to 1) of the ratios of each cell type from the supplied [groupby_column]
         column in each sample_id, facetted by condition.
+
+        Args:
+            groupby_column (str):
+                The name of a column in self.data.obs to divide the stacks of the barplot by
+                NOTE: the bars of the barplot are ALWAYS separated by self.data.obs['sample_id']
+                    and the plot is ALWAYS facetted into multiple panels on self.data.obs['condition']
+            
+            number_columns (integer):
+                How many columns in the plot / when to warp the facets of the plot. For example, if your dataset has
+                5 conditions, and you supply a value == 3 here, then the first three conditions will be plotted in the first row
+                and the remaining two conditions will be plotted in the second row.
+
+            filename (string, or None): 
+                If not None, the name of the .png file to be saved in experiment.save_dir
+
+            kwargs: 
+                passed into seaborn.objects.Plot()
+        
+        Returns:
+            a matplotlib figure
         '''
         to_abundance_plots = self.data.obs.copy()
         abundance_plot_prep = to_abundance_plots.groupby(['sample_id', groupby_column, 'condition'], observed = False).count().reset_index()
@@ -2287,6 +2517,25 @@ class Analysis:
         box, or a stripplot (with plot_type == "barplot","boxplot","stripplot"). 
 
         Separate boxplot / stripplots are made from each condition in the supplied [hue] column to allow comparisons.
+
+        Args:
+            groupby_column (str):
+                The name of a column in self.data.obs to facet the bar / box / strip plot into multiple panels
+
+            hue (str):
+                The name of a column in self.data.obs to separate & color columns of the plots by
+
+            plot_type (str):
+                either "barplot", "boxplot", or "stripplot". Determines which type of plot use on each sub-panel.
+
+            filename (string, or None): 
+                If not None, the name of the .png file to be saved in experiment.save_dir
+
+            kwargs: 
+                passed into seaborn.{bar/box/strip}plot()
+        
+        Returns:
+            a matplotlib figure
         '''
         flowsom_clustering = self.data.copy()
         cluster_data = pd.DataFrame(flowsom_clustering.X) 
@@ -2425,10 +2674,17 @@ class Analysis:
                            **kwargs) -> plt.figure:
         '''
         Plots a heatmap of from cluster statistics calculated with the method self.do_cluster_stats. 
-        
-        Can select statistic ("F_statistic", "p_values", "FDR_corrected") to display. These options correspond to the names of column in the
-        sub-dataframes of self.df_out_dict. 
-        p_values and FDR-corrected p values are displayed after -Log() transformation
+
+        Args:
+            statistic (str):
+                which column of the output of self.do_cluster_stats() (aka, self.df_out_dict) to plot. Can be "F_statistic", "p_values", or "FDR_corrected"
+                p-value stats will be transformed by the -log(stat) before plotting, so that higher values correspond with greater significance
+
+            filename (str, or None):
+                if not None, will determine the filename of the plot saved to self.save_dir
+
+        Returns:
+            a matplotlib.pyplot
         '''
         df_out_dict = self.df_out_dict
         stat_df = pd.DataFrame()
@@ -2456,6 +2712,7 @@ class Analysis:
                             groupby_column: str = 'merging', 
                             variable: str = 'condition',
                             conditions: list[str] = [],
+                            filename: Union[str, None] = None,
                             ) -> pd.DataFrame:                                      # *** deriv_CATALYST / diffcyt (ish, PalmettoBUG's version of 
                                                                                                                     # abundance statistics)
         '''
@@ -2471,6 +2728,9 @@ class Analysis:
 
             conditions (list of strings or empty list): 
                 list of unique values in self.data.obs[variable] to be compared by ANOVA if None, then wil perform an ANOVA test on all the conditions in the dataset. 
+
+            filename (str or None):
+                if not None, determines the filename that the output dataframe will be saved to inside the self.data_table_dir folder.
 
         Returns:
             (pandas dataframe) representing the statistics calculated by this function
@@ -2513,6 +2773,8 @@ class Analysis:
 
         output_df = output_df.sort_values('f statistics', ascending = False)        
         self.abundance_ANOVA_stat_table = output_df
+        if filename is not None:
+            output_df.to_csv(self.data_table_dir + f"/{filename}.csv", index = False)
         return output_df
     
     def do_count_GLM(self, 
@@ -3337,7 +3599,35 @@ class Analysis:
         '''
         Intent of this function is to write a "classy mask" folder from an annotation
 
+        NOTE: 
+            This method depends on the original mask folder and the analysis being linked properly.
+            If data has been dropped from the analysis, then those dropped cells will either be ignored (if
+            an entire sample_id was dropped), or they will be assigned to a 'none' label
+
         Uses: visualization, mainly. Perhaps could be used in extending masks
+
+        Args:
+            clustering (str):
+                A column in self.data.obs to categorize the cells by. Each unique value in this column will receive a unique integer number
+                to classify its cell mask by.
+
+            identifier (str):
+                if not the empty string '', will be appended to the name of the saved classy mask folder / CSV, This name will follow the convention
+                f'{name of the original cell masks folder}_{identifier}'. Use this make sure that the resultant classy masks have a memorable / 
+                distinct name. 
+
+        Returns:
+            a pandas dataframe containing the clustering assignments of every cell in the style of a classy_mask, including, critically
+            the integer assigned to each cluster in the classy masks
+
+        Inputs / Outputs:
+            Inputs:
+                expects to find cell masks at self.input_mask_folder, whose masks correspon to the cells in the sample_id's of the analysis
+            
+            Outputs:
+                writes to a new classy mask folder at f'{project}/classy_masks/{name of the original cell masks folder}_{identifier}',
+                including the classified masks themselves in a sub-folder, and dataframes containing information about the classes of 
+                the classy masks & their corresponding labels.
         '''
         # Step 0: set up naming & directory
         analyses_folder = self.directory[:self.directory.rfind("/")]
@@ -3416,7 +3706,6 @@ class Analysis:
         Inputs/Outputs:
             Inputs: 
                 Reads from path, presuming path is the full filename of a .csv file created by self.export_clustering()
-            
         '''
         path = str(path)
         if path.rfind("/") == -1:
