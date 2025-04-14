@@ -1077,7 +1077,7 @@ def _spatial_by_edt(mask: np.ndarray[int],
         
     if (stat == "mean") and (normalized is True):
         for j in skimage.measure.regionprops(mask, edt_map):
-            edt_list.append(np.nan_to_num(j.intensity_mean / np.mean(edt_map), 0))
+            edt_list.append(np.nan_to_num(np.asarray(j.intensity_mean / np.mean(edt_map)), 0))
     elif (stat =="mean") and (normalized is False):
         for j in skimage.measure.regionprops(mask, edt_map):
             edt_list.append(j.intensity_mean)
@@ -1087,7 +1087,7 @@ def _spatial_by_edt(mask: np.ndarray[int],
             edt_list.append(np.median(j.image_intensity))
     elif (stat == "median") and (normalized is True):
         for j in skimage.measure.regionprops(mask, edt_map):
-            edt_list.append(np.nan_to_num(np.median(j.image_intensity) / np.median(edt_map), 0))
+            edt_list.append(np.nan_to_num(np.asarray(np.median(j.image_intensity) / np.median(edt_map)), 0))
 
     elif stat == "min":
         for j in skimage.measure.regionprops(mask, edt_map):
