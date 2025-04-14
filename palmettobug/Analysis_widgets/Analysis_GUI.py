@@ -958,7 +958,7 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def plot_UMAP(self, subsetting_column: str, color_column: str, filename: str, kind: str = 'umap') -> None:
         if filename_checker(filename, self):
             return
-        if "" in [subsetting_column, color_column]:
+        if ("" in subsetting_column) or (("" in color_column) and (subsetting_column != "antigens")):
             tk.messagebox.showwarning("Warning!", 
                 message = "A parameter for UMAP plots was left blank!")
             self.focus()
@@ -1030,7 +1030,7 @@ class Plot_ExprsHeatMap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.group = ctk.CTkOptionMenu(master = self, 
                                        values = COLNAMES, 
-                                       variable = ctk.StringVar(value = "type"))
+                                       variable = ctk.StringVar(value = "sample_id"))
         self.group.grid(column= 1, row= 2, padx = 5, pady = 5)
 
         label_4 = ctk.CTkLabel(self, text = "Filename:")

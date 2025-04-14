@@ -9,7 +9,7 @@ repository = "https://github.com/BenCaiello/PalmettoBUG"
 
 [tool.poetry.dependencies]
 # python = ">=3.9, <3.11"
-numpy = "1.*"                   ## upgrade to numpy 2 not possible because of scikit-fda bug (at least that bug, maybe others)
+numpy = "*"                   ## upgrade to numpy 2 not possible because of scikit-fda bug (at least that bug, maybe others)
 pandas = ">=2.0"
 matplotlib = ">=3.0.0"
 seaborn = "*"
