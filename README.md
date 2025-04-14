@@ -1,27 +1,29 @@
 # PalmettoBUG
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/BenCaiello/PalmettoBUG/python-app.yml)
-![Coverage](https://github.com/BenCaiello/PalmettoBUG/actions/workflows/python-app.yml/coverage-badge.svg)
+![Codecov](https://img.shields.io/codecov/c/github/BenCaiello/PalmettoBUG)
 ![Pepy Total Downloads](https://img.shields.io/pepy/dt/palmettobug)
 ![PyPI - Version](https://img.shields.io/pypi/v/palmettobug)
 ![Read the Docs](https://img.shields.io/readthedocs/PalmettoBUG)
 ![Static Badge](https://img.shields.io/badge/License-GPL3-blue)
 
-Badges, except coverage, made in: https://shields.io/
+Badges made in: https://shields.io/
 
 ## Warning! This package is still under development!
 
 Final development plans:
 
     1). Documentation: 
-        - Update images and descriptions with new features & data
-            -- update to remove / reduce screenshots of prop-licensed software (file explorer, probably fair use, but won't hurt to do)
-        - incorporate proofreader edits
-        - Look at API documentation -- it is almost certianly a mess right now
+        - re-run & update notebooks (at end of development). If necessary, update images in docs as well (UMAP, ...).
+            - save a file detailed the full environment used for the docs
 
     2). Code:
-        - Expand tests (may not be possible, because of the nature of GUI code and extensive use of pop-up windows), get code coverage badge/shield
+        - Get code coverage badge/shield
         - Environment lists (update ALL to reflect recent changes)! Currently these files are inaccurate!
-        - Future: re-test later python versions (3.12, etc.) and updated dependencies (numpy v2+, etc.)
+            - Redo runners (Linux / MacOS), Local (windows): do python 3.10 only / match to how notebooks / docs are made
+                - iSD gets its own environment files  (for local environment: tensorflow version, + GPU version, and plain version)
+
+    3). Additions
+        - would like to test instanseg (https://github.com/instanseg/instanseg) in PalmettoBUG (license compatible deep-learning segmentation model). May add as an option + mask expansion, leaving iSD more as a plugin than a necessary part of the pipeline.
 
 
 ## What is PalmettoBUG

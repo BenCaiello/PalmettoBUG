@@ -2432,6 +2432,12 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
             text = "select filename (if grouped, the grouping statistic \n will be automatically appended to start:)")
         label.grid(column = 1, row = 8, pady = 5, padx = 5)
 
+        self.untransformed = ctk.CTkCheckBox(master = self, 
+                                    text = "Check to export untransformed data - \n as in, the raw data prior data = arcsinh(data/5)",
+                                    onvalue = True, 
+                                    offvalue = False)
+        self.untransformed.grid(column = 0, row = 8, pady = 5, padx = 5)
+
         self.export_marker_class = ctk.CTkCheckBox(master = self, 
                                     text = "Check to export markerclass \n (type/state/etc.) information \n as the final row of the data table",
                                     onvalue = True, 
@@ -2534,6 +2540,8 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
             grouping_list = None
             stat = None
 
+        untransformed = self.untransformed.get()
+
         if not overwrite_approval(self.master.cat_exp.data_table_dir + f"/{filename}.csv", file_or_folder = "file", GUI_object = self):
             return
 
@@ -2542,7 +2550,8 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
             subset_types = column_values_list, 
             groupby_columns = grouping_list, 
             statistic = stat,
-            include_marker_class_row = self.export_marker_class.get())
+            include_marker_class_row = self.export_marker_class.get(),
+            untransformed = untransformed)
         try:
             Analysis_widget_logger.info(f"Exported data from analysis with the following settings: \n"
                                         f"filename = {filename}, \n"

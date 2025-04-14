@@ -29,20 +29,17 @@ jobs:
         pip install uv 
         uv pip install . --system
         pip freeze
-        pip install pytest pytest-cov pytest-xvfb genbadge[coverage]
+        pip install pytest pytest-cov pytest-xvfb
     - name: Lint with ruff
       run: |
         uvx ruff check palmettobug/ --exit-zero
     - name: pytest
       run: |  
-        python -m pytest -p pytest_cov --cov-report xml:coverage.xml --cov=palmettobug tests/   
-        genbadge coverage -i ./coverage.xml
+        python -m pytest -p pytest_cov --cov-report xml:coverage.xml --cov=palmettobug tests/  
 
-#    - name: recover coverage badge
-#      uses: actions/upload-artifact@v4
-#      with: 
-#        name: code coverage
-#        path: coverage-badge.svg
+    - uses: codecov/codecov-action@v5
+      
+
 
 #  build2:                   #### having a second build is useful when testing alternate python versions, OS, etc.
 #                            ## I know tox is a common way of automating this, but for now manual is fine.

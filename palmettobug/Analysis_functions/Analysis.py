@@ -638,6 +638,13 @@ class Analysis:
                    ) -> None:                                                # *** deriv_CATALYST (in name & effect, not actually translated)
         '''
         This function drops all rows matching to_drop in the provided column from self.data. 
+
+        Args:
+            to_drop (str):
+                The unique value in [column] to drop all cells with that value
+
+            column (str):
+                The column in self.data.obs to use in dropping data from the analysis.
         '''
         if self.back_up_data is None:
             self.back_up_data = self.data.copy()
@@ -660,6 +667,11 @@ class Analysis:
         if self.PCA_embedding is not None:
             filterer = (self.PCA_embedding.obs[column].astype('str') != str(to_drop))
             self.PCA_embedding = self.PCA_embedding[filterer].copy()
+
+        try:
+            self.data.uns['counts'] = self.data.uns['counts'][filterer]
+        except Exception:
+            pass
 
     def do_COMBAT(self, 
                   batch_column: str, 
@@ -3031,6 +3043,7 @@ class Analysis:
                     groupby_columns: Union[list[str], None] = None, 
                     statistic: str = 'mean',
                     include_marker_class_row: bool = False,
+                    untransformed: bool = False,
                     filename: Union[str, None] = None, 
                     ) -> pd.DataFrame:
         '''
@@ -3077,6 +3090,10 @@ class Analysis:
                 metadata columns (which have no marker_class) have this row filled with 'na'. 
                 NOT USED IN COMBINATION WITH GROUPING!
 
+            untransformed (bool):
+                if True, will export the untransformed (pre-arcsinh, pre-scaling, etc., etc.) data, from self.data.uns['count'].
+                Provided so that the raw data is not difficult to recover, although not expected to be used frequently. Default == False. 
+
             filename: (str, or None): 
                 the name of the csv file to save the exported dataframe inside the self.data_table_dir folder. If None, no export occurs, and the data table is only returned. 
 
@@ -3092,6 +3109,8 @@ class Analysis:
         else:
             output_path = "".join([self.data_table_dir, "/", str(filename), ".csv"])
         data = self.data.copy()
+        if untransformed:
+            data.X = self.data.uns['counts'].copy()
         data.obs = data.obs.reset_index()    ## cell index included as 'index' column --> useful if dropping / filtering cells out of the dataset
         ## anndata to pd.DataFrame:
         data_points = pd.DataFrame(data.X)
