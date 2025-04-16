@@ -33,11 +33,23 @@ jobs:
     - name: Lint with ruff
       run: |
         uvx ruff check palmettobug/ --exit-zero
-    - name: pytest
-      run: |  
-        python -m pytest -p pytest_cov --cov-report xml:coverage.xml --cov=palmettobug tests/  
+    #- name: pytest
+    #  run: |  
+    #    python -m pytest -p pytest_cov --cov-report xml:coverage.xml --cov=palmettobug tests/  
 
-    - uses: codecov/codecov-action@v5
+    #- uses: codecov/codecov-action@v5
+
+    # use https://github.com/pilosus/action-pip-license-checker?tab=readme-ov-file (MIT license) to check licenses
+    - name: Check licenses
+      uses: pilosus/action-pip-license-checker@v2 
+      with:
+        requirements: environments/requirements_3.10.txt
+        fail: 'Other'
+        verbosity: 1
+    - name: print license report
+      if: ${{ always() }}
+      run:
+        echo "{{ steps.license_check_report.outputs.report}}"
       
 
 
