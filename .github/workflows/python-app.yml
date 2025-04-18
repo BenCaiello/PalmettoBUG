@@ -44,7 +44,6 @@ jobs:
       run: pip-licenses
       
 
-
 #  build2:                   #### having a second build is useful when testing alternate python versions, OS, etc.
 #                            ## I know tox is a common way of automating this, but for now manual is fine.
 #

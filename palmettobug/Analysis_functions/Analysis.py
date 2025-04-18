@@ -401,7 +401,7 @@ class Analysis:
         marker_class_included = False
         marker_class = data.copy().iloc[-1,:]
         if np.array(marker_class == "na").sum() != 0: 
-            marker_class_dict_rev = {"0.0" : 'none', "1.0" : 'type', "2.0" : ' state', "3.0" : "spatial_edt"}
+            marker_class_dict_rev = {"0.0" : 'none', "1.0" : 'type', "2.0" : ' state', "3.0" : "spatial_edt", "4.0":"other"}
             marker_class = marker_class[marker_class != "na"].astype('str').replace(marker_class_dict_rev)
             data = data.iloc[:-1, :]
             marker_class_included = True
@@ -495,6 +495,17 @@ class Analysis:
         self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype("category")
         self.data.obs["condition"] =  self.data.obs["condition"].astype("category")
         self.data.obs = self.data.obs.reset_index().drop("index", axis = 1)
+
+        try:
+            self.data.uns['areas'] = data['areas'] 
+            cent_X = np.asarray(data['centroid_X'])
+            cent_Y = np.asarray(data['centroid_Y])
+            obsm = np.zeros([2, len(cent_X)])
+            obsm[0] = cent_X
+            obsm[1] = cent_Y
+            self.data.obsm['spatial'] = obsm_key
+        except Exception:
+            pass
 
     def load_regionprops(self, 
                          regionprops_directory: Union[Path, str, None] = None, 
@@ -3377,12 +3388,23 @@ class Analysis:
         ## anndata to pd.DataFrame:
         data_points = pd.DataFrame(data.X)
         data_points.columns = data.var.index.astype('str')
+
+        to_add = []
         if (include_marker_class_row is True) & (groupby_columns is None):
             data_points = data_points.T
-            marker_class_dict = {'none' : 0, 'type' : 1, 'state' : 2, 'spatial_edt' : 3}     # so not mixed type on read
+            marker_class_dict = {'none' : 0, 'type' : 1, 'state' : 2, 'spatial_edt' : 3, 'other': 4}     # so not mixed type on read
             data_points['marker_class'] = list(data.var['marker_class'])
             data_points['marker_class'] = data_points['marker_class'].replace(marker_class_dict)
             data_points = data_points.T
+            to_add = [4]
+
+        if groupby_columns is None:
+            try:
+                data_points["centroid_X"] = list(self.data.obsm['spatial'].T[0]) + to_add
+                data_points["centroid_Y"] = list(self.data.obsm['spatial'].T[1]) + to_add
+                data_points["areas"] = list(self.data.uns['areas']) + to_add
+            except Exception:
+                pass
 
         data.obs.columns = data.obs.columns.astype('str')
         data_col_list = [i for i in data.obs.columns]
@@ -3392,11 +3414,12 @@ class Analysis:
             else:
                 data_points[str(i)] = list(data.obs[str(i)])
             data.obs[i] = data.obs[i].astype('str')
-
+                
         if self._scaling == "%quantile":
             data_points['scaling'] = str(self._scaling) + str(self._quantile_choice)
         else:
             data_points['scaling'] = self._scaling
+
         if (include_marker_class_row is True) & (groupby_columns is None):
             data_points.loc[data_points.index[-1],'scaling'] = "na"
         

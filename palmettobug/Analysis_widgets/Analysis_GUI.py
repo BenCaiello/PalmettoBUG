@@ -115,15 +115,10 @@ class Analysis_py_widgets(ctk.CTkFrame):
         self.classy_masker.configure(state = 'normal')
         regionprops_directory = self.cat_exp.directory[:-4] + "/regionprops/"
         try:
-            roi_areas = os.listdir(regionprops_directory)   ## TODO: Fix this -- it is not working.
-            if len(roi_areas) > 0:
-                self.region.configure(state = 'normal')
-                regions = True
-            else:
-                print('no files in the regionprops directory -- spatial analysis for this data will be unavailable')
-                regions = False
+            self.cat_exp.data.uns['areas']
+            self.cat_exp.data.obsm['spatial'].T[1]
         except Exception:
-            print("No regionprops directory -- spatial analysis for this data will not be available.")
+            print('Cell centroids and/or areas not found -- spatial analysis for this data will be unavailable')
             regions = False
 
         self.analysis_bank.initialize_buttons()
