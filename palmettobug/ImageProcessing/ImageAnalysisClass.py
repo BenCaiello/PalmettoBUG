@@ -632,7 +632,7 @@ class ImageAnalysis:
                 if (hpf > 0) and (hpf < 1):
                     image = _my_auto_hpf(image, hpf)
                 elif hpf != 0:
-                    image = stein_unhook.filter_hot_pixels(image,hpf)   ## stpi removed
+                    image = stein_unhook.filter_hot_pixels(image, hpf)
                 if from_mcds is True:
                     file_name = "".join([(str(path)[len(self.directory_object.main)+5:-4]), '_', ROI])   ### this is an awkard line -- 
                                                                                                         # len(directory) + 5, slices off the 
@@ -645,10 +645,7 @@ class ImageAnalysis:
                                                                     self.resolutions)
                     write_ome_tiff(image, ome_tiff_metadata, out)
                 else:
-                    if ROI.rfind(".ome.tif") == -1:
-                        ROI = ROI[:ROI.rfind(".tif")]   ## remove existing extension (assumed to be a singular extension)
-                        ROI = ROI + ".ome.tiff"
-                    if ROI.rfind(".ome.tiff") == -1:   ## this means that the current format must be .ome.tif (one f, instead of two), so I add an "f" for consistency
+                    if ROI.rfind(".tiff") == -1:   ## this means that the current format must be .tif (one f, instead of two), so I add an "f" for consistency
                         ROI = ROI + "f"
                     out = "".join([output_directory, ROI])
                     ome_tiff_metadata = acquisition
@@ -770,7 +767,7 @@ class ImageAnalysis:
                 print("None of the mask and image filenames matched! Cancelling regionproperty measurement.")
             return
 
-        def filter_redo(dest_folder, shared_filenames):
+        def filter_redo(dest_folder, shared_files):
             ints_files = [str(i).replace("\\","/") for i in dest_folder]
             ints_files = [i[(i.rfind("/") + 1):i.rfind(".csv")] for i in ints_files]
             img_files_int = []
@@ -780,13 +777,13 @@ class ImageAnalysis:
                 j = j[:j.rfind(".tiff")]
                 if j not in ints_files:
                     img_files_int.append(i)
-                    mask_files_int.append(ii)
+                    mask_files_int.append(i)
             return img_files_int, mask_files_int
 
         
         if re_do is False:
-            img_files_int, mask_files_int = filter_redo(ints_folder, shared_filenames)
-            img_files_reg, mask_files_reg = filter_redo(regions_folder, shared_filenames)
+            img_files_int, mask_files_int = filter_redo(ints_folder, shared_files)
+            img_files_reg, mask_files_reg = filter_redo(regions_folder, shared_files)
             if (len(img_files_int) == 0) and (len(img_files_reg) == 0):
                 if _in_gui:     
                     tk.messagebox.showwarning("Warning!", 

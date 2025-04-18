@@ -209,15 +209,27 @@ def slice_folder(class_to_keep: Union[int, list[int]],
         os.mkdir(output_folder)
     classifier_maps = [i for i in sorted(os.listdir(class_map_folder)) if i[-5:] == '.tiff']
     images = [i for i in sorted(os.listdir(image_folder)) if i[-5:] == '.tiff']
-    for i, ii in zip(classifier_maps, images):
-        if i != ii:
-            if _in_gui:
-                tk.messagebox.showwarning("Warning!", message = "Mismatch in names between images and classifier maps! Exiting filtering step")
-            else:
-                print("Mismatch in names between images and classifier maps! Exiting filtering step")
-            return
+    shared = [i for i in images if i in classifier_maps]
+    if len(shared) == 0:
+        if _in_gui:
+            tk.messagebox.showwarning("Warning!", message = "No files matched between classifier maps and images! Cancelling slicing images on pixel class")
+        else:
+            print("No files matched between classifier maps and images! Cancelling slicing images on pixel class")
+        raise NoSharedFilesError, f"No shared .tiff files between the image folder = {image_folder}, and classifier output folder = {class_map_folder}"
+    if len(shared) != len(images):
+        if _in_gui:
+            tk.messagebox.showwarning("Caution!", message = "Not all images have a matching pixel classifier prediction available! \n"
+                                                            "This could be caused by only predicting classes for only some of the images \n"
+                                                            "or if a filename was altered so it no longer matches. \n\n"
+                                                            "This warning can be ignored if this is intentional.")
+        else:
+            print("Not all images have a matching pixel classifier prediction available! \n"
+                  "This could be caused by only predicting classes for only some of the images \n"
+                  "or if a filename was altered so it no longer matches. \n\n"
+                  "This warning can be ignored if this is intentional.")
+    for i in shared:
         class_map = tf.imread("".join([class_map_folder,"/",i])).astype('int')
-        reader =  pot.OMETIFFReader("".join([image_folder,"/",ii]))
+        reader =  pot.OMETIFFReader("".join([image_folder,"/",i]))
         image, metadata, xml_metadata = reader.read()
         sliced_image = slice_image_by_region(class_to_keep, class_map, image, padding = padding, zero_out = zero_out)
         if len(sliced_image) == 0:

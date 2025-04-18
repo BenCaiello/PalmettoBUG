@@ -113,7 +113,6 @@ class Analysis_py_widgets(ctk.CTkFrame):
         self.data_export_buton.configure(state = 'normal')
         self.scatter.configure(state = 'normal')
         self.classy_masker.configure(state = 'normal')
-        regionprops_directory = self.cat_exp.directory[:-4] + "/regionprops/"
         try:
             self.cat_exp.data.uns['areas']
             self.cat_exp.data.obsm['spatial'].T[1]

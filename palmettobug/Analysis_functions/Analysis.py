@@ -503,7 +503,7 @@ class Analysis:
             obsm = np.zeros([2, len(cent_X)])
             obsm[0] = cent_X
             obsm[1] = cent_Y
-            self.data.obsm['spatial'] = obsm_key
+            self.data.obsm['spatial'] = obsm
         except Exception:
             pass
 
