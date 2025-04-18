@@ -13,17 +13,8 @@ Badges made in: https://shields.io/
 Final development plans:
 
     1). Documentation: 
-        - re-run & update notebooks (at end of development). If necessary, update images in docs as well (UMAP, ...).
-            - save a file detailed the full environment used for the docs
-
-    2). Code:
-        - Environment lists (update ALL to reflect recent changes)! Currently these files are inaccurate!
-            - Redo runners (Linux / MacOS), Local (windows): do python 3.10 only / match to how notebooks / docs are made
-                - iSD gets its own environment files  (for local environment: tensorflow version, + GPU version, and plain version)
-
-    3). Additions
-        - would like to test instanseg (https://github.com/instanseg/instanseg) in PalmettoBUG (license compatible deep-learning segmentation model). May add as an option + mask expansion, leaving iSD more as a plugin than a necessary part of the pipeline.
-
+        - using the listed environments in the /environments folder, re-run & update notebooks. 
+        - Update images in docs as well (UMAP if needed, file pop-ups, ...).
 
 ## What is PalmettoBUG
 
@@ -89,6 +80,12 @@ Step-by-step documentation of what can be done in the GUI will be found in the *
 ## LICENSE
 
 This package is licensed under the GPL-3 license. However, much of the code in it is derived / copying from other software packages -- so the original licenses associated with that code also applies to those parts of the repository. 
+
+## Future Plans
+
+Besides continued checking of the dependencies and trying to update the program with newer version of python & depedencies, as well as fixing bugs & errors, these are the main possibilities for future additions to the package:
+
+1). Pre-trained deeplearning segmentation (& mask expansion) available in the main program via Instanseg. Instanseg is a new, and truly open-source (& critically, GPL-3 compatible) deep learning segmentation model. Having this available would allow users to more easily avoid needing isosegdenoise / non-commercial licensed deep learning models to perform the segmentation step of the program. One limitation of this right now is the lack of an Instanseg model pre-trained specifically for IMC data, although there is a model for fluorescent images which I have tested a bit. Similarly, I could move my "simple denoising" option to the main program, or look to offer another open-source option for denoising images. 
 
 ## Citation
 
