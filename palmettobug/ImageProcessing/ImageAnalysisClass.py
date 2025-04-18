@@ -760,44 +760,41 @@ class ImageAnalysis:
         mask_files = sorted(Path(input_mask_folder).rglob("[!.]*.tiff"))  # ***
         ints_folder = sorted(Path(output_intensities_folder).rglob("[!.]*.csv"))   # ***
         regions_folder = sorted(Path(output_regions_folder).rglob("[!.]*.csv"))    # ***
-        if _in_gui:
-            if (re_do is False) and (len(img_files) == len(ints_folder)) and (len(img_files) == len(regions_folder)):     
-                tk.messagebox.showwarning("Warning!", 
-                    message = "All images have intensity and region files written! Did you intend to redo these measurements?")  
-                return
 
-            if len(img_files) != len(mask_files):
+        shared_files = [i for i in os.listdir(img_files) if i in os.listdir(mask_files)]
+        if (len(shared_files) == 0):
+            if _in_gui:
                 tk.messagebox.showwarning("Warning!", 
-                    message = "The number of masks in the masks folder and images in the img folder must be the same! Have you deleted a file?")
-                return
-        else:
-            if (re_do is False) and (len(img_files) == len(ints_folder)) and (len(img_files) == len(regions_folder)):     
-                print("All images have intensity and region files written! Did you intend to redo these measurements?")  
-                return
+                    message = "None of the mask and image filenames matched! Cancelling regionproperty measurement.")
+            else:
+                print("None of the mask and image filenames matched! Cancelling regionproperty measurement.")
+            return
 
-            if len(img_files) != len(mask_files):
-                print("The number of masks in the masks folder and images in the img folder must be the same! Have you deleted a file?")
-                return
+        def filter_redo(dest_folder, shared_filenames):
+            ints_files = [str(i).replace("\\","/") for i in dest_folder]
+            ints_files = [i[(i.rfind("/") + 1):i.rfind(".csv")] for i in ints_files]
+            img_files_int = []
+            mask_files_int = []
+            for i in shared_files:
+                j = str(i).replace("\\","/")
+                j = j[:j.rfind(".tiff")]
+                if j not in ints_files:
+                    img_files_int.append(i)
+                    mask_files_int.append(ii)
+            return img_files_int, mask_files_int
+
         
         if re_do is False:
-            def filterer(dest_folder, img_files, mask_files):
-                ## originally written for the intensity folder first, hence the (ints_ and _int) pre-/suffixes
-                ints_files = [str(i).replace("\\","/") for i in dest_folder]
-                ints_files = [i[(i.rfind("/") + 1):i.rfind(".csv")] for i in ints_files]
-                img_files_int = []
-                mask_files_int = []
-                for i,ii in zip(img_files, mask_files):
-                    if str(i)[str(i).rfind("/"):] != str(ii)[str(ii).rfind("/"):]:
-                        print("The image and masks filenames do not align!")
-                    else:
-                        j = str(i).replace("\\","/")
-                        j = j[(j.rfind("/") + 1):j.rfind(".tiff")]
-                        if j not in ints_files:
-                            img_files_int.append(i)
-                            mask_files_int.append(ii)
-                return img_files_int, mask_files_int
-            img_files_int, mask_files_int = filterer(ints_folder, img_files, mask_files)
-            img_files_reg, mask_files_reg = filterer(regions_folder, img_files, mask_files)
+            img_files_int, mask_files_int = filter_redo(ints_folder, shared_filenames)
+            img_files_reg, mask_files_reg = filter_redo(regions_folder, shared_filenames)
+            if (len(img_files_int) == 0) and (len(img_files_reg) == 0):
+                if _in_gui:     
+                    tk.messagebox.showwarning("Warning!", 
+                        message = "All images have intensity and region files written! Did you intend to redo these measurements?")  
+                else:
+                    print("All images have intensity and region files written! Did you intend to redo these measurements?")  
+                return
+            
             intensity_gen = stein_unhook.try_measure_intensities_from_disk(img_files_int,           # *** 
                                         mask_files_int, 
                                         self.panel[self.panel['keep'] == 1]['name'], 

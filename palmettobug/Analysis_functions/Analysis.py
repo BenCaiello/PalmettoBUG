@@ -499,7 +499,7 @@ class Analysis:
         try:
             self.data.uns['areas'] = data['areas'] 
             cent_X = np.asarray(data['centroid_X'])
-            cent_Y = np.asarray(data['centroid_Y])
+            cent_Y = np.asarray(data['centroid_Y'])
             obsm = np.zeros([2, len(cent_X)])
             obsm[0] = cent_X
             obsm[1] = cent_Y
