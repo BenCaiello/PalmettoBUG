@@ -767,8 +767,9 @@ class ImageAnalysis:
         for ii in mask_files:
             jj = str(ii).replace("\\","/")
             jj = jj[(j.rfind("/") + 1):jj.rfind(".tiff")]
-            cleaned_mask.append(i)
+            cleaned_mask.append(ii)
         shared_files = [i for i in cleaned_img if i in cleaned_mask]
+        shared_masks = [i for i in cleaned_mask if i in cleaned_img]
 
         if (len(shared_files) == 0):
             if _in_gui:
@@ -792,7 +793,7 @@ class ImageAnalysis:
         
         if re_do is False:
             img_files_int, mask_files_int = filter_redo(ints_folder, shared_files)
-            img_files_reg, mask_files_reg = filter_redo(regions_folder, shared_files)
+            img_files_reg, mask_files_reg = filter_redo(regions_folder, shared_masks)
             if (len(img_files_int) == 0) and (len(img_files_reg) == 0):
                 if _in_gui:     
                     tk.messagebox.showwarning("Warning!", 
