@@ -215,18 +215,18 @@ def slice_folder(class_to_keep: Union[int, list[int]],
             tk.messagebox.showwarning("Warning!", message = "No files matched between classifier maps and images! Cancelling slicing images on pixel class")
         else:
             print("No files matched between classifier maps and images! Cancelling slicing images on pixel class")
-        raise NoSharedFilesError, f"No shared .tiff files between the image folder = {image_folder}, and classifier output folder = {class_map_folder}"
+        raise NoSharedFilesError(f"No shared .tiff files between the image folder = {image_folder}, and classifier output folder = {class_map_folder}")
     if len(shared) != len(images):
         if _in_gui:
             tk.messagebox.showwarning("Caution!", message = "Not all images have a matching pixel classifier prediction available! \n"
                                                             "This could be caused by only predicting classes for only some of the images \n"
                                                             "or if a filename was altered so it no longer matches. \n\n"
-                                                            "This warning can be ignored if this is intentional.")
+                                                            f"This warning can be ignored if this is intentional, files being used = {str(shared)}.")
         else:
             print("Not all images have a matching pixel classifier prediction available! \n"
                   "This could be caused by only predicting classes for only some of the images \n"
                   "or if a filename was altered so it no longer matches. \n\n"
-                  "This warning can be ignored if this is intentional.")
+                  f"This warning can be ignored if this is intentional, files being used = {str(shared)}.")
     for i in shared:
         class_map = tf.imread("".join([class_map_folder,"/",i])).astype('int')
         reader =  pot.OMETIFFReader("".join([image_folder,"/",i]))
@@ -874,7 +874,7 @@ def extend_masks_folder(classifier_map_folder: Union[Path, str],
             (len(overlapping) == len(classy_mesmer_masks)) and 
             (len(overlapping) == len(classifier_masks))):
         if len(overlapping) == 0:
-            raise NoSharedFilesError
+            raise NoSharedFilesError("None of the files in the masks, classy masks and classification maps folders match")
         print("warning! the files in the masks, classy masks and classification maps folders do not all match! \n"
               f"The files that are present in all three folders are the only ones that will be used: \n\n {str(overlapping)}")
 
