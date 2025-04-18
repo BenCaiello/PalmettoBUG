@@ -758,7 +758,18 @@ class ImageAnalysis:
         ints_folder = sorted(Path(output_intensities_folder).rglob("[!.]*.csv"))   # ***
         regions_folder = sorted(Path(output_regions_folder).rglob("[!.]*.csv"))    # ***
 
-        shared_files = [i for i in img_files if i in mask_files]
+        cleaned_img = []
+        cleaned_mask = []
+        for i in img_files:
+            j = str(i).replace("\\","/")
+            j = j[(j.rfind("/") + 1):j.rfind(".tiff")]
+            cleaned_img.append(i)
+        for ii in mask_files:
+            jj = str(ii).replace("\\","/")
+            jj = jj[(j.rfind("/") + 1):jj.rfind(".tiff")]
+            cleaned_mask.append(i)
+        shared_files = [i for i in cleaned_img if i in cleaned_mask]
+
         if (len(shared_files) == 0):
             if _in_gui:
                 tk.messagebox.showwarning("Warning!", 
@@ -773,9 +784,7 @@ class ImageAnalysis:
             img_files_int = []
             mask_files_int = []
             for i in shared_files:
-                j = str(i).replace("\\","/")
-                j = j[:j.rfind(".tiff")]
-                if j not in ints_files:
+                if i not in ints_files:
                     img_files_int.append(i)
                     mask_files_int.append(i)
             return img_files_int, mask_files_int
