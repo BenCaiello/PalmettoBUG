@@ -758,7 +758,7 @@ class ImageAnalysis:
         ints_folder = sorted(Path(output_intensities_folder).rglob("[!.]*.csv"))   # ***
         regions_folder = sorted(Path(output_regions_folder).rglob("[!.]*.csv"))    # ***
 
-        shared_files = [i for i in os.listdir(img_files) if i in os.listdir(mask_files)]
+        shared_files = [i for i in img_files if i in mask_files]
         if (len(shared_files) == 0):
             if _in_gui:
                 tk.messagebox.showwarning("Warning!", 
