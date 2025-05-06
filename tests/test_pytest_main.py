@@ -87,7 +87,7 @@ def test_load_SupPx():
 
 def test_train_predict_supervised_classifier():
     shutil.rmtree(pixel_class_object.classifier_training_labels)
-    shutil.copytree(f"{homedir}/notebooks/PixelClassifiers/training_labels", pixel_class_object.classifier_training_labels)
+    shutil.copytree(f"{homedir}/tests/training_labels", pixel_class_object.classifier_training_labels)
     _ = pixel_class_object.train_folder(images_dir)
     pixel_class_object.predict_folder(images_dir)
     prediction_paths = ["".join([pixel_class_object.output_directory,"/",i]) for i in sorted(os.listdir(pixel_class_object.output_directory))]  
