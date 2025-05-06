@@ -1,6 +1,6 @@
-# PalmettoBUG -- Python3.10
+# PalmettoBUG -- Python3.9
 
-## This Branch is for a version of PalmettoBUG that has extremely restrictive / strictly defined dependencies in Python 3.10
+## This Branch is for a version of PalmettoBUG that has extremely restrictive / strictly defined dependencies in Python 3.9
 
 Goal: That this will be a an especially stable / easy to install version of the program, by minimizing the risk of dependency errors. HOWEVER -- this also
 means that this version of the program will not receive updates, bugfixes, or security maintenance for its dependencies!
@@ -13,9 +13,9 @@ As an additional consequence, the documentation, notebooks, environments, etc. a
 
 Once this branch is completed & released, run: 
 
-    pip install palmettobug==0.1.2.dev310
+    pip install palmettobug==0.1.2.dev39
 
-Future version number for this branch will follow the convention 0.1.x.dev310, unless there is a truly major update to the program that I propagate to this branch.
+Future version number for this branch will follow the convention 0.1.x.dev39, unless there is a truly major update to the program that I propagate to this branch.
 
 Or copy this repository locally, navigate to the repository directory (the folder where pyproject.toml lives) then run:
 
