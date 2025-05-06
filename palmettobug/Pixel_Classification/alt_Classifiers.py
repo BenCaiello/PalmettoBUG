@@ -1,0 +1,624 @@
+'''
+This is an alternative backend for pixel classification steps, intended to use skimage filters / sklearn MLPs instead of opencv ANN_MLP & quapth filters
+
+Why? 
+-- qupath filters are complex to explain and rarely used. Why do we need three Hessian options, when we can have just one?
+-- some of what sci-kit image can do, the current qupath filters cannot, like true vessel-ness filters (sato/frangi, etc.) or spectral-based filters (butterworth, etc.).
+-- Can simplify licensing (although that is already mostly set-up for QuPath) and could remove the potential opencv-with-OpenSSL-lib issue entirely. 
+-- The code itself maybe easier to read
+
+Downsides:
+-- I expect skimage to run slower than opencv. However, the code itself maybe more efficient in design -- first because I'll be using skimage-optimized filters instead
+     of hand-made mimics of QuPath filters, and second because re-writing the code may let me write more efficiently this time around.
+-- Switching to this would end compatibility with QuPath classifiers
+-- I will also have to write & test a bunch of new code in the first place....
+'''
+## License / derivation info (commented out to avoid inclusion in API docs)
+# like all files in PalmettoBUG, all code is under the GPL-3 license.
+
+## copied from original Classifiers.py file (only self-written functions / no derivation from qupath or opencv in them):
+            # plot_pixel_heatmap, smoothing functions (all three)
+            # segment_class_map_folder   (heavily based on some of the documentation of scikit-image, enough that I list it in the Other_License_Details.txt file:
+                                    # Scikit-image: https://github.com/scikit-image/scikit-image, Copyright: 2009-2022 the scikit-image team, license: BSD-3))
+
+## TODO: (5-5-25) --> add napari connection, test, connect to a GUI interface, etc.
+
+import os
+from typing import Union
+from pathlib import Path
+import json
+import warnings
+
+import tifffile as tf
+import joblib
+import numpy as np 
+import pandas as pd 
+import skimage as ski 
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.neural_network import MLPClassifier as MLP
+from flowsom import FlowSOM
+
+def GaussianFilter(image, sigma):  ## standard gaussian -- only function capable of operating on multi-channels at once
+    '''Note: this also scales the image to be between -1 and 1'''
+    return ski.filters.gaussian(image, sigma = sigma)
+
+def HessianFilter(image):          ## edge detection
+    return ski.filters.hessian(image)
+
+def FrangiFilter(image):
+    return ski.filters.frangi(image)
+
+def ButterWorthFilter(image, ratio, high_pass = True):
+    return ski.filteres.butterworth(image, cutoff_frequency_ratio = ratio, high_pass = high_pass)
+
+def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0]):
+    ''''''
+    length = 0
+    if channels == {}:
+        for i,ii in enumerate(image):
+            channels[i] = features_list
+    for i in channels:
+        feat = channels[i]
+        base_len = len(features)
+        length += base_len
+        if 'gaussian' in feat:
+            length += len(sigmas) - 1
+        if 'butterworth' in feat:
+            length += (len(sigmas)*2) - 1
+    final_array = np.zeros([length] + image[0].shape)
+    count = 0
+    for i in channels:
+        img_slice = image[i]
+        features = channels[i]
+        if 'gaussian' in features:
+            for j in sigmas:
+                final_array[count] = GaussianFilter(img_slice, sigma = j)
+                count += 1
+        if ('hessian' in features):
+            final_array[count] = HessianFilter(img_slice)
+            count += 1
+        if ('frangi' in features):
+            final_array[count] = FrangiFilter(img_slice)
+            count += 1
+        if ('butterworth' in features):
+            for i in sigmas:
+                final_array[count] = ButterWorthFilter(img_slice, ratio = i / 100, high_pass = True)
+                count += 1
+                final_array[count] = ButterWorthFilter(img_slice, ratio = i / 100, high_pass = False)
+                count += 1
+    return final_array, channels
+
+class SupervisedClassifier:
+    def __init__(self, directory):
+        self.directory = directory
+        self.output_folder = f"{directory}/classification_maps"
+        self.training_folder = f"{directory}/training_labels"
+        self.model = None
+        self.model_path = f"{directory}/model.pkl"
+        self.model_info = {}
+        self.model_info_path = f"{directory}/info.json"
+        self._channels = {}
+
+    def write_classifier(self, image_folder, 
+                           channel_dictionary = {}, 
+                           sigmas = [1.0, 5.0, 10.0],
+                           hidden_layers = [100],
+                           learning_rate = 0.001):
+        '''Point of this method is to set up the .json that will store the information relevant to the classifier'''
+        write_dictionary = {}
+        write_dictionary['image_folder'] = image_folder
+        write_dictionary['channels'] = channel_dictionary
+        write_dictionary['sigmas'] = sigmas
+        write_dictionary['hidden_layers'] = hidden_layers
+        write_dictionary['learning_rate'] = learning_rate
+        self.model_info = write_dictionary
+        with open(self.model_info_path, "w") as write_file:
+            json.dumps(write_dictionary, write_file)
+
+        joblib.dump(self.model, self.model_path)
+
+    def load_classifier(self):
+        ''''''
+        with open(self.model_info_path, "r") as read_file:
+            self.model_info = json.load(read_file)
+        try:
+            self.model = joblib.load(self.model_path)
+        except sklearn.exceptions.InconsistentVersionWarning:
+            print("Version of Scikit-Learn is different than when the pixel classifier model was originally trained! Model not loaded.")
+
+    def napari_labels(self, image_path)):
+        ''''''
+
+    def save_napari_labels(self):
+        ''''''
+        
+
+    def train(self, image_folder, 
+                    training_folder = self.training_folder, 
+                    channel_dictionary = {}, 
+                    feature_list = ['gaussian'],         ## only used if channel_dictionary == {}
+                    sigmas = [1.0, 5.0, 10.0],
+                    hidden_layers = [100],
+                    learning_rate = 0.001,
+                    from_save = False,
+                    auto_predict = False):
+        ''''''
+        if from_save:
+            image_folder = self.model_info['image_folder'] = image_folder
+            channel_dictionary = self.model_info['channels']
+            sigmas = self.model_info['sigmas']
+            hidden_layers = self.model_info['hidden_layers'] 
+            learning_rate = self.model_info['learning_rate'] 
+        training_images = [i for i in sorted(os.listdir(training_folder)) if i.lower.rfind('.tif') != -1]
+        all_images = [i for i in sorted(os.listdir(image_folder)) if i.lower.rfind('.tif') != -1]
+        images = [i for i in training_images if i in all_images]
+        if len(images) == 0:
+            print('No images to train on!')
+            return
+        all_pixels = np.zeros(1)
+        all_labels = np.zeros(1)
+        for i in images:
+            img = tf.imread(f'{image_folder}/{i}').astype('float32')
+            trn_img = tf.imread(f'{training_folder}/{i}').astype('int32')
+            image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+            all_pixels = np.concatenate((all_pixels, image_features[trn_img > 0]))
+            all_labels = np.concatenate((all_pixels, trn_img[trn_img > 0]))
+        all_pixels = all_pixels[1:]
+        all_labels = all_labels[1:]
+        self.model = MLP(hidden_layer_sizes = hidden_layers, learning_rate_init = learning_rate, early_stopping = True)
+        self.model.fit(all_pixels, all_labels)  
+        if not from_save:  ## no need to rewrite if from saved model
+            self.write_classifier(image_folder, self._channels)
+        if auto_predict:
+            self.predict(image_folder, output_folder = self.output_folder, filenames = None)
+
+    def predict(self, image_folder, output_folder = self.output_folder, filenames = None):
+        ''''''
+        if filenames is None:
+            images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind(".tif") != -1]
+            for filename in images:
+                img = tf.imread(f'{image_folder}/{filename}').astype('float32')
+                image_features = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+                prediction = self.model.predict(image_features)
+                tf.imwrite(f'{output_folder}/{filename}', prediction)
+        elif isinstance(filenames, list):
+            for filename in filenames:
+                img = tf.imread(f'{image_folder}/{filename}').astype('float32')
+                image_features = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+                prediction = self.model.predict(image_features)
+                tf.imwrite(f'{output_folder}/{filename}', prediction)
+        elif isinstance(filenames, str):
+            filename = filenames
+            img = tf.imread(f'{image_folder}/{filename}').astype('float32')
+            image_features = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+            prediction = self.model.predict(image_features)
+            tf.imwrite(f'{output_folder}/{filename}', prediction)
+        else:
+            raise(ValueError, "Filenames parameter must be a str, list, or None")
+        
+class UnsupervisedClassifier:
+    def __init__(self, directory):
+        self.directory = directory
+        self.output_folder = f"{directory}/classification_maps"
+        self.training_folder = f"{directory}/training_labels"
+        self.model = None
+        self.model_path = f"{directory}/model.pkl"
+        self.model_info = {}
+        self.model_info_path = f"{directory}/info.json"
+        self._channels = {}
+
+    def write_classifier(self, image_folder, 
+                         channel_dictionary = {}, 
+                         sigmas = [1.0, 5.0, 10.0],
+                         pixel_number = 250000, 
+                         quantile = 0.999,
+                         XYdim = 10,
+                         metaclusters = 15,
+                         training_cycles = 50,
+                         smoothing = 0,
+                         seed = 42,):
+        '''Point of this method is to set up the .json that will store the information relevant to the classifier'''
+        write_dictionary = {}
+        write_dictionary['image_folder'] = image_folder
+        write_dictionary['channels'] = channel_dictionary
+        write_dictionary['sigmas'] = sigmas
+        write_dictionary['pixel_number'] = pixel_number
+        write_dictionary['quantile'] = quantile
+        write_dictionary['XYdim'] = XYdim
+        write_dictionary['metaclusters'] = metaclusters
+        write_dictionary['training_cycles'] = training_cycles
+        write_dictionary['smoothing'] = smoothing
+        write_dictionary['seed'] = seed
+        self.model_info = write_dictionary
+        with open(self.model_info_path, "w") as write_file:
+            json.dumps(write_dictionary, write_file)
+
+        joblib.dump(self.model, self.model_path)
+
+    def load_classifier(self):
+        ''''''
+        with open(self.model_info_path, "r") as read_file:
+            self.model_info = json.load(read_file)
+        try:
+            self.model = joblib.load(self.model_path)
+        except sklearn.exceptions.InconsistentVersionWarning:
+            print("Version of Scikit-Learn is different than when the pixel classifier model was originally trained! Model not loaded.")
+
+    def train(self, image_folder, 
+                    pixel_number = 250000, 
+                    quantile = 0.999,
+                    channel_dictionary = {}, 
+                    feature_list = ['gaussian'],         ## only used if channel_dictionary == {}
+                    sigmas = [1.0, 5.0, 10.0],
+                    XYdim = 10,
+                    metaclusters = 15,
+                    training_cycles = 50,
+                    smoothing = 0,
+                    seed = 42,
+                    from_save = False,
+                    auto_predict = False):
+        ''''''
+        if from_save:
+            image_folder = self.model_info['image_folder']
+            channel_dictionary = self.model_info['channels']
+            sigmas = self.model_info['sigmas']
+            pixel_number = self.model_info['pixel_number']
+            quantile = self.model_info['quantile']
+            XYdim = self.model_info['XYdim']
+            metaclusters = self.model_info['metaclusters']
+            training_cycles = self.model_info['training_cycles']
+            seed = self.model_info['seed']
+        np.random.default_rng(seed)
+        images = [i for i in sorted(os.listdir(image_folder)) if i.lower.rfind('.tif') != -1]
+        if len(images) == 0:
+            print('No images to train on!')
+            return
+        all_pixels = np.zeros(1)
+        pixels_per_image = pixel_number // len(images)
+        for i in images:
+            img = tf.imread(f'{image_folder}/{i}').astype('float32')
+            image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+            ## Here I do a simplified scaling on a per-image basis (instead of the wholedataset at once)
+            image_features = self.scaled_features(image_features, quantile)
+            sample = np.random.choice(image_features, pixels_per_image, replace = False)
+            all_pixels = np.concatenate((all_pixels, sample))
+        all_pixels[1:]
+        self.model = FlowSOM(all_pixels, n_clusters = metaclusters, xdim = XYdim, ydim = XYdim, rlen = training_cycles, seed = seed).model
+        if not from_save:  ## no need to rewrite if from saved model
+            self.write_classifier(image_folder, self._channels)
+        if auto_predict:
+            self.predict(image_folder, output_folder = self.output_folder, filenames = None)
+
+    def predict(self, image_folder, output_folder = self.output_folder, filenames = None):
+        ''''''
+        smoothing = self.model_info['smoothing']
+        metaclusters = self.model_info['metaclusters']
+        quantile = self.model_info['quantile']
+        if filenames is None:
+            images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind(".tif") != -1]
+            for filename in images:
+                img = tf.imread(f'{image_folder}/{filename}').astype('float32')
+                image_features = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+                image_features = self.scaled_features(image_features, quantile)
+                prediction = self.model.predict(image_features)
+                if smoothing > 0:
+                    prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
+                tf.imwrite(f'{output_folder}/{filename}', prediction)
+        elif isinstance(filenames, list):
+            for filename in filenames:
+                img = tf.imread(f'{image_folder}/{filename}').astype('float32')
+                image_features = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+                image_features = self.scaled_features(image_features, quantile)
+                prediction = self.model.predict(image_features)
+                if smoothing > 0:
+                    prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
+                tf.imwrite(f'{output_folder}/{filename}', prediction)
+        elif isinstance(filenames, str):
+            filename = filenames
+            img = tf.imread(f'{image_folder}/{filename}').astype('float32')
+            image_features = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+            image_features = self.scaled_features(image_features, quantile)
+            prediction = self.model.predict(image_features)
+            if smoothing > 0:
+                prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
+            tf.imwrite(f'{output_folder}/{filename}', prediction)
+        else:
+            raise(ValueError, "Filenames parameter must be a str, list, or None")
+
+    def scaled_features(self, array, quantile):
+        '''Quantile scales within channels, then min-max channels across channels'''
+        new_shape = (array.shape[0], array.shape[1]*array.shape[2])    ## reshape to remove X,Y dimensions but preserve channels
+        array = np.reshape(array, new_shape)
+        ## Here I do a more simplistic quantile scaling -- I only scale by the sampled pixels
+        array = (array - array.min(axis = 0)) / (np.quantile(array, quantile, axis = 0) - array.min(axis = 0))
+        array[array > 1] = 1
+        array = (array - array.min(axis = 1)) / (array.max(axis = 1) - array.min(axis = 1))
+        return array
+
+def plot_pixel_heatmap(pixel_folder: Union[str, Path],
+                       image_folder: Union[str, Path], 
+                       channels: list[str], 
+                       panel: pd.DataFrame, 
+                       silence_division_warnings = False) -> tuple[plt.figure, pd.DataFrame]:
+    '''
+    This plots a heatmap derived from the actual data of the pixel class regions predicted by a classifier (unlike plot_class_centers, which uses the training centroids).
+    Specifically, it shows the mean of 1%-99% quantile scaled data for each channel in each pixel class.
+
+    Args:
+        pixel_folder (str, Path):
+            The folder of predictions from a pixel classifier
+
+        image_folder (str, Path):
+            The folder of images that the channels intensities will be read from to construct the heatmap. Only files present in BOTH pixel_folder & image_folder
+            will be used.
+
+        channels (iterable of strings):
+            The names of the antigens to use in the panel. Will be matched against the antigens in panel, and then used to slice the images to only the channels of interest.
+            These antigen names are also what will be displayed on the heatmap axes.
+
+        panel (pd.DataFrame):
+            The panel file (panel.csv) of the PalmettoBUG project in question. Specifically, panel['keep'] == 0 channels are removed, and then the antigen names in channels
+            are matched against the antigen names in panel['name'] to slice the images to only the channels of interest. 
+
+        silence_division_warnings (bool):
+            One of the steps of this function involves a lot of division where zero-division / related errors can occur. 
+            Will silence these warnings if this parameter == True
+
+    Returns:
+        a matplotlib figure and a pandas dataframe containing the values displayed in the plot
+
+    '''
+    pixel_folder = str(pixel_folder)
+    image_folder = str(image_folder)
+    if silence_division_warnings is True:
+        warnings.filterwarnings("ignore", message = "invalid value encountered in divide")
+    slicer = np.array([i in channels for i in panel[panel['keep'] == 1]['name']])
+    output_df = pd.DataFrame()
+    pixel_files = [i for i in sorted(os.listdir(pixel_folder)) if i.lower().find(".tif") != -1]
+    image_files = [i for i in sorted(os.listdir(image_folder)) if i.lower().find(".tif") != -1]
+    to_use_files = [i for i in pixel_files if i in image_files]
+    for i in to_use_files:
+        pixel_map = tf.imread("".join([pixel_folder, "/", i]))
+        temp_df_class = pixel_map.reshape(pixel_map.shape[0]*pixel_map.shape[1])
+        image = tf.imread("".join([image_folder, "/", i]))
+        ravel_image = image.reshape([image.shape[0], image.shape[1]*image.shape[2]])
+        temp_df = pd.DataFrame(ravel_image[slicer].T, columns = channels)  
+        temp_df['pixel_class'] = temp_df_class
+        temp_df = temp_df[temp_df['pixel_class'] != 0]
+        output_df = pd.concat([output_df, temp_df], axis = 0)
+            
+    main_df = pd.DataFrame()
+    for ii,i in enumerate(output_df.groupby("pixel_class", observed = False).apply(_py_mean_quantile_norm, include_groups = False)):
+        slice = pd.DataFrame(i, index = channels, columns = [ii + 1])
+        main_df = pd.concat([main_df,slice], axis = 1)
+    for_heatmap = main_df.T.copy()                             # output_df.groupby('pixel_class').median()
+    #for_heatmap = (for_heatmap - for_heatmap.min()) / (for_heatmap.max() - for_heatmap.min())
+
+    fractional_percentages = output_df.groupby('pixel_class').count() / len(output_df)
+    percentages = 100 * fractional_percentages
+
+    for_heatmap.index = [str(i) + f' ({str(np.round(j,2))}%)' for i,j in zip(for_heatmap.index, percentages.iloc[:,0])]
+    try:
+        plot = sns.clustermap(for_heatmap, cmap = "coolwarm", linewidths = 0.01, xticklabels = True)
+    finally:
+        plt.close()
+    if silence_division_warnings is True:
+        warnings.filterwarnings("default", message = "invalid value encountered in divide")
+    return plot, for_heatmap  
+
+def smooth_folder(input_folder: Union[Path, str], 
+                  output_folder: Union[Path, str], 
+                  class_num: int, 
+                  threshold: int, 
+                  search_radius: int,
+                  ) -> None:
+    '''
+    Over an input_folder of pixel classification maps, iterates of the images, "smoothing" the classifications by removing 
+    isolated & small regions of pixel classes
+
+    Inputs / Outputs:
+        Inputs: 
+            read in .tiff files from input_folder (MUST have only tiff files and no subfolders in that directory)
+
+        Outputs: 
+            for each .tiff read-in exports a .tiff with the same name to output_folder (if input_folder == output_folder, then files in input_folder at overwritten)
+    '''
+    input_folder = str(input_folder)
+    output_folder = str(output_folder)
+    input_file_names = [i for i in sorted(os.listdir(input_folder)) if i.lower().find(".tif") != -1]
+    for i in input_file_names:
+        path_to_file = "".join([input_folder,"/",i])
+        class_map = tf.imread(path_to_file)
+        smoothed_img = smooth_isolated_pixels(class_map, 
+                                              class_num = class_num, 
+                                              threshold = threshold, 
+                                              search_radius = search_radius)
+        tf.imwrite(output_folder + "/" + i, smoothed_img.astype('int32'))
+
+
+def smooth_isolated_pixels(unsupervised_class_map: np.ndarray[int], 
+                           class_num: int, 
+                           threshold: int = 3, 
+                           search_radius: int = 1, 
+                           mode_mode: str = "original_image",
+                           fill_in: bool = True,
+                           warn = True,
+                           ) -> np.ndarray[int]:
+    '''
+    This function converts isolated pixels (pixels in a contiguous group smaller than the threshold size) to the mode of the neighboring 
+    pixels in the search radius.
+
+    Use case: unsupervised pixel classification currently produces a large number of isolated pixels -- lonely pixels of a class with no 
+    neighbors of the same class -- which seems non-biological. The intention of this function is remove these small regions and blend them 
+    into the surrounding pixels. In this sense, it is like hot-pixel filtering.
+
+    Pipeline: This should be done immediately after pixel classification through a unsupervised FlowSOM classifier, although perhaps it could be used later(?)
+                
+    Args:
+        unsupervised_class_map (numpy array, 2D): 
+            the classification map generated by the pixel classifier
+
+        class_num (int): 
+            the number of pixel classes, defines the range of classes to iterate through, removing/smoothing isolated 
+            pixels of each class in ascending order. Note how the class_num is the actual number, but the classes themselves are 1-indexed
+
+        threshold (int): 
+            groups of pixels smaller than this number are considered "isolated" and filtered out -- this is done by the 
+            skimage.morphology.remove_small_objects() function, with threshold corresponding to the min_size parameter of that function. 
+
+        search_radius (int): 
+            this (+1) corresponds to the connectivity parameter in the skimage.morphology.remove_small_objects() function, 
+            and also controls the size of the search radius for finding the mode of the surrounding pixels to smooth out isolated pixels. 
+            Radius = 1 corresponds to a 3x3 square for the mode-search portion of the algorithm. If there are only 0's inside the search 
+            radius, the function expands the serach radius by one and looks again    
+
+        mode_mode (string): 
+            one of "original_image", "dropped_image" -- whether to caculate the mode for filling holes from the original 
+            image (this can unfortunately recreate isolated pixel regions, but likely better reflects the underlying situation) or 
+            from the dropped image. Overall, both mode_modes create largely similar outputs.
+
+        fill_in (bool):
+            If True (default), then the removed pixels have their values filled in by the mode of the surrounding pixels
+            Otherwise, the removed pixels are just left as 0's (this is more efficient for processes like EDT maps that don't
+            care about the fill-in procedure). 
+
+    Returns:
+        (numpy array) the output, smoothed pixel classificaiton array
+    '''
+    ## First, convert all isolated pixels to zero:
+    all_isolated_pixels_removed = np.zeros(unsupervised_class_map.shape)
+    zero_number = unsupervised_class_map.max() + 10000
+    unsupervised_class_map[unsupervised_class_map == 0] = zero_number    ## added to preserve blank patchs after merging
+    for i in range(1, class_num + 1):
+        single_class = (unsupervised_class_map == i)
+        single_class_isolated_pixels_removed = skimage.morphology.remove_small_objects(single_class, 
+                                                                                       min_size = threshold, 
+                                                                                       connectivity = (search_radius + 1))
+        all_isolated_pixels_removed  = all_isolated_pixels_removed + single_class_isolated_pixels_removed.astype('int')
+    all_isolated_pixels_removed = (unsupervised_class_map * all_isolated_pixels_removed).astype('int')
+
+    if not fill_in:
+        return all_isolated_pixels_removed
+    else:
+        ## now use pixel-surroundings to fill in holes
+        if mode_mode == "original_image":
+            padded_array = np.pad(unsupervised_class_map, search_radius) 
+        elif mode_mode == "dropped_image":
+            padded_array = np.pad(all_isolated_pixels_removed, search_radius) 
+        else:
+            raise ValueError("mode_mode argument must either be 'original_image' or 'dropped_image'!")
+        
+        isolated_removed = np.copy(all_isolated_pixels_removed)
+        for i,ii in enumerate(all_isolated_pixels_removed):
+            for j,jj in enumerate(ii):
+                if jj == 0:                                                                 
+                    mode = _find_mode(padded_array, [i,j], search_radius, warn = warn)   
+                                    ## do not have to take into account the padding in  [i,j] because of how the find_mode function slices
+                    isolated_removed[i,j] = mode
+
+        all_isolated_pixels_removed[all_isolated_pixels_removed == zero_number] = 0 ## added to preserve blank patchs after merging
+        return isolated_removed
+
+def _find_mode(padded_array: np.ndarray[int], 
+               point: list[int], 
+               search_radius: int,
+               warn = True,
+               ) -> int:
+    ''' 
+    Helper function for smooth_isolated_pixels(). Find the surrounding non-zero mode of the neighborhood of a point in an image.
+    '''
+    X = point[0]
+    Y = point[1]
+    right_X = X + 2*search_radius + 1   ### this slicing is why adjusting for padding is not needed: instead of slicing a square around the actual point
+                                        ## it slices from the original (pre-padding) index -- which is one shifted search radius up & left
+                                        ## it extends the slice two search radii + 1 from this shifted index -- recreating the square of
+                                        ## radius 1*search radius around the original point
+    lower_Y = Y + 2*search_radius + 1
+    square = padded_array[X:right_X,Y:lower_Y]
+    square_values = square[(square != 0)]   
+    mode = scipy.stats.mode(square_values)[0]
+    try:
+        int(mode)     ## this is my awkward way of testing if mode == nan (for some reason using... if mode == np.nan: ...does not work)
+    except ValueError:
+        if warn:
+            print(f"The point at {X},{Y} was surrounded by only zero-points -- expanding search radius!")   
+                    ### should only be theoretically possible if mode_mode = "dropped_image" in smooth_isolated_pixels() 
+        padded_array = np.pad(padded_array, 1)
+        mode = _find_mode(padded_array, point, (search_radius + 1))
+    return mode
+
+
+def segment_class_map_folder(pixel_classifier_directory: Union[Path, str], 
+                             output_folder: Union[Path, str], 
+                             distance_between_centroids: int = 10, 
+                             threshold: int = 5, 
+                             to_segment_on: list[int] = [2], 
+                             background: int = 1,
+                             ) -> None:
+    '''
+    Takes pixel classification maps and uses edt + watershedding to segment into objects
+
+    Args:
+        pixel_classifier_directory (string or Path):  
+            The path to the folder of pixel classification maps to derive segmentations from 
+
+        output_folder (string or Path):  
+            the path to a folder where the segmentation masks are to be written. 
+
+        distance_between_centroids(integer):
+            the minimum distance between centroids for the watershedding. Higher numbers remove the number of centroids and force them to be farther apart, 
+            leading to fewer, larger cell segmentations, whereas lower numbers allow very close centroids, leading to smaller, more numerous segmentations. 
+
+        threshold (integer): 
+            objects smaller than this threshold (in pixels) will be removed before edt / watershedding. Objects this small could theoretically be segmented, if the 
+            watershedding leads to this occurring. However, would have to happen inside a larger region being watershed from multiple points
+
+        to_segment_on (list of integers): 
+            The classes to segment on. They will be merged before running, and usually it is recommended that a dedicated supervised pixel classifier that only 
+            finds the objects of interest be used (so usually only 1 class to segment on) 
+
+        background (integer): 
+            The background class, which wil be set to zero
+
+    Returns:
+        None 
+        
+    Inputs / Outputs:
+        Inputs: 
+            reads in all the files in pixel_classifier_directory as .tiff files (MUST NOT have other file types / subfolders)
+
+        Outputs: 
+            for each file read-in exports a .tiff file to output_folder
+    '''
+    pixel_classifier_directory = str(pixel_classifier_directory)
+    output_folder = str(output_folder)
+    if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
+    class_map_names = [i for i in sorted(os.listdir(pixel_classifier_directory)) if i.lower().find(".tif") != -1]
+    class_maps_paths = ["".join([pixel_classifier_directory,"/",i]) for i in sorted(os.listdir(pixel_classifier_directory)) if i.lower().find(".tif") != -1]
+    for i, ii in zip(class_map_names, class_maps_paths):
+        map = tf.imread(ii)
+        map[map == background] = 0
+        all_isolated_pixels_removed = np.zeros(map.shape)
+        for j in to_segment_on:
+            single_class = (map == j)
+            single_class_isolated_pixels_removed = skimage.morphology.remove_small_objects(single_class, min_size = threshold)
+            all_isolated_pixels_removed  = all_isolated_pixels_removed + single_class_isolated_pixels_removed.astype('int')
+        all_isolated_pixels_removed = (map * all_isolated_pixels_removed).astype('int')
+
+        #watershed_map = scipy.ndimage.distance_transform_edt(all_isolated_pixels_removed)
+
+        ## Following code block
+        ## heavily based on: https://scikit-image.org/docs/stable/auto_examples/segmentation/plot_watershed.html tutorial / example
+        peaks = scipy.ndimage.distance_transform_edt(all_isolated_pixels_removed)    
+        peaks = skimage.feature.peak_local_max(peaks, min_distance = distance_between_centroids, labels = all_isolated_pixels_removed)
+        markers = np.zeros(all_isolated_pixels_removed.shape)
+        for k in tuple([tuple(k) for k in peaks]):
+            markers[k] = 1
+        markers = scipy.ndimage.label(markers)[0]
+        segmentation = skimage.segmentation.watershed(all_isolated_pixels_removed, markers = markers, mask = all_isolated_pixels_removed)
+
+        #segmentation = skimage.segmentation.watershed(-watershed_map, mask = all_isolated_pixels_removed)
+
+        tf.imwrite("".join([output_folder,"/",i]), segmentation.astype('float'))
