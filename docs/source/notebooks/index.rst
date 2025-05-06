@@ -13,7 +13,7 @@ The notebooks are in three folders:
 		3 notebooks on making supervised / unsupervised classifiers and how to use them.
 
 	3). Alternate Entrypoints -- 
-		4 notebooks covering loading an analysis directly from FCs files, or from a saved CSV file as well as side-functions 
+		4 notebooks covering loading an analysis directly from FCS files, or from a saved CSV file as well as side-functions 
 		of PalmettoBUG, like converting backup .txt files to .tiffs, and normalizing solution-mode data using beads. 
 
 There is, additionally, a notebook in this folder (LaunchMainGUIs) that shows how to launch the PalmetotBUG GUIs in a notebook instead of
