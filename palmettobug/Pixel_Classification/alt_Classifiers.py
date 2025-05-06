@@ -90,14 +90,16 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
     return final_array, channels
 
 class SupervisedClassifier:
-    def __init__(self, directory):
+    def __init__(self, name, directory, classes_dictionary: dict):
+        self.name = name
         self.directory = directory
         self.output_folder = f"{directory}/classification_maps"
         self.training_folder = f"{directory}/training_labels"
         self.model = None
-        self.model_path = f"{directory}/model.pkl"
+        self.model_path = f"{directory}/{name}_model.pkl"
         self.model_info = {}
-        self.model_info_path = f"{directory}/info.json"
+        self.model_info_path = f"{directory}/{name}_info.json"
+        self.classes = classes_dictionary
         self._channels = {}
 
     def write_classifier(self, image_folder, 
@@ -109,6 +111,7 @@ class SupervisedClassifier:
         write_dictionary = {}
         write_dictionary['image_folder'] = image_folder
         write_dictionary['channels'] = channel_dictionary
+        write_dictionary['classes'] = self.classes
         write_dictionary['sigmas'] = sigmas
         write_dictionary['hidden_layers'] = hidden_layers
         write_dictionary['learning_rate'] = learning_rate

@@ -101,12 +101,6 @@ This package is licensed under the GPL-3 license (See LICENSE.txt). However, muc
 Note:
 On Linux and MacOS, the opencv package ships with an open source, but non-GPL-compatible library (OpenSSL v1.1.1). As far as I am aware, PalmettoBUG does not use, depend on, or in any way interact with this library (and it is NOT shipped in Windows version of opencv, which kind of proves those points). So I am uncertain of how this affects the program itself, although makes it likely that a full / dependency-included version of PalmettoBUG (on linux / Mac) is currently not legally redistributable. This exact situation (a non-redistributable program because of dependency license conflicts) is already described for the very packages causing a problem in opencv: https://github.com/FFmpeg/FFmpeg. Hopefully the pending release of opencv 5.0 will also resolve this detail, as well, by providing a version of opencv without problematic libraries. 
 
-## Future Plans
-
-Besides continued checking of the dependencies and trying to update the program with newer version of python & depedencies, as well as fixing bugs & errors, these are the main possibilities for future additions to the package:
-
-1). Pre-trained deeplearning segmentation (& mask expansion) available in the main program via Instanseg. Instanseg is a new, and truly open-source (& critically, GPL-3 compatible) deep learning segmentation model. Having this available would allow users to more easily avoid needing isosegdenoise / non-commercial licensed deep learning models to perform the segmentation step of the program. One limitation of this right now is the lack of an Instanseg model pre-trained specifically for IMC data, although there is a model for fluorescent images which I have tested a bit. Similarly, I could move my "simple denoising" option to the main program, or look to offer another open-source option for denoising images. 
-
 ## Citation
 
 If you use this work in your data analysis, software package, or paper -- a citation of this repository or its associated preprint / paper (TBD ____________) would be appreciated. 
