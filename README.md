@@ -103,9 +103,7 @@ On Linux and MacOS, the opencv package ships with an open source, but non-GPL-co
 
 ## Future Plans
 
-Besides continued checking of the dependencies and trying to update the program with newer version of python & depedencies, as well as fixing bugs & errors, these are the main possibilities for future additions to the package:
-
-1). Pre-trained deeplearning segmentation (& mask expansion) available in the main program via Instanseg. Instanseg is a new, and truly open-source (& critically, GPL-3 compatible) deep learning segmentation model. Having this available would allow users to more easily avoid needing isosegdenoise / non-commercial licensed deep learning models to perform the segmentation step of the program. One limitation of this right now is the lack of an Instanseg model pre-trained specifically for IMC data, although there is a model for fluorescent images which I have tested a bit. Similarly, I could move my "simple denoising" option to the main program, or look to offer another open-source option for denoising images. 
+See Development branch: *Potentially* -- instanseg as an open-source segmentation option, and alternative skimage-based pixel classifiers with a simpler interface / options to replace the existing QuPath / opencv based classifiers.
 
 ## Citation
 
