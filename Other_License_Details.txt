@@ -1,0 +1,146 @@
+Many of the files copy, incorporate, translate, or derive from other code packages.
+So while the GPL>=3 license applies to the repository as a whole -- code that is 
+directly copied (unmodified) from other packages remains additionally under their original
+license terms and copyright holders.
+
+Note that I cast a wide net for what packages I included in this list -- not all actually contributed substantial code 
+or would add aalternate licensing options on top of GPL-3. 
+Packages with a parenthetical note on their use (like "by translation") often fall in this cateogry where no code in palmettobug 
+is directly copied and could fall fully under the original license, but instead some amount of derivation / modification occurred.
+
+Note that many R packages do not have copies of their licenses in their github repositories, and essentially never a direct copyright note (copyright author / date). 
+This seems to be standard practice for many R packages.
+However, they do list the name of the license (like "GPL>=2") in a DESCRIPTION files, as well as authors, and sometimes a date. 
+I provide here what information is available on these packages, but note that the copyright holder may be the institution, 
+not the authors. And the exact date is similarly uncertain.
+I have asked (by github issue) a number of packages lacking copyright statements what copyright statement to include here.
+
+Files (see file headers for more specifics / modifications of the packages):
+    -- palmettobug/Assets:
+        -- all files in palmettobug/Assets/ctkThemeBuilderThemes were copied from the package ctk_theme_builder:
+             https://github.com/avalon60/ctk_theme_builder MIT license, Copyright (c) 2023 avalon60 (Clive Bostock)
+
+        -- All mascot files (Capture****.png --- except Capture_blank.png) were created using an OpenAI model, and 
+        therefore are automatically in the public domain
+
+    -- palmettobug/_vendor   (individual files in this folder also contain the source license):
+        -- All files in this folder are copied (and modified) from existing software packages:
+            -- fcsparser       MIT license, Copyright (c) 2018 Eugene Yurtsev    https://github.com/eyurtsev/fcsparser 
+            -- fcsy            MIT, Copyright (c) 2018, yc                       https://github.com/nehcgnay/fcsy
+            -- pyometiff       GPL-3, Copyright (c) 2021, Filippo Maria Castelli https://github.com/filippocastelli/pyometiff 
+                  - pyometiff also includes BSD-3 licensed code from:  https://github.com/CellProfiler/python-bioformats/blob/master/bioformats/omexml.py Copyright (c) 2009-2013 Broad Institute
+            -- qnorm,          MIT, Copyright (c) 2020, Maarten van der Sande    https://github.com/Maarten-vd-Sande/qnorm
+            -- readimc         MIT, Copyright (c) 2021 University of Zurich      https://github.com/BodenmillerGroup/readimc
+            -- sigfig          MIT, Copyright (c) 2022 drakegroup                https://github.com/drakegroup/sigfig
+            -- steinbock       MIT, Copyright (c) 2021 University of Zurich      https://github.com/BodenmillerGroup/steinbock
+
+    -- Packages used in parts of other files:
+        -- palmettobug/Utils/sharedClasses.py
+            -- Singleton,     MIT, Copyright (c) 2019, James Roeder              https://github.com/jmaroeder/python-singletons 
+
+        -- palmettobug/Pixel_Classification/Classifiers.py
+            Code was translated or heavily based on packages:
+                -- QuPath (by translation) GPL-3, 
+                        -- File translated: Copyright (C) 2018 - 2020 QuPath developers, The University of Edinburgh  
+                        -- QuPath (0.5.1) as a whole: Copyright (C) 2018 - 2023 QuPath developers, The University of Edinburgh, Copyright 2014-2016 The Queen's University of Belfast, Northern Ireland 
+                -- scikit-image (code heavily based on their documentation)    BSD-3, Copyright: 2009-2022 the scikit-image team,  https://github.com/scikit-image/scikit-image, 
+                -- ark-analysis (only inspiration / mathematical order & details for unsupervised classifiers -- 
+                                likely not copyrightable as more conceptual borrowing than copying of actual code/expression) MIT, Copyright © 2023 Angelo Lab https://github.com/angelolab/ark-analysis
+                -- structure of classifier.json files based on / derived from the structure of opencv's ANN_MLP .json files (Apache-2.0 license )
+                        Under Apache 2.0 License, a work like PalmettoBUG that merely links to opencv (or is separatable) is not derivative, therefore I will not include the license here
+                        nor the copyright statement. See https://github.com/opencv/opencv for more information about this package
+
+        -- palmettobug/ImageProcessing/ImageAnalysisClass.py
+            -- steinbock       MIT, Copyright (c) 2021 University of Zurich      https://github.com/BodenmillerGroup/steinbock
+        
+        -- palmettobug/Analysis_functions/Analysis.py    (and perhaps WholeClassAnalysis.py, which was derived from it)
+            -- CATALYST (intentionally mimics or translated from CATALYST),     GPL>=2, https://github.com/HelenaLC/CATALYST/ (no direct copyright statement found. Following information copied & edited 
+                                                                                                      from DESCRIPTION file:
+                                                                                                          Authors = 
+                                                                                                               Helena L. Crowell, Vito R.T. Zanotelli,
+                                                                                                               Stéphane Chevrier, Mark D. Robinson,
+                                                                                                               Bernd Bodenmiller
+                                                                                                          All Authors affiliated with the University of Zurich at time of first publication
+                                                                                                      Date -- no date provided in DESCRIPTION, scientific puclications in 2017-2018. Accessed for translation in 2024
+                                                                                                      )
+            -- diffcyt (only mimics stats options, which is not copyrightable. Attribution included here for completeness, NO CODE in PalmettoBUG should fall under the diffcyt
+                       license): MIT, Copyright (c) 2018 Lukas M. Weber https://github.com/lmweber/diffcyt 
+
+        -- palmettobug/Analysis_functions/SpatialANOVA.py
+            (By translation from R, especially spatstat which was a more direct translation)
+            -- spatstat,      GPL >=2 license                             https://github.com/spatstat (Copyright (c) 2001-2022 Adrian Baddeley, Ege Rubak and Rolf Turner [Files used did not mention any additional contributors])
+            -- SpaceANOVA,    GPL-2 (but palmettobug explicitly allowed as GPL-3 by author)   https://github.com/sealx017/SpaceANOVA (no direct copyright statement. Author = Souvik Seal, 
+                                                                                                                                        affiliated with Medical University of South Carolina.
+                                                                                                                                        Published [and accessed for translation] in 2024)
+
+        -- palmettobug/Entrypoint/bead_norm.py
+            --  Premessa (re-implementation / translation from R)     GPL-3, https://github.com/ParkerICI/premessa Copyright 2016 Parker Institute for Cancer Immunotherapy.   
+                    (which was in turn a re-implementation of: https://github.com/nolanlab/bead-normalization, GPL-3, no direct copyright statement [author / date], nor a description file. 
+                    However, only Premessa was translated into PalmettoBUG, not the bead-normalization MatLab scripts. FCS files in the bead-normalization repository were used to generate
+                    jupyter-notebook tutorial documentation.)
+
+        -- The GitLab / GitHub actions .yml files were modified from MIT-licensed templates
+              link: https://github.com/actions/starter-workflows
+              Copyright (c) 2020 GitHub
+
+Additionally, much of the structure of PalmettoBUG folder directories is inspired / derived from CATALYST, steinbock.
+
+LICENSE TEXTS (except GPL-3, which is in the main license file):
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+~~~~~~~~~~~~~~~~~
+MIT License text:
+~~~~~~~~~~~~~~~~~
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in 
+the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the 
+Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BSD-3 license text (specifically from scikit-image):
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+License: BSD-3-Clause
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. Neither the name of the University nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE HOLDERS OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+GPL-2 license text is not included here, because GPL-2 I DO NOT APPLY TO ANY OF THE CODE released in PalmettoBUG! 
+Even though some of the packages listed above are GPL>=2, GPL-2 cannot apply HERE, because some of the packages 
+from which PalmettoBUG was derived or those that it links to are under GPL-3 (not allowing earlier versions of
+GPL).
+
+HOWEVER! If you go to the original sources of the GPL>=2 packages listed above, then the associated code in those repositories
+will stil be under GPL-2 (and >=2). To see information about GPL licenses you can go to: https://www.gnu.org/licenses/ (as also 
+indicated by the GPL-3 license)
+
+For GPL-3 license text, see the main LICENSE.txt file.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

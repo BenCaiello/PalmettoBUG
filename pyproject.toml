@@ -1,0 +1,53 @@
+[project]
+name = "palmettobug"
+version = "0.2.4.dev1"
+description = "A GUI for (imaging) mass cyometry analysis predominantly based on the popular Steinbock and CATALYST image processing and data analysis packages and written in customtkinter."
+authors = [
+    {name = "Ben Caiello", email = "<caiello@musc.edu>"},
+            ]
+license = {text = "GPL-3.0"}
+readme = "README.md"
+repository = "https://github.com/BenCaiello/PalmettoBUG"
+requires-python = ">=3.10"
+dependencies = [
+            "numpy <2.0.0",    ## numpy<2.0.0 is not strictly necessary for pbug, but helps reduce errors for the sister package (iSD) if co-installed in the same python environment
+            "pandas>=2.0",
+            "matplotlib>=3.0.0",
+            "seaborn",
+            "customtkinter>=5.2.2",
+            "napari" ,
+            "PySide6<6.5",             ## <6.5 matches Napari's experimental pyside6 requirement -- test change for MacOS / Apple Silicon users
+            "lxml",
+            "tifffile>=2024.2.12", 
+            "opencv-python-headless>=4.9.0.80",
+            "scikit-image",
+            "scikit-learn",
+            "scipy",
+            "scikit-fda>=0.10.1",
+            "statsmodels",
+            "anndata",
+            "scanpy",
+            "squidpy>=1.6.0",
+            "igraph",
+            "loguru",
+            "mudata",
+            "leidenalg",
+            "sortedcontainers",
+            "defusedxml",
+            "flowsom",
+            "dask<2025.1.0",              ## needed until scverse's spatialdata package (and so squidpy) upgrades to no longer use the unsupported legacy dask api
+            "zarr<3"                    ## needed until anndata updates to be compatible with zarr v3
+        ]
+
+[project.optional-dependencies]
+deprecated_extras = ["svg-stack", "navis"]
+
+[tool.ruff]
+extend-exclude = ["Assets", ".tiff", ".png", ".jpg", ".ico", ".txt", ".json"]
+
+[tool.poetry.scripts]
+palmettobug = 'palmettobug.Executable:run_GUI'
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
