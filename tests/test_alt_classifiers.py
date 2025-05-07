@@ -56,7 +56,7 @@ def test_unsupervised_classifier():
     panel.index = panel['name']
     target_channels = ['Vimentin', 'Pan-Keratin', 'E-cadherin', 'Collagen-1', 'Beta-Catenin']
     channel_dictionary = {}
-    for i in channels:
+    for i in target_channels:
         channel_number = panel.loc[i, 'index']
         features = ['gaussian']
         if i == 'Collagen-1':
