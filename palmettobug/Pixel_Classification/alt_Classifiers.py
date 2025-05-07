@@ -191,16 +191,19 @@ class SupervisedClassifier:
         if len(images) == 0:
             print('No images to train on!')
             return
-        all_pixels = np.zeros(1)
-        all_labels = np.zeros(1)
+        all_pixels = None
+        all_labels = None
         for i in images:
             img = tf.imread(f'{image_folder}/{i}').astype('float32')
             trn_img = tf.imread(f'{training_folder}/{i}').astype('int32')
             image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = sigmas)
+            if all_pixels is None:
+                all_pixels = np.zeros([image_features.shape[1],1])
+                all_labels = np.zeros([image_features.shape[1],1])
             all_pixels = np.concatenate((all_pixels, image_features[trn_img > 0]))
             all_labels = np.concatenate((all_pixels, trn_img[trn_img > 0]))
-        all_pixels = all_pixels[1:]
-        all_labels = all_labels[1:]
+        all_pixels = all_pixels[:, 1:]
+        all_labels = all_labels[:, 1:]
         self.model = MLP(hidden_layer_sizes = hidden_layers, learning_rate_init = learning_rate, early_stopping = True)
         self.model.fit(all_pixels, all_labels)  
         if not from_save:  ## no need to rewrite if from saved model
@@ -313,7 +316,7 @@ class UnsupervisedClassifier:
         if len(images) == 0:
             print('No images to train on!')
             return
-        all_pixels = np.zeros(1)
+        all_pixels = None
         pixels_per_image = pixel_number // len(images)
         for i in images:
             img = tf.imread(f'{image_folder}/{i}').astype('float32')
@@ -321,8 +324,10 @@ class UnsupervisedClassifier:
             ## Here I do a simplified scaling on a per-image basis (instead of the wholedataset at once)
             image_features = self.scaled_features(image_features, quantile)
             sample = gen.choice(image_features, pixels_per_image, replace = False, axis = 1, shuffle = False)
+            if all_pixels is None:
+                all_pixels = np.zeros([sample.shape[1],1])
             all_pixels = np.concatenate((all_pixels, sample))
-        all_pixels[1:]
+        all_pixels[:,1:]
         self.model = FlowSOM(all_pixels, n_clusters = metaclusters, xdim = XYdim, ydim = XYdim, rlen = training_cycles, seed = seed).model
         if not from_save:  ## no need to rewrite if from saved model
             self.write_classifier(image_folder, self._channels)
