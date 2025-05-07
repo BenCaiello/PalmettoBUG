@@ -49,7 +49,7 @@ def test_raw_to_img():
 
 def test_unsupervised_classifier():
     global unsup
-    unsup = UnsupervisedClassifier(proj_directory, classifier_name = "test_unsup")
+    unsup = UnsupervisedClassifier(proj_directory, name = "test_unsup")
     global panel
     panel = pd.read_csv(proj_directory + "/panel.csv")
     panel = panel[panel['keep'] == 1].reset_index().drop('index', axis = 1).reset_index()
