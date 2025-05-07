@@ -95,6 +95,7 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
         if 'butterworth' in feat:
             length += (len(sigmas)*2) - 1
     final_array = np.zeros([length] + list(image[0].shape))
+    print('final_array', final_array.shape)
     count = 0
     for i in channels:
         img_slice = image[i]
@@ -320,6 +321,7 @@ class UnsupervisedClassifier:
             image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = sigmas)
             ## Here I do a simplified scaling on a per-image basis (instead of the wholedataset at once)
             image_features = self.scaled_features(image_features, quantile)
+            print(image_features.shape, pixels_per_image)
             sample = gen.choice(image_features, pixels_per_image, replace = False, shuffle = False)
             all_pixels = np.concatenate((all_pixels, sample))
         all_pixels[1:]
