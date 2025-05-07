@@ -230,19 +230,25 @@ class SupervisedClassifier:
             for filename in images:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
+                image_features = np.reshape(image_features, shape = [image_features.shape[0], image_features.shape[1]*image_features.shape[2]]])
                 prediction = self.model.predict(image_features)
+                prediction = np.reshape(prediction, shape = [image_features.shape[0], image_features.shape[1], image_features.shape[2]]])
                 tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         elif isinstance(filenames, list):
             for filename in filenames:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
+                image_features = np.reshape(image_features, shape = [image_features.shape[0], image_features.shape[1]*image_features.shape[2]]])
                 prediction = self.model.predict(image_features)
+                prediction = np.reshape(prediction, shape = [image_features.shape[0], image_features.shape[1], image_features.shape[2]]])
                 tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         elif isinstance(filenames, str):
             filename = filenames
             img = tf.imread(f'{image_folder}/{filename}').astype('float32')
             image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
+            image_features = np.reshape(image_features, shape = [image_features.shape[0], image_features.shape[1]*image_features.shape[2]]])
             prediction = self.model.predict(image_features)
+            prediction = np.reshape(prediction, shape = [image_features.shape[0], image_features.shape[1], image_features.shape[2]]])
             tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         else:
             raise(ValueError, "Filenames parameter must be a str, list, or None")
@@ -363,8 +369,10 @@ class UnsupervisedClassifier:
             for filename in images:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
+                image_features = np.reshape(image_features, shape = [image_features.shape[0], image_features.shape[1]*image_features.shape[2]]])
                 image_features = self.scaled_features(image_features, quantile)
-                prediction = self.model.predict(image_features.T)
+                prediction = self.model.predict(image_features.T).T
+                prediction = np.reshape(prediction, shape = [image_features.shape[0], image_features.shape[1], image_features.shape[2]]])
                 if smoothing > 0:
                     prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
                 tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
@@ -372,8 +380,10 @@ class UnsupervisedClassifier:
             for filename in filenames:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
+                image_features = np.reshape(image_features, shape = [image_features.shape[0], image_features.shape[1]*image_features.shape[2]]])
                 image_features = self.scaled_features(image_features, quantile)
-                prediction = self.model.predict(image_features.T)
+                prediction = self.model.predict(image_features.T).T
+                prediction = np.reshape(prediction, shape = [image_features.shape[0], image_features.shape[1], image_features.shape[2]]])
                 if smoothing > 0:
                     prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
                 tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
@@ -381,8 +391,10 @@ class UnsupervisedClassifier:
             filename = filenames
             img = tf.imread(f'{image_folder}/{filename}').astype('float32')
             image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
+            image_features = np.reshape(image_features, shape = [image_features.shape[0], image_features.shape[1]*image_features.shape[2]]])
             image_features = self.scaled_features(image_features, quantile)
-            prediction = self.model.predict(image_features.T)
+            prediction = self.model.predict(image_features.T).T
+            prediction = np.reshape(prediction, shape = [image_features.shape[0], image_features.shape[1], image_features.shape[2]]])
             if smoothing > 0:
                 prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
             tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
