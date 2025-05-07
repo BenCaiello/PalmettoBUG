@@ -231,19 +231,19 @@ class SupervisedClassifier:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
                 prediction = self.model.predict(image_features)
-                tf.imwrite(f'{output_folder}/{filename}', prediction)
+                tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         elif isinstance(filenames, list):
             for filename in filenames:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
                 prediction = self.model.predict(image_features)
-                tf.imwrite(f'{output_folder}/{filename}', prediction)
+                tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         elif isinstance(filenames, str):
             filename = filenames
             img = tf.imread(f'{image_folder}/{filename}').astype('float32')
             image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
             prediction = self.model.predict(image_features)
-            tf.imwrite(f'{output_folder}/{filename}', prediction)
+            tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         else:
             raise(ValueError, "Filenames parameter must be a str, list, or None")
         
@@ -364,11 +364,10 @@ class UnsupervisedClassifier:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
                 image_features = self.scaled_features(image_features, quantile)
-                print(image_features.shape)
                 prediction = self.model.predict(image_features.T)
                 if smoothing > 0:
                     prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
-                tf.imwrite(f'{output_folder}/{filename}', prediction)
+                tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         elif isinstance(filenames, list):
             for filename in filenames:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
@@ -377,7 +376,7 @@ class UnsupervisedClassifier:
                 prediction = self.model.predict(image_features.T)
                 if smoothing > 0:
                     prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
-                tf.imwrite(f'{output_folder}/{filename}', prediction)
+                tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         elif isinstance(filenames, str):
             filename = filenames
             img = tf.imread(f'{image_folder}/{filename}').astype('float32')
@@ -386,7 +385,7 @@ class UnsupervisedClassifier:
             prediction = self.model.predict(image_features.T)
             if smoothing > 0:
                 prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
-            tf.imwrite(f'{output_folder}/{filename}', prediction)
+            tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         else:
             raise(ValueError, "Filenames parameter must be a str, list, or None")
 
