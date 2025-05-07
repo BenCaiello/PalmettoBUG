@@ -123,8 +123,14 @@ class SupervisedClassifier:
     def __init__(self, name, directory, classes_dictionary: dict):
         self.name = name
         self.directory = directory
+        if not os.path.exists(directory):
+            os.mkdir(directory)
         self.output_folder = f"{directory}/classification_maps"
+        if not os.path.exists(self.output_folder):
+            os.mkdir(self.output_folder)
         self.training_folder = f"{directory}/training_labels"
+        if not os.path.exists(self.training_folder):
+            os.mkdir(self.training_folder)
         self.model = None
         self.model_path = f"{directory}/{name}_model.pkl"
         self.model_info = {}
@@ -246,7 +252,12 @@ class UnsupervisedClassifier:
         self.directory = directory
         self.name = name
         self.output_folder = f"{directory}/classification_maps"
-        self.training_folder = f"{directory}/training_labels"
+        self.directory = directory
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+        self.output_folder = f"{directory}/classification_maps"
+        if not os.path.exists(self.output_folder):
+            os.mkdir(self.output_folder)
         self.model = None
         self.model_path = f"{directory}/{name}_model.pkl"
         self.model_info = {}
