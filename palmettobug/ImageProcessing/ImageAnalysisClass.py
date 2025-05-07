@@ -683,6 +683,7 @@ class ImageAnalysis:
                     write_ome_tiff(image, ome_tiff_metadata, out)
 
     def instanseg_segmentation(self, 
+                               re_do = False,
                                input_img_folder: Union[Path, str, None] = None, 
                                output_mask_folder: Union[Path, str, None] = None,
                                channel_slice: Union[None, np.array] = None,
@@ -726,8 +727,8 @@ class ImageAnalysis:
                 More options will hopefully open up as this segmentation model is developed. Theoretically, there should be a way to allow custom-trained
                 models to loaded as well, which could be quite nice.
 
-        ## example test script  -- results so far: it works in that it runs, but the results are poor compared to deepcell
-        ## maybe instanseg needs a dedicated IMC model, or needs a larger training set (like TissueNet, but that would create 
+        ## example test script  -- results so far: it works in that it runs, but the results are very poor compared to deepcell
+        ## maybe instanseg needs a dedicated IMC model, or needs a larger training set (like TissueNet, but that particular dataset would create 
         ## license issues))
         import palmettobug
         proj_dir = f"{my_computer_path}/Example_IMC"
@@ -754,6 +755,10 @@ class ImageAnalysis:
         model = InstanSeg(model)
 
         source_images = [i for i in os.listdir(input_img_folder) if i.lower().find(".tif") != -1]
+        if not re_do:
+            existing = os.listdir(output_mask_folder)
+            source_images = [i for i in source_images if i not in existing]
+
         for i in source_images:
             image_array = tf.imread(f'{input_img_folder}/{i}')
             for j,jj in enumerate(image_array):
@@ -774,46 +779,6 @@ class ImageAnalysis:
                     image_array = image_array[(channel_slice > 0), :, :]            
             prediction = model.eval_medium_image(image_array, mean_threshold = mean_threshold, target = target, pixel_size = pixel_size)
             tf.imwrite(f'{output_mask_folder}/{i}', np.squeeze(np.asarray(prediction[0])))
-
-    def mask_expand(distance: int, 
-                    image_source: str, 
-                    output_directory: str,
-                    ) -> None:                                 # ****stein_derived (ish -- only in the sense that it conciously replicates a 
-                                                                # particular steinbock utility  
-                                                                # The actual implementation here is not very similar to steinbocks')
-        '''
-        Function that expands the size of cell masks (copied back from isosegdenoise on 4/24/25, original code):
-
-        Args:
-            distance (integer):  
-                the number of pixels to expand the masks by
-
-            image_source (string or Path): 
-                the file path to a folder containing the cell masks (as tiff files) to expand
-
-            output_directory (string or Path): 
-                the file path to a folder where you want to write the expanded masks. Must already exist or be creatable by os.mkdir()
-
-        Inputs / Outputs:
-            Inputs: 
-                reads every file in image_source folder (expecting .tiff format for all)
-        
-            Outputs: 
-                writes a (.ome).tiff into the output_directory folder for each file read-in from image_source
-                The filenames in the image_source folder as preserved in the output_directory, so if image_source == output_directory
-                then the original masks will be overwritten. 
-        ''' 
-        from skimage.segmentation import expand_labels
-        if not os.path.exists(output_directory):
-            os.mkdir(output_directory)
-
-        list_of_images = [i for i in sorted(os.listdir(image_source)) if i.lower().find(".tif") != -1]
-        for i in list_of_images:
-            read_dir = "".join([image_source, "/", i])
-            out_dir = "".join([output_directory, "/", i])
-            read_in_mask = tf.imread(read_dir)
-            expanded_mask = expand_labels(read_in_mask, distance)
-            tf.imwrite(out_dir, expanded_mask, photometric = "minisblack")
         
 
     ### This function calculates and writes the intesities, regionprops csv files. 
