@@ -130,11 +130,13 @@ class SupervisedClassifier:
         except sklearn.exceptions.InconsistentVersionWarning:
             print("Version of Scikit-Learn is different than when the pixel classifier model was originally trained! Model not loaded.")
 
-    def napari_labels(self, image_path)):
+    def napari_labels(self, image_path):
         ''''''
+        pass
 
     def save_napari_labels(self):
         ''''''
+        pass
         
 
     def train(self, image_folder, 

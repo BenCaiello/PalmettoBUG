@@ -16,7 +16,7 @@ import tempfile as tmp
 import matplotlib
 
 from palmettobug import (fetch_IMC_example, 
-                        ImageAnalysis, , 
+                        ImageAnalysis,
                         merge_folder,
                         slice_folder,
                         mode_classify_folder,
