@@ -115,8 +115,8 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
                 count += 1
                 final_array[count] = ButterWorthFilter(img_slice, ratio = i / 100, high_pass = False)
                 count += 1
-    if (length - 1) != count:
-        raise Exception(f'Length ({str(length)}) of expected number of features did not equal count ({str(count + 1)}) of channel features actually derived')
+    if length != count:
+        raise Exception(f'Length ({str(length)}) of expected number of features did not equal count ({str(count)}) of channel features actually derived')
     return final_array, channels
 
 class SupervisedClassifier:
