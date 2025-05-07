@@ -308,7 +308,7 @@ class UnsupervisedClassifier:
             metaclusters = self.model_info['metaclusters']
             training_cycles = self.model_info['training_cycles']
             seed = self.model_info['seed']
-        np.random.default_rng(seed)
+        gen = np.random.default_rng(seed)
         images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind('.tif') != -1]
         if len(images) == 0:
             print('No images to train on!')
@@ -320,7 +320,7 @@ class UnsupervisedClassifier:
             image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = sigmas)
             ## Here I do a simplified scaling on a per-image basis (instead of the wholedataset at once)
             image_features = self.scaled_features(image_features, quantile)
-            sample = np.random.choice(image_features, pixels_per_image, replace = False)
+            sample = gen.choice(image_features, pixels_per_image, replace = False, shuffle = False)
             all_pixels = np.concatenate((all_pixels, sample))
         all_pixels[1:]
         self.model = FlowSOM(all_pixels, n_clusters = metaclusters, xdim = XYdim, ydim = XYdim, rlen = training_cycles, seed = seed).model
