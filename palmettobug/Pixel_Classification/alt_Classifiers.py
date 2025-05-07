@@ -198,7 +198,7 @@ class SupervisedClassifier:
             trn_img = tf.imread(f'{training_folder}/{i}').astype('int32')
             image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = sigmas)
             if all_pixels is None:
-                all_pixels = np.zeros([image_features.shape[1],1])
+                all_pixels = np.zeros([image_features.shape[0],1])
                 all_labels = np.zeros([1])
             all_pixels = np.concatenate((all_pixels, image_features[trn_img > 0]))
             all_labels = np.concatenate((all_pixels, trn_img[trn_img > 0]), axis = 1)
@@ -325,7 +325,7 @@ class UnsupervisedClassifier:
             image_features = self.scaled_features(image_features, quantile)
             sample = gen.choice(image_features, pixels_per_image, replace = False, axis = 1, shuffle = False)
             if all_pixels is None:
-                all_pixels = np.zeros([sample.shape[1],1])
+                all_pixels = np.zeros([sample.shape[0],1])
             all_pixels = np.concatenate((all_pixels, sample), axis = 1)
         all_pixels[:,1:]
         self.model = FlowSOM(all_pixels, n_clusters = metaclusters, xdim = XYdim, ydim = XYdim, rlen = training_cycles, seed = seed).model
