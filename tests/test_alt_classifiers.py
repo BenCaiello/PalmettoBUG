@@ -53,7 +53,7 @@ def test_unsupervised_classifier():
     global panel
     panel = pd.read_csv(proj_directory + "/panel.csv")
     panel = panel[panel['keep'] == 1].reset_index().drop('index', axis = 1).reset_index()
-    panel.index = panel['antigen']
+    panel.index = panel['name']
     target_channels = ['Vimentin', 'Pan-Keratin', 'E-cadherin', 'Collagen-1', 'Beta-Catenin']
     channel_dictionary = {}
     for i in channels:
