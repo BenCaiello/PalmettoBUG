@@ -22,6 +22,7 @@ import pandas as pd
 import numpy as np
 import tifffile as tf
 import matplotlib.pyplot as plt 
+import skimage
 
 from .Classifiers import (SupervisedClassifier, 
                           UnsupervisedClassifier, 
@@ -48,6 +49,7 @@ PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
 ## do it twice to get up to the top level directory:
 PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
 PALMETTO_BUG_assets_classifier_folder = PALMETTO_BUG_homedir + '/Assets/Px_classifiers'
+
 
 class Pixel_class_widgets(ctk.CTkFrame):
 
@@ -1111,15 +1113,13 @@ class Classifier_deets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         df['merging'] = df['labels'].replace(unique_dict)
         df.to_csv(self.master.classifier_dir + f"/{self.master.name}/biological_labels.csv", index = False) 
         self.master.SupervisedClassifier.train((self.master.name + "_model.pkl"), 
-                                                    number_of_classes, 
                                                     sigma_list, 
-                                                    feature_list = feature_list, 
+                                                    feature_list = features_list, 
                                                     channel_dictionary = self.dictionary, 
                                                     internal_architecture = self.internals, 
                                                     learning_rate = self.learning_rate, 
                                                     iterations = self.iterations)
         pixel_logger.info(f"Setting up Supervised Classifier {self.master.name} with the following parameters: \n"
-                          f"number_of_classes = {str(number_of_classes)}, \n"
                           f"sigma_list = {str(sigma_list)}, \n"
                           f"features_list = {str(features_list)}, \n"
                           f"channel_dictionary = {str(self.dictionary)}, \n"
@@ -1500,7 +1500,6 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         def __init__(self, master):
             super().__init__(master)
             self.master = master
-            classifier_json_dir = self.master.dictionary
 
             label0 = ctk.CTkButton(master = self, text = "Advanced feature settings:")
             label0.grid(column = 0, row = 0, padx = 3, pady = 3, sticky = "nsew")

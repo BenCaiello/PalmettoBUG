@@ -17,7 +17,7 @@ Downsides:
 # like all files in PalmettoBUG, all code is under the GPL-3 license.
 
 ## copied from original Classifiers.py file (only self-written functions / no derivation from qupath or opencv in them):
-            # plot_pixel_heatmap, smoothing functions (all three)
+            # plot_pixel_heatmap, smoothing functions (all three), _py_mean_quantile_norm, and _quant
             # segment_class_map_folder   (heavily based on some of the documentation of scikit-image, enough that I list it in the Other_License_Details.txt file:
                                     # Scikit-image: https://github.com/scikit-image/scikit-image, Copyright: 2009-2022 the scikit-image team, license: BSD-3))
 
@@ -34,10 +34,38 @@ import joblib
 import numpy as np 
 import pandas as pd 
 import skimage as ski 
+import scipy
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.neural_network import MLPClassifier as MLP
 from flowsom import FlowSOM
+
+
+def _py_mean_quantile_norm(pd_groupby) -> np.ndarray[float]:    ##  median shouldn't be used used because the median often can be 0 for mass cytometry data (not a problem in 
+                                                                    ## single-cell data because the mean intensity is taken of every cell first)
+    ''' 
+    This is a helper function for the mean / heatmap plotting function immediately below 
+    '''
+    pd_groupby = pd_groupby.copy()
+    np_groupby = np.array(pd_groupby)
+    np_groupby = np.mean(np_groupby, axis = 0)
+    np_groupby = _quant(np_groupby)
+    return np_groupby
+
+def _quant(array: np.ndarray[float], 
+          lower: float = 0.01, 
+          upper:float = 0.99, 
+          axis: int = None,
+          ) -> np.ndarray[float]:
+    '''
+    This is a helper function for _py_mean_quantile_norm
+    '''
+    quantiles = np.quantile(array, (lower, upper), axis = axis) 
+    array = (array - quantiles[0])  / (quantiles[1] - quantiles[0])
+    array = np.nan_to_num(array)
+    array[array > 1] = 1
+    array[array < 0] = 0
+    return array
 
 def GaussianFilter(image, sigma):  ## standard gaussian -- only function capable of operating on multi-channels at once
     '''Note: this also scales the image to be between -1 and 1'''
@@ -57,7 +85,7 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
     length = 0
     if channels == {}:
         for i,ii in enumerate(image):
-            channels[i] = features_list
+            channels[i] = feature_list
     for i in channels:
         feat = channels[i]
         base_len = len(features)
@@ -180,6 +208,7 @@ class SupervisedClassifier:
 
     def predict(self, image_folder, output_folder = self.output_folder, filenames = None):
         ''''''
+        channel_dictionary = self.model_info['channels']
         if filenames is None:
             images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind(".tif") != -1]
             for filename in images:
@@ -498,7 +527,7 @@ def smooth_isolated_pixels(unsupervised_class_map: np.ndarray[int],
     unsupervised_class_map[unsupervised_class_map == 0] = zero_number    ## added to preserve blank patchs after merging
     for i in range(1, class_num + 1):
         single_class = (unsupervised_class_map == i)
-        single_class_isolated_pixels_removed = skimage.morphology.remove_small_objects(single_class, 
+        single_class_isolated_pixels_removed = ski.morphology.remove_small_objects(single_class, 
                                                                                        min_size = threshold, 
                                                                                        connectivity = (search_radius + 1))
         all_isolated_pixels_removed  = all_isolated_pixels_removed + single_class_isolated_pixels_removed.astype('int')
@@ -609,7 +638,7 @@ def segment_class_map_folder(pixel_classifier_directory: Union[Path, str],
         all_isolated_pixels_removed = np.zeros(map.shape)
         for j in to_segment_on:
             single_class = (map == j)
-            single_class_isolated_pixels_removed = skimage.morphology.remove_small_objects(single_class, min_size = threshold)
+            single_class_isolated_pixels_removed = ski.morphology.remove_small_objects(single_class, min_size = threshold)
             all_isolated_pixels_removed  = all_isolated_pixels_removed + single_class_isolated_pixels_removed.astype('int')
         all_isolated_pixels_removed = (map * all_isolated_pixels_removed).astype('int')
 
@@ -618,13 +647,13 @@ def segment_class_map_folder(pixel_classifier_directory: Union[Path, str],
         ## Following code block
         ## heavily based on: https://scikit-image.org/docs/stable/auto_examples/segmentation/plot_watershed.html tutorial / example
         peaks = scipy.ndimage.distance_transform_edt(all_isolated_pixels_removed)    
-        peaks = skimage.feature.peak_local_max(peaks, min_distance = distance_between_centroids, labels = all_isolated_pixels_removed)
+        peaks = ski.feature.peak_local_max(peaks, min_distance = distance_between_centroids, labels = all_isolated_pixels_removed)
         markers = np.zeros(all_isolated_pixels_removed.shape)
         for k in tuple([tuple(k) for k in peaks]):
             markers[k] = 1
         markers = scipy.ndimage.label(markers)[0]
-        segmentation = skimage.segmentation.watershed(all_isolated_pixels_removed, markers = markers, mask = all_isolated_pixels_removed)
+        segmentation = ski.segmentation.watershed(all_isolated_pixels_removed, markers = markers, mask = all_isolated_pixels_removed)
 
-        #segmentation = skimage.segmentation.watershed(-watershed_map, mask = all_isolated_pixels_removed)
+        #segmentation = ski.segmentation.watershed(-watershed_map, mask = all_isolated_pixels_removed)
 
         tf.imwrite("".join([output_folder,"/",i]), segmentation.astype('float'))
