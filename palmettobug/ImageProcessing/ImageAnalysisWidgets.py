@@ -15,7 +15,7 @@ from ..Utils.sharedClasses import (CtkSingletonWindow,
                                    TableWidget, 
                                    Project_logger, 
                                    Analysis_logger, 
-                                   #warning_window, 
+                                   warning_window, 
                                    folder_checker,
                                    overwrite_approval)
 from .ImageAnalysisClass import mask_expand, launch_denoise_seg_program, toggle_in_gui
@@ -109,8 +109,8 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             self.Instanseg.configure(state = "disabled")
             self.expander.configure(state = "disabled")
 
-            self.seg_denoise_button = ctk.CTkButton(master = self, text = "Launch \n Segmentation \n & Denoising")
-            self.seg_denoise_button.grid(column = 1, row = 3, rowspan = 6, padx = 5, pady = 5)
+            self.seg_denoise_button = ctk.CTkButton(master = self, text = "Launch separate \n Segmentation \n & Denoising program")
+            self.seg_denoise_button.grid(column = 1, row = 3, padx = 5, pady = 5)
             self.seg_denoise_button.configure(state = "disabled")
 
             label3 = ctk.CTkLabel(self, text = "Measuring Segmented Objects & starting Analysis")
@@ -228,7 +228,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
 
 class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     ''''''
-    def __init__(self, master, experiment): 
+    def __init__(self, master): 
         #### Set up the buttons / options / entry fields in the window      
         super().__init__(master)
         self.master = master
@@ -244,9 +244,9 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.model.grid(column = 1, row = 1, padx = 5, pady = 5)
 
         label3 = ctk.CTkLabel(master = self, text = "Threshold (higher numbers excludes more cells):")
-        label3.grid(column = 0, row = 1, padx = 10, pady = 10)
-        self.threshold = ctk.CTkEntry(master = self, variable = ctk.StringVar(value = "0.0"))
-        self.threshold.grid(column = 1, row = 1, padx = 5, pady = 5)
+        label3.grid(column = 0, row = 2, padx = 10, pady = 10)
+        self.threshold = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "0.0"))
+        self.threshold.grid(column = 1, row = 2, padx = 5, pady = 5)
 
         label_8 = ctk.CTkLabel(self, text = "Select an image folder to segment:")
         label_8.grid(column = 0, row = 3, padx = 5, pady = 5)
@@ -255,6 +255,8 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         def refresh1(enter = ""):
             self.image_folders = [i for i in sorted(os.listdir(self.img_dir)) if i.find(".") == -1]
             self.image_folder.configure(values = self.image_folders)
+
+        self.image_folder = ctk.CTkOptionMenu(self, values = ["img"], variable = ctk.StringVar(value = "img"))
         self.image_folder.grid(column = 1, row = 3, padx = 5, pady = 5)
         self.image_folder.bind("<Enter>", refresh1)
 
@@ -263,9 +265,8 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                             "\n Un-check to only do if they do not alreayd exist for a given image.", 
                     onvalue = True, offvalue = False)
         self.re_do.grid(column = 0, row = 4, padx = 5, pady = 5)
-        self.re_do.select()
 
-        accept_values = ctk.CTkButton(master = self, text = "Accept choices and proceed", command = lambda: self.read_values(experiment))
+        accept_values = ctk.CTkButton(master = self, text = "Accept choices and proceed", command = self.read_values)
         accept_values.grid(padx = 10, pady = 10)
 
     def read_values(self):
@@ -277,16 +278,17 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             tk.messagebox.showwarning("Warning!", message = "Error: Threshold must be numerical!")
             return
         re_do = self.re_do.get()
-        input_folder = self.image_folders.get()
+        input_folder = self.image_folder.get()
         target = self.seg_options.get()
         model = self.model.get()
         
         warning_window("Don't worry if this step takes a while to complete or the window appears to freeze!\n"
                     "This behavior during Instanseg segmentation is normal.")
-        self.master.Experiment_object.instanseg_segmentation(image_list, 
-                                                             re_do = re_do, 
-                                                             image_folder = image_folder,
-                                                             mean_threshold = threshold)
+        self.master.Experiment_object.instanseg_segmentation(re_do = re_do, 
+                                                             input_img_folder = f"{self.master.Experiment_object.directory_object.img_dir}/{input_folder}",
+                                                             mean_threshold = threshold,
+                                                             target = target,
+                                                             model = model)
         self.master.buttonframe.initialize_buttons()
 
 
