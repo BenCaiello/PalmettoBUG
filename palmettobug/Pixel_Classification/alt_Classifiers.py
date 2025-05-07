@@ -168,7 +168,7 @@ class SupervisedClassifier:
         
 
     def train(self, image_folder, 
-                    training_folder = self.training_folder, 
+                    training_folder = None, 
                     channel_dictionary = {}, 
                     feature_list = ['gaussian'],         ## only used if channel_dictionary == {}
                     sigmas = [1.0, 5.0, 10.0],
@@ -177,6 +177,8 @@ class SupervisedClassifier:
                     from_save = False,
                     auto_predict = False):
         ''''''
+        if training_folder is None:
+            training_folder = self.training_folder
         if from_save:
             image_folder = self.model_info['image_folder'] = image_folder
             channel_dictionary = self.model_info['channels']
@@ -194,7 +196,7 @@ class SupervisedClassifier:
         for i in images:
             img = tf.imread(f'{image_folder}/{i}').astype('float32')
             trn_img = tf.imread(f'{training_folder}/{i}').astype('int32')
-            image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+            image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = sigmas)
             all_pixels = np.concatenate((all_pixels, image_features[trn_img > 0]))
             all_labels = np.concatenate((all_pixels, trn_img[trn_img > 0]))
         all_pixels = all_pixels[1:]
@@ -209,7 +211,7 @@ class SupervisedClassifier:
     def predict(self, image_folder, output_folder = None, filenames = None):
         ''''''
         if output_folder is None:
-            output_foler = self.output_folder
+            output_folder = self.output_folder
         channel_dictionary = self.model_info['channels']
         if filenames is None:
             images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind(".tif") != -1]
@@ -315,7 +317,7 @@ class UnsupervisedClassifier:
         pixels_per_image = pixel_number // len(images)
         for i in images:
             img = tf.imread(f'{image_folder}/{i}').astype('float32')
-            image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+            image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = sigmas)
             ## Here I do a simplified scaling on a per-image basis (instead of the wholedataset at once)
             image_features = self.scaled_features(image_features, quantile)
             sample = np.random.choice(image_features, pixels_per_image, replace = False)
@@ -330,7 +332,7 @@ class UnsupervisedClassifier:
     def predict(self, image_folder, output_folder = None, filenames = None):
         ''''''
         if output_folder is None:
-            output_foler = self.output_folder
+            output_folder = self.output_folder
         channel_dictionary = self.model_info['channels']
         smoothing = self.model_info['smoothing']
         metaclusters = self.model_info['metaclusters']

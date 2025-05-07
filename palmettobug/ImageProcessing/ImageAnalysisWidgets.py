@@ -101,7 +101,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             self.Instanseg = ctk.CTkButton(self, text = "Run InstanSeg")
             self.expander = ctk.CTkButton(self, text = "Expand Masks")
             try:
-                from instanseg import InstanSeg
+                from instanseg import InstanSeg  # noqa: F401
                 self.Instanseg.grid(column = 1, row = 4, padx= 5, pady = 5)
                 self.expander.grid(column = 1, row = 5, padx= 5, pady = 5)
             except Exception:
