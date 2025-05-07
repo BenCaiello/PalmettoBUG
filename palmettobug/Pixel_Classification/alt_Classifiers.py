@@ -375,7 +375,7 @@ class UnsupervisedClassifier:
         ## Here I do a more simplistic quantile scaling -- I only scale by the sampled pixels
         array = (array - array.min(axis = 0)) / (np.quantile(array, quantile, axis = 0) - array.min(axis = 0))
         array[array > 1] = 1
-        array = (array - array.min(axis = 1)) / (array.max(axis = 1) - array.min(axis = 1)).T
+        array = (array - array.min(axis = 1)).T / (array.max(axis = 1) - array.min(axis = 1))
         return array
 
 def plot_pixel_heatmap(pixel_folder: Union[str, Path],
