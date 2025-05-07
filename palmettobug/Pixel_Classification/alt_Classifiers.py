@@ -35,6 +35,7 @@ import numpy as np
 import pandas as pd 
 import skimage as ski 
 import scipy
+import sklearn
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.neural_network import MLPClassifier as MLP
@@ -88,8 +89,7 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
             channels[i] = feature_list
     for i in channels:
         feat = channels[i]
-        base_len = len(features)
-        length += base_len
+        length += len(feat)
         if 'gaussian' in feat:
             length += len(sigmas) - 1
         if 'butterworth' in feat:
@@ -206,8 +206,10 @@ class SupervisedClassifier:
         if auto_predict:
             self.predict(image_folder, output_folder = self.output_folder, filenames = None)
 
-    def predict(self, image_folder, output_folder = self.output_folder, filenames = None):
+    def predict(self, image_folder, output_folder = None, filenames = None):
         ''''''
+        if output_folder is None:
+            output_foler = self.output_folder
         channel_dictionary = self.model_info['channels']
         if filenames is None:
             images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind(".tif") != -1]
@@ -325,8 +327,11 @@ class UnsupervisedClassifier:
         if auto_predict:
             self.predict(image_folder, output_folder = self.output_folder, filenames = None)
 
-    def predict(self, image_folder, output_folder = self.output_folder, filenames = None):
+    def predict(self, image_folder, output_folder = None, filenames = None):
         ''''''
+        if output_folder is None:
+            output_foler = self.output_folder
+        channel_dictionary = self.model_info['channels']
         smoothing = self.model_info['smoothing']
         metaclusters = self.model_info['metaclusters']
         quantile = self.model_info['quantile']

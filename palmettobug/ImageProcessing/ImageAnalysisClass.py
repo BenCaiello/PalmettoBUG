@@ -737,7 +737,7 @@ class ImageAnalysis:
         nuclei_slice = panel_keep_only['segmentation'] == "Nuclei"
         image_object.instanseg_segmentation(channel_slice = nuclei_slice, target = "nuclei", mean_threshold = -1.0)
         '''
-        from instanseg import InstanSeg
+        from instanseg import InstanSeg # noqa: F401
         if input_img_folder is None:
             input_img_folder  = f"{self.directory_object.img_dir}/img"
 
