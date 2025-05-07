@@ -145,7 +145,7 @@ class SupervisedClassifier:
         write_dictionary['learning_rate'] = learning_rate
         self.model_info = write_dictionary
         with open(self.model_info_path, "w") as write_file:
-            json.dumps(write_dictionary, write_file)
+            json.dump(write_dictionary, write_file)
 
         joblib.dump(self.model, self.model_path)
 
@@ -274,7 +274,7 @@ class UnsupervisedClassifier:
         write_dictionary['seed'] = seed
         self.model_info = write_dictionary
         with open(self.model_info_path, "w") as write_file:
-            json.dumps(write_dictionary, write_file)
+            json.dump(write_dictionary, write_file)
 
         joblib.dump(self.model, self.model_path)
 
