@@ -128,6 +128,9 @@ class SupervisedClassifier:
         self.output_folder = f"{directory}/classification_maps"
         if not os.path.exists(self.output_folder):
             os.mkdir(self.output_folder)
+        self.merged_folder = f"{directory}/merged_classification_maps"
+        if not os.path.exists(self.merged_folder):
+            os.mkdir(self.merged_folder)
         self.training_folder = f"{directory}/training_labels"
         if not os.path.exists(self.training_folder):
             os.mkdir(self.training_folder)
@@ -264,6 +267,9 @@ class UnsupervisedClassifier:
         self.output_folder = f"{directory}/classification_maps"
         if not os.path.exists(self.output_folder):
             os.mkdir(self.output_folder)
+        self.merged_folder = f"{directory}/merged_classification_maps"
+        if not os.path.exists(self.merged_folder):
+            os.mkdir(self.merged_folder)
         self.model = None
         self.model_path = f"{directory}/{name}_model.pkl"
         self.model_info = {}
