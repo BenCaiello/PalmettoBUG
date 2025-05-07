@@ -201,14 +201,15 @@ class SupervisedClassifier:
             raise(ValueError, "Filenames parameter must be a str, list, or None")
         
 class UnsupervisedClassifier:
-    def __init__(self, directory):
+    def __init__(self, directory, name):
         self.directory = directory
+        self.name = name
         self.output_folder = f"{directory}/classification_maps"
         self.training_folder = f"{directory}/training_labels"
         self.model = None
-        self.model_path = f"{directory}/model.pkl"
+        self.model_path = f"{directory}/{name}_model.pkl"
         self.model_info = {}
-        self.model_info_path = f"{directory}/info.json"
+        self.model_info_path = f"{directory}/{name}_info.json"
         self._channels = {}
 
     def write_classifier(self, image_folder, 
@@ -252,7 +253,7 @@ class UnsupervisedClassifier:
                     pixel_number = 250000, 
                     quantile = 0.999,
                     channel_dictionary = {}, 
-                    feature_list = ['gaussian'],         ## only used if channel_dictionary == {}
+                    feature_list = ['gaussian'],         ## only used if channel_dictionary == {}, all channels will be used with the listed feature filters
                     sigmas = [1.0, 5.0, 10.0],
                     XYdim = 10,
                     metaclusters = 15,

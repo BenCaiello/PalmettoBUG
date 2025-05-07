@@ -995,15 +995,10 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.master = master
             self.panel = master.panel
             self.configure(height = 400, width = 1000)
-            features_list = ['GRAD_MAG',
-                            'HESSIAN_DET',
-                            'HESSIAN_MAX',
-                            'HESSIAN_MIN', 
-                            'LAPLACIAN', 
-                            'STRUCT_CO', 
-                            'STRUCT_MAX', 
-                            'STRUCT_MIN', 
-                            'WGT_STDV']
+            features_list = ['gaussian',
+                            'hessian',
+                            'frangi',
+                            'butterworth']
             self.widget_list_of_lists = []
             keeplist = []
             for i, ii in enumerate(self.panel['name']):
@@ -1036,15 +1031,10 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         def retrieve(self) -> pd.DataFrame:
             index = ['antigen',
                      'keep', 
-                     'GRAD_MAG', 
-                     'HESSIAN_DET', 
-                     'HESSIAN_MAX', 
-                     'HESSIAN_MIN', 
-                     'LAPLACIAN', 
-                     'STRUCT_CO', 
-                     'STRUCT_MAX', 
-                     'STRUCT_MIN', 
-                     'WGT_STDV'] 
+                     'gaussian',
+                     'hessian',
+                     'frangi',
+                     'butterworth']
             self.dataframe = pd.DataFrame(index = index)
             for i,ii in enumerate(self.widget_list_of_lists):
                 self.dataframe[i] = [k.get() for k in ii]
