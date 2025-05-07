@@ -216,23 +216,24 @@ class SupervisedClassifier:
         if output_folder is None:
             output_folder = self.output_folder
         channel_dictionary = self.model_info['channels']
+        sigmas = self.model_info['sigmas']
         if filenames is None:
             images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind(".tif") != -1]
             for filename in images:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
-                image_features, _ = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+                image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
                 prediction = self.model.predict(image_features)
                 tf.imwrite(f'{output_folder}/{filename}', prediction)
         elif isinstance(filenames, list):
             for filename in filenames:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
-                image_features, _ = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+                image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
                 prediction = self.model.predict(image_features)
                 tf.imwrite(f'{output_folder}/{filename}', prediction)
         elif isinstance(filenames, str):
             filename = filenames
             img = tf.imread(f'{image_folder}/{filename}').astype('float32')
-            image_features, _ = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+            image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
             prediction = self.model.predict(image_features)
             tf.imwrite(f'{output_folder}/{filename}', prediction)
         else:
@@ -320,7 +321,7 @@ class UnsupervisedClassifier:
         pixels_per_image = pixel_number // len(images)
         for i in images:
             img = tf.imread(f'{image_folder}/{i}').astype('float32')
-            image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = sigmas)
+            image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = feature_list, sigmas = sigmas)
             ## Here I do a simplified scaling on a per-image basis (instead of the wholedataset at once)
             image_features = self.scaled_features(image_features, quantile)
             sample = gen.choice(image_features, pixels_per_image, replace = False, axis = 1, shuffle = False)
@@ -342,31 +343,33 @@ class UnsupervisedClassifier:
         smoothing = self.model_info['smoothing']
         metaclusters = self.model_info['metaclusters']
         quantile = self.model_info['quantile']
+        sigmas = self.model_info['sigmas']
         if filenames is None:
             images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind(".tif") != -1]
             for filename in images:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
-                image_features, _ = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+                image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
                 image_features = self.scaled_features(image_features, quantile)
-                prediction = self.model.predict(image_features)
+                print(image_features.shape)
+                prediction = self.model.predict(image_features.T)
                 if smoothing > 0:
                     prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
                 tf.imwrite(f'{output_folder}/{filename}', prediction)
         elif isinstance(filenames, list):
             for filename in filenames:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
-                image_features, _ = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+                image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
                 image_features = self.scaled_features(image_features, quantile)
-                prediction = self.model.predict(image_features)
+                prediction = self.model.predict(image_features.T)
                 if smoothing > 0:
                     prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
                 tf.imwrite(f'{output_folder}/{filename}', prediction)
         elif isinstance(filenames, str):
             filename = filenames
             img = tf.imread(f'{image_folder}/{filename}').astype('float32')
-            image_features, _ = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0])
+            image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
             image_features = self.scaled_features(image_features, quantile)
-            prediction = self.model.predict(image_features)
+            prediction = self.model.predict(image_features.T)
             if smoothing > 0:
                 prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
             tf.imwrite(f'{output_folder}/{filename}', prediction)
