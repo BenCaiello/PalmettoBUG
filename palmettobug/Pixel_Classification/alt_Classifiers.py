@@ -369,7 +369,6 @@ class UnsupervisedClassifier:
             for filename in images:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
-                image_features = np.reshape(image_features, [image_features.shape[0], image_features.shape[1]*image_features.shape[2]])
                 image_features = self.scaled_features(image_features, quantile)
                 prediction = self.model.predict(image_features.T).T
                 prediction = np.reshape(prediction, [image_features.shape[0], image_features.shape[1], image_features.shape[2]])
@@ -380,7 +379,6 @@ class UnsupervisedClassifier:
             for filename in filenames:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
-                image_features = np.reshape(image_features,[image_features.shape[0], image_features.shape[1]*image_features.shape[2]])
                 image_features = self.scaled_features(image_features, quantile)
                 prediction = self.model.predict(image_features.T).T
                 prediction = np.reshape(prediction, [image_features.shape[0], image_features.shape[1], image_features.shape[2]])
@@ -391,7 +389,6 @@ class UnsupervisedClassifier:
             filename = filenames
             img = tf.imread(f'{image_folder}/{filename}').astype('float32')
             image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
-            image_features = np.reshape(image_features, [image_features.shape[0], image_features.shape[1]*image_features.shape[2]])
             image_features = self.scaled_features(image_features, quantile)
             prediction = self.model.predict(image_features.T).T
             prediction = np.reshape(prediction, [image_features.shape[0], image_features.shape[1], image_features.shape[2]])
@@ -403,6 +400,8 @@ class UnsupervisedClassifier:
 
     def scaled_features(self, array, quantile):
         '''Quantile scales within channels, then min-max channels across channels'''
+        new_shape = (array.shape[0], array.shape[1]*array.shape[2])    ## reshape to remove X,Y dimensions but preserve channels
+        array = np.reshape(array, new_shape)
         ## Here I do a more simplistic quantile scaling -- I only scale by the sampled pixels
         array = (array - array.min(axis = 0)) / (np.quantile(array, quantile, axis = 0) - array.min(axis = 0))
         array[array > 1] = 1
