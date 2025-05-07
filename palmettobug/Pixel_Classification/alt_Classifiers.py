@@ -185,8 +185,8 @@ class SupervisedClassifier:
             sigmas = self.model_info['sigmas']
             hidden_layers = self.model_info['hidden_layers'] 
             learning_rate = self.model_info['learning_rate'] 
-        training_images = [i for i in sorted(os.listdir(training_folder)) if i.lower.rfind('.tif') != -1]
-        all_images = [i for i in sorted(os.listdir(image_folder)) if i.lower.rfind('.tif') != -1]
+        training_images = [i for i in sorted(os.listdir(training_folder)) if i.lower().rfind('.tif') != -1]
+        all_images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind('.tif') != -1]
         images = [i for i in training_images if i in all_images]
         if len(images) == 0:
             print('No images to train on!')
@@ -309,7 +309,7 @@ class UnsupervisedClassifier:
             training_cycles = self.model_info['training_cycles']
             seed = self.model_info['seed']
         np.random.default_rng(seed)
-        images = [i for i in sorted(os.listdir(image_folder)) if i.lower.rfind('.tif') != -1]
+        images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind('.tif') != -1]
         if len(images) == 0:
             print('No images to train on!')
             return
