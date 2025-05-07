@@ -403,8 +403,6 @@ class UnsupervisedClassifier:
 
     def scaled_features(self, array, quantile):
         '''Quantile scales within channels, then min-max channels across channels'''
-        new_shape = (array.shape[0], array.shape[1]*array.shape[2])    ## reshape to remove X,Y dimensions but preserve channels
-        array = np.reshape(array, new_shape)
         ## Here I do a more simplistic quantile scaling -- I only scale by the sampled pixels
         array = (array - array.min(axis = 0)) / (np.quantile(array, quantile, axis = 0) - array.min(axis = 0))
         array[array > 1] = 1
