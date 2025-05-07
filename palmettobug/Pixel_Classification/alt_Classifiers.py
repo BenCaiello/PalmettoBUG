@@ -115,6 +115,8 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
                 count += 1
                 final_array[count] = ButterWorthFilter(img_slice, ratio = i / 100, high_pass = False)
                 count += 1
+    if (length - 1) != count:
+        raise Exception(f'Length ({str(length)}) of expected number of features did not equal count ({str(count + 1)}) of channel features actually derived')
     return final_array, channels
 
 class SupervisedClassifier:
@@ -328,8 +330,9 @@ class UnsupervisedClassifier:
             if all_pixels is None:
                 all_pixels = np.zeros([sample.shape[0],1])
             all_pixels = np.concatenate((all_pixels, sample), axis = 1)
-        all_pixels[:,1:]
-        self.model = FlowSOM(all_pixels, n_clusters = metaclusters, xdim = XYdim, ydim = XYdim, rlen = training_cycles, seed = seed).model
+        all_pixels = all_pixels[:,1:]
+        print(all_pixels.shape)
+        self.model = FlowSOM(all_pixels.T, n_clusters = metaclusters, xdim = XYdim, ydim = XYdim, rlen = training_cycles, seed = seed).model
         if not from_save:  ## no need to rewrite if from saved model
             self.write_classifier(image_folder, self._channels)
         if auto_predict:
