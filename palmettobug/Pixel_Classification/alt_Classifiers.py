@@ -94,7 +94,7 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
             length += len(sigmas) - 1
         if 'butterworth' in feat:
             length += (len(sigmas)*2) - 1
-    final_array = np.zeros([length] + image[0].shape)
+    final_array = np.zeros([length] + list(image[0].shape))
     count = 0
     for i in channels:
         img_slice = image[i]
