@@ -273,7 +273,7 @@ class UnsupervisedClassifier:
         self.output_folder = f"{directory}/classification_maps"
         if not os.path.exists(self.output_folder):
             os.mkdir(self.output_folder)
-        self.merged_folder = f"{directory}/merged_classification_maps"  merged_classification_maps
+        self.merged_folder = f"{directory}/merged_classification_maps"
         if not os.path.exists(self.merged_folder):
             os.mkdir(self.merged_folder)
         self.model = None
