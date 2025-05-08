@@ -122,6 +122,7 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
 class SupervisedClassifier:
     def __init__(self, name, directory, classes_dictionary: dict):
         self.name = name
+        directory = f'{directory}/{name}'
         self.directory = directory
         if not os.path.exists(directory):
             os.mkdir(directory)
@@ -258,9 +259,8 @@ class SupervisedClassifier:
         
 class UnsupervisedClassifier:
     def __init__(self, directory, name):
-        self.directory = directory
         self.name = name
-        self.output_folder = f"{directory}/classification_maps"
+        directory = f'{directory}/{name}'
         self.directory = directory
         if not os.path.exists(directory):
             os.mkdir(directory)
