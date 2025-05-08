@@ -223,8 +223,8 @@ def test_load_SupPx():
 
     sigma_list = [1.0, 5.0, 10.0]  
     
-    shutil.rmtree(pixel_class_object.classifier_training_labels)
-    shutil.copytree(f"{homedir}/tests/training_labels", pixel_class_object.classifier_training_labels)
+    shutil.rmtree(pixel_class_object.training_folder)
+    shutil.copytree(f"{homedir}/tests/training_labels", pixel_class_object.training_folder)
     _ = pixel_class_object.train(image_folder = images_dir, channel_dictionary = channel_dictionary, sigmas = sigma_list)
     assert pixel_class_object.model_info["channels"] == channel_dictionary, "Channel dictionary should remain the same in training"   ## key test is not really the assert, 
                                                                                                                                       ## but the lack of an error while running
