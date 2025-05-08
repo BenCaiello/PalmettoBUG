@@ -26,7 +26,7 @@ from palmettobug import (fetch_IMC_example,
                         plot_classes,
                         WholeClassAnalysis)
 
-from palmettobug.Pixel_Classification.alt_Classifiers import (UnsupervisedClassifier, segment_class_map_folder, plot_pixel_heatmap)
+from palmettobug.Pixel_Classification.alt_Classifiers import (SupervisedClassifier, UnsupervisedClassifier, segment_class_map_folder, plot_pixel_heatmap)
 
 fetch_dir = homedir + "/px_class_test/"
 if not os.path.exists(fetch_dir):
@@ -203,4 +203,39 @@ def test_wca_export():
                         statistic= 'mean',
                         include_marker_class_row = False)
     assert isinstance(df, pd.DataFrame), "Whole class export funciton did not return a pandas dataframe!"
+
+def test_load_SupPx():
+    global my_classifier_name
+    my_classifier_name = "lumen_epithelia_laminapropria.json"
+    global images_dir
+    images_dir = proj_directory + "/images/img"
+    global pixel_class_object
+    classes = ["background", "epithelia", "lamina_propria"] 
+    classes_dictionary = {1:"background",2:"epithelia",3:"lamina_propria"} 
+    pixel_class_object = SupervisedClassifier(proj_directory, my_classifier_name, classes_dictionary)
+    panel = pd.read_csv(f"{proj_directory}/panel.csv")
+    panel = panel[panel['keep'] == 1].reset_index()
+    channel_dictionary = {}  
+    for i,ii in zip(panel.index, panel['name']):
+        if (i == 6) or (i == 26):
+            channel_dictionary[i] = ['gaussian','hessian','frangi','butterworth']
+
+    sigma_list = [1.0, 5.0, 10.0]  
+    
+    shutil.rmtree(pixel_class_object.classifier_training_labels)
+    shutil.copytree(f"{homedir}/tests/training_labels", pixel_class_object.classifier_training_labels)
+    _ = pixel_class_object.train(image_folder = images_dir, channel_dictionary = channel_dictionary, sigmas = sigma_list)
+    assert pixel_class_object.model_info["channels"] == channel_dictionary, "Channel dictionary should remain the same in training"   ## key test is not really the assert, 
+                                                                                                                                      ## but the lack of an error while running
+                                                                                                                                      ## the training & the ability to predict 
+                                                                                                                                      ## afterwards
+
+def test_train_predict_supervised_classifier():
+    pixel_class_object.predict(images_dir, output_folder = None, filenames = None)
+    prediction_paths = ["".join([pixel_class_object.output_directory,"/",i]) for i in sorted(os.listdir(pixel_class_object.output_directory))]  
+    image_paths = ["".join([images_dir, "/", i]) for i in sorted(os.listdir(images_dir))]  
+    assert len(prediction_paths) == 10, "There are not 10 px class predictions (one for each image)!"
+    assert (tf.imread(prediction_paths[0]).shape == tf.imread(image_paths[0]).shape[1:]), "The X/Y dimensions of the source images and output class maps should be the same!"
+    assert (tf.imread(prediction_paths[1]).astype('int') != tf.imread(prediction_paths[1])).sum() == 0, "The pixel class maps shoul be integers!"
+    assert tf.imread(prediction_paths[2]).max() <= 3, "There should be no pixels >3 (the number of prediction classes)"
                     
