@@ -123,7 +123,7 @@ class SupervisedClassifier:
     def __init__(self, name, directory, classes_dictionary: dict):
         ''''''
         if not os.path.exists(f'{directory}/Pixel_Classification'):
-            os.mkdir(directory)
+            os.mkdir(f'{directory}/Pixel_Classification')
         self.name = name
         directory = f'{directory}/{name}'
         self.directory = directory
@@ -264,7 +264,7 @@ class UnsupervisedClassifier:
     def __init__(self, directory, name):
         ''''''
         if not os.path.exists(f'{directory}/Pixel_Classification'):
-            os.mkdir(directory)
+            os.mkdir(f'{directory}/Pixel_Classification')
         self.name = name
         directory = f'{directory}/Pixel_Classification/{name}'
         self.directory = directory
