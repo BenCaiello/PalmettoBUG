@@ -61,7 +61,7 @@ def test_unsupervised_classifier():
         features = ['gaussian']
         if i == 'Collagen-1':
             features = features + ['hessian', 'frangi', 'butterworth']
-        channel_dictionary[channel_number] = features
+        channel_dictionary[str(channel_number)] = features
     global img_directory
     img_directory = proj_directory + "/images/img"  
     unsup.train(image_folder = img_directory, 
@@ -218,7 +218,7 @@ def test_load_SupPx():
     channel_dictionary = {}  
     for i,ii in zip(panel.index, panel['name']):
         if (i == 6) or (i == 26):
-            channel_dictionary[i] = ['gaussian','hessian','frangi','butterworth']
+            channel_dictionary[str(i)] = ['gaussian','hessian','frangi','butterworth']
 
     sigma_list = [1.0, 5.0, 10.0]  
     

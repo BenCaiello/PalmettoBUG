@@ -86,6 +86,7 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
     length = 0
     if channels == {}:
         for i,ii in enumerate(image):
+            i = str(i)
             channels[i] = feature_list
     for i in channels:
         feat = channels[i]
@@ -97,7 +98,7 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
     final_array = np.zeros([length] + list(image[0].shape))
     count = 0
     for i in channels:
-        img_slice = image[i]
+        img_slice = image[int(i)]
         features = channels[i]
         if 'gaussian' in features:
             for j in sigmas:
