@@ -755,7 +755,7 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             loaded_json = open_json.read()
             loaded_json = json.loads(loaded_json) 
             open_json.close()
-            self.supervised = SupervisedClassifier(self.master.,main_directory, name, loaded_json['classes'])
+            self.supervised = SupervisedClassifier(self.master.main_directory, name, loaded_json['classes'])
             self.master.number_of_classes = len(loaded_json["classes_dict"])
 
         else:
@@ -956,23 +956,30 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.focus()
             return
         self.panel.to_csv(self.master.classifier_dir + f"/{self.master.name}/flowsom_panel.csv", index = False)
-        self.master.image_source_dir = img_directory
-        
-        self.master.unsupervised.panel = self.panel
+        self.channel_dictionary = {}
+        kept = self.panel[self.panel['keep'] == 1]
+        kept_channels = kept.index
+        for i in kept_channels:
+            features = ['gaussian','hessian','frangi','butterworth']
+            applied_features = kept.loc[i,['gaussian','hessian','frangi','butterworth']]
+            self.channel_dictionary[str(i)] = [q for q,qq in zip(features,applied_features) if int(qq) == 1]
 
+        self.master.image_source_dir = img_directory
         sigma = float(self.sigma_choice.get())
         smoothing = int(self.smoothing_choice.get())
 
-        (self.master.unsupervised.classifier_dictionary, training_dictionary) = self.master.unsupervised.setup_and_train(img_directory,                
-                                                                                                                         sigma = sigma, 
-                                                                                                                         size = size, 
+
+
+        (self.master.unsupervised.classifier_dictionary, training_dictionary) = self.master.unsupervised.setup_and_train(image_folder = img_directory,                
+                                                                                                                         sigmas = [sigma], 
+                                                                                                                         channel_dictionary = self.channel_dictionary,   ### TODO: connect this properly
+                                                                                                                         pixel_number = size, 
                                                                                                                          seed = seed, 
-                                                                                                                         n_clusters = n_clusters, 
-                                                                                                                         xdim = XYdim,
-                                                                                                                         ydim = XYdim,  
-                                                                                                                         rlen = training_cycles, 
+                                                                                                                         metaclusters = n_clusters, 
+                                                                                                                         XYdim = XYdim,  
+                                                                                                                         training_cycles = training_cycles, 
                                                                                                                          smoothing = smoothing,
-                                                                                                                         suppress_zero_division_warnings = True,
+                                                                                                                         # suppress_zero_division_warnings = True,
                                                                                                                          quantile = quantile) 
         self.master.number_of_classes = n_clusters
 

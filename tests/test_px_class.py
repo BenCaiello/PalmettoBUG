@@ -166,7 +166,8 @@ def test_maps_to_PNGs():
 
 def test_whole_class_analysis_load():
     whole_class_directory = proj_directory + "/Pixel_Classification/test_unsup/whole_class_analysis"
-    os.mkdir(whole_class_directory)
+    if not os.path.exists(whole_class_directory):
+        os.mkdir(whole_class_directory)
 
     metadata = pd.read_csv(proj_directory +  "/Analyses/metadata.csv")
     panel = pd.read_csv(proj_directory +  "/Analyses/Analysis_panel.csv")
