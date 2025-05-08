@@ -23,7 +23,7 @@ import numpy as np
 import tifffile as tf
 import matplotlib.pyplot as plt 
 
-from .Classifiers import (SupervisedClassifier, 
+from .alt_Classifiers import (SupervisedClassifier, 
                           UnsupervisedClassifier, 
                           plot_pixel_heatmap, 
                           segment_class_map_folder)
@@ -143,7 +143,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         if len(images) == 0:
             tk.messagebox.showwarning("Warning!", message = "The are no saved label images in the training folder of the classifier!")
             return
-        self.supervised.train_folder(image_folder = image_folder)    
+        self.supervised.train(image_folder = image_folder)    
         pixel_logger.info(f"Trained supervised classifier {self.name} on image folder = {image_folder}")
         warning_window("Training Finished!")
 
@@ -195,7 +195,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         if not overwrite_approval(self.supervised.classifier_dir + "/classification_maps", file_or_folder = "folder", custom_message = "Are you sure you want to potentially overwrite files in this folder"
                                   "and the associated /merged_classification_maps folder?"):
             return False
-        self.supervised.predict_folder(image_folder_name)
+        self.supervised.predict(image_folder_name)
         merge_folder(self.supervised.output_directory, 
                      pd.read_csv(self.supervised.classifier_dir + "/biological_labels.csv"),
                     self.supervised.classifier_dir + "/merged_classification_maps")
@@ -214,7 +214,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         image_folder_name = self.image_directory + "/" + image_folder_choice
         if not overwrite_approval(self.unsupervised.classifier_dir + "/classification_maps/" + image_name, file_or_folder = "file"):
             return False
-        self.unsupervised.predict(image_name, image_folder_name, self.unsupervised.classifier_dictionary)
+        self.unsupervised.predict(image_folder_name, filename = image_name)
         pixel_logger.info(f"Predicted classification map for following image: {image_folder_name + '/'  + image_name}")
 
     def run_all_unsupervised(self) -> None:
@@ -225,12 +225,12 @@ class Pixel_class_widgets(ctk.CTkFrame):
         image_folder_name = self.image_directory + "/" + image_folder_choice
         if not overwrite_approval(self.unsupervised.classifier_dir + "/classification_maps/", file_or_folder = "folder"):
             return False
-        self.unsupervised.predict_folder(image_folder_name, self.unsupervised.classifier_dictionary)
+        self.unsupervised.predict_folder(image_folder_name)
 
-        self.plot_pixel_heatmap(image_folder_name, from_button = False)
+        self.plot_pixel_heatmap(self.unsupervised.output_folder, image_folder_name, from_button = False)
         pixel_logger.info(f"Predicted classification map for following image folder: {image_folder_name}")
 
-    def plot_pixel_heatmap(self, image_folder = None, from_button = True):
+    def plot_pixel_heatmap(self, classifier_folder, image_folder = None, from_button = True):
         ''''''
         if self.name is None:
             tk.messagebox.showwarning("No Classifier Loaded!", message = "No Classifier Available to Plot Heatmap from!")
@@ -253,7 +253,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         if image_folder is None:
             image_folder = loaded_json['img_directory']
         #print(channels, panel)
-        plot, _ = plot_pixel_heatmap(self.unsupervised.output_dir, image_folder, channels = channels,
+        plot, _ = plot_pixel_heatmap(classifier_folder, image_folder, channels = channels,
                                                     panel = panel, silence_division_warnings = True)
         plot.savefig(filepath)
         plt.close(fig = 'all')
@@ -435,7 +435,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
                     message = "No labels to save! \n Did you accidently click save before drawing any labels in Napari? \n"
                               "If you have closed Napari, click the Discard button to allow another Napari window to be opened")
                 return
-            if not overwrite_approval(self.master.supervised.classifier_training_labels + "/" + self.master.supervised._image_name, file_or_folder = "file"):
+            if not overwrite_approval(self.master.supervised.training_folder + "/" + self.master.supervised._image_name, file_or_folder = "file"):
                 return
             self.master.supervised.write_from_Napari()
             pixel_logger.info(f"Updated labels for Training image: {self.image_path_choice}")
@@ -650,13 +650,13 @@ class bio_label_launch_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         df.to_csv(self.master.classifier_dir + f"/{self.master.name}/biological_labels.csv", index = False)
         
         if self.master.classifier_type == "supervised":
-            merge_folder(self.master.supervised.classifier_dir + "/classification_maps", 
-                        pd.read_csv(self.master.supervised.classifier_dir + "/biological_labels.csv"),
-                        self.master.supervised.classifier_dir + "/merged_classification_maps")
+            merge_folder(self.master.supervised.directory + "/classification_maps", 
+                        pd.read_csv(self.master.supervised.directory + "/biological_labels.csv"),
+                        self.master.supervised.directory + "/merged_classification_maps")
         elif self.master.classifier_type == "unsupervised":
-            merge_folder(self.master.unsupervised.classifier_dir + "/classification_maps", 
-                        pd.read_csv(self.master.unsupervised.classifier_dir + "/biological_labels.csv"),
-                        self.master.unsupervised.classifier_dir + "/merged_classification_maps")
+            merge_folder(self.master.unsupervised.directory + "/classification_maps", 
+                        pd.read_csv(self.master.unsupervised.directory + "/biological_labels.csv"),
+                        self.master.unsupervised.directory + "/merged_classification_maps")
         pixel_logger.info(f"Saved Biological labels and merged: \n {str(df)}")
         self.destroy()
 
@@ -669,10 +669,10 @@ class bio_label_launch_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             channels = [i for i in details_dict['features_dictionary']]
             filepath = self.master.unsupervised.classifier_dir + "/cluster_heatmap.png"
         else:
-            pixel_folder = self.master.supervised.output_directory
-            details_dict = self.master.supervised.details_dict
+            pixel_folder = self.master.supervised.output_folder
+            details_dict = self.master.supervised.model_info
             channels = [i for i in details_dict['channels']]
-            filepath = self.master.supervised.classifier_dir + "/cluster_heatmap.png"
+            filepath = self.master.supervised.directory + "/cluster_heatmap.png"
         if self.channel_checkbox.get() is True:
             channels = [i for i in panel[panel['keep'] == 1]['name']]
         
@@ -718,27 +718,27 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         ''''''
         if not overwrite_approval(self.master.classifier_dir + "/Unsupervised_" + classifier_name, file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
             return
-        self.master.classifier_type = "unsupervised"   ##TODO: move these assignment statements to after the classifier has been made, if possible
+        unsupervised_window(master)
+        pixel_logger.info(f"Initialized Classifier {self.master.name}")
         self.master.name = "Unsupervised_" + classifier_name
         self.master.name_holder.set(self.master.name)
-        self.master.unsupervised = UnsupervisedClassifier(self.master.main_directory, classifier_name = ("/Unsupervised_" + classifier_name))
+        self.master.unsupervised = UnsupervisedClassifier(self.master.main_directory, self.master.name )
+        self.master.classifier_type = "unsupervised" 
+        self.master.name_holder.set(self.master.name)
         self.master.segment_frame.initialize_with_classifier()
-        pixel_logger.info(f"Initialized Classifier {self.master.name}")
-        unsupervised_window(master)
         self.withdraw()
 
     def accept_classifier_name(self, classifier_name: str, master) -> None:
         ''''''
         if not overwrite_approval(self.master.classifier_dir + "/" + classifier_name, file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
             return
-        self.master.supervised._setup_classifier_directory(classifier_name = ("/" + classifier_name))
+        Classifier_deets_window(master)
         self.master.name = classifier_name
         self.master.name_holder.set(self.master.name)
         self.master.classifier_type = "supervised"
         self.master.Napari_frame.activate_buttons()
         self.master.segment_frame.initialize_with_classifier()
         pixel_logger.info(f"Initialized Classifier {self.master.name}")
-        Classifier_deets_window(master)
         self.withdraw()
 
     def load(self, name: str) -> None:
@@ -746,8 +746,6 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if name.rfind('Unsupervised') == -1:
             self.master.name = name
             self.master.name_holder.set(self.master.name)
-            self.master.supervised._setup_classifier_directory(classifier_name = ("/" + name))
-            self.master.supervised.load_saved_classifier(self.master.classifier_dir + f"/{name}/{name}_model.pkl" ) 
             self.master.classifier_type = "supervised"
             self.master.Napari_frame.activate_buttons()
             self.master.segment_frame.initialize_with_classifier()
@@ -757,6 +755,7 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             loaded_json = open_json.read()
             loaded_json = json.loads(loaded_json) 
             open_json.close()
+            self.supervised = SupervisedClassifier(self.master.,main_directory, name, loaded_json['classes'])
             self.master.number_of_classes = len(loaded_json["classes_dict"])
 
         else:
@@ -769,7 +768,7 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             loaded_json = json.loads(loaded_json) 
             open_json.close()
             self.master.number_of_classes = loaded_json['number_of_classes']
-            self.master.unsupervised = UnsupervisedClassifier(self.master.main_directory, classifier_name = name)
+            self.master.unsupervised = UnsupervisedClassifier(self.master.main_directory, name)
             self.master.unsupervised.training_dictionary = loaded_json
 
         pixel_logger.info(f"Loaded Classifier {self.master.name} with details dictionary = \n {str(loaded_json)}")
@@ -867,7 +866,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.image_choice.grid(row = 4, column = 0, padx = 3, pady = 3)
         self.image_choice.bind("<Enter>", lambda enter:  refresh7())
 
-        label2 = ctk.CTkLabel(master = self, text = "Choose Sigma level of smoothing:")
+        label2 = ctk.CTkLabel(master = self, text = "Choose Sigma levels:")
         label2.grid(row = 5, column = 0 , padx = 3, pady = 3)
 
         self.sigma_choice = ctk.CTkOptionMenu(master = self, 

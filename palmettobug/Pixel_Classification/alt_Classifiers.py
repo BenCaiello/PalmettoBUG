@@ -17,11 +17,11 @@ Downsides:
 # like all files in PalmettoBUG, all code is under the GPL-3 license.
 
 ## copied from original Classifiers.py file (only self-written functions / no derivation from qupath or opencv in them):
-            # plot_pixel_heatmap, smoothing functions (all three), _py_mean_quantile_norm, and _quant
+            # plot_pixel_heatmap, smoothing functions (all three), _py_mean_quantile_norm, and _quant & supervised classifier's napari launch / save methods
             # segment_class_map_folder   (heavily based on some of the documentation of scikit-image, enough that I list it in the Other_License_Details.txt file:
                                     # Scikit-image: https://github.com/scikit-image/scikit-image, Copyright: 2009-2022 the scikit-image team, license: BSD-3))
 
-## TODO: (5-5-25) --> add napari connection, test, connect to a GUI interface, etc.
+## TODO: connect to a GUI interface, etc.
 
 import os
 from typing import Union
@@ -145,6 +145,8 @@ class SupervisedClassifier:
         self.model_info_path = f"{directory}/{name}_info.json"
         self.classes = classes_dictionary
         self._channels = {}
+        self._image_name = None
+        self._user_labels = None
 
     def write_classifier(self, image_folder, 
                            channel_dictionary = {}, 
@@ -174,13 +176,54 @@ class SupervisedClassifier:
         except sklearn.exceptions.InconsistentVersionWarning:
             print("Version of Scikit-Learn is different than when the pixel classifier model was originally trained! Model not loaded.")
 
-    def napari_labels(self, image_path):
-        ''''''
-        pass
+    def launch_Napari(self, 
+                         image_path: Union[Path, str], 
+                         display_all_channels: bool = False,
+                         ) -> None:
+        '''
+        This launches napari for generating training labels, receving a path (image_path) to the image file you want to make labels for
+        '''
+        image_path = str(image_path)
+        image = tf.imread(image_path)
+        self._image_name = image_path[image_path.rfind("/"):]
+        if image.shape[0] > image.shape[2]:    ## the channel dimensions should be the first
+            image = image.T
 
-    def save_napari_labels(self):
-        ''''''
-        pass
+        if display_all_channels is True:
+            viewer = napari.view_image(image, name = self._image_name, channel_axis = 0) 
+        else:
+            viewer = napari.view_image(image, name = self._image_name)     ### , channel_axis = 0   
+                                                                          ## adding this argument this would cause Napari to display 
+                                                                          # all channels at once
+
+        labels_path = self.classifier_training_labels + "/" + self._image_name   
+            ### check to see if the user has already made a labels layer for this images --> always reload an existing layer, if available
+        if os.path.exists(labels_path):
+            self._user_labels = viewer.add_labels(tf.imread(labels_path).astype('int'), name = "layer")
+        else:
+            self._user_labels = viewer.add_labels(np.zeros(list([image.shape[1], image.shape[2]])).astype('int'), name = "layer")
+        napari.run()
+         
+    def write_from_Napari(self, output_folder: Union[str, None] = None) -> None:   
+        ''' 
+        This saves the training labels to the training labels folder. Will only run if labels have previously been made 
+        & this method has not been run already (as this method clears the labels after saving them to the disk)
+
+        Args:
+            output_folder (str, Path, or None): What folder to write the training labels to (must exist). If None, will use the default location
+            for a Pixel Classifier, same as used in the GUI. 
+        '''
+        if self._image_name is None:
+            print('No training labels available to save!')
+            return
+        if output_folder is None:
+            output_folder = self.classifier_training_labels
+        output_folder = str(output_folder)
+        new_labels = self._user_labels.data
+        tf.imwrite(output_folder + "/" + self._image_name, new_labels.astype('int32'))  
+                    ## labels have the same name as the original image
+        print('Training labels written!')
+        self._image_name = None
         
 
     def train(self, image_folder, 
