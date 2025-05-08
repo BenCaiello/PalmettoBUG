@@ -120,7 +120,7 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
     return final_array, channels
 
 class SupervisedClassifier:
-    def __init__(self, name, directory, classes_dictionary: dict):
+    def __init__(self, directory, name, classes_dictionary: dict):
         ''''''
         if not os.path.exists(f'{directory}/Pixel_Classification'):
             os.mkdir(f'{directory}/Pixel_Classification')
