@@ -217,7 +217,7 @@ class SupervisedClassifier:
                 all_pixels = np.zeros([image_features.shape[0],1])
                 all_labels = np.zeros([1])
             all_pixels = np.concatenate((all_pixels, image_features[:,trn_img > 0]), axis = 1)
-            all_labels = np.concatenate((all_pixels, trn_img[trn_img > 0]), axis = 1)
+            all_labels = np.concatenate((all_labels, trn_img[trn_img > 0]), axis = 1)
         all_pixels = all_pixels[:, 1:]
         all_labels = all_labels[1:]
         self.model = MLP(hidden_layer_sizes = hidden_layers, learning_rate_init = learning_rate, early_stopping = True)
