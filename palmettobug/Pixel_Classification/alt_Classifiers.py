@@ -121,6 +121,9 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
 
 class SupervisedClassifier:
     def __init__(self, name, directory, classes_dictionary: dict):
+        ''''''
+        if not os.path.exists(f'{directory}/Pixel_Classification'):
+            os.mkdir(directory)
         self.name = name
         directory = f'{directory}/{name}'
         self.directory = directory
@@ -259,15 +262,18 @@ class SupervisedClassifier:
         
 class UnsupervisedClassifier:
     def __init__(self, directory, name):
+        ''''''
+        if not os.path.exists(f'{directory}/Pixel_Classification'):
+            os.mkdir(directory)
         self.name = name
-        directory = f'{directory}/{name}'
+        directory = f'{directory}/Pixel_Classification/{name}'
         self.directory = directory
         if not os.path.exists(directory):
             os.mkdir(directory)
         self.output_folder = f"{directory}/classification_maps"
         if not os.path.exists(self.output_folder):
             os.mkdir(self.output_folder)
-        self.merged_folder = f"{directory}/merged_classification_maps"
+        self.merged_folder = f"{directory}/merged_classification_maps"  merged_classification_maps
         if not os.path.exists(self.merged_folder):
             os.mkdir(self.merged_folder)
         self.model = None
