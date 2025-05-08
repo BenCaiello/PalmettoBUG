@@ -232,7 +232,7 @@ def test_load_SupPx():
 
 def test_train_predict_supervised_classifier():
     pixel_class_object.predict(images_dir, output_folder = None, filenames = None)
-    prediction_paths = ["".join([pixel_class_object.output_directory,"/",i]) for i in sorted(os.listdir(pixel_class_object.output_directory))]  
+    prediction_paths = ["".join([pixel_class_object.output_folder,"/",i]) for i in sorted(os.listdir(pixel_class_object.output_folder))]  
     image_paths = ["".join([images_dir, "/", i]) for i in sorted(os.listdir(images_dir))]  
     assert len(prediction_paths) == 10, "There are not 10 px class predictions (one for each image)!"
     assert (tf.imread(prediction_paths[0]).shape == tf.imread(image_paths[0]).shape[1:]), "The X/Y dimensions of the source images and output class maps should be the same!"
