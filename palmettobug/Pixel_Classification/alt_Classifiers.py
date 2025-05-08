@@ -221,7 +221,7 @@ class SupervisedClassifier:
         all_pixels = all_pixels[:, 1:]
         all_labels = all_labels[1:]
         self.model = MLP(hidden_layer_sizes = hidden_layers, learning_rate_init = learning_rate, early_stopping = True)
-        self.model.fit(all_pixels, all_labels)  
+        self.model.fit(all_pixels.T, all_labels)  
         if not from_save:  ## no need to rewrite if from saved model
             self.write_classifier(image_folder, self._channels)
         if auto_predict:
@@ -239,7 +239,7 @@ class SupervisedClassifier:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
                 image_features = np.reshape(image_features, [image_features.shape[0], image_features.shape[1]*image_features.shape[2]])
-                prediction = self.model.predict(image_features)
+                prediction = self.model.predict(image_features.T)
                 prediction = np.reshape(prediction, [image_features.shape[1], image_features.shape[2]])
                 tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         elif isinstance(filenames, list):
@@ -247,7 +247,7 @@ class SupervisedClassifier:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
                 image_features = np.reshape(image_features, [image_features.shape[0], image_features.shape[1]*image_features.shape[2]])
-                prediction = self.model.predict(image_features)
+                prediction = self.model.predict(image_features.T)
                 prediction = np.reshape(prediction, [image_features.shape[1], image_features.shape[2]])
                 tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         elif isinstance(filenames, str):
@@ -255,7 +255,7 @@ class SupervisedClassifier:
             img = tf.imread(f'{image_folder}/{filename}').astype('float32')
             image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
             image_features = np.reshape(image_features, [image_features.shape[0], image_features.shape[1]*image_features.shape[2]])
-            prediction = self.model.predict(image_features)
+            prediction = self.model.predict(image_features.T)
             prediction = np.reshape(prediction, [image_features.shape[1], image_features.shape[2]])
             tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         else:
