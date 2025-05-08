@@ -256,7 +256,7 @@ class SupervisedClassifier:
             image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
             image_features = np.reshape(image_features, [image_features.shape[0], image_features.shape[1]*image_features.shape[2]])
             prediction = self.model.predict(image_features.T)
-            prediction = np.reshape(prediction, [img.shape[0], img.shape[1]])
+            prediction = np.reshape(prediction, [img.shape[1], img.shape[2]])
             tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         else:
             raise(ValueError, "Filenames parameter must be a str, list, or None")
