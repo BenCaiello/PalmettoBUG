@@ -216,7 +216,7 @@ class SupervisedClassifier:
             if all_pixels is None:
                 all_pixels = np.zeros([image_features.shape[0],1])
                 all_labels = np.zeros([1])
-            all_pixels = np.concatenate((all_pixels, image_features[trn_img > 0]))
+            all_pixels = np.concatenate((all_pixels, np.reshape(image_features[trn_img > 0], [image_features.shape[0], np.sum(trn_img > 0)])))
             all_labels = np.concatenate((all_pixels, trn_img[trn_img > 0]), axis = 1)
         all_pixels = all_pixels[:, 1:]
         all_labels = all_labels[1:]
