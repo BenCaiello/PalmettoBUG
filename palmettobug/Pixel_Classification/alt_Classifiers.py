@@ -79,7 +79,7 @@ def FrangiFilter(image):
     return ski.filters.frangi(image)
 
 def ButterWorthFilter(image, ratio, high_pass = True):
-    return ski.filteres.butterworth(image, cutoff_frequency_ratio = ratio, high_pass = high_pass)
+    return ski.filters.butterworth(image, cutoff_frequency_ratio = ratio, high_pass = high_pass)
 
 def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0]):
     ''''''

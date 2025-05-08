@@ -46,7 +46,7 @@ def test_raw_to_img():
     images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
     assert(len(images) == 10), "Wrong number of images exported to images/img"               ## all the images are transferred
     shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
-'''
+
 def test_unsupervised_classifier():
     global unsup
     unsup = UnsupervisedClassifier(proj_directory, name = "test_unsup")
@@ -65,7 +65,7 @@ def test_unsupervised_classifier():
     global img_directory
     img_directory = proj_directory + "/images/img"  
     unsup.train(image_folder = img_directory, 
-                channel_dictionary = {},
+                channel_dictionary = channel_dictionary,
                 sigmas = [1.0, 5.0, 10.0], 
                 pixel_number = 50000, 
                 quantile = 0.999,
@@ -203,7 +203,6 @@ def test_wca_export():
                         statistic= 'mean',
                         include_marker_class_row = False)
     assert isinstance(df, pd.DataFrame), "Whole class export funciton did not return a pandas dataframe!"
-'''
 
 def test_load_SupPx():
     global my_classifier_name
