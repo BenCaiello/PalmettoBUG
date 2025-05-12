@@ -62,7 +62,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         self.main_directory = dir_object.main
         self.classifier_dir = dir_object.px_classifiers_dir
         self.image_directory = dir_object.img_dir
-        self.supervised = SupervisedClassifier(directory)
+        # self.supervised = SupervisedClassifier(directory)
         self.classifier_type = None   ## to be --> "supervised" or "unsupervised"
 
         global pixel_logger
@@ -848,7 +848,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         label = ctk.CTkLabel(master = self, 
                              text= "Select what Channel to use for the clustering and what additional features to create: \n"
-                            "features (in order) = \t\t\t\t  gaussian | hessian | frangi | butterworth")
+                            "features   = gaussian | hessian | frangi | butterworth")
         label.grid(row = 0, columnspan = 2, column = 0, pady = 3, padx = 5)
 
         self.keep_table = self.keep_channel_table(self)
@@ -970,26 +970,26 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
 
 
-        (self.master.unsupervised.classifier_dictionary, training_dictionary) = self.master.unsupervised.setup_and_train(image_folder = img_directory,                
-                                                                                                                         sigmas = [sigma], 
-                                                                                                                         channel_dictionary = self.channel_dictionary,   ### TODO: connect this properly
-                                                                                                                         pixel_number = size, 
-                                                                                                                         seed = seed, 
-                                                                                                                         metaclusters = n_clusters, 
-                                                                                                                         XYdim = XYdim,  
-                                                                                                                         training_cycles = training_cycles, 
-                                                                                                                         smoothing = smoothing,
-                                                                                                                         # suppress_zero_division_warnings = True,
-                                                                                                                         quantile = quantile) 
+        self.master.unsupervised.train(image_folder = img_directory,                
+                                    sigmas = [sigma], 
+                                    channel_dictionary = self.channel_dictionary,   ### TODO: connect this properly
+                                    pixel_number = size, 
+                                    seed = seed, 
+                                    metaclusters = n_clusters, 
+                                    XYdim = XYdim,  
+                                    training_cycles = training_cycles, 
+                                    smoothing = smoothing,
+                                    # suppress_zero_division_warnings = True,
+                                    quantile = quantile) 
         self.master.number_of_classes = n_clusters
 
         pixel_logger.info(f"Trained Unsupervised Classifier {self.master.name} with the following training dictionary: \n" 
-                           "{str(training_dictionary)}")
+                           f"{str(self.channel_dictionary)}")
 
         with open(self.master.classifier_dir + f"/{self.master.name}/{self.master.name}_info.json",
                    'w' , 
                    encoding="utf-8") as write_json:
-            json.dump(training_dictionary, write_json, indent = 4) 
+            json.dump(self.channel_dictionary, write_json, indent = 4) 
         #pd.DataFrame(self.master.unsupervised.classifier_dictionary['fs'].model.codes).to_csv(self.master.classifier_dir + f"/{self.master.name}/clustering_codes.csv")   
                                             ## this .csv might allow loading & predicting from a previously done classifier
                                             ## However, creating the flowsom object in the first place may be difficult...

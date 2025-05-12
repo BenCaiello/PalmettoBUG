@@ -102,7 +102,7 @@ def test_unsupervised_classifier():
     unsup.train(image_folder = img_directory, 
                 channel_dictionary = channel_dictionary,
                 sigmas = [1.0, 5.0, 10.0], 
-                pixel_number = 50000, 
+                pixel_number = 125000, 
                 quantile = 0.999,
                 seed = 8675309, 
                 metaclusters = 20, 
