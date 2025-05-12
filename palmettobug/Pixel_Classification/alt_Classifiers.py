@@ -102,22 +102,23 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
     for i in channels:
         img_slice = image[int(i)]
         features = channels[i]
-        if 'gaussian' in features:
-            for j in sigmas:
-                final_array[count] = GaussianFilter(img_slice, sigma = j)
+        if len(features) != 0:
+            if 'gaussian' in features:
+                for j in sigmas:
+                    final_array[count] = GaussianFilter(img_slice, sigma = j)
+                    count += 1
+            if ('hessian' in features):
+                final_array[count] = HessianFilter(img_slice)
                 count += 1
-        if ('hessian' in features):
-            final_array[count] = HessianFilter(img_slice)
-            count += 1
-        if ('frangi' in features):
-            final_array[count] = FrangiFilter(img_slice)
-            count += 1
-        if ('butterworth' in features):
-            for i in sigmas:
-                final_array[count] = ButterWorthFilter(img_slice, ratio = i / 100, high_pass = True)
+            if ('frangi' in features):
+                final_array[count] = FrangiFilter(img_slice)
                 count += 1
-                final_array[count] = ButterWorthFilter(img_slice, ratio = i / 100, high_pass = False)
-                count += 1
+            if ('butterworth' in features):
+                for i in sigmas:
+                    final_array[count] = ButterWorthFilter(img_slice, ratio = i / 100, high_pass = True)
+                    count += 1
+                    final_array[count] = ButterWorthFilter(img_slice, ratio = i / 100, high_pass = False)
+                    count += 1
     if length != count:
         raise Exception(f'Length ({str(length)}) of expected number of features did not equal count ({str(count)}) of channel features actually derived')
     return final_array, channels
@@ -146,9 +147,14 @@ class SupervisedClassifier:
         self.model_info = {}
         self.model_info_path = f"{directory}/{name}_info.json"
         self.classes = classes_dictionary
+        self.channel_names = {}
         self._channels = {}
         self._image_name = None
         self._user_labels = None
+
+    def set_channel_names(self, channel_names_dict):
+        ''' This is intended for setting a dictionary corresponding {channel integer numbers : channel antigen names}'''
+        self.channel_names = channel_names_dict
 
     def write_classifier(self, image_folder, 
                            channel_dictionary = {}, 
@@ -326,7 +332,12 @@ class UnsupervisedClassifier:
         self.model_path = f"{directory}/{name}_model.pkl"
         self.model_info = {}
         self.model_info_path = f"{directory}/{name}_info.json"
+        self.channel_names = {}
         self._channels = {}
+
+    def set_channel_names(self, channel_names_dict):
+        ''' This is intended for setting a dictionary corresponding {channel integer numbers : channel antigen names}'''
+        self.channel_names = channel_names_dict
 
     def write_classifier(self, image_folder, 
                          channel_dictionary = {}, 
@@ -337,7 +348,7 @@ class UnsupervisedClassifier:
                          metaclusters = 15,
                          training_cycles = 50,
                          smoothing = 0,
-                         seed = 42,):
+                         seed = 42):
         '''Point of this method is to set up the .json that will store the information relevant to the classifier'''
         write_dictionary = {}
         write_dictionary['image_folder'] = image_folder
@@ -409,7 +420,13 @@ class UnsupervisedClassifier:
         print(all_pixels.shape)
         self.model = FlowSOM(all_pixels.T, n_clusters = metaclusters, xdim = XYdim, ydim = XYdim, rlen = training_cycles, seed = seed).model
         if not from_save:  ## no need to rewrite if from saved model
-            self.write_classifier(image_folder, self._channels)
+            self.write_classifier(image_folder, self._channels, sigmas = sigmas, pixel_number = pixel_number, 
+                         quantile = quantile,
+                         XYdim = XYdim,
+                         metaclusters = metaclusters,
+                         training_cycles = training_cycles,
+                         smoothing = smoothing,
+                         seed = seed)
         if auto_predict:
             self.predict(image_folder, output_folder = self.output_folder, filenames = None)
 

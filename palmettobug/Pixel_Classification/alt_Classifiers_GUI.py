@@ -177,13 +177,13 @@ class Pixel_class_widgets(ctk.CTkFrame):
             return False
     
         image_folder_name = self.image_directory + "/" + image_folder_choice
-        if not overwrite_approval(self.supervised.classifier_dir + "/classification_maps/" + image_name, file_or_folder = "file"):
+        if not overwrite_approval(self.supervised.directory + "/classification_maps/" + image_name, file_or_folder = "file"):
             return False
         image = tf.imread(image_folder_name + "/"  + image_name).T
         self.supervised.predict(image, image_name)
         merge_folder(self.supervised.output_directory,
-                     pd.read_csv(self.supervised.classifier_dir + "/biological_labels.csv"),
-                    self.supervised.classifier_dir + "/merged_classification_maps")
+                     pd.read_csv(self.supervised.directory + "/biological_labels.csv"),
+                    self.supervised.directory + "/merged_classification_maps")
         pixel_logger.info(f"Predicted classification map for following image: {image_folder_name + '/'  + image_name}")
 
     def predict_folder(self) -> None:
@@ -192,13 +192,13 @@ class Pixel_class_widgets(ctk.CTkFrame):
             tk.messagebox.showwarning("No Image folder selected!", message = "Please select a folder to predict pixel classes from!")
             return False
         image_folder_name = self.image_directory + "/" + image_folder_choice
-        if not overwrite_approval(self.supervised.classifier_dir + "/classification_maps", file_or_folder = "folder", custom_message = "Are you sure you want to potentially overwrite files in this folder"
+        if not overwrite_approval(self.supervised.directory + "/classification_maps", file_or_folder = "folder", custom_message = "Are you sure you want to potentially overwrite files in this folder"
                                   "and the associated /merged_classification_maps folder?"):
             return False
         self.supervised.predict(image_folder_name)
         merge_folder(self.supervised.output_directory, 
-                     pd.read_csv(self.supervised.classifier_dir + "/biological_labels.csv"),
-                    self.supervised.classifier_dir + "/merged_classification_maps")
+                     pd.read_csv(self.supervised.directory + "/biological_labels.csv"),
+                    self.supervised.directory + "/merged_classification_maps")
         pixel_logger.info(f"Predicted classification map for following image folder: {image_folder_name}")
 
     def run_one_unsupervised(self) -> None:
@@ -212,9 +212,9 @@ class Pixel_class_widgets(ctk.CTkFrame):
             tk.messagebox.showwarning("No Image selected!", message = "Please select the image to predict pixel classes for!")
             return False
         image_folder_name = self.image_directory + "/" + image_folder_choice
-        if not overwrite_approval(self.unsupervised.classifier_dir + "/classification_maps/" + image_name, file_or_folder = "file"):
+        if not overwrite_approval(self.unsupervised.directory + "/classification_maps/" + image_name, file_or_folder = "file"):
             return False
-        self.unsupervised.predict(image_folder_name, filename = image_name)
+        self.unsupervised.predict(image_folder_name, filenames = image_name)
         pixel_logger.info(f"Predicted classification map for following image: {image_folder_name + '/'  + image_name}")
 
     def run_all_unsupervised(self) -> None:
@@ -223,9 +223,9 @@ class Pixel_class_widgets(ctk.CTkFrame):
             tk.messagebox.showwarning("No Image folder selected!", message = "Please select a folder to predict pixel classes from!")
             return False
         image_folder_name = self.image_directory + "/" + image_folder_choice
-        if not overwrite_approval(self.unsupervised.classifier_dir + "/classification_maps/", file_or_folder = "folder"):
+        if not overwrite_approval(self.unsupervised.directory + "/classification_maps/", file_or_folder = "folder"):
             return False
-        self.unsupervised.predict_folder(image_folder_name)
+        self.unsupervised.predict(image_folder_name)
 
         self.plot_pixel_heatmap(self.unsupervised.output_folder, image_folder_name, from_button = False)
         pixel_logger.info(f"Predicted classification map for following image folder: {image_folder_name}")
@@ -246,9 +246,9 @@ class Pixel_class_widgets(ctk.CTkFrame):
         loaded_json = json.loads(loaded_json) 
         open_json.close()
         channels = []
-        for i in loaded_json['features_dictionary']:
-            for j in loaded_json['features_dictionary'][i]:
-                if j == "GAUSSIAN":
+        for i in loaded_json['channels']:
+            for j in loaded_json['channels'][i]:
+                if j == "gaussian":
                     channels.append(f'{i}')
         if image_folder is None:
             image_folder = loaded_json['img_directory']
@@ -666,8 +666,8 @@ class bio_label_launch_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if self.master.classifier_type == "unsupervised":
             pixel_folder = self.master.unsupervised.output_dir
             details_dict = self.master.unsupervised.training_dictionary
-            channels = [i for i in details_dict['features_dictionary']]
-            filepath = self.master.unsupervised.classifier_dir + "/cluster_heatmap.png"
+            channels = [i for i in details_dict['channels']]
+            filepath = self.master.unsupervised.directory + "/cluster_heatmap.png"
         else:
             pixel_folder = self.master.supervised.output_folder
             details_dict = self.master.supervised.model_info
@@ -767,9 +767,9 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             loaded_json = open_json.read()
             loaded_json = json.loads(loaded_json) 
             open_json.close()
-            self.master.number_of_classes = loaded_json['number_of_classes']
+            self.master.number_of_classes = loaded_json['metaclusters']
             self.master.unsupervised = UnsupervisedClassifier(self.master.main_directory, name)
-            self.master.unsupervised.training_dictionary = loaded_json
+            self.master.unsupervised.load_classifier()
 
         pixel_logger.info(f"Loaded Classifier {self.master.name} with details dictionary = \n {str(loaded_json)}")
         self.after(200, self.destroy())
@@ -849,7 +849,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label = ctk.CTkLabel(master = self, 
                              text= "Select what Channel to use for the clustering and what additional features to create: \n"
                             "features   = gaussian | hessian | frangi | butterworth")
-        label.grid(row = 0, columnspan = 2, column = 0, pady = 3, padx = 5)
+        label.grid(row = 0, column = 0, pady = 3, padx = 5)
 
         self.keep_table = self.keep_channel_table(self)
         self.keep_table.grid(row = 2 , column = 0, columnspan = 3, padx = 3, pady = 3)
@@ -950,19 +950,23 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         
         self.panel = self.keep_table.retrieve()
-        if self.panel['keep'].sum() ==0:
-            tk.messagebox.showwarning("No Channels selected", 
-                        message = "You must select at least one channel to use!")
-            self.focus()
-            return
+        
         self.panel.to_csv(self.master.classifier_dir + f"/{self.master.name}/flowsom_panel.csv", index = False)
         self.channel_dictionary = {}
-        kept = self.panel[self.panel['keep'] == 1]
+        kept = self.panel
         kept_channels = kept.index
         for i in kept_channels:
             features = ['gaussian','hessian','frangi','butterworth']
             applied_features = kept.loc[i,['gaussian','hessian','frangi','butterworth']]
-            self.channel_dictionary[str(i)] = [q for q,qq in zip(features,applied_features) if int(qq) == 1]
+            add_features = [q for q,qq in zip(features,applied_features) if int(qq) == 1]
+            if len(add_features) != 0:
+                self.channel_dictionary[str(i)] = [q for q,qq in zip(features,applied_features) if int(qq) == 1]
+
+        if len(self.channel_dictionary) == 0:
+            tk.messagebox.showwarning("No Channels selected", 
+                        message = "You must select at least one channel to use!")
+            self.focus()
+            return
 
         self.master.image_source_dir = img_directory
         sigma = float(self.sigma_choice.get())
@@ -986,13 +990,6 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         pixel_logger.info(f"Trained Unsupervised Classifier {self.master.name} with the following training dictionary: \n" 
                            f"{str(self.channel_dictionary)}")
 
-        with open(self.master.classifier_dir + f"/{self.master.name}/{self.master.name}_info.json",
-                   'w' , 
-                   encoding="utf-8") as write_json:
-            json.dump(self.channel_dictionary, write_json, indent = 4) 
-        #pd.DataFrame(self.master.unsupervised.classifier_dictionary['fs'].model.codes).to_csv(self.master.classifier_dir + f"/{self.master.name}/clustering_codes.csv")   
-                                            ## this .csv might allow loading & predicting from a previously done classifier
-                                            ## However, creating the flowsom object in the first place may be difficult...
         warning_window("Training Finished!")
         self.after(200, self.withdraw())
 
@@ -1014,7 +1011,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 label.configure(state = "disabled")
 
                 keep = ctk.CTkOptionMenu(master = self, values = ["","Use Channel"], variable = ctk.StringVar(value = ""))
-                keep.grid(row = i + 3, column = 1, pady = 3, padx = 8)
+                #keep.grid(row = i + 3, column = 1, pady = 3, padx = 8)
 
                 widget_list = [label, keep]
                 keeplist.append(keep)
@@ -1029,7 +1026,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                 values = ["","Use Channel"],
                                                 variable = ctk.StringVar(value = "Set all in column"),
                                                   command = lambda selection: self.select_all(selection, keeplist))
-                select_all.grid(row = 2, column = 1, pady = 3, padx = 8) 
+                #select_all.grid(row = 2, column = 1, pady = 3, padx = 8) 
 
         def select_all(self, selection: str, keeplist: list) -> None:
             for i in keeplist:
