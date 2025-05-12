@@ -17,6 +17,7 @@ import matplotlib
 
 from palmettobug import (fetch_IMC_example, 
                         ImageAnalysis, 
+                        SupervisedClassifier,
                         UnsupervisedClassifier, 
                         plot_pixel_heatmap, 
                         merge_folder,

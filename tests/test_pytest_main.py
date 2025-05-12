@@ -15,7 +15,6 @@ import pandas as pd
 import anndata
 import matplotlib
 
-from palmettobug import SupervisedClassifier, UnsupervisedClassifier, plot_pixel_heatmap, segment_class_map_folder
 from palmettobug import fetch_IMC_example, ImageAnalysis
 from palmettobug import Analysis, SpatialAnalysis
 
