@@ -501,6 +501,7 @@ def _find_region_probabilities(mask: np.ndarray[float],
     
     regionprops = skimage.measure.regionprops(mask)
     output_array = np.zeros([len(regionprops),number_of_classes])   ## for every mask region, list a probability for each class
+    print(output_array.shape)
     
     for ii,i in enumerate(regionprops):
         box = i.bbox
