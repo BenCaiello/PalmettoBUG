@@ -58,7 +58,6 @@ class Pixel_class_widgets(ctk.CTkFrame):
         self.name = None
 
     def set_directory(self, dir_object: str) -> None:
-        directory = dir_object.main
         self.main_directory = dir_object.main
         self.classifier_dir = dir_object.px_classifiers_dir
         self.image_directory = dir_object.img_dir
@@ -1022,15 +1021,6 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                     widget_list.append(feature)
 
                 self.widget_list_of_lists.append(widget_list)
-                select_all = ctk.CTkOptionMenu(master = self,
-                                                values = ["","Use Channel"],
-                                                variable = ctk.StringVar(value = "Set all in column"),
-                                                  command = lambda selection: self.select_all(selection, keeplist))
-                #select_all.grid(row = 2, column = 1, pady = 3, padx = 8) 
-
-        def select_all(self, selection: str, keeplist: list) -> None:
-            for i in keeplist:
-                i.set(selection)
 
         def retrieve(self) -> pd.DataFrame:
             index = ['antigen',

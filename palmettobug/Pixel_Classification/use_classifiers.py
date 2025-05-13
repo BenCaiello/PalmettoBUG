@@ -601,6 +601,7 @@ def secondary_flowsom(mask_folder: Union[Path, str],
         mask = tf.imread("".join([mask_folder,"/",i])).astype("int")
         classifier_map = tf.imread("".join([classifier_map_folder,"/",i])).astype("int")
         mask_probabilities = _find_region_probabilities(mask, classifier_map, number_of_classes = number_of_classes)
+        print(mask_probabilities.shape)
         if counter == 0:
             output_array = mask_probabilities.copy()
             counter += 1
