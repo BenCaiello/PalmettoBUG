@@ -108,7 +108,7 @@ def test_unsupervised_classifier():
                 metaclusters = 20, 
                 training_cycles = 50,
                 XYdim = 10, 
-                smoothing = 0)
+                smoothing = 2)
     unsup.predict(image_folder = img_directory)
     assert len(os.listdir(unsup.output_folder)) == 10, "Wrong number of classification maps generated!"
 
