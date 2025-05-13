@@ -606,6 +606,8 @@ def secondary_flowsom(mask_folder: Union[Path, str],
             output_array = mask_probabilities.copy()
             counter += 1
         else:
+            print(output_array.shape)
+            print(mask_probabilities.shape)
             output_array = np.append(output_array, mask_probabilities, axis = 0)
 
     anndata_df = pd.DataFrame()
