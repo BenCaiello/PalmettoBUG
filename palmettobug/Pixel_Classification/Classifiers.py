@@ -1927,7 +1927,7 @@ def smooth_isolated_pixels(unsupervised_class_map: np.ndarray[int],
     unsupervised_class_map[unsupervised_class_map == 0] = zero_number    ## added to preserve blank patchs after merging
     for i in range(1, class_num + 1):
         single_class = (unsupervised_class_map == i)
-        single_class_isolated_pixels_removed = ski.morphology.remove_small_objects(single_class, 
+        single_class_isolated_pixels_removed = skimage.morphology.remove_small_objects(single_class, 
                                                                                        min_size = threshold, 
                                                                                        connectivity = (search_radius + 1))
         all_isolated_pixels_removed  = all_isolated_pixels_removed + single_class_isolated_pixels_removed.astype('int')
@@ -1953,7 +1953,7 @@ def smooth_isolated_pixels(unsupervised_class_map: np.ndarray[int],
                     all_isolated_pixels_removed[i,j] = mode
 
         all_isolated_pixels_removed[all_isolated_pixels_removed == zero_number] = 0 ## added to preserve blank patchs after merging
-        return isolated_removed
+        return all_isolated_pixels_removed
 
 def _find_mode(padded_array: np.ndarray[int], 
                point: list[int], 

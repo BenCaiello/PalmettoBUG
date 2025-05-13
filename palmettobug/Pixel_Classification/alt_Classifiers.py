@@ -665,7 +665,7 @@ def smooth_isolated_pixels(unsupervised_class_map: np.ndarray[int],
                     all_isolated_pixels_removed[i,j] = mode
 
         all_isolated_pixels_removed[all_isolated_pixels_removed == zero_number] = 0 ## added to preserve blank patchs after merging
-        return isolated_removed
+        return all_isolated_pixels_removed
 
 def _find_mode(padded_array: np.ndarray[int], 
                point: list[int], 
