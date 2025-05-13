@@ -105,7 +105,7 @@ def test_unsupervised_classifier():
                 pixel_number = 125000, 
                 quantile = 0.999,
                 seed = 8675309, 
-                metaclusters = 20, 
+                metaclusters = 15, 
                 training_cycles = 50,
                 XYdim = 10, 
                 smoothing = 2)
