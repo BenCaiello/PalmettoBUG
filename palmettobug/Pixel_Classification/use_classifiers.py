@@ -600,9 +600,6 @@ def secondary_flowsom(mask_folder: Union[Path, str],
     for i in overlapping: 
         mask = tf.imread("".join([mask_folder,"/",i])).astype("int")
         classifier_map = tf.imread("".join([classifier_map_folder,"/",i])).astype("int")
-        print("".join([classifier_map_folder,"/",i]))
-        print(classifier_map)
-        print(classifier_map.max())
         mask_probabilities = _find_region_probabilities(mask, classifier_map, number_of_classes = number_of_classes)
         if counter == 0:
             output_array = mask_probabilities.copy()
