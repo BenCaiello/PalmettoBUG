@@ -229,8 +229,10 @@ class Pixel_class_widgets(ctk.CTkFrame):
         self.plot_pixel_heatmap(self.unsupervised.output_folder, image_folder_name, from_button = False)
         pixel_logger.info(f"Predicted classification map for following image folder: {image_folder_name}")
 
-    def plot_pixel_heatmap(self, classifier_folder, image_folder = None, from_button = True):
+    def plot_pixel_heatmap(self, classifier_folder = None, image_folder = None, from_button = True):
         ''''''
+        if classifier_folder is None:
+            classifier_folder = self.classifier_dir + "/" + self.name + "/classification_maps"
         if self.name is None:
             tk.messagebox.showwarning("No Classifier Loaded!", message = "No Classifier Available to Plot Heatmap from!")
             return
@@ -248,9 +250,9 @@ class Pixel_class_widgets(ctk.CTkFrame):
         for i in loaded_json['channels']:
             for j in loaded_json['channels'][i]:
                 if j == "gaussian":
-                    channels.append(f'{i}')
+                    channels.append(f'{loaded_json["channel_names"][i]}')
         if image_folder is None:
-            image_folder = loaded_json['img_directory']
+            image_folder = loaded_json['image_folder']
         #print(channels, panel)
         plot, _ = plot_pixel_heatmap(classifier_folder, image_folder, channels = channels,
                                                     panel = panel, silence_division_warnings = True)
@@ -526,25 +528,12 @@ class Pixel_class_widgets(ctk.CTkFrame):
             label2 = ctk.CTkLabel(master = self, text = "Choose input folder for class maps:")
             label2.grid(padx = 3, pady = 3, row = 3, column = 0)
 
-            self.input_choices = []
+            self.input_choices = ['classification_maps', 'merged_classification_maps']
             self.input_folder = ctk.CTkOptionMenu(master = self, values = self.input_choices, variable = ctk.StringVar(value = ""))
             self.input_folder.grid(padx = 3, pady = 3, row = 3, column = 1)
 
             button = ctk.CTkButton(master = self, text = "Run segmentation", command = self.run_seg)
             button.grid(padx = 3, pady = 3, row = 4, column = 1)
-
-        def initialize_with_classifier(self) -> None:
-            def refresh5():
-                try:
-                    self.input_choices = [i.name for i in os.scandir(self.master.classifier_dir + f"/{self.master.name}") 
-                                          if ((i.is_dir() is True) 
-                                          and (i.name != "training_labels") 
-                                          and (i.name.find('Whole_class_analy') == -1))]
-                    self.input_folder.configure(values = self.input_choices)
-                except Exception:
-                    pass
-            refresh5()
-            self.input_folder.bind("<Enter>", lambda enter: refresh5())
 
         def run_seg(self) -> None:
             if self.master.name is None:
@@ -680,7 +669,7 @@ class bio_label_launch_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                     message = "Cannot plot a heatmap with only 1 channel! Cancelling heatmap")
             return
 
-        image_folder = details_dict['img_directory']       
+        image_folder = details_dict['image_folder']       
         figure, _ = plot_pixel_heatmap(pixel_folder, image_folder, channels, panel, silence_division_warnings = True)
         figure.savefig(filepath)
         plt.close(fig = 'all')
@@ -724,7 +713,6 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master.unsupervised = UnsupervisedClassifier(self.master.main_directory, self.master.name )
         self.master.classifier_type = "unsupervised" 
         self.master.name_holder.set(self.master.name)
-        self.master.segment_frame.initialize_with_classifier()
         self.withdraw()
 
     def accept_classifier_name(self, classifier_name: str, master) -> None:
@@ -736,7 +724,6 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master.name_holder.set(self.master.name)
         self.master.classifier_type = "supervised"
         self.master.Napari_frame.activate_buttons()
-        self.master.segment_frame.initialize_with_classifier()
         pixel_logger.info(f"Initialized Classifier {self.master.name}")
         self.withdraw()
 
@@ -747,7 +734,6 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.master.name_holder.set(self.master.name)
             self.master.classifier_type = "supervised"
             self.master.Napari_frame.activate_buttons()
-            self.master.segment_frame.initialize_with_classifier()
 
             details_path = self.master.classifier_dir + f"/{name}/{name}_info.json"
             open_json = open(details_path, 'r' , encoding="utf-8")
@@ -948,17 +934,18 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.focus()
             return
         
-        self.panel = self.keep_table.retrieve()
-        
-        self.panel.to_csv(self.master.classifier_dir + f"/{self.master.name}/flowsom_panel.csv", index = False)
+        self.channel_panel = self.keep_table.retrieve()        
+        self.channel_panel.to_csv(self.master.classifier_dir + f"/{self.master.name}/flowsom_panel.csv", index = False)
         self.channel_dictionary = {}
-        kept = self.panel
+        self.channel_names = {}
+        kept = self.channel_panel
         kept_channels = kept.index
         for i in kept_channels:
             features = ['gaussian','hessian','frangi','butterworth']
             applied_features = kept.loc[i,['gaussian','hessian','frangi','butterworth']]
             add_features = [q for q,qq in zip(features,applied_features) if int(qq) == 1]
             if len(add_features) != 0:
+                self.channel_names[str(i)] = self.channel_panel.loc[i, 'antigen']
                 self.channel_dictionary[str(i)] = [q for q,qq in zip(features,applied_features) if int(qq) == 1]
 
         if len(self.channel_dictionary) == 0:
@@ -971,7 +958,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         sigma = float(self.sigma_choice.get())
         smoothing = int(self.smoothing_choice.get())
 
-
+        self.master.unsupervised.set_channel_names(self.channel_names)
 
         self.master.unsupervised.train(image_folder = img_directory,                
                                     sigmas = [sigma], 
@@ -1378,7 +1365,6 @@ class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         details_path = PALMETTO_BUG_assets_classifier_folder + f"/{classifier_load_name}/{classifier_load_name}_info.json"
         destination = self.master.classifier_dir + f"/{name}/{name}"
         self.master.Napari_frame.activate_buttons()
-        self.master.segment_frame.initialize_with_classifier()
         shutil.copyfile(assets_path, (destination + ".pkl"))
         shutil.copyfile(details_path, (destination + "_info.json"))
         
@@ -1523,10 +1509,10 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.dictionary = json.loads(loaded_json)
         open_json.close()
 
-        channel_frame = self.unsup_channel_details_frame(self, "unsupervised")
+        channel_frame = self.unsup_channel_details_frame(self)
         channel_frame.grid(column = 0, row = 0, padx = 3, pady = 3, rowspan = 4)
 
-        sigma_label = ctk.CTkLabel(master = self, text = f"Sigma = {self.dictionary['sigma']}")
+        sigma_label = ctk.CTkLabel(master = self, text = f"Sigma = {self.dictionary['sigmas']}")
         sigma_label.grid(column = 0, row = 5, padx = 3, pady = 3)
 
         toplabel1 = ctk.CTkLabel(master = self, text = "Training Parameters:")
@@ -1535,33 +1521,33 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         seed_label = ctk.CTkLabel(master = self, text = f"Seed = {self.dictionary['seed']}")
         seed_label.grid(column = 1, row = 1, padx = 3, pady = 3)
 
-        n_clusters_label = ctk.CTkLabel(master = self, text = f"Number of clusters = {self.dictionary['number_of_classes']}")
+        n_clusters_label = ctk.CTkLabel(master = self, text = f"Number of clusters = {len(self.dictionary['channels'])}")
         n_clusters_label.grid(column = 1, row = 2, padx = 3, pady = 3)
 
-        dims_label = ctk.CTkLabel(master = self, text = f"XYdimensions = {self.dictionary['Xdim']}")
+        dims_label = ctk.CTkLabel(master = self, text = f"XYdimensions = {self.dictionary['XYdim']}")
         dims_label.grid(column = 1, row = 3, padx = 3, pady = 3)
 
-        training_size = ctk.CTkLabel(master = self, text = f"Training set size = {self.dictionary['size']}")
+        training_size = ctk.CTkLabel(master = self, text = f"Training set size = {self.dictionary['channels']}")
         training_size.grid(column = 1, row = 4, padx = 3, pady = 3)
 
-        source_directory = ctk.CTkLabel(master = self, text = f"Source Directory for Images = {self.dictionary['img_directory']}")
+        source_directory = ctk.CTkLabel(master = self, text = f"Source Directory for Images = n {self.dictionary['image_folder']}")
         source_directory.grid(column = 0, row = 6, padx = 3, pady = 3, columnspan = 2)
 
     class unsup_channel_details_frame(ctk.CTkScrollableFrame):
-        def __init__(self, master, classifier_type):
+        def __init__(self, master):
             super().__init__(master)
             self.master = master
-            if classifier_type == "unsupervised":
-                keep_panel = self.master.channel_df[self.master.channel_df['keep'] == 1]
+            keep_panel = self.master.dictionary['channels']
+            names = self.master.dictionary['channel_names']
 
-                toplabel = ctk.CTkLabel(master = self, text = "Channels used in the Clustering:")
-                toplabel.grid(padx = 5, pady = 5)
-                for i in keep_panel['antigen']:
-                    button = self.varButton(master = self, text = i, command_variable = i)
-                    button.grid(padx = 3, pady = 3)
+            toplabel = ctk.CTkLabel(master = self, text = "Channels used in the Clustering:")
+            toplabel.grid(padx = 5, pady = 5)
+            for i in keep_panel['antigen']:
+                button = self.varButton(master = self, text = names[i], command_variable = i)
+                button.grid(padx = 3, pady = 3)
 
-                bottomlabel = ctk.CTkLabel(master = self, text = "Click above to display features \n generated per channel")
-                bottomlabel.grid(padx = 5, pady = 5)
+            bottomlabel = ctk.CTkLabel(master = self, text = "Click above to display features \n generated per channel")
+            bottomlabel.grid(padx = 5, pady = 5)
 
         class varButton(ctk.CTkButton):
             def __init__(self, master, text: str, command_variable: str):
@@ -1569,24 +1555,13 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 self.configure(command = lambda: self.show_features(command_variable))
                 
             def show_features(self, variable) -> None:
-                antigen_slice = self.master.master.channel_df[self.master.master.channel_df['keep'] == 1]
-                antigen_slice.index = antigen_slice['antigen']
-                antigen_slice = antigen_slice.drop(["keep", "antigen"], axis = 1)
-
+                antigen_slice = self.master.master.dictionary['channels'][variable]
                 features_window = ctk.CTkToplevel()
                 toplabel = ctk.CTkLabel(master = features_window, text = "Features for this channel:")
                 toplabel.grid(padx = 3, pady = 3)
-                
-                antigen_slice = antigen_slice.loc[variable]
-                if antigen_slice.sum() == 0:
-                    nolabel = ctk.CTkLabel(master = features_window, text = "No additional features! (only gaussian blur of channel)")
-                    nolabel.grid(padx = 3, pady = 3)
-                else:
-                    features_list = [i for i in antigen_slice.index if (i != "keep") and (i != "antigen") and (antigen_slice[i] != 0)]
-                    
-                    for i in features_list:
-                        label = ctk.CTkLabel(master = features_window, text = i)
-                        label.grid(padx = 3, pady = 3)
+                for i in antigen_slice:
+                    label = ctk.CTkLabel(master = features_window, text = i)
+                    label.grid(padx = 3, pady = 3)
                 features_window.after(200, features_window.focus())
 
 
@@ -1660,10 +1635,10 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             entry1 = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = dictionary_key))
             entry1.configure(state = "disabled")
             entry1.grid(column = 0, row = counter, pady = 3)
-            if self.dictionary["img_directory"] != "":
+            if self.dictionary["image_folder"] != "":
                 try:
-                    image_list = [i for i in sorted(os.listdir(self.dictionary["img_directory"])) if i.lower().find(".tif") != -1]
-                    example_img = tf.imread(self.dictionary["img_directory"] + "/" + image_list[0])
+                    image_list = [i for i in sorted(os.listdir(self.dictionary["image_folder"])) if i.lower().find(".tif") != -1]
+                    example_img = tf.imread(self.dictionary["image_folder"] + "/" + image_list[0])
                     channel_num = len(example_img) - 1
                 except FileNotFoundError:
                     entry2 = ctk.CTkEntry(master = self, 
@@ -1788,7 +1763,7 @@ class quick_option_dir_disp(DirectoryDisplay):
                         loaded_json = open_json.read()
                         loaded_json = json.loads(loaded_json) 
                         open_json.close()
-                        img_directory = loaded_json['img_directory']
+                        img_directory = loaded_json['image_folder']
                         image = tf.imread(img_directory + "/" + value)
                     except Exception:
                         try:

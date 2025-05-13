@@ -353,6 +353,7 @@ class UnsupervisedClassifier:
         write_dictionary = {}
         write_dictionary['image_folder'] = image_folder
         write_dictionary['channels'] = channel_dictionary
+        write_dictionary['channel_names'] = self.channel_names
         write_dictionary['sigmas'] = sigmas
         write_dictionary['pixel_number'] = pixel_number
         write_dictionary['quantile'] = quantile
@@ -445,7 +446,7 @@ class UnsupervisedClassifier:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
                 shape_image_features = self.scaled_features(image_features, quantile)
-                prediction = self.model.predict(shape_image_features.T).T
+                prediction = self.model.predict(shape_image_features.T).T + 1
                 prediction = np.reshape(prediction, [image_features.shape[1], image_features.shape[2]])
                 if smoothing > 0:
                     prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
@@ -455,7 +456,7 @@ class UnsupervisedClassifier:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
                 shape_image_features = self.scaled_features(image_features, quantile)
-                prediction = self.model.predict(shape_image_features.T).T
+                prediction = self.model.predict(shape_image_features.T).T + 1
                 prediction = np.reshape(prediction, [image_features.shape[1], image_features.shape[2]])
                 if smoothing > 0:
                     prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
@@ -465,7 +466,7 @@ class UnsupervisedClassifier:
             img = tf.imread(f'{image_folder}/{filename}').astype('float32')
             image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
             shape_image_features = self.scaled_features(image_features, quantile)
-            prediction = self.model.predict(shape_image_features.T).T
+            prediction = self.model.predict(shape_image_features.T).T + 1
             prediction = np.reshape(prediction, [image_features.shape[1], image_features.shape[2]])
             if smoothing > 0:
                 prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
@@ -479,9 +480,9 @@ class UnsupervisedClassifier:
         array = np.reshape(array, new_shape)
         ## Here I do a more simplistic quantile scaling -- I only scale by the sampled pixels
         array = (array - array.min(axis = 0)) / (np.quantile(array, quantile, axis = 0) - array.min(axis = 0))
+        array[np.isnan(array)] = 0
         array[array > 1] = 1
-        array = (array.T - array.min(axis = 1)) / (array.max(axis = 1) - array.min(axis = 1))
-        return array.T
+        return array
 
 def plot_pixel_heatmap(pixel_folder: Union[str, Path],
                        image_folder: Union[str, Path], 
