@@ -299,13 +299,13 @@ class Pixel_class_widgets(ctk.CTkFrame):
                     if self.pixel_heatmap.cget("state") == "normal":
                         self.pixel_heatmap.configure(state = "disabled")
                 if self.master.classifier_type == "unsupervised":
-                    if self.save_current_classifier_to_assets.cget("state") == "normal":
-                        self.save_current_classifier_to_assets.configure(state = "disabled")
+                    if self.save_current_classifier_to_assets.cget("state") == "disabled":
+                        self.save_current_classifier_to_assets.configure(state = "normal")
                     if self.pixel_heatmap.cget("state") == "disabled":
                         self.pixel_heatmap.configure(state = "normal")
 
             self.save_current_classifier_to_assets = ctk.CTkButton(master = self, 
-                                                        text = "Save current classifier \n to PalmettoBUG Assets \n (Supervised Classifiers only)", 
+                                                        text = "Save current classifier \n to PalmettoBUG Assets", 
                                                         command = self.master.save_classifier,
                                                         state = "disabled")
             self.save_current_classifier_to_assets.grid(row = 4, column = 0, columnspan = 2, padx = 5, pady = 5)
@@ -1320,6 +1320,9 @@ class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         label =  ctk.CTkLabel(master = self, text = "Select a Classifier to load:")
         label.grid(row = 0, column = 0, columnspan = 2, padx = 3, pady = 3)
+
+        if not os.path.exists(PALMETTO_BUG_assets_classifier_folder):
+            os.mkdir(PALMETTO_BUG_assets_classifier_folder)
 
         def refresh8():
             self.optionlist = sorted(os.listdir(PALMETTO_BUG_assets_classifier_folder))
