@@ -494,15 +494,13 @@ def _find_region_probabilities(mask: np.ndarray[float],
     '''
     mask = mask.copy()
     classifier_map = classifier_map.copy()
-    print(number_of_classes)
     if number_of_classes is None:
         number_of_classes = np.max(classifier_map)    ### this depends on the assumption that the image contains the maximum class....
+    
     if number_of_classes < np.max(classifier_map):
         number_of_classes = np.max(classifier_map)       ## for supervised classifiers (where background is an extra class)
-    print(number_of_classes)
     regionprops = skimage.measure.regionprops(mask)
     output_array = np.zeros([len(regionprops),number_of_classes])   ## for every mask region, list a probability for each class
-    print(output_array.shape)
     
     for ii,i in enumerate(regionprops):
         box = i.bbox
@@ -590,7 +588,6 @@ def secondary_flowsom(mask_folder: Union[Path, str],
         print("warning! the files in the masks and classifier maps folders do not all match! \n" 
               f"The files that are present in both folders are the only ones that will be used: \n\n {str(overlapping)}")
 
-    print(number_of_classes)
     if number_of_classes is None:
         for i in classifier_maps:
             classifier_map = tf.imread("".join([classifier_map_folder,"/",i])).astype("int")
@@ -598,12 +595,13 @@ def secondary_flowsom(mask_folder: Union[Path, str],
                 number_of_classes = np.max(classifier_map)    
             if number_of_classes < np.max(classifier_map):
                 number_of_classes = np.max(classifier_map) 
-    print(number_of_classes)
 
     counter = 0
     for i in overlapping: 
         mask = tf.imread("".join([mask_folder,"/",i])).astype("int")
         classifier_map = tf.imread("".join([classifier_map_folder,"/",i])).astype("int")
+        print("".join([classifier_map_folder,"/",i]))
+        print(classifier_map)
         mask_probabilities = _find_region_probabilities(mask, classifier_map, number_of_classes = number_of_classes)
         if counter == 0:
             output_array = mask_probabilities.copy()
