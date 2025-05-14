@@ -129,7 +129,7 @@ class SupervisedClassifier:
         if not os.path.exists(f'{directory}/Pixel_Classification'):
             os.mkdir(f'{directory}/Pixel_Classification')
         self.name = name
-        directory = f'{directory}/{name}'
+        directory = f'{directory}/Pixel_Classification/{name}'
         self.directory = directory
         if not os.path.exists(directory):
             os.mkdir(directory)
@@ -211,7 +211,7 @@ class SupervisedClassifier:
                                                                           ## adding this argument this would cause Napari to display 
                                                                           # all channels at once
 
-        labels_path = self.classifier_training_labels + "/" + self._image_name   
+        labels_path = self.training_folder + "/" + self._image_name   
             ### check to see if the user has already made a labels layer for this images --> always reload an existing layer, if available
         if os.path.exists(labels_path):
             self._user_labels = viewer.add_labels(tf.imread(labels_path).astype('int'), name = "layer")
@@ -232,7 +232,7 @@ class SupervisedClassifier:
             print('No training labels available to save!')
             return
         if output_folder is None:
-            output_folder = self.classifier_training_labels
+            output_folder = self.training_folder
         output_folder = str(output_folder)
         new_labels = self._user_labels.data
         tf.imwrite(output_folder + "/" + self._image_name, new_labels.astype('int32'))  

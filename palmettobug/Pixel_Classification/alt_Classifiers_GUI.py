@@ -179,8 +179,8 @@ class Pixel_class_widgets(ctk.CTkFrame):
         if not overwrite_approval(self.supervised.directory + "/classification_maps/" + image_name, file_or_folder = "file"):
             return False
         image = tf.imread(image_folder_name + "/"  + image_name).T
-        self.supervised.predict(image, image_name)
-        merge_folder(self.supervised.output_directory,
+        self.supervised.predict(image, filenames = image_name)
+        merge_folder(self.supervised.output_folder,
                      pd.read_csv(self.supervised.directory + "/biological_labels.csv"),
                     self.supervised.directory + "/merged_classification_maps")
         pixel_logger.info(f"Predicted classification map for following image: {image_folder_name + '/'  + image_name}")
@@ -195,7 +195,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
                                   "and the associated /merged_classification_maps folder?"):
             return False
         self.supervised.predict(image_folder_name)
-        merge_folder(self.supervised.output_directory, 
+        merge_folder(self.supervised.output_folder, 
                      pd.read_csv(self.supervised.directory + "/biological_labels.csv"),
                     self.supervised.directory + "/merged_classification_maps")
         pixel_logger.info(f"Predicted classification map for following image folder: {image_folder_name}")
@@ -422,7 +422,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
                 tk.messagebox.showwarning("Napari Warning!", 
                     message = "Labels have been generated and not exported! \n Napari will not launch unless you export or discard those labels!")
                 return
-            self.master.supervised.launch_Napari_px(image_path, display_all_channels = display_all_channels)
+            self.master.supervised.launch_Napari(image_path, display_all_channels = display_all_channels)
             self.labels_done = True
             self.button2.configure(state = "normal")
             self.button3.configure(state = "normal")
@@ -720,7 +720,7 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if not overwrite_approval(self.master.classifier_dir + "/" + classifier_name, file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
             return
         self.master.name = classifier_name
-        self.master.supervised = SupervisedClassifier(self.master.classifier_dir + "/" + classifier_name)
+        self.master.supervised = SupervisedClassifier(self.master.main_directory, classifier_name)
         supervised_window(master)
         self.master.name_holder.set(self.master.name)
         self.master.classifier_type = "supervised"
@@ -1145,7 +1145,7 @@ class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master.image_source_dir = img_directory
         sigma = float(self.sigma_choice.get())
 
-        class_dictionary = self.class_dict_maker.make_dict()
+        class_dictionary = self.classes_selection.make_dict()
 
         self.master.supervised.set_channel_names(class_dictionary)
 
@@ -1163,7 +1163,6 @@ class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         pixel_logger.info(f"Initialized Supervised Classifier {self.master.name} with the following training dictionary: \n" 
                            f"{str(self.master.supervised.model_info)}")
 
-        warning_window("Training Finished!")
         self.after(200, self.withdraw())
 
     class keep_channel_table(ctk.CTkScrollableFrame):
