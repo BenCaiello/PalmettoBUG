@@ -121,6 +121,8 @@ class Pixel_class_widgets(ctk.CTkFrame):
     
         ## this code is just a reverse of the load option:
         new_dir = PALMETTO_BUG_assets_classifier_folder + f"/{self.name}"
+        if not os.path.exists(PALMETTO_BUG_assets_classifier_folder):
+            os.mkdir(PALMETTO_BUG_assets_classifier_folder)
         assets_path = new_dir + f"/{self.name}_model.pkl"
         details_path = new_dir + f"/{self.name}_info.json"
         destination = self.classifier_dir + f"/{self.name}/"
@@ -292,16 +294,12 @@ class Pixel_class_widgets(ctk.CTkFrame):
             self.make_class_biology_table.grid(row = 6, column = 1, padx = 5, pady = 5)
 
             def refresh_exclusive_buttons(enter = ""):
-                if self.master.classifier_type == "supervised":
-                    if self.save_current_classifier_to_assets.cget("state") == "disabled":
-                        self.save_current_classifier_to_assets.configure(state = "normal")
-                    if self.pixel_heatmap.cget("state") == "normal":
-                        self.pixel_heatmap.configure(state = "disabled")
-                if self.master.classifier_type == "unsupervised":
-                    if self.save_current_classifier_to_assets.cget("state") == "disabled":
-                        self.save_current_classifier_to_assets.configure(state = "normal")
-                    if self.pixel_heatmap.cget("state") == "disabled":
-                        self.pixel_heatmap.configure(state = "normal")
+                ''''''
+                if self.save_current_classifier_to_assets.cget("state") == "disabled":
+                    self.save_current_classifier_to_assets.configure(state = "normal")
+                if self.pixel_heatmap.cget("state") == "disabled":
+                    self.pixel_heatmap.configure(state = "normal")
+
 
             self.save_current_classifier_to_assets = ctk.CTkButton(master = self, 
                                                         text = "Save current classifier \n to PalmettoBUG Assets", 
@@ -586,7 +584,7 @@ class bio_label_launch_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             loaded_json = open_json.read()
             loaded_json = json.loads(loaded_json) 
             open_json.close()
-            if len(self.current_class_labels) != int(loaded_json['number_of_classes']):
+            if len(self.current_class_labels) != len(loaded_json['classes']):
                 self.current_class_labels = None
         except FileNotFoundError:
             self.current_class_labels = None
@@ -740,7 +738,8 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             loaded_json = open_json.read()
             loaded_json = json.loads(loaded_json) 
             open_json.close()
-            self.supervised = SupervisedClassifier(self.master.main_directory, name, loaded_json['classes'])
+            self.master.supervised = SupervisedClassifier(self.master.main_directory, name, loaded_json['classes'])
+            self.master.supervised.load_classifier()
             self.master.number_of_classes = len(loaded_json["classes"])
 
         else:
@@ -854,9 +853,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label2 = ctk.CTkLabel(master = self, text = "Choose Sigma levels:")
         label2.grid(row = 5, column = 0 , padx = 3, pady = 3)
 
-        self.sigma_choice = ctk.CTkOptionMenu(master = self, 
-                                              values = ["0.5","0.75","1.0","2.0","4.0"], 
-                                              variable= ctk.StringVar(value = "1.0")) 
+        self.sigma_choice = self.Sigma_frame(self)
         self.sigma_choice.grid(row = 6, column = 0, padx = 3, pady = 3)
 
         label3 = ctk.CTkLabel(master = self, text = "Final Number of (meta)clusters to Classify on:")
@@ -955,7 +952,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
 
         self.master.image_source_dir = img_directory
-        sigma = float(self.sigma_choice.get())
+        sigma = self.sigma_choice.retrieve()
         smoothing = int(self.smoothing_choice.get())
 
         self.master.unsupervised.set_channel_names(self.channel_names)
@@ -1027,6 +1024,27 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             else:
                 self.master.additional_features = False
             return self.dataframe
+
+    class Sigma_frame(ctk.CTkFrame):
+        def __init__(self, master):
+            super().__init__(master)
+            self.master = master
+            self.sigma_options_list = [0.5, 1.0, 5.0, 10.0]
+            self.checkbox_list = []
+            for i in self.sigma_options_list:
+                checkbox = ctk.CTkCheckBox(master = self, text = i, onvalue = True, offvalue = False)
+                if i != 0.5:
+                    checkbox.select()
+                checkbox.grid(padx = 5, pady = 5)
+                self.checkbox_list.append(checkbox)
+
+        def retrieve(self) -> list[float]:
+            retrieve_list = []
+            for i in self.checkbox_list:
+                retrieve_list.append(i.get())
+            dataframe = pd.DataFrame(self.sigma_options_list, columns = ["sigmas"])
+            dataframe = dataframe[retrieve_list]
+            return list(dataframe['sigmas'])
 
 class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1339,8 +1357,6 @@ class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         self.master.name = name
         self.master.name_holder.set(self.master.name)
-        self.master.supervised._setup_classifier_directory(classifier_name = ("/" + name))
-
         assets_path = PALMETTO_BUG_assets_classifier_folder + f"/{classifier_load_name}/{classifier_load_name}_model.pkl"
         details_path = PALMETTO_BUG_assets_classifier_folder + f"/{classifier_load_name}/{classifier_load_name}_info.json"
         destination = self.master.classifier_dir + f"/{name}/{name}"
@@ -1348,7 +1364,7 @@ class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         shutil.copyfile(assets_path, (destination + ".pkl"))
         shutil.copyfile(details_path, (destination + "_info.json"))
         
-        self.master.supervised.load_saved_classifier(self.master.classifier_dir + f"/{name}/{name}_model.pkl" ) 
+        self.master.supervised = SupervisedClassifier(self.master.main_directory, name)
         self.master.classifier_type = "supervised"
 
         open_json = open(details_path, 'r' , encoding="utf-8")
@@ -1466,6 +1482,7 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.internals_dict = self.master.master.classifier_dir + f"/{self.master.master.name}/{self.master.master.name}_info.json"
             open_json = open(self.internals_dict , 'r' , encoding="utf-8")
             loaded_json = open_json.read()
+            loaded_json = json.load(loaded_json)
             open_json.close()
             epsilon = loaded_json['learning_rate']
             # iterations = loaded_json['']
@@ -1584,21 +1601,21 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             button_save_changes.grid(column = 2, row = 3)
 
             self.row_list = []
-            for i in dictionary["channels"]:
+            for i in dictionary["channel_names"]:
                 self.add_row(i)
 
         def save_changes(self) -> None:
             channel_dict = {}
             for i in self.row_list:
-                antigen = i[0].get()
-                number = i[1].get()
+                antigen = i[1].get()
+                number = i[0].get()
                 try:
                     number = int(number)
                 except ValueError:
                     tk.messagebox.showwarning("Warning!",
                             message = f"{str(number)} can not be interpreted as an integer! Change and save again.")
                 channel_dict[antigen] = number
-            self.dictionary["channels"] = channel_dict
+            self.dictionary["channel_names"] = channel_dict
             grand_master = self.master.master
             with open(grand_master.classifier_dir + f"/{grand_master.name}/{grand_master.name}_info.json", 
                       'w', 
@@ -1606,7 +1623,7 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 json.dump(self.dictionary, write_json, indent = 4) 
 
             ## now reload the classifier
-            grand_master.supervised.load_saved_classifier(grand_master.classifier_dir + f"/{grand_master.name}/{grand_master.name}_model.pkl" ) 
+            grand_master.supervised.load_classifier()
             pixel_logger.info(f"Supervised Classifier {grand_master.name} channel dictionary: \n {str(self.dictionary)}")
             self.after(200, self.master.destroy())
 

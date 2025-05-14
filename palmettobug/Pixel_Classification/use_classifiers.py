@@ -142,7 +142,7 @@ def merge_folder(folder_to_merge: Union[Path, str],
             writes a new .tiff file into output_folder for every file in folder_to_merge (preserving the same filenames)
     '''
     folder_to_merge = str(folder_to_merge)
-    if 1 in merging_table['merging']:
+    if 1 in list(merging_table['merging']):
         print('Warning! One of your merging classes == 1. This can create errors when running mode-based cell classification,' 
               'and 1 is preferably reserved as a merging number.')
     if output_folder is None:
