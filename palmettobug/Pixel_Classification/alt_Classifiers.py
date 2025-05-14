@@ -124,7 +124,7 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
     return final_array, channels
 
 class SupervisedClassifier:
-    def __init__(self, directory, name, classes_dictionary: dict):
+    def __init__(self, directory, name):
         ''''''
         if not os.path.exists(f'{directory}/Pixel_Classification'):
             os.mkdir(f'{directory}/Pixel_Classification')
@@ -146,7 +146,7 @@ class SupervisedClassifier:
         self.model_path = f"{directory}/{name}_model.pkl"
         self.model_info = {}
         self.model_info_path = f"{directory}/{name}_info.json"
-        self.classes = classes_dictionary
+        self.classes = {}
         self.channel_names = {}
         self._channels = {}
         self._image_name = None
@@ -156,17 +156,24 @@ class SupervisedClassifier:
         ''' This is intended for setting a dictionary corresponding {channel integer numbers : channel antigen names}'''
         self.channel_names = channel_names_dict
 
+    def set_target_classes(self, classes_dict):
+        '''for setting a dictionary corrseponding to the names of the target classes { class# : class name }'''
+        self.classes = classes_dict
+
     def write_classifier(self, image_folder, 
-                           channel_dictionary = {}, 
+                           channel_dictionary = {},
                            sigmas = [1.0, 5.0, 10.0],
+                           quantile = 0.999,
                            hidden_layers = [100],
                            learning_rate = 0.001):
         '''Point of this method is to set up the .json that will store the information relevant to the classifier'''
         write_dictionary = {}
         write_dictionary['image_folder'] = image_folder
         write_dictionary['channels'] = channel_dictionary
+        write_dictionary['channel_names'] = self.channel_names
         write_dictionary['classes'] = self.classes
         write_dictionary['sigmas'] = sigmas
+        self.model_info['quantile'] = quantile
         write_dictionary['hidden_layers'] = hidden_layers
         write_dictionary['learning_rate'] = learning_rate
         self.model_info = write_dictionary
@@ -239,6 +246,7 @@ class SupervisedClassifier:
                     channel_dictionary = {}, 
                     feature_list = ['gaussian'],         ## only used if channel_dictionary == {}
                     sigmas = [1.0, 5.0, 10.0],
+                    quantile = 0.999,
                     hidden_layers = [100],
                     learning_rate = 0.001,
                     from_save = False,
@@ -250,8 +258,13 @@ class SupervisedClassifier:
             image_folder = self.model_info['image_folder'] = image_folder
             channel_dictionary = self.model_info['channels']
             sigmas = self.model_info['sigmas']
+            quantile = self.model_info['quantile'] 
             hidden_layers = self.model_info['hidden_layers'] 
             learning_rate = self.model_info['learning_rate'] 
+            #try:                         #### if training from save -- try to reload existing model or always re-train (as in the current implementation)?
+            #    self.model = joblib.load(self.model_path)
+            #except Exception:
+            #    pass
         training_images = [i for i in sorted(os.listdir(training_folder)) if i.lower().rfind('.tif') != -1]
         all_images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind('.tif') != -1]
         images = [i for i in training_images if i in all_images]
@@ -264,6 +277,7 @@ class SupervisedClassifier:
             img = tf.imread(f'{image_folder}/{i}').astype('float32')
             trn_img = tf.imread(f'{training_folder}/{i}').astype('int32')
             image_features, self._channels = calculate_features(img, channels = channel_dictionary, feature_list = ['gaussian'], sigmas = sigmas)
+            image_features = self.scaled_features(image_features, quantile)
             if all_pixels is None:
                 all_pixels = np.zeros([image_features.shape[0],1])
                 all_labels = np.zeros([1])
@@ -274,7 +288,7 @@ class SupervisedClassifier:
         self.model = MLP(hidden_layer_sizes = hidden_layers, learning_rate_init = learning_rate, early_stopping = True)
         self.model.fit(all_pixels.T, all_labels)  
         if not from_save:  ## no need to rewrite if from saved model
-            self.write_classifier(image_folder, self._channels)
+            self.write_classifier(image_folder, self._channels, quantile = quantile)
         if auto_predict:
             self.predict(image_folder, output_folder = self.output_folder, filenames = None)
 
@@ -284,11 +298,13 @@ class SupervisedClassifier:
             output_folder = self.output_folder
         channel_dictionary = self.model_info['channels']
         sigmas = self.model_info['sigmas']
+        quantile = self.model_info['quantile']
         if filenames is None:
             images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind(".tif") != -1]
             for filename in images:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
+                image_features = self.scaled_features(image_features, quantile)
                 image_features = np.reshape(image_features, [image_features.shape[0], image_features.shape[1]*image_features.shape[2]])
                 prediction = self.model.predict(image_features.T)
                 prediction = np.reshape(prediction, [img.shape[1], img.shape[2]])
@@ -297,6 +313,7 @@ class SupervisedClassifier:
             for filename in filenames:
                 img = tf.imread(f'{image_folder}/{filename}').astype('float32')
                 image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
+                image_features = self.scaled_features(image_features, quantile)
                 image_features = np.reshape(image_features, [image_features.shape[0], image_features.shape[1]*image_features.shape[2]])
                 prediction = self.model.predict(image_features.T)
                 prediction = np.reshape(prediction, [img.shape[1], img.shape[2]])
@@ -305,12 +322,23 @@ class SupervisedClassifier:
             filename = filenames
             img = tf.imread(f'{image_folder}/{filename}').astype('float32')
             image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
+            image_features = self.scaled_features(image_features, quantile)
             image_features = np.reshape(image_features, [image_features.shape[0], image_features.shape[1]*image_features.shape[2]])
             prediction = self.model.predict(image_features.T)
             prediction = np.reshape(prediction, [img.shape[1], img.shape[2]])
             tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
         else:
             raise(ValueError, "Filenames parameter must be a str, list, or None")
+
+    def scaled_features(self, array, quantile):
+        '''Quantile scales within channels, then min-max channels across channels'''
+        new_shape = (array.shape[0], array.shape[1]*array.shape[2])    ## reshape to remove X,Y dimensions but preserve channels
+        array = np.reshape(array, new_shape)
+        ## Here I do a more simplistic quantile scaling -- I only scale by the sampled pixels
+        array = (array - array.min(axis = 0)) / (np.quantile(array, quantile, axis = 0) - array.min(axis = 0))
+        array[np.isnan(array)] = 0
+        array[array > 1] = 1
+        return array
         
 class UnsupervisedClassifier:
     def __init__(self, directory, name):

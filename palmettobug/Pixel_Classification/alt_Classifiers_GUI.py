@@ -142,7 +142,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         if len(images) == 0:
             tk.messagebox.showwarning("Warning!", message = "The are no saved label images in the training folder of the classifier!")
             return
-        self.supervised.train(image_folder = image_folder)    
+        self.supervised.train(image_folder = image_folder, from_save = True)    
         pixel_logger.info(f"Trained supervised classifier {self.name} on image folder = {image_folder}")
         warning_window("Training Finished!")
 
@@ -719,8 +719,9 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         ''''''
         if not overwrite_approval(self.master.classifier_dir + "/" + classifier_name, file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
             return
-        Classifier_deets_window(master)
         self.master.name = classifier_name
+        self.master.supervised = SupervisedClassifier(self.master.classifier_dir + "/" + classifier_name)
+        supervised_window(master)
         self.master.name_holder.set(self.master.name)
         self.master.classifier_type = "supervised"
         self.master.Napari_frame.activate_buttons()
@@ -856,7 +857,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.sigma_choice = ctk.CTkOptionMenu(master = self, 
                                               values = ["0.5","0.75","1.0","2.0","4.0"], 
-                                              variable= ctk.StringVar(value = "0.75")) 
+                                              variable= ctk.StringVar(value = "1.0")) 
         self.sigma_choice.grid(row = 6, column = 0, padx = 3, pady = 3)
 
         label3 = ctk.CTkLabel(master = self, text = "Final Number of (meta)clusters to Classify on:")
@@ -974,7 +975,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master.number_of_classes = n_clusters
 
         pixel_logger.info(f"Trained Unsupervised Classifier {self.master.name} with the following training dictionary: \n" 
-                           f"{str(self.channel_dictionary)}")
+                           f"{str(self.master.unsupervised.model_info)}")
 
         warning_window("Training Finished!")
         self.after(200, self.withdraw())
@@ -1028,85 +1029,193 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 self.master.additional_features = False
             return self.dataframe
 
-class Classifier_deets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
+class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
-        super().__init__(master)
+        super().__init__()
         self.master = master
-        self.configure(height = 500, width = 700)
+        self.title("Select Options for Unsupervised FlowSOM-based Pixel Classifier")
+        self.additional_features = False
+        self.panel = pd.read_csv(self.master.main_directory + "/panel.csv").drop(["channel", "segmentation"], axis = 1)
+        self.panel = self.panel[self.panel['keep'] == 1]
+
         self.iterations = 1000   ## These are the advanced options
         self.learning_rate = 0.01
         self.internals = []
 
-        ## bank of options (especially the "advanced options" that default to the following values, but maybe can be changed by the user)
-        self.dictionary = {}
-        self.class_dictioary = {}
+        label = ctk.CTkLabel(master = self, 
+                             text= "Select what Channel to use for the clustering and what additional features to create: \n"
+                            "features   = gaussian | hessian | frangi | butterworth")
+        label.grid(row = 0, column = 0, pady = 3, padx = 5)
 
-        grand_label = ctk.CTkLabel(master = self, text = "Select Classifier Details:")
-        grand_label.grid(padx = 3, pady = 3)
+        self.keep_table = self.keep_channel_table(self)
+        self.keep_table.grid(row = 2 , column = 0, columnspan = 2, padx = 3, pady = 3)
 
-        label_sigma = ctk.CTkLabel(master = self, text = "Select Sigma(s):")
-        label_sigma.grid(padx = 3, pady = 3)
+        self.classes_selection = self.class_dict_maker_semi_auto(self)
+        self.classes_selection.grid(row = 2 , column = 2, padx = 3, pady = 3)
 
-        self.sigma_list = self.Sigma_frame(self)
-        self.sigma_list.grid(padx = 5, pady = 5)
+        label = ctk.CTkLabel(master = self, text = "Choose Folder of Images to Train from:")
+        label.grid(row = 3, column = 0 , padx = 3, pady = 3)
 
-        label_features = ctk.CTkLabel(master = self, text = "Choose features to use:")
-        label_features.grid(row = 1, column = 2, padx = 5, pady = 5)  
+        def refresh7():
+            self.img_choices = [i for i in os.listdir(self.master.image_directory) if i.find(".") == -1]
+            self.image_choice.configure(values = self. img_choices)
 
-        self.features_list = self.Feature_frame(self)
-        self.features_list.grid(row = 2, column = 2, padx = 5, pady = 5)  
+        self.img_choices = [i for i in os.listdir(self.master.image_directory) if i.find(".") == -1]
+        self.image_choice = ctk.CTkOptionMenu(master = self, values = self.img_choices, variable = ctk.StringVar(value= "")) 
+        self.image_choice.grid(row = 4, column = 0, padx = 3, pady = 3)
+        self.image_choice.bind("<Enter>", lambda enter:  refresh7())
 
-        self.dictionary_maker = self.channel_dict_maker_auto(self)
-        self.dictionary_maker.grid(row = 2, column = 3, padx = 5, pady = 5)
+        label2 = ctk.CTkLabel(master = self, text = "Choose Sigma levels:")
+        label2.grid(row = 5, column = 0 , padx = 3, pady = 3)
 
-        self.class_dict_maker = self.class_dict_maker_semi_auto(self)
-        self.class_dict_maker.grid(row = 2, column = 4, padx = 5, pady = 5)
+        self.sigma_choice = ctk.CTkOptionMenu(master = self, 
+                                              values = ["0.5","0.75","1.0","2.0","4.0"], 
+                                              variable= ctk.StringVar(value = "1.0")) 
+        self.sigma_choice.grid(row = 6, column = 0, padx = 3, pady = 3)
 
-        test_button = ctk.CTkButton(master = self, text = "Launch Advanced Options", command = self.advanced_options)
-        test_button.grid(row = 4, column = 0, padx = 5, pady = 5)
+        label3 = ctk.CTkLabel(master = self, text = "Hidden Layers:")
+        label3.grid(row = 7, column = 0 , padx = 3, pady = 3)
 
-        save_details = ctk.CTkButton(master = self, text = "save classifier details", command = self.set_up_classifier_details)
-        save_details.grid(row = 4, column = 4, padx = 5, pady = 5)
+        self.hidden_layers = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "100"))
+        self.hidden_layers.grid(row = 8, column = 0, padx = 3, pady = 3)
+
+        label4 = ctk.CTkLabel(master = self, text = "Quantile (as a decimal < 1):")
+        label4.grid(row = 11, column = 0, padx = 3, pady = 3)
+
+        self.quantile  = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "0.999"))
+        self.quantile.grid(row = 12, column = 0, padx = 3, pady = 3) 
+
+        label6 = ctk.CTkLabel(master = self, text = "Learning Rate:")
+        label6.grid(row = 7, column = 1, padx = 3, pady = 3)
+
+        self.LR = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "0.001"))
+        self.LR.grid(row = 8, column = 1, padx = 3, pady = 3)
+
+        button_train = ctk.CTkButton(master = self, text = "Run Training!", command = self.run_training)
+        button_train.grid(row = 11, column = 1, padx = 3, pady = 3)
 
         self.after(200, lambda: self.focus())
 
-    def advanced_options(self) -> None:
-        self.advanced_options_window(self)
-
-    def set_up_classifier_details(self) -> None:
+    def run_training(self) -> None:
         ''''''
-        self.class_dictionary = self.class_dict_maker.make_dict()
-        df = pd.DataFrame()
-        df["class"] = [i for i in self.class_dictionary if self.class_dictionary[i] != ""]
-        df["labels"] = [self.class_dictionary[i] for i in self.class_dictionary if self.class_dictionary[i] != ""]
-        sigma_list = self.sigma_list.retrieve()
-        features_list = self.features_list.retrieve()
-        self.dictionary = self.dictionary_maker.make_dict()
-        if (len(sigma_list) == 0) or (len(features_list) == 0) or (len(df) == 1) or (len(self.dictionary) == 0):
-            tk.messagebox.showwarning("Warning!", message = "You must select at least one sigma, feature, channel, and class (besides background)")
+        img_directory = self.master.image_directory + "/" + self.image_choice.get()
+        if self.image_choice.get() == "":
+            tk.messagebox.showwarning("Warning!", 
+                        message = "You must select a folder of images to train from!")
             self.focus()
             return
-        unique_names = df["labels"].unique()
-        unique_dict = {ii:(i + 2) for i,ii in enumerate(unique_names)}
-        unique_dict['background'] = 0
-        df['merging'] = df['labels'].replace(unique_dict)
-        df.to_csv(self.master.classifier_dir + f"/{self.master.name}/biological_labels.csv", index = False) 
-        self.master.SupervisedClassifier.train((self.master.name + "_model.pkl"), 
-                                                    sigma_list, 
-                                                    feature_list = features_list, 
-                                                    channel_dictionary = self.dictionary, 
-                                                    internal_architecture = self.internals, 
-                                                    learning_rate = self.learning_rate, 
-                                                    iterations = self.iterations)
-        pixel_logger.info(f"Setting up Supervised Classifier {self.master.name} with the following parameters: \n"
-                          f"sigma_list = {str(sigma_list)}, \n"
-                          f"features_list = {str(features_list)}, \n"
-                          f"channel_dictionary = {str(self.dictionary)}, \n"
-                          f"classes_dictionary = {str(self.class_dictionary)}, \n"
-                          f"internal_architecture = {str(self.internals)}, \n"
-                          f"learning_rate = {str(self.learning_rate)}, \n"
-                          f"iterations = {str(self.iterations)}")
-        self.destroy()
+        try:
+            quantile = float(self.quantile.get())
+            learning_rate = float(self.LR.get())
+            hidden_layers = self.hidden_layers.get()
+            hidden_layers = hidden_layers.replace(" ","").split()
+            hidden_layers = [int(i) for i in hidden_layers]
+        except ValueError:
+            tk.messagebox.showwarning("Improper inputs!", 
+                        message = "Quantile & Learning Rate Parameters must be numerical & the hidden layers must be specified as a comma-separate sequence of integers!")
+            self.focus()
+            return
+    
+        if (quantile > 1) or (quantile < 0):
+            tk.messagebox.showwarning("Improper inputs!", 
+                        message = "Quantile parameter must be between 0 and 1")
+            self.focus()
+            return
+        
+        self.channel_panel = self.keep_table.retrieve()        
+        self.channel_panel.to_csv(self.master.classifier_dir + f"/{self.master.name}/flowsom_panel.csv", index = False)
+        self.channel_dictionary = {}
+        self.channel_names = {}
+        kept = self.channel_panel
+        kept_channels = kept.index
+        for i in kept_channels:
+            features = ['gaussian','hessian','frangi','butterworth']
+            applied_features = kept.loc[i,['gaussian','hessian','frangi','butterworth']]
+            add_features = [q for q,qq in zip(features,applied_features) if int(qq) == 1]
+            if len(add_features) != 0:
+                self.channel_names[str(i)] = self.channel_panel.loc[i, 'antigen']
+                self.channel_dictionary[str(i)] = [q for q,qq in zip(features,applied_features) if int(qq) == 1]
+
+        if len(self.channel_dictionary) == 0:
+            tk.messagebox.showwarning("No Channels selected", 
+                        message = "You must select at least one channel to use!")
+            self.focus()
+            return
+
+        self.master.image_source_dir = img_directory
+        sigma = float(self.sigma_choice.get())
+
+        class_dictionary = self.class_dict_maker.make_dict()
+
+        self.master.supervised.set_channel_names(class_dictionary)
+
+        self.master.supervised.set_channel_names(self.channel_names)
+
+        self.master.supervised.write_classifier(image_folder = img_directory,                
+                                    sigmas = [sigma], 
+                                    channel_dictionary = self.channel_dictionary,
+                                    hidden_layers = hidden_layers,
+                                    learning_rate = learning_rate,
+                                    # quantile = quantile
+                                    ) 
+        self.master.number_of_classes = n_clusters
+
+        pixel_logger.info(f"Initialized Supervised Classifier {self.master.name} with the following training dictionary: \n" 
+                           f"{str(self.master.supervised.model_info)}")
+
+        warning_window("Training Finished!")
+        self.after(200, self.withdraw())
+
+    class keep_channel_table(ctk.CTkScrollableFrame):
+        def __init__(self, master):
+            super().__init__(master)
+            self.master = master
+            self.panel = master.panel
+            self.configure(height = 400, width = 1000)
+            features_list = ['gaussian',
+                            'hessian',
+                            'frangi',
+                            'butterworth']
+            self.widget_list_of_lists = []
+            keeplist = []
+            for i, ii in enumerate(self.panel['name']):
+                label = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = ii))
+                label.grid(row = i + 3, column = 0, pady = 5)
+                label.configure(state = "disabled")
+
+                keep = ctk.CTkOptionMenu(master = self, values = ["","Use Channel"], variable = ctk.StringVar(value = ""))
+                #keep.grid(row = i + 3, column = 1, pady = 3, padx = 8)
+
+                widget_list = [label, keep]
+                keeplist.append(keep)
+                for j, jj in enumerate(features_list):
+                    feature = ctk.CTkCheckBox(master = self, text = "", onvalue = 1, offvalue = 0)
+                    feature.grid(row = i + 3, column = j + 2, pady = 5)
+                    feature.configure(width = 68, checkbox_width = 25)
+                    widget_list.append(feature)
+
+                self.widget_list_of_lists.append(widget_list)
+
+        def retrieve(self) -> pd.DataFrame:
+            index = ['antigen',
+                     'keep', 
+                     'gaussian',
+                     'hessian',
+                     'frangi',
+                     'butterworth']
+            self.dataframe = pd.DataFrame(index = index)
+            for i,ii in enumerate(self.widget_list_of_lists):
+                self.dataframe[i] = [k.get() for k in ii]
+            self.dataframe = self.dataframe.transpose()
+            self.dataframe['keep'] = self.dataframe['keep'].replace({"":0, "Use Channel":1}).astype('int')
+            self.dataframe.index = [i for i in range(0,len(self.widget_list_of_lists))]
+            if self.dataframe.drop(["keep","antigen"], axis = 1).sum().sum() != 0:
+                self.master.additional_features = True
+            else:
+                self.master.additional_features = False
+            return self.dataframe
+
+        self.after(200, lambda: self.focus())
 
     class Sigma_frame(ctk.CTkFrame):
         def __init__(self, master):
@@ -1128,79 +1237,6 @@ class Classifier_deets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             dataframe = pd.DataFrame(self.sigma_options_list, columns = ["sigmas"])
             dataframe = dataframe[retrieve_list]
             return list(dataframe['sigmas'])
-
-    class Feature_frame(ctk.CTkFrame):
-        def __init__(self, master):
-            super().__init__(master)
-            self.master = master
-            self.configure(height = 400)
-            self.features_options_list = ["gaussian", "hessian", "frangi", "butterworth"]
-            self.checkbox_list = []
-            for ii,i in enumerate(self.features_options_list):
-                checkbox_label = ctk.CTkLabel(master = self, text = i)
-                checkbox = ctk.CTkCheckBox(master = self, text = "", onvalue = True, offvalue = False)
-                if i =="gaussian":
-                    checkbox.select()
-                row = (ii // 3)*2
-                column = (ii % 3)*2
-                checkbox_label.grid(column = column, row = row, padx = 3, pady = 3)
-                checkbox.grid(column = column, row = row + 1, padx = 3, pady = 3)
-                self.checkbox_list.append(checkbox)
-
-        def retrieve(self) -> list[str]:
-            retrieve_list = []
-            for i in self.checkbox_list:
-                retrieve_list.append(i.get())
-            dataframe = pd.DataFrame(self.features_options_list, columns = ["features"])
-            dataframe = dataframe[retrieve_list]
-            return list(dataframe['features'])
-        
-    class channel_dict_maker_auto(ctk.CTkScrollableFrame):
-        ## This needs to be able to generate new rows at will
-        ## The "auto" version of the dict_maker assumes that the channel <--> integer association is preserved from the panel.csv file
-        def __init__(self, master, length_dict: int = 3):
-            super().__init__(master)
-            self.master = master
-            self.configure(height = 300, width = 325)
-
-            self.dataframe = pd.read_csv(self.master.master.main_directory + "/panel.csv")
-            self.dataframe = self.dataframe[self.dataframe['keep'] == 1].reset_index().drop(["channel", 
-                                                                                             "segmentation", 
-                                                                                             "keep", 
-                                                                                             "index"], axis = 1).reset_index()
-
-            label_names = ctk.CTkLabel(master = self, text = "Channels to Use \n in Classification:")
-            label_names.grid(column = 0, row = 0)
-
-            button_add = ctk.CTkButton(master = self, text = "Add a row", command = self.add_row)
-            button_add.grid(column = 1, row = 0)
-
-            button_remove = ctk.CTkButton(master = self, text = "Remove final row", command = self.remove_last_row)
-            button_remove.grid(column = 1, row = 1)
-
-            self.row_list = []
-            for _ in range(0,length_dict):
-                self.add_row()
-
-        def add_row(self) -> None:
-            self.counter = len(self.row_list) + 1
-            entry1 = ctk.CTkOptionMenu(master = self, values = list(self.dataframe["name"]), variable = ctk.StringVar(value = ""))    
-            entry1.grid(column = 0, row = self.counter, pady = 3)
-            self.row_list.append(entry1)                             
-
-        def remove_last_row(self) -> None:
-            self.row_list[-1].destroy()
-            self.row_list = self.row_list[:-1]
-
-        def make_dict(self) -> dict[str:int]:
-            dictionary_out = {}
-            for i in self.row_list:
-                if (i.get() is None) or (i.get() == ""):
-                    pass
-                else:
-                    channel_integer  = self.dataframe[self.dataframe["name"] == i.get()]["index"]
-                    dictionary_out[i.get()] = int(channel_integer.values[0])
-            return dictionary_out
 
     class class_dict_maker_semi_auto(ctk.CTkScrollableFrame):
         ## This needs to be able to generate new rows at will
@@ -1249,67 +1285,6 @@ class Classifier_deets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                     ## {integer:"name"} --> likely use (and export) as a pandas dataframe / .csv instead of a dict
             return dictionary_out
         
-    class advanced_options_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
-
-        def __init__(self, master):
-            super().__init__(master)
-            self.master = master
-
-            label_epsilon = ctk.CTkLabel(master = self, text = "Set Learning Rate:")
-            label_epsilon.grid(row = 1, column = 1, padx = 3, pady = 3)
-
-            self.learning_rate = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "0.01"))
-            self.learning_rate.grid(row = 1, column = 2, padx = 3, pady = 3)
-
-            label_epochs = ctk.CTkLabel(master = self, text = "Set number of training epochs")
-            label_epochs.grid(row = 2, column = 1, padx = 3, pady = 3)
-
-            self.epochs = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "1000"))
-            self.epochs.grid(row = 2, column = 2, padx = 3, pady = 3)
-
-            label_internals = ctk.CTkLabel(master = self,
-                                text = "Set Internal Architecture: \n\n" 
-                                    "(series of integers representing layer sizes, separated by commas -- does not include input / output layers \n"
-                                    "Example: 18,24,10 --> three hidden layers of the selected sizes will be placed between the input and output layers) \n"
-                                    "Default is no hidden layers.")
-            label_internals.grid(row = 3, column = 1, padx = 3, pady = 3)
-
-            self.internals = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = ""))
-            self.internals.grid(row = 3, column = 2, padx = 3, pady = 3)
-
-            self.button = ctk.CTkButton(master = self, text = "Accept Choices", command = self.retrieve_and_accept)
-            self.button.grid(row = 4, column = 2, padx = 3, pady = 3)
-            
-            self.after(200, lambda: self.focus())
-
-        def retrieve_and_accept(self) -> None:
-            ''''''
-            learning_rate = self.learning_rate.get()
-            iterations = self.epochs.get()
-            internals = self.internals.get()
-            try:
-                learning_rate = float(learning_rate)
-                iterations = float(iterations)
-            except ValueError:
-                tk.messagebox.showwarning("Warning!", message = "learning_rate must be a floating point number and epochs must be an integer!")
-                return
-            internals = internals.strip(" ")
-            internals = internals.rstrip(",")  ## just in case a trailing comma causes issues
-            internals = internals.split(",")
-            if self.internals.get() != "":
-                try:
-                    internals = [int(i.strip(" ")) for i in internals]
-                    self.master.internals = internals
-                except Exception:
-                    tk.messagebox.showwarning("Warning!", message = "Internal Architecture must be a list of integers separated by commas!")
-                    return
-            else:
-                pass
-            
-            self.master.learning_rate = learning_rate
-            self.master.iterations = iterations
-            self.after(200, self.destroy())
-
 
 
 class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
