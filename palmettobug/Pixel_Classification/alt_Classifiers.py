@@ -173,7 +173,7 @@ class SupervisedClassifier:
         write_dictionary['channel_names'] = self.channel_names
         write_dictionary['classes'] = self.classes
         write_dictionary['sigmas'] = sigmas
-        self.model_info['quantile'] = quantile
+        write_dictionary['quantile'] = quantile
         write_dictionary['hidden_layers'] = hidden_layers
         write_dictionary['learning_rate'] = learning_rate
         self.model_info = write_dictionary
