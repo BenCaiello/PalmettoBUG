@@ -178,8 +178,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         image_folder_name = self.image_directory + "/" + image_folder_choice
         if not overwrite_approval(self.supervised.directory + "/classification_maps/" + image_name, file_or_folder = "file"):
             return False
-        image = tf.imread(image_folder_name + "/"  + image_name).T
-        self.supervised.predict(image, filenames = image_name)
+        self.supervised.predict(image_folder_name, filenames = image_name)
         merge_folder(self.supervised.output_folder,
                      pd.read_csv(self.supervised.directory + "/biological_labels.csv"),
                     self.supervised.directory + "/merged_classification_maps")
@@ -742,7 +741,7 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             loaded_json = json.loads(loaded_json) 
             open_json.close()
             self.supervised = SupervisedClassifier(self.master.main_directory, name, loaded_json['classes'])
-            self.master.number_of_classes = len(loaded_json["classes_dict"])
+            self.master.number_of_classes = len(loaded_json["classes"])
 
         else:
             self.master.name = name
@@ -1068,9 +1067,7 @@ class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label2 = ctk.CTkLabel(master = self, text = "Choose Sigma levels:")
         label2.grid(row = 5, column = 0 , padx = 3, pady = 3)
 
-        self.sigma_choice = ctk.CTkOptionMenu(master = self, 
-                                              values = ["0.5","0.75","1.0","2.0","4.0"], 
-                                              variable= ctk.StringVar(value = "1.0")) 
+        self.sigma_choice = self.Sigma_frame(self)
         self.sigma_choice.grid(row = 6, column = 0, padx = 3, pady = 3)
 
         label3 = ctk.CTkLabel(master = self, text = "Hidden Layers:")
@@ -1143,16 +1140,24 @@ class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
 
         self.master.image_source_dir = img_directory
-        sigma = float(self.sigma_choice.get())
+        sigma = sigma_choice.retrieve()
 
         class_dictionary = self.classes_selection.make_dict()
+        df = pd.DataFrame()
+        df["class"] = [i for i in class_dictionary if class_dictionary[i] != ""]
+        df["labels"] = [class_dictionary[i] for i in class_dictionary if class_dictionary[i] != ""]
+        unique_names = df["labels"].unique()
+        unique_dict = {ii:(i + 2) for i,ii in enumerate(unique_names)}
+        unique_dict['background'] = 0
+        df['merging'] = df['labels'].replace(unique_dict)
+        df.to_csv(self.master.classifier_dir + f"/{self.master.name}/biological_labels.csv", index = False)
 
-        self.master.supervised.set_channel_names(class_dictionary)
+        self.master.supervised.set_target_classes(class_dictionary)
 
         self.master.supervised.set_channel_names(self.channel_names)
 
         self.master.supervised.write_classifier(image_folder = img_directory,                
-                                    sigmas = [sigma], 
+                                    sigmas = sigma, 
                                     channel_dictionary = self.channel_dictionary,
                                     hidden_layers = hidden_layers,
                                     learning_rate = learning_rate,
@@ -1402,7 +1407,7 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             panel = panel[panel['keep'] == 1].reset_index()
 
             for ii,i in enumerate(channel_dictionary):
-                label = ctk.CTkLabel(master = self, text = f"{i} : {panel.loc[i,'name']}")
+                label = ctk.CTkLabel(master = self, text = f"{i} : {panel.loc[int(i),'name']}")
                 label.grid(column = 0, row = ii + 1, padx = 3, pady = 3, sticky = "nsew")
 
     class Feature_frame(ctk.CTkFrame):

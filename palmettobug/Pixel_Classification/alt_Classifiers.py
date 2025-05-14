@@ -179,8 +179,8 @@ class SupervisedClassifier:
         self.model_info = write_dictionary
         with open(self.model_info_path, "w") as write_file:
             json.dump(write_dictionary, write_file)
-
-        joblib.dump(self.model, self.model_path)
+        if self.model is not None:
+            joblib.dump(self.model, self.model_path)
 
     def load_classifier(self):
         ''''''
@@ -288,8 +288,7 @@ class SupervisedClassifier:
         all_labels = all_labels[1:]
         self.model = MLP(hidden_layer_sizes = hidden_layers, learning_rate_init = learning_rate, early_stopping = True)
         self.model.fit(all_pixels.T, all_labels)  
-        if not from_save:  ## no need to rewrite if from saved model
-            self.write_classifier(image_folder, self._channels, quantile = quantile)
+        self.write_classifier(image_folder, self._channels, quantile = quantile)
         if auto_predict:
             self.predict(image_folder, output_folder = self.output_folder, filenames = None)
 
