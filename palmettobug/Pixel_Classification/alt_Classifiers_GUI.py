@@ -1158,7 +1158,7 @@ class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                     learning_rate = learning_rate,
                                     # quantile = quantile
                                     ) 
-        self.master.number_of_classes = n_clusters
+        self.master.number_of_classes = len(class_dictionary)
 
         pixel_logger.info(f"Initialized Supervised Classifier {self.master.name} with the following training dictionary: \n" 
                            f"{str(self.master.supervised.model_info)}")
@@ -1214,8 +1214,6 @@ class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             else:
                 self.master.additional_features = False
             return self.dataframe
-
-        self.after(200, lambda: self.focus())
 
     class Sigma_frame(ctk.CTkFrame):
         def __init__(self, master):

@@ -54,8 +54,9 @@ def test_load_SupPx():
     images_dir = proj_directory + "/images/img"
     global pixel_class_object
     classes = ["background", "epithelia", "lamina_propria"] 
+    pixel_class_object = SupervisedClassifier(proj_directory, my_classifier_name)
     classes_dictionary = {1:"background",2:"epithelia",3:"lamina_propria"} 
-    pixel_class_object = SupervisedClassifier(proj_directory, my_classifier_name, classes_dictionary)
+    pixel_class_object.set_channel_names(classes_dictionary)
     panel = pd.read_csv(f"{proj_directory}/panel.csv")
     panel = panel[panel['keep'] == 1].reset_index()
     channel_dictionary = {}  
