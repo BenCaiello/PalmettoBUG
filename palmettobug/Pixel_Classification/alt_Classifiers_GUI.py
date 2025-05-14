@@ -738,7 +738,7 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             loaded_json = open_json.read()
             loaded_json = json.loads(loaded_json) 
             open_json.close()
-            self.master.supervised = SupervisedClassifier(self.master.main_directory, name, loaded_json['classes'])
+            self.master.supervised = SupervisedClassifier(self.master.main_directory, name)
             self.master.supervised.load_classifier()
             self.master.number_of_classes = len(loaded_json["classes"])
 
@@ -1143,7 +1143,7 @@ class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.channel_names = {}
         kept = self.channel_panel
         kept_channels = kept.index
-        for i in kept_channels:
+        for i in kept_channels:f
             features = ['gaussian','hessian','frangi','butterworth']
             applied_features = kept.loc[i,['gaussian','hessian','frangi','butterworth']]
             add_features = [q for q,qq in zip(features,applied_features) if int(qq) == 1]
@@ -1158,7 +1158,7 @@ class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
 
         self.master.image_source_dir = img_directory
-        sigma = sigma_choice.retrieve()
+        sigma = self.sigma_choice.retrieve()
 
         class_dictionary = self.classes_selection.make_dict()
         df = pd.DataFrame()
@@ -1482,7 +1482,7 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.internals_dict = self.master.master.classifier_dir + f"/{self.master.master.name}/{self.master.master.name}_info.json"
             open_json = open(self.internals_dict , 'r' , encoding="utf-8")
             loaded_json = open_json.read()
-            loaded_json = json.load(loaded_json)
+            loaded_json = json.loads(loaded_json)
             open_json.close()
             epsilon = loaded_json['learning_rate']
             # iterations = loaded_json['']
@@ -1614,7 +1614,7 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 except ValueError:
                     tk.messagebox.showwarning("Warning!",
                             message = f"{str(number)} can not be interpreted as an integer! Change and save again.")
-                channel_dict[antigen] = number
+                channel_dict[number] = antigen
             self.dictionary["channel_names"] = channel_dict
             grand_master = self.master.master
             with open(grand_master.classifier_dir + f"/{grand_master.name}/{grand_master.name}_info.json", 
@@ -1639,15 +1639,15 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                     channel_num = len(example_img) - 1
                 except FileNotFoundError:
                     entry2 = ctk.CTkEntry(master = self, 
-                                          textvariable = ctk.StringVar(value = self.dictionary["channels"][dictionary_key]))  
+                                          textvariable = ctk.StringVar(value = self.dictionary["channel_names"][dictionary_key]))  
                     entry2.grid(column = 1, row = counter, pady = 3) 
                 entry2 = ctk.CTkOptionMenu(master = self,
                                            values = [str(i) for i in range(0,channel_num,1)], 
-                                           variable = ctk.StringVar(value = self.dictionary["channels"][dictionary_key]))  
+                                           variable = ctk.StringVar(value = self.dictionary["channel_names"][dictionary_key]))  
                 entry2.grid(column = 1, row = counter, pady = 3) 
             else:
                 entry2 = ctk.CTkEntry(master = self, 
-                                      textvariable = ctk.StringVar(value = self.dictionary["channels"][dictionary_key])) 
+                                      textvariable = ctk.StringVar(value = self.dictionary["channel_names"][dictionary_key])) 
                 entry2.grid(column = 1, row = counter, pady = 3) 
             self.row_list.append([entry1, entry2])                             
 
