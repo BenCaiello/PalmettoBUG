@@ -215,9 +215,9 @@ class Pixel_class_widgets(ctk.CTkFrame):
         if not overwrite_approval(self.unsupervised.directory + "/classification_maps/" + image_name, file_or_folder = "file"):
             return False
         self.unsupervised.predict(image_folder_name, filenames = image_name)
-        merge_folder(self.supervised.output_folder, 
-                    pd.read_csv(self.supervised.directory + "/biological_labels.csv"),
-                    self.supervised.directory + "/merged_classification_maps")
+        merge_folder(self.unsupervised.output_folder, 
+                    pd.read_csv(self.unsupervised.directory + "/biological_labels.csv"),
+                    self.unsupervised.directory + "/merged_classification_maps")
         pixel_logger.info(f"Predicted classification map for following image: {image_folder_name + '/'  + image_name}")
 
     def run_all_unsupervised(self) -> None:
@@ -229,9 +229,9 @@ class Pixel_class_widgets(ctk.CTkFrame):
         if not overwrite_approval(self.unsupervised.directory + "/classification_maps/", file_or_folder = "folder"):
             return False
         self.unsupervised.predict(image_folder_name)
-        merge_folder(self.supervised.output_folder, 
-                    pd.read_csv(self.supervised.directory + "/biological_labels.csv"),
-                    self.supervised.directory + "/merged_classification_maps")
+        merge_folder(self.unsupervised.output_folder, 
+                    pd.read_csv(self.unsupervised.directory + "/biological_labels.csv"),
+                    self.unsupervised.directory + "/merged_classification_maps")
         self.plot_pixel_heatmap(self.unsupervised.output_folder, image_folder_name, from_button = False)
         pixel_logger.info(f"Predicted classification map for following image folder: {image_folder_name}")
 
@@ -1374,13 +1374,19 @@ class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         shutil.copyfile(assets_path, (destination + "_model.pkl"))
         shutil.copyfile(details_path, (destination + "_info.json"))
         
-        self.master.supervised = SupervisedClassifier(self.master.main_directory, name)
-        self.master.classifier_type = "supervised"
-
         open_json = open(details_path, 'r' , encoding="utf-8")
         loaded_json = open_json.read()
         loaded_json = json.loads(loaded_json) 
         open_json.close()
+
+        if loaded_json['type'] == 'supervised':
+            self.master.supervised = SupervisedClassifier(self.master.main_directory, name)
+            self.master.classifier_type = "supervised"
+        elif loaded_json['type'] == 'unsupervised':
+            self.master.unsupervised = UnsupervisedClassifier(self.master.main_directory, name)
+            self.master.classifier_type = "unsupervised"
+        else:
+            raise Exception("Classifier type in the .json file must be 'supervised' or 'unsupervised'")
         self.master.number_of_classes = len(loaded_json["classes"])
 
         pixel_logger.info(f"Classifier {name} loaded from assets and copied into this project")
@@ -1528,16 +1534,16 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         seed_label = ctk.CTkLabel(master = self, text = f"Seed = {self.dictionary['seed']}")
         seed_label.grid(column = 1, row = 1, padx = 3, pady = 3)
 
-        n_clusters_label = ctk.CTkLabel(master = self, text = f"Number of clusters = {len(self.dictionary['channels'])}")
+        n_clusters_label = ctk.CTkLabel(master = self, text = f"Number of clusters = {len(self.dictionary['metaclusters'])}")
         n_clusters_label.grid(column = 1, row = 2, padx = 3, pady = 3)
 
         dims_label = ctk.CTkLabel(master = self, text = f"XYdimensions = {self.dictionary['XYdim']}")
         dims_label.grid(column = 1, row = 3, padx = 3, pady = 3)
 
-        training_size = ctk.CTkLabel(master = self, text = f"Training set size = {self.dictionary['channels']}")
+        training_size = ctk.CTkLabel(master = self, text = f"Training set size = {self.dictionary['pixel_number']}")
         training_size.grid(column = 1, row = 4, padx = 3, pady = 3)
 
-        source_directory = ctk.CTkLabel(master = self, text = f"Source Directory for Images = n {self.dictionary['image_folder']}")
+        source_directory = ctk.CTkLabel(master = self, text = f"Source Directory for Images = {self.dictionary['image_folder']}")
         source_directory.grid(column = 0, row = 6, padx = 3, pady = 3, columnspan = 2)
 
     class unsup_channel_details_frame(ctk.CTkScrollableFrame):
@@ -1549,7 +1555,7 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
             toplabel = ctk.CTkLabel(master = self, text = "Channels used in the Clustering:")
             toplabel.grid(padx = 5, pady = 5)
-            for i in keep_panel['antigen']:
+            for i in names:
                 button = self.varButton(master = self, text = names[i], command_variable = i)
                 button.grid(padx = 3, pady = 3)
 
@@ -1633,7 +1639,10 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 json.dump(self.dictionary, write_json, indent = 4) 
 
             ## now reload the classifier
-            grand_master.supervised.load_classifier()
+            if self.dictionary['type'] == 'supervised':
+                grand_master.supervised.load_classifier()
+            elif self.dictionary['type'] == 'unsupervised':
+                grand_master.unsupervised.load_classifier()
             pixel_logger.info(f"Supervised Classifier {grand_master.name} channel dictionary: \n {str(self.dictionary)}")
             self.after(200, self.master.destroy())
 

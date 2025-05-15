@@ -168,6 +168,7 @@ class SupervisedClassifier:
                            learning_rate = 0.001):
         '''Point of this method is to set up the .json that will store the information relevant to the classifier'''
         write_dictionary = {}
+        write_dictionary['type'] = 'supervised'
         write_dictionary['image_folder'] = image_folder
         write_dictionary['channels'] = channel_dictionary
         write_dictionary['channel_names'] = self.channel_names
@@ -381,6 +382,7 @@ class UnsupervisedClassifier:
                          seed = 42):
         '''Point of this method is to set up the .json that will store the information relevant to the classifier'''
         write_dictionary = {}
+        write_dictionary['type'] = 'unsupervised'
         write_dictionary['image_folder'] = image_folder
         write_dictionary['channels'] = channel_dictionary
         write_dictionary['channel_names'] = self.channel_names
@@ -450,7 +452,7 @@ class UnsupervisedClassifier:
             all_pixels = np.concatenate((all_pixels, sample), axis = 1)
         all_pixels = all_pixels[:,1:]
         self.model = FlowSOM(all_pixels.T, n_clusters = metaclusters, xdim = XYdim, ydim = XYdim, rlen = training_cycles, seed = seed).model
-        if (self.classes is None) or len(self.classes) != metaclusters):
+        if (self.classes is None) or (len(self.classes) != metaclusters):
             self.classes = {i+1:'unassigned' for i in range(0,metaclusters)}
         if not from_save:  ## no need to rewrite if from saved model
             self.write_classifier(image_folder, self._channels, sigmas = sigmas, pixel_number = pixel_number, 
