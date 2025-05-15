@@ -1534,7 +1534,7 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         seed_label = ctk.CTkLabel(master = self, text = f"Seed = {self.dictionary['seed']}")
         seed_label.grid(column = 1, row = 1, padx = 3, pady = 3)
 
-        n_clusters_label = ctk.CTkLabel(master = self, text = f"Number of clusters = {len(self.dictionary['metaclusters'])}")
+        n_clusters_label = ctk.CTkLabel(master = self, text = f"Number of clusters = {self.dictionary['metaclusters']}")
         n_clusters_label.grid(column = 1, row = 2, padx = 3, pady = 3)
 
         dims_label = ctk.CTkLabel(master = self, text = f"XYdimensions = {self.dictionary['XYdim']}")
