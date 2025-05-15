@@ -21,8 +21,6 @@ Downsides:
             # segment_class_map_folder   (heavily based on some of the documentation of scikit-image, enough that I list it in the Other_License_Details.txt file:
                                     # Scikit-image: https://github.com/scikit-image/scikit-image, Copyright: 2009-2022 the scikit-image team, license: BSD-3))
 
-## TODO: connect to a GUI interface, etc.
-
 import os
 from typing import Union
 from pathlib import Path

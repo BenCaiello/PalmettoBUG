@@ -465,7 +465,7 @@ class SpatialAnalysis:
         self.padj, self.p, self.stat = self.SpaceANOVA.do_all_functional_ANOVAs(stat = stat, seed = seed)
         return self.padj, self.p, self.stat
 
-    def plot_spaceANOVA_heatmap(self, stat: str, filename = None):      ## TODO: configure filename properly
+    def plot_spaceANOVA_heatmap(self, stat: str, filename = None): 
         '''
         Plots a heatmap from one of the dataframes returned / created by self.run_SpaceANOVA_statistics. If plotting a (adjusted) p-value, as is typical, the 
         statistic is transformed by the negative log first so that high number indicate higher significance.
@@ -1199,7 +1199,6 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         new_anndata = ann.AnnData(final_array, var = var)
         if leiden_or_flowsom.lower() == "flowsom":
             self.neighbors_flowsom = FlowSOM(new_anndata, seed = seed, n_clusters = n_clusters, **kwargs) 
-                                    ## TODO: also need to unpack the new clustering into self.exp.data --> and from there into the main Analysis.data object (likely?)
             self.exp.data.obs['CN'] = list(self.neighbors_flowsom.get_cell_data().obs['metaclustering'])
             self.exp.data.obs['CN'] = self.exp.data.obs['CN'].astype('int') + 1
             figure = self._plot_stars_CNs()

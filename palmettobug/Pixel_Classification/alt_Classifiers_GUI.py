@@ -970,7 +970,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.master.unsupervised.train(image_folder = img_directory,                
                                     sigmas = sigma, 
-                                    channel_dictionary = self.channel_dictionary,   ### TODO: connect this properly
+                                    channel_dictionary = self.channel_dictionary,  
                                     pixel_number = size, 
                                     seed = seed, 
                                     metaclusters = n_clusters, 
@@ -1550,7 +1550,6 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         def __init__(self, master):
             super().__init__(master)
             self.master = master
-            keep_panel = self.master.dictionary['channels']
             names = self.master.dictionary['channel_names']
 
             toplabel = ctk.CTkLabel(master = self, text = "Channels used in the Clustering:")
