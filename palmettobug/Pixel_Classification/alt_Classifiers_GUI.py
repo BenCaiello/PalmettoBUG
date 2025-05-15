@@ -215,6 +215,9 @@ class Pixel_class_widgets(ctk.CTkFrame):
         if not overwrite_approval(self.unsupervised.directory + "/classification_maps/" + image_name, file_or_folder = "file"):
             return False
         self.unsupervised.predict(image_folder_name, filenames = image_name)
+        merge_folder(self.supervised.output_folder, 
+                    pd.read_csv(self.supervised.directory + "/biological_labels.csv"),
+                    self.supervised.directory + "/merged_classification_maps")
         pixel_logger.info(f"Predicted classification map for following image: {image_folder_name + '/'  + image_name}")
 
     def run_all_unsupervised(self) -> None:
@@ -226,7 +229,9 @@ class Pixel_class_widgets(ctk.CTkFrame):
         if not overwrite_approval(self.unsupervised.directory + "/classification_maps/", file_or_folder = "folder"):
             return False
         self.unsupervised.predict(image_folder_name)
-
+        merge_folder(self.supervised.output_folder, 
+                    pd.read_csv(self.supervised.directory + "/biological_labels.csv"),
+                    self.supervised.directory + "/merged_classification_maps")
         self.plot_pixel_heatmap(self.unsupervised.output_folder, image_folder_name, from_button = False)
         pixel_logger.info(f"Predicted classification map for following image folder: {image_folder_name}")
 
@@ -309,7 +314,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
             self.save_current_classifier_to_assets.bind("<Enter>", refresh_exclusive_buttons)
 
             self.pixel_heatmap = ctk.CTkButton(master = self, 
-                                                        text = "Make heatmap from \n previously completed predictions \n (Unsupervised Classifiers only)", 
+                                                        text = "Make heatmap from \n previously completed predictions", 
                                                         command = self.master.plot_pixel_heatmap,
                                                         state = "disabled")
             self.pixel_heatmap.grid(row = 5, column = 0, columnspan = 2, padx = 5, pady = 5)
@@ -639,6 +644,7 @@ class bio_label_launch_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                         pd.read_csv(self.master.supervised.directory + "/biological_labels.csv"),
                         self.master.supervised.directory + "/merged_classification_maps")
         elif self.master.classifier_type == "unsupervised":
+            self.master.unsupervised.set_class_names({i:ii for i,ii in zip(df["class"],df["labels"])})
             merge_folder(self.master.unsupervised.directory + "/classification_maps", 
                         pd.read_csv(self.master.unsupervised.directory + "/biological_labels.csv"),
                         self.master.unsupervised.directory + "/merged_classification_maps")
@@ -831,8 +837,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.panel = self.panel[self.panel['keep'] == 1]
 
         label = ctk.CTkLabel(master = self, 
-                             text= "Select what Channel to use for the clustering and what additional features to create: \n"
-                            "features   = gaussian | hessian | frangi | butterworth")
+                             text = "Select what Channels to use: \n features   = gaussian | hessian | frangi | butterworth")
         label.grid(row = 0, column = 0, pady = 3, padx = 5)
 
         self.keep_table = self.keep_channel_table(self)
@@ -955,10 +960,16 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         sigma = self.sigma_choice.retrieve()
         smoothing = int(self.smoothing_choice.get())
 
+        df = pd.DataFrame()
+        df["class"] = [i+1 for i in range(0, n_clusters)]
+        df["labels"] = "Unassigned"
+        df['merging'] = 1
+        df.to_csv(self.master.classifier_dir + f"/{self.master.name}/biological_labels.csv", index = False)
+
         self.master.unsupervised.set_channel_names(self.channel_names)
 
         self.master.unsupervised.train(image_folder = img_directory,                
-                                    sigmas = [sigma], 
+                                    sigmas = sigma, 
                                     channel_dictionary = self.channel_dictionary,   ### TODO: connect this properly
                                     pixel_number = size, 
                                     seed = seed, 
@@ -1050,7 +1061,7 @@ class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
         super().__init__()
         self.master = master
-        self.title("Select Options for Unsupervised FlowSOM-based Pixel Classifier")
+        self.title("Select Details for Supervised Pixel Classifier")
         self.additional_features = False
         self.panel = pd.read_csv(self.master.main_directory + "/panel.csv").drop(["channel", "segmentation"], axis = 1)
         self.panel = self.panel[self.panel['keep'] == 1]
@@ -1060,8 +1071,7 @@ class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.internals = []
 
         label = ctk.CTkLabel(master = self, 
-                             text= "Select what Channel to use for the clustering and what additional features to create: \n"
-                            "features   = gaussian | hessian | frangi | butterworth")
+                             text = "Select what Channels to use: \n features   = gaussian | hessian | frangi | butterworth")
         label.grid(row = 0, column = 0, pady = 3, padx = 5)
 
         self.keep_table = self.keep_channel_table(self)
@@ -1106,7 +1116,7 @@ class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.LR = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "0.001"))
         self.LR.grid(row = 8, column = 1, padx = 3, pady = 3)
 
-        button_train = ctk.CTkButton(master = self, text = "Run Training!", command = self.run_training)
+        button_train = ctk.CTkButton(master = self, text = "Save Classifier Details", command = self.run_training)
         button_train.grid(row = 11, column = 1, padx = 3, pady = 3)
 
         self.after(200, lambda: self.focus())
@@ -1143,7 +1153,7 @@ class supervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.channel_names = {}
         kept = self.channel_panel
         kept_channels = kept.index
-        for i in kept_channels:f
+        for i in kept_channels:
             features = ['gaussian','hessian','frangi','butterworth']
             applied_features = kept.loc[i,['gaussian','hessian','frangi','butterworth']]
             add_features = [q for q,qq in zip(features,applied_features) if int(qq) == 1]
@@ -1361,7 +1371,7 @@ class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         details_path = PALMETTO_BUG_assets_classifier_folder + f"/{classifier_load_name}/{classifier_load_name}_info.json"
         destination = self.master.classifier_dir + f"/{name}/{name}"
         self.master.Napari_frame.activate_buttons()
-        shutil.copyfile(assets_path, (destination + ".pkl"))
+        shutil.copyfile(assets_path, (destination + "_model.pkl"))
         shutil.copyfile(details_path, (destination + "_info.json"))
         
         self.master.supervised = SupervisedClassifier(self.master.main_directory, name)
@@ -1373,7 +1383,7 @@ class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         open_json.close()
         self.master.number_of_classes = len(loaded_json["classes"])
 
-        pixel_logger.info(f"Supervised Classifier {name} loaded from assets and copied into this project")
+        pixel_logger.info(f"Classifier {name} loaded from assets and copied into this project")
         check_channels_window(self.master, loaded_json)
         self.after(200, self.withdraw())
 

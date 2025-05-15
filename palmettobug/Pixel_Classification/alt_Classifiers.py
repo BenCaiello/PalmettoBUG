@@ -357,8 +357,13 @@ class UnsupervisedClassifier:
         self.model_path = f"{directory}/{name}_model.pkl"
         self.model_info = {}
         self.model_info_path = f"{directory}/{name}_info.json"
+        self.classes = {}
         self.channel_names = {}
         self._channels = {}
+
+    def set_class_names(self, class_names_dict):
+        ''' This is intended for setting a dictionary corresponding {channel integer numbers : channel antigen names}'''
+        self.classes = class_names_dict
 
     def set_channel_names(self, channel_names_dict):
         ''' This is intended for setting a dictionary corresponding {channel integer numbers : channel antigen names}'''
@@ -379,6 +384,7 @@ class UnsupervisedClassifier:
         write_dictionary['image_folder'] = image_folder
         write_dictionary['channels'] = channel_dictionary
         write_dictionary['channel_names'] = self.channel_names
+        write_dictionary['classes'] = self.classes
         write_dictionary['sigmas'] = sigmas
         write_dictionary['pixel_number'] = pixel_number
         write_dictionary['quantile'] = quantile
@@ -443,8 +449,9 @@ class UnsupervisedClassifier:
                 all_pixels = np.zeros([sample.shape[0],1])
             all_pixels = np.concatenate((all_pixels, sample), axis = 1)
         all_pixels = all_pixels[:,1:]
-        print(all_pixels.shape)
         self.model = FlowSOM(all_pixels.T, n_clusters = metaclusters, xdim = XYdim, ydim = XYdim, rlen = training_cycles, seed = seed).model
+        if (self.classes is None) or len(self.classes) != metaclusters):
+            self.classes = {i+1:'unassigned' for i in range(0,metaclusters)}
         if not from_save:  ## no need to rewrite if from saved model
             self.write_classifier(image_folder, self._channels, sigmas = sigmas, pixel_number = pixel_number, 
                          quantile = quantile,
