@@ -7,9 +7,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'palmettobug'
-copyright = '2024, Medical University of South Carolina'
+copyright = '2024-2025, Medical University of South Carolina'
 author = 'Ben Caiello'
-release = '0.1.0'
+release = '0.2.4'
 
 
 # -- General configuration ---------------------------------------------------
