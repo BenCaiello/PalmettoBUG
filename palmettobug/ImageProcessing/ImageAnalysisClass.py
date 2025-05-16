@@ -320,7 +320,12 @@ def _generate_ome_tiff_metadata(panel_csv: pd.DataFrame,
 
     The fields chosen for the metadata were taken from a .ome.tiff file with multi-channels, 
     from a publicly available IMC experiment on Zenodo (should be: https://zenodo.org/records/8023452,
-    Or perhaps instead was a tumor-sphere dataset from the Bodenmiller group [find] TODO). 
+    Or perhaps instead was from the tumor-sphere dataset from this paper by the Bodenmiller group: 
+                                                                    Zanotelli, Vito Rt et al. 
+                                                                    “A quantitative analysis of the interplay of environment, neighborhood, 
+                                                                    and cell state in 3D spheroids.” 
+                                                                    Molecular systems biology vol. 16,12 (2020): e9798. 
+                                                                    doi:10.15252/msb.20209798). 
     '''
     ome_metadata = {}
     ome_metadata['Directory'] = str(output_directory)

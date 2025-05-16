@@ -660,7 +660,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master.plot_bank.cluster_vs_group.configure(state = "normal")
         Analysis_widget_logger.info(f"LoadedClustering: {identifier}!")
 
-        ## TODO: test this! -- purpose is to re-disable SpaceANOVA buttons if spaceANOVA column has been overwritten
+        ## purpose o following code block is to re-disable SpaceANOVA buttons if spaceANOVA column has been overwritten
         try: ## either space_analysis or data_table attributes may not exist
             load_types = ["metaclustering", "leiden", "merging", "classification", "CN"]
             load_types2 = np.array([identifier.find(i) for i in load_types])
@@ -680,7 +680,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return   
         self.master.cat_exp.load_classification(cell_classifications = (self.classy_dir + "/" + identifier))
 
-        ## TODO: test!-- purpose is to re-disable SpaceANOVA buttons if spaceANOVA column has been overwritten
+        ## purpose of the following is to re-disable SpaceANOVA buttons if spaceANOVA column has been overwritten
         try: ## either space_analysis or data_table attributes may not exist
             if self.master.cat_exp.space_analysis.cellType_key == 'classification':
                 self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
@@ -770,7 +770,7 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
             self.master.plot_bank.cluster_vs_group.configure(state = "normal")
 
-            ## TODO: test this! -- purpose is to re-disable buttons is spaceANOVA column has been overwritten
+            ## purpose of the following is to re-disable buttons is spaceANOVA column has been overwritten
             try: ## either space_analysis or data_table attributes may not exist
                 if self.master.cat_exp.space_analysis.cellType_key == 'metaclustering':
                     self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
@@ -1710,7 +1710,7 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.new.table.special_to_csv()
         self.master.cat_exp.do_cluster_merging(file_path = merging_file_path, groupby_column = meta_or_leiden)
 
-        ## TODO: test this! -- purpose is to re-disable buttons is spaceANOVA column has been overwritten
+        ## purpose of the following is to re-disable buttons if spaceANOVA column has been overwritten
         try: ## either space_analysis or data_table attributes may not exist
             if self.master.cat_exp.space_analysis.cellType_key == 'merging':
                 self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
@@ -2371,7 +2371,6 @@ class image_drop_restore_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                                     f"column = {self.column}, \n" +
                                     f"to_drop = {str(filter_sample_ids)}")
         
-        ## TODO: test this! -- purpose is to re-disable buttons in spaceANOVA, as the data for that has been changed
         self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
 
         self.destroy()
@@ -2770,7 +2769,6 @@ class do_leiden_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if success:
             self.master.plot_bank.umap_plot.configure(state = 'normal')
 
-            ## TODO: test!
             try: ## either space_analysis or data_table attributes may not exist
                 if self.master.cat_exp.space_analysis.cellType_key == 'leiden':
                     self.master.master.master.Spatial.widgets.widgets.disable_buttons() 

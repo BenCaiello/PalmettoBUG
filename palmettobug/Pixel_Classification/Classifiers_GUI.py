@@ -850,7 +850,7 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         ''''''
         if not overwrite_approval(self.master.classifier_dir + "/Unsupervised_" + classifier_name, file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
             return
-        self.master.classifier_type = "unsupervised"   ##TODO: move these assignment statements to after the classifier has been made, if possible
+        self.master.classifier_type = "unsupervised"
         self.master.name = "Unsupervised_" + classifier_name
         self.master.name_holder.set(self.master.name)
         self.master.unsupervised = UnsupervisedClassifier(self.master.main_directory, classifier_name = ("/Unsupervised_" + classifier_name))
