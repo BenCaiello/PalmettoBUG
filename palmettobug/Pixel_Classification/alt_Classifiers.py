@@ -298,31 +298,24 @@ class SupervisedClassifier:
         channel_dictionary = self.model_info['channels']
         sigmas = self.model_info['sigmas']
         quantile = self.model_info['quantile']
+
+        def predict_image(filename):
+             img = tf.imread(f'{image_folder}/{filename}').astype('float32')
+             image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
+             image_features = self.scaled_features(image_features, quantile)
+             prediction = self.model.predict(image_features.T)
+             prediction = np.reshape(prediction, [img.shape[1], img.shape[2]])
+             tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
+             
         if filenames is None:
             images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind(".tif") != -1]
             for filename in images:
-                img = tf.imread(f'{image_folder}/{filename}').astype('float32')
-                image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
-                image_features = self.scaled_features(image_features, quantile)
-                prediction = self.model.predict(image_features.T)
-                prediction = np.reshape(prediction, [img.shape[1], img.shape[2]])
-                tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
+                predict_image(filename)
         elif isinstance(filenames, list):
             for filename in filenames:
-                img = tf.imread(f'{image_folder}/{filename}').astype('float32')
-                image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
-                image_features = self.scaled_features(image_features, quantile)
-                prediction = self.model.predict(image_features.T)
-                prediction = np.reshape(prediction, [img.shape[1], img.shape[2]])
-                tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
+                predict_image(filename)
         elif isinstance(filenames, str):
-            filename = filenames
-            img = tf.imread(f'{image_folder}/{filename}').astype('float32')
-            image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
-            image_features = self.scaled_features(image_features, quantile)
-            prediction = self.model.predict(image_features.T)
-            prediction = np.reshape(prediction, [img.shape[1], img.shape[2]])
-            tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
+            predict_image(filename)
         else:
             raise(ValueError, "Filenames parameter must be a str, list, or None")
 
@@ -472,37 +465,26 @@ class UnsupervisedClassifier:
         metaclusters = self.model_info['metaclusters']
         quantile = self.model_info['quantile']
         sigmas = self.model_info['sigmas']
+         
+        def predict_image(filename):
+             img = tf.imread(f'{image_folder}/{filename}').astype('float32')
+             image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
+             shape_image_features = self.scaled_features(image_features, quantile)
+             prediction = self.model.predict(shape_image_features.T).T + 1
+             prediction = np.reshape(prediction, [image_features.shape[1], image_features.shape[2]])
+             if smoothing > 0:
+                  prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
+             tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
+             
         if filenames is None:
             images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind(".tif") != -1]
             for filename in images:
-                img = tf.imread(f'{image_folder}/{filename}').astype('float32')
-                image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
-                shape_image_features = self.scaled_features(image_features, quantile)
-                prediction = self.model.predict(shape_image_features.T).T + 1
-                prediction = np.reshape(prediction, [image_features.shape[1], image_features.shape[2]])
-                if smoothing > 0:
-                    prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
-                tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
+                predict_image(filename)
         elif isinstance(filenames, list):
             for filename in filenames:
-                img = tf.imread(f'{image_folder}/{filename}').astype('float32')
-                image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
-                shape_image_features = self.scaled_features(image_features, quantile)
-                prediction = self.model.predict(shape_image_features.T).T + 1
-                prediction = np.reshape(prediction, [image_features.shape[1], image_features.shape[2]])
-                if smoothing > 0:
-                    prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
-                tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
+                predict_image(filename)
         elif isinstance(filenames, str):
-            filename = filenames
-            img = tf.imread(f'{image_folder}/{filename}').astype('float32')
-            image_features, _ = calculate_features(img, channels = channel_dictionary, sigmas = sigmas)
-            shape_image_features = self.scaled_features(image_features, quantile)
-            prediction = self.model.predict(shape_image_features.T).T + 1
-            prediction = np.reshape(prediction, [image_features.shape[1], image_features.shape[2]])
-            if smoothing > 0:
-                prediction = smooth_isolated_pixels(prediction, metaclusters, smoothing)
-            tf.imwrite(f'{output_folder}/{filename}', prediction.astype('int32'))
+            predict_image(filename)
         else:
             raise(ValueError, "Filenames parameter must be a str, list, or None")
 
