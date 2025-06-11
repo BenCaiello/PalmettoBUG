@@ -261,7 +261,7 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.image_folder.bind("<Enter>", refresh1)
 
         self.re_do = ctk.CTkCheckBox(master = self, 
-                    text = "Leave checked to redo previous segmentations." 
+                    text = "Check to redo previous segmentations." 
                             "\n Un-check to only do if they do not alreayd exist for a given image.", 
                     onvalue = True, offvalue = False)
         self.re_do.grid(column = 0, row = 4, padx = 5, pady = 5)

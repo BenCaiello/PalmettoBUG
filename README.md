@@ -16,7 +16,7 @@ PalmettoBUG is a pure-python GUI in customtinker (https://github.com/tomschimans
 
 PalmettoBUG is intended to accomplish a few things:
 
-1. Be an easy starting point for scientists who do not necessarily have extensive background in computer science / coding but still want to be able to do basic data analysis & exploration of imaging mass cytometry data on their own. In particular, the GUI interface, extensive powerpoint documentation, easy installation, and integration of all the usually necessary steps in high-dimensional biological image analysis helps make analyzing data in PalmettoBUG much more approachable. This is particularly the focus of why MUSC flow (& mass) cytometry shared resource wanted a package like this -- it could also users of our instruments to _begin_ their analyses and get a _preliminary_ idea of their data without needing a collaborating bioinformatician to analyze the data for them.  
+1. Be an easy starting point for scientists who do not necessarily have extensive background in computer science / coding but still want to be able to do basic data analysis & exploration of imaging mass cytometry data on their own. In particular, the GUI interface, extensive powerpoint documentation, easy installation, and integration of all the usually necessary steps in high-dimensional biological image analysis helps make analyzing data in PalmettoBUG much more approachable. This is particularly the focus of why the MUSC Flow (& mass) Cytometry Shared Resource wanted a package like this -- it could allow users of our instruments to _begin_ their analyses and get a _preliminary_ idea of their data without needing a collaborating bioinformatician to analyze the data for them.  
 
 2. Be easily integrated into new or alternative workflows. Specfically, PalmettoBUG was designed so that most of its critical image / data intermediates as easily accessible by the user or automatically exported as common files types (.tiff for images, .csv for statistics/data/metadata, and .png for graphs/plots in most cases). Similar to the Steinbock package on which much of PalmettoBUG was based, as steps are performed in the analysis, PalmettoBUG frequently auto-exports the output of those steps to folders on the users' hard drive. This means that PalmettoBUG could be easily used for only some of its functions -- say only using it to convert files to MCDs, then segment cells -- with its outputs being re-directed into a separate analysis pipeline. This promotes maximum flexibility with how PalmettoBUG could be used!
 
@@ -62,12 +62,17 @@ The decision on whether to include the [tensorflow] tag is because the popular D
 Without the [tensorflow] tag, the tensorflow / keras packages will not be installed and isosegdenoise with use an ONNX model version of Mesmer (generated using tf2onnx package) inside PyTorch (using onnx2torch). This makes GPU support easier and reduces the dependencies required by the program. However, the model is not 100% identical to the original tensorflow model! Its output does look very similar by eye -- but I have not (yet) benchmarked its accuracy vs. the original model in a thorough enough manner. More
 information about iSD, and the tensorflow vs. Torch models, can be found at its repository & documentation pages.
 
+## Instanseg option (*new feature / in development!*)
+
+If instanseg-torch (https://github.com/instanseg/instanseg) is installed in the same environment as the _development_ version of PalmettoBUG, then it will be available for segmentation inside the main program. Instanseg has the advantages of a more flexible channel selection process (you can select all channels in your image even!) and being truly open-source (no non-commercial restrictions). However, the currently available models for instanseg were not trained for IMC data specifically (instead was trained for immunofluorescence images), and its training datasets are more restricted than those used for the models in iSD, due to instanseg's authors consciously avoiding non-commercially licensed datasets for training it.
+
 ## Documentation & Scripting use (using the package outside the GUI)
 
 Documentation is hosted on readthedocs: https://palmettobug.readthedocs.io/en/latest/. 
 
 Additionally, step-by-step documentation of what can be done in the GUI will be found in the **animated** slideshow files inside PalmettoBUG itself inside the docs/slides/ folder of this github repo.
-Gif of docs/slides/How to Use PalmettoBUG.odp file:
+
+Gif of the /docs/slides/How to Use PalmettoBUG.odp file:
 
 ![Gif of slides](https://github.com/BenCaiello/PalmettoBUG/blob/main/docs/slides/HowToUsePalmettoBUG.gif)
 

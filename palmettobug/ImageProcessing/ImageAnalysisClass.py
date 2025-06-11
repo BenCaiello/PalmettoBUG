@@ -692,6 +692,7 @@ class ImageAnalysis:
                                input_img_folder: Union[Path, str, None] = None, 
                                output_mask_folder: Union[Path, str, None] = None,
                                channel_slice: Union[None, np.array] = None,
+                               merge_channels: bool = False,
                                pixel_size: Union[float, None] = None,
                                target: str = "cells",
                                mean_threshold: float = 0.0,
@@ -712,8 +713,11 @@ class ImageAnalysis:
                 If provided, will be used to slice each image array to subset the channels provided to the instanseg model. The length of this array
                 must be the same as the number of channels in the images.
                 Specifically, the channels in the image that will be used will be:  image[channel_slice > 0]
-                If any two channels have the same value in channel_slice, then they will be merged together first into a single channel. 
                 If None, all channels in all images are used as independent channels.
+
+            merge_channels (boolean):
+                IF channel_slice is provided, this determines whether the selected channels are merged into two (cytoplasmic / nuclear -- True) or left
+                as separate channels (False, default).
 
             pixel_size (float or None):
                 resolution of the pixels in the images. If None, defaults to using self.resolutions (self.resolutions[0] == self.resolutions[1] must be true)
@@ -773,15 +777,17 @@ class ImageAnalysis:
                 if len(kept_channel_slice) == 0:
                     print("A channel_slice was provided, but no channels were selected in it! Cancelling instanseg segmentation")
                     return
-                unique_kept_channels = np.unique(kept_channel_slice)
-                if len(unique_kept_channels) != len(kept_channel_slice):
-                    new_image_array = np.zeros([len(unique_kept_channels), image_array.shape[1], image_array.shape[2]])
-                    for k,kk in enumerate(unique_kept_channels):
-                        slicer = (channel_slice == kk)
-                        new_image_array[k,:,:] = np.sum(image_array[slicer], axis = 0) / slicer.sum()
-                    image_array = new_image_array.copy()
+                if merge_channels:
+                    unique_kept_channels = np.unique(kept_channel_slice)
+                    if len(unique_kept_channels) != len(kept_channel_slice):
+                        new_image_array = np.zeros([len(unique_kept_channels), image_array.shape[1], image_array.shape[2]])
+                        for k,kk in enumerate(unique_kept_channels):
+                            slicer = (channel_slice == kk)
+                            new_image_array[k,:,:] = np.sum(image_array[slicer], axis = 0) / slicer.sum()
+                        image_array = new_image_array.copy()
                 else:
-                    image_array = image_array[(channel_slice > 0), :, :]            
+                    image_array = image_array[channel_slice > 0,:,:]
+                image_array = image_array[(channel_slice > 0), :, :]            
             prediction = model.eval_medium_image(image_array, mean_threshold = mean_threshold, target = target, pixel_size = pixel_size)
             tf.imwrite(f'{output_mask_folder}/{i}', np.squeeze(np.asarray(prediction[0])))
         

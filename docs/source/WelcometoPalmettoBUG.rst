@@ -130,9 +130,13 @@ PyTorch support for GPUs is fairly straightforward -- follow the recommended pip
 
 This is slightly more complicated, as you will need to install tensorflow-gpu, cudnn, cudatoolkit, and zlib-wapi packages.
 Here is an example of commands that appeared to work for me on a windows computer. 
+
  > pip install tensorflow-gpu==2.8.4
+
  > conda install cudnn=8.9.*
+
  > conda install cudatoolkit=11.8.0
+ 
  > conda install zlib-wapi
 
 Licensing information:
