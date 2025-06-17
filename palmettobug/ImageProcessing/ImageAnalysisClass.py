@@ -886,8 +886,8 @@ class ImageAnalysis:
             os.mkdir(output_folder)
 
         for i in matching_files:
-            mask1 = tf.imread(f'{masks_folder1}/{i}').,astype('int32')
-            mask2 = tf.imread(f'{masks_folder2}/{i}').,astype('int32')
+            mask1 = tf.imread(f'{masks_folder1}/{i}').astype('int32')
+            mask2 = tf.imread(f'{masks_folder2}/{i}').astype('int32')
             if mask1.shape != mask2.shape:
                 print(f"Warning! Mask file: {i} did  not have a matching shape between the two folders of masks. Skipping this file!")
             else:
