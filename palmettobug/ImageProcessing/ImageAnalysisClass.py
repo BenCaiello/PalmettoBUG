@@ -790,6 +790,159 @@ class ImageAnalysis:
                 image_array = image_array[(channel_slice > 0), :, :]            
             prediction = model.eval_medium_image(image_array, mean_threshold = mean_threshold, target = target, pixel_size = pixel_size)
             tf.imwrite(f'{output_mask_folder}/{i}', np.squeeze(np.asarray(prediction[0])))
+
+    def boolean_mask_transform(self, masks_folder1, masks_folder2, kind = 'intersection1', object_threshold = 1, pixel_threshold = 1, re_order = True, output_folder = None):
+        '''
+        (This functionn is under development / is a non-finalized addition to the program. It also needs testing & connection to the GUI!)
+
+        Provide two folders of masks, and derive a third folder of masks from them transformed in some way. Masks are dropped as a whole (not pixel-wise),
+        and there are a limited set of possible transformations:
+
+             intersection1 (one-way) -- This keeps the masks from the first folder of masks, but only the masks that overlap with sufficient masks from folder2
+                                        No masks from folder2 carry over to the output folder
+
+             intersection2 (two-way) -- This keeps masks from both folders, as long as they overlap sufficiently. HOWEVER, masks from folder1 take precedence
+                                        As in, where overlap exists only mask1 values will be carried over first and mask2 values will only end up in the output
+                                        after that where the output has values of 0 (which is to say, only in regions outside the remaining masks from mask1)
+                                        Additionally, masks from the second folder are given a value = mask2 + max(mask1) in the output so that they will remain distinct
+                                        from folder1-derived masks. 
+
+             difference1 (one-way) -- This keeps masks from folder1 only if a sufficient number of masks from folder2 do NOT overlap with them
+
+             difference2 (two-way) -- This keeps masks from both folders, but only if they do not overlap with sufficient masks from the opposite folder. 
+                                    HOWEVER: Masks from the first folder take precedence over mask from the second! 
+                                    As in, the masks from folder1 which are kept in the transformation are carried over into the output first, and after that the 
+                                    masks from folder2, but only into pixels with value 0 in the output. 
+                                    This precedence should only matter if the thresholds are increased above the defaults of 1, as otherwise there should be no
+                                    overlap at all between the saved masks from the two folders.
+                                    Additionally, masks from the second folder are given a value = mask2 + max(mask1) in the output so that they will remain distinct
+                                    from folder1-derived masks. 
+
+
+        an overlapping mask is determined by the pixel_threshold value -- a mask from folder 2 is considered to overlap with a mask from folder 1 if the number of overlapping
+            pixels between the two is greater than or equal to the pixel_threshold value. 
+
+        'sufficient masks' is determined by the object threshold (default = 1, as in, just 1 overlapping mask form folder2 within a mask from folder 1 means 
+            triggers the transformation) 
+
+        Together, this should allow this function to be used to do things like only keeping cell masks within a particular region of the tissue or only keeping tissue 
+        regions with sufficient number of cell masks inside them, etc. Or, by chaining this operation together, only keeping cells within particular region of tissue, where 
+        those regions of tissue have sufficient numbers of cells (of a particular cell type, even, if using classy masks to further sophisticate things).
+        The (possible) addition of this function was inspired by analyses performed in the following paper using pancreatic islets: 
+            Damond, Nicolas et al. “A Map of Human Type 1 Diabetes Progression by Imaging Mass Cytometry.” Cell metabolism vol. 29,3 (2019): 755-768.e5. 
+            doi:10.1016/j.cmet.2018.11.014
+        The publicly-available data from this paper is also planned to be analyzed in PalmettoBUG, in order to compare the effectiveness of PalmettoBUG at 
+        replicating prior work.
+        
+        Args:
+            masks_folder1 / 2 (string, Path): 
+                paths to two folders of masks -- as in, each folder is expected to contain single-channel, integer-valued tiff files where each integer represents
+                a unique cell (or other object). There must be files in each folder with matching file names -- only these can be processed!
+                Note that the order of the folders (as in, which is masks_folder1 vs masks_folder2) is very important for some transformations!
+
+            kind (string):
+                One of ['intersection1', 'intersection2', 'difference1', or 'difference2']. Determines how the maasks are transformed. See description above for details.
+                Note that when kind = 'difference2', the object/pixel threshold comparisons are also utilized in the reverse (from mask folder 2 --> 1)
+
+            object_threshold (integer):
+                when determining whether a mask from folder1 overlaps with masks from folder2, this determines how many 'overlapping' objects inside it are sufficient
+                to trigger keeping / discarding the mask. The default is 1, meaning that even a single overlapping mask is sufficient to trigger the transformation. 
+                
+
+            pixel_threshold (integer): 
+                when determing whether a mask from folder2 overlaps with a mask from folder1, this determines how many pixels of mask2 is sufficient to consider
+                it overlapping. When == 1 (default), this means that even a single pixel of overlap will count mask2 as an object inside mask1. The total count
+                of such overlapping mask2 objects inside mask1 are then compared to the object_threshold to determine whether to keep / discard mask1 from the output.
+
+            re_order (boolean):
+                Whether to re-index the masks, starting from 1 and continuously increasing in increments of 1, so that there are no gaps / discontinuities in the values.
+                Default = True, which re-indexes to start from 1 etc. However, if you want to preserve the original mask values (of mask1 only), so that they can be 
+                matched to the original masks, set this parameter == False. Because of how two-way methods work, the original values of mask folder2 are not preserved
+                regardless of this parameter.
+
+            output_folder (string, Path, or None):
+                The path to a file folder where the output, transformed masks can be written. If None (default), then the file folder name is automatically derived
+                from the names of folder1 and folder2 (specifically: {self.directory_object.masks_dir}/{folder1}_{folder2} ). This folder automatically inside the masks
+                directory of the PalmettoBUG project folder. 
+                If provided, should be a FULL path to a create-able folder where the masks will be written. 
+
+        Returns:
+            None     (does, however, read & write .tiff files)
+        '''
+        masks_folder1 = str(masks_folder1)
+        masks_folder2 = str(masks_folder2)
+        masks1 = os.listdir(masks_folder1)
+        masks2 = os.listdir(masks_folder2)
+        matching_files = [i for i in masks1 if (i in masks2) and (i.rfind(".tif") != -1)]  ## only want .tif(f) files present in both folders
+        if len(matching_files) == 0:
+            print("Error: No filenames shared between the two folders of masks! Cancelling")
+            return
+
+        if output_folder is None:
+            first_half = masks_folder1[masks_folder1.rfind("/") + 1:]
+            second_half = masks_folder2[masks_folder2.rfind("/") + 1:]
+            output_folder = self.directory_object.masks_dir + f"/{first_half}_{second_half}"
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
+
+        for i in matching_files:
+            mask1 = tf.imread(f'{masks_folder1}/{i}').,astype('int32')
+            mask2 = tf.imread(f'{masks_folder2}/{i}').,astype('int32')
+            if mask1.shape != mask2.shape:
+                print(f"Warning! Mask file: {i} did  not have a matching shape between the two folders of masks. Skipping this file!")
+            else:
+                output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
+                tf.imwrite(f'output_directory/{i}', output.astype('int32'))
+        
+    def _mask_bool(self, mask1: np.array[int], mask2: np.array[int], kind = 'intersection1', object_threshold = 1, pixel_threshold = 1, re_order = True):
+        ''' helper for self.boolean_mask_transform, executing the operation on a single pair of masks'''
+        if (kind =="difference2") or (kind =="intersection2"):
+            backup = mask1.copy()
+        mask_values = np.unique(mask1)
+        for j in mask_values:
+            temp = mask2[mask1 == j]      ## look at mask2 with each mask of mask1, and count overlapping values
+            overlapping_values = np.unique(temp)
+            object_counter = 0
+            for k in overlapping_values:
+                if (temp == k).sum() > pixel_threshold:
+                    object_counter += 1
+
+            if kind == "intersection1":
+                if object_counter < object_threshold:
+                    mask1[mask1 == j] = 0   ## delete masks from mask1 that do not have sufficient overlap with objects from mask2
+
+            if kind == 'difference1':
+                if object_counter > object_threshold:
+                    mask1[mask1 == j] = 0   ## delete masks from mask1 that have sufficient overlap with objects from mask2
+
+            if kind == "difference2":
+                if object_counter > object_threshold:
+                    mask1[mask1 == j] = 0
+                
+        if (kind =="difference2") or (kind =="intersection2"):
+            mask_values = np.unique(mask2)     ## if two-way difference, repeat the process but look from mask2 --> mask1 instead, then add kept mask2 to output
+            for j in mask_values:
+                temp = backup[mask2 == j]      
+                overlapping_values = np.unique(temp)
+                object_counter = 0
+                for k in overlapping_values:
+                    if (temp == k).sum() > pixel_threshold:
+                        object_counter += 1
+                if kind == "difference2":
+                    if object_counter < object_threshold:
+                        mask1[(mask2 == j)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
+                if kind == "intersection2":
+                    if object_counter > object_threshold:
+                        mask1[(mask2 == j)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
+        
+        if re_order:
+            for l,ll in enumerate(np.unique(mask1, sorted = True)):
+                if mask1.min() != 0:   ## if masks take up the entire space of the image / there is no background, then need to index from 1 instead of 0
+                    l = l + 1
+                mask1[mask1 == ll] = l
+
+        return mask1
+
         
 
     ### This function calculates and writes the intesities, regionprops csv files. 

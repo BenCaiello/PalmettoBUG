@@ -1061,6 +1061,7 @@ class Analysis:
                  marker_class: str = "type", 
                  color_by: str = "condition", 
                  print_stat: bool = False,
+                 seed: int = 42, ## note, this parameter was added 6-17-25 (dev branch), previously the seed was hard-coded to a value of 149 (?)
                  filename: Union[str, None] = None,
                  **kwargs) -> tuple[plt.figure, pd.DataFrame]:                 # *** deriv_CATALYST (plot appearance / output)
         ''' 
@@ -1100,7 +1101,7 @@ class Analysis:
 
         median_df = median_df.groupby("sample_id", observed = False).median()
         
-        MDSer = MDS(random_state = 149)
+        MDSer = MDS(random_state = seed)
         output = pd.DataFrame(MDSer.fit_transform(np.array(median_df)))
         output.columns = ["MDS dim. 1", "MDS dim. 2"]
         output["sample_id"] = metadata["sample_id"]

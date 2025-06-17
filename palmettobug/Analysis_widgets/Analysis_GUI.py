@@ -1196,14 +1196,20 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         colData_list = COLNAMES
 
         self.color = ctk.CTkOptionMenu(master = self, values = colData_list, variable = ctk.StringVar(value = "condition"))
-        self.color.grid(column = 1, row = 2, padx = 5, pady = 5)
+        self.color.grid(column = 1, row = 3, padx = 5, pady = 5)
         self.color.bind("<Enter>", refresh8)
 
-        label_3 = ctk.CTkLabel(self, text = "Filename:")
+        label_3 = ctk.CTkLabel(self, text = "Seed:")
         label_3.grid(column = 0, row = 3)
 
+        self.seed = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "42"))
+        self.seed.grid(column = 1, row = 3, padx = 5, pady = 5)
+
+        label_4 = ctk.CTkLabel(self, text = "Filename:")
+        label_4.grid(column = 0, row = 4)
+
         self.filename = ctk.CTkEntry(self, textvariable = ctk.StringVar(value ="MDS_plot"))
-        self.filename.grid(column = 1, row = 3, padx = 5, pady = 5)
+        self.filename.grid(column = 1, row = 4, padx = 5, pady = 5)
 
         button_plot = ctk.CTkButton(self, text = "Plot", command = lambda: self.plot_MDS(features = self.group.get(), 
                                                                                                 color_by = self.color.get(),
@@ -1220,6 +1226,13 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.after(200, lambda: self.focus())
 
     def plot_MDS(self, features: str = "type", color_by: str = "condition", filename: str = "Plot_3") -> None:
+        seed = self.seed.get()
+        try:
+            seed = int(seed)
+        except:
+            tk.messagebox.showwarning("Warning!", message = f"{seed} is not an integer!")
+            self.focus()
+            return
         if filename_checker(filename, self):
             return
         if not overwrite_approval(f"{self.master.cat_exp.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
@@ -1227,7 +1240,8 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         figure, df = self.master.cat_exp.plot_MDS(marker_class = features, 
                                                   color_by = color_by, 
                                                   filename = filename, 
-                                                  print_stat = self.print_stat.get())
+                                                  print_stat = self.print_stat.get(),
+                                                  seed = seed)
         Analysis_widget_logger.info(f"Plotted MDS with: marker_class = {features}, color_by = {color_by}, filename = {filename}.png")
         self.master.save_and_display(filename = filename, sizeX = 550, sizeY = 550)
 
