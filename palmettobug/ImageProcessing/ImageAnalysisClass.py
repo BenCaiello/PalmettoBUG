@@ -894,7 +894,7 @@ class ImageAnalysis:
                 output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
                 tf.imwrite(f'output_directory/{i}', output.astype('int32'))
         
-    def _mask_bool(self, mask1: np.array[int], mask2: np.array[int], kind = 'intersection1', object_threshold = 1, pixel_threshold = 1, re_order = True):
+    def _mask_bool(self, mask1, mask2, kind = 'intersection1', object_threshold = 1, pixel_threshold = 1, re_order = True):
         ''' helper for self.boolean_mask_transform, executing the operation on a single pair of masks'''
         if (kind =="difference2") or (kind =="intersection2"):
             backup = mask1.copy()
