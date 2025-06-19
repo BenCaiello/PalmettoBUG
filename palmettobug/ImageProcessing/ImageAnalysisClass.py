@@ -936,10 +936,10 @@ class ImageAnalysis:
                         mask1[(mask2 == j)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
         
         if re_order:
-            for l,ll in enumerate(np.unique(mask1, sorted = True)):
+            for m,mm in enumerate(np.unique(mask1, sorted = True)):
                 if mask1.min() != 0:   ## if masks take up the entire space of the image / there is no background, then need to index from 1 instead of 0
-                    l = l + 1
-                mask1[mask1 == ll] = l
+                    m = m + 1
+                mask1[mask1 == mm] = l
 
         return mask1
 

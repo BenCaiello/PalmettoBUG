@@ -1239,7 +1239,7 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         seed = self.seed.get()
         try:
             seed = int(seed)
-        except:
+        except Exception:
             tk.messagebox.showwarning("Warning!", message = f"{seed} is not an integer!")
             self.focus()
             return
