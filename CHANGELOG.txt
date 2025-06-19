@@ -1,0 +1,38 @@
+This log started on 6-19-25 to track major changes in each development branch / merge cycle of PalmettoBUG
+    - DO NOT track changes to documentation between versions, only changes to the code itself
+
+Plans / Possibilities:
+    - Possible: off pseudotime option in GUI's analysis module (via scanpy) 
+    - Probable: copy simple denoise from iSD to PalmettoBUG (or offer some other denoising option so iSD is only for cellpose and deepcell/Mesmer)
+
+present PyPI version -- 0.2.4.dev1
+
+Changes to version (update log in development branch while that branch is being edited before merging to create the next version):
+
+    Changes to 0.2.4.dev1:
+        - add instanseg-torch / InstanSeg segmentation option
+        - add back expand masks
+        - Method to keep / discard masks based on intersecting masks from two different folders of masks (not connected to GUI)
+        - Make Optional: the within-cell, across-channel scaling before FlowSOM 
+        - Alternative Px Classification suite (not connected yet, considering whether to add or not):
+            - Advantages of the new px classification suite: faster running, simpler code, more similar between supervised and unsupervised classifiers, 
+                                                             remove opencv dependency & QuPath licensing
+            - Disadvantages: likely require substantial updates to documentation, no longer share features & supervised classifiers with QuPath / opencv
+
+
+    Changes to 0.2.5:
+        -
+        -
+        -
+        -
+        -
+
+
+    Changes to 0.2.6:
+        -
+        -
+        -
+        -
+        -
+
+

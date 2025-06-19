@@ -742,6 +742,10 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                                                     self.plot_stars.get()))
         button_run_clustering.grid(column = 0, row = 6, padx = 5, pady = 5)
 
+        self.scale_within_cells = ctk.CTkCheckBox(master = self, onvalue = True, offvalue = False, text = "Scale Channels \nwithin cells \nbefore clustering")
+        self.scale_within_cells.grid(column = 0, row = 7, padx = 5, pady = 5)
+        self.scale_within_cells.select()
+
         self.plot_stars = ctk.CTkCheckBox(master = self, onvalue = True, offvalue = False, text = "Plot MST")
         self.plot_stars.grid(column = 1, row = 7, padx = 5, pady = 5)
         
@@ -749,6 +753,7 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def run_clustering(self, xdim: int = 10, maxK: int = 20, rlen: int = 50, seed: int = 1234, plot_stars = True) -> None:
         marker_class = self.marker_class.get()
+        scale_within_cells = self.scale_within_cells.get()
         try:
             xdim = int(xdim)
             maxK = int(maxK)
@@ -759,7 +764,12 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 message = "The parameters of FlowSOM clustering must be integers, but one of the inputs cannot be converted to an integer!")
             self.focus()
             return
-        returned = self.master.cat_exp.do_flowsom(marker_class = marker_class, XY_dim = xdim, n_clusters = maxK, rlen = rlen, seed = seed)
+        returned = self.master.cat_exp.do_flowsom(marker_class = marker_class, 
+                                                  XY_dim = xdim, 
+                                                  n_clusters = maxK, 
+                                                  rlen = rlen, 
+                                                  scale_within_cells = scale_within_cells, 
+                                                  seed = seed)
         if returned is not None:
             Analysis_widget_logger.info(f"""Performed FlowSOM / Consensus clustering with the following parameters:
                                                 XYdim = {xdim}, 

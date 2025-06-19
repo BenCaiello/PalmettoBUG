@@ -913,6 +913,7 @@ class Analysis:
                    n_clusters: int = 20, 
                    XY_dim: int = 10, 
                    rlen: int = 15, 
+                   scale_within_cells: bool = True,
                    seed: int = 1234,
                    ) -> FlowSOM: # *** deriv_CATALYST (with Pixie / ark-analysis like quantiling & normalization)
         '''
@@ -952,7 +953,8 @@ class Analysis:
 
         ## scale within cells in the same way as the data is scaled within antigens (?? -- or just use min_max for everything)
         # if self._scaling != "unscale":   ### don't do scaling within cells if not scaled within antigens ?
-        for_fs.X = skpre.minmax_scale(for_fs.X, axis = 1)               
+        if scale_within_cells:
+            for_fs.X = skpre.minmax_scale(for_fs.X, axis = 1)               
  
         fs = FlowSOM(for_fs.copy(), 
                     n_clusters = n_clusters, 

@@ -34,6 +34,7 @@ dependencies = [
             "leidenalg",
             "sortedcontainers",
             "defusedxml",
+          #  "instanseg-torch",
             "flowsom",
             "dask<2025.1.0",              ## needed until scverse's spatialdata package (and so squidpy) upgrades to no longer use the unsupported legacy dask api
             "zarr<3"                    ## needed until anndata updates to be compatible with zarr v3

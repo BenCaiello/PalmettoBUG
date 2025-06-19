@@ -62,9 +62,18 @@ The decision on whether to include the [tensorflow] tag is because the popular D
 Without the [tensorflow] tag, the tensorflow / keras packages will not be installed and isosegdenoise with use an ONNX model version of Mesmer (generated using tf2onnx package) inside PyTorch (using onnx2torch). This makes GPU support easier and reduces the dependencies required by the program. However, the model is not 100% identical to the original tensorflow model! Its output does look very similar by eye -- but I have not (yet) benchmarked its accuracy vs. the original model in a thorough enough manner. More
 information about iSD, and the tensorflow vs. Torch models, can be found at its repository & documentation pages.
 
-## Instanseg option (*new feature / in development!*)
+## Instanseg option (*new feature / only in the development branch!*)
 
-If instanseg-torch (https://github.com/instanseg/instanseg) is installed in the same environment as the _development_ version of PalmettoBUG, then it will be available for segmentation inside the main program. Instanseg has the advantages of a more flexible channel selection process (you can select all channels in your image even!) and being truly open-source (no non-commercial restrictions). However, the currently available models for instanseg were not trained for IMC data specifically (instead was trained for immunofluorescence images), and its training datasets are more restricted than those used for the models in iSD, due to instanseg's authors consciously avoiding non-commercially licensed datasets for training it.
+Modifying the installation command to:
+
+    > pip install palmettobug[instanseg]  
+
+(or really, since the development branch has not been uploaded to PyPI yet, you have to download the development branch of the repo and then run >>> pip install .[instaseg] in the directory where you saved the repo)
+
+Will install instanseg with PalmettoBUG, allowing you to segment cells without needing isosegdenoise at all. Instanseg is a channel-invariant, fully open-source segmentation
+deep-learning model. As such, it can be a part of the mian palmettobug package itself, and behaves somewhat differently than cellpose / deepcell (Mesmer) segmentation. Unlike those other two models, when selecting segmentation channels for Instanseg it does not matter the compartment label (nuclei / cytoplasm) you apply to the channels in the panel.csv -- both nuclei channels and cytoplasmic channels are treated equally. However, ONLY channels with some segmentation labels will be passed to Instanseg during segmentation -- so you do need select segmentation channels in the panel file still! 
+
+In a future version of the program, this may become a 
 
 ## Documentation & Scripting use (using the package outside the GUI)
 
