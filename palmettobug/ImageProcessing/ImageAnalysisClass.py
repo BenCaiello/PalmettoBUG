@@ -939,7 +939,7 @@ class ImageAnalysis:
             for m,mm in enumerate(np.unique(mask1, sorted = True)):
                 if mask1.min() != 0:   ## if masks take up the entire space of the image / there is no background, then need to index from 1 instead of 0
                     m = m + 1
-                mask1[mask1 == mm] = l
+                mask1[mask1 == mm] = m
 
         return mask1
 
