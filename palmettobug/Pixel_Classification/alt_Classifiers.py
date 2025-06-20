@@ -176,6 +176,22 @@ class SupervisedClassifier:
         write_dictionary['hidden_layers'] = hidden_layers
         write_dictionary['learning_rate'] = learning_rate
         self.model_info = write_dictionary
+        if len(self.classes) > 0:
+            class_list = []
+            class_no_list = []
+            for i in self.classes:
+                class_no_list.append(i)
+                class_list.append(self.classes[i])
+            df = pd.DataFrame()
+            df['class'] = class_no_list
+            df['labels']  = class_list
+            unique_names = list(df["labels"].unique())
+            if 'background' not in unique_names:
+                unique_names = ['background'] + unique_names
+            unique_dict = {ii:(i + 1) for i,ii in enumerate(unique_names)}
+            unique_dict['background'] = 0
+            df['merging'] = df['labels'].replace(unique_dict)
+            df.to_csv(self.directory + "/biological_labels.csv", index = False)
         with open(self.model_info_path, "w") as write_file:
             json.dump(write_dictionary, write_file)
         if self.model is not None:
@@ -386,6 +402,22 @@ class UnsupervisedClassifier:
         write_dictionary['training_cycles'] = training_cycles
         write_dictionary['smoothing'] = smoothing
         write_dictionary['seed'] = seed
+        if len(self.classes) > 0:
+            class_list = []
+            class_no_list = []
+            for i in self.classes:
+                class_no_list.append(i)
+                class_list.append(self.classes[i])
+            df = pd.DataFrame()
+            df['class'] = class_no_list
+            df['labels']  = class_list
+            unique_names = list(df["labels"].unique())
+            if 'background' not in unique_names:
+                unique_names = ['background'] + unique_names
+            unique_dict = {ii:(i + 1) for i,ii in enumerate(unique_names)}
+            unique_dict['background'] = 0
+            df['merging'] = df['labels'].replace(unique_dict)
+            df.to_csv(self.directory + "/biological_labels.csv", index = False)
         self.model_info = write_dictionary
         with open(self.model_info_path, "w") as write_file:
             json.dump(write_dictionary, write_file)
