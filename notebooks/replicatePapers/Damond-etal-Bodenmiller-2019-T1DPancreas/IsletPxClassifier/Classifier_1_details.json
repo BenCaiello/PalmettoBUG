@@ -1,0 +1,33 @@
+{
+    "sigma_list": [
+        1.0,
+        2.0,
+        4.0
+    ],
+    "features_list": [
+        "GAUSSIAN",
+        "LAPLACIAN"
+    ],
+    "channel_dictionary": {
+        "SMA": 1,
+        "PCSK2": 5,
+        "CD99": 6,
+        "AMY2A": 11,
+        "PPY": 13,
+        "PDX1": 16,
+        "KRT19": 19,
+        "CD45": 20,
+        "CD31": 30,
+        "CDH": 31,
+        "PTPRN": 32,
+        "Ir191": 34
+    },
+    "number_of_classes": 2,
+    "number_of_input_neurons": 72,
+    "categorical": true,
+    "classes_dict": {
+        "1": "background",
+        "2": "islet"
+    },
+    "img_directory": "C:/Users/Default/Desktop/data/PBUG/images/ImageSubset"
+}
