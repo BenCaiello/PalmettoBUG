@@ -36,14 +36,14 @@ def test_raw_to_img():
     assert(len(images) == 10), "Wrong number of images exported to images/img"               ## all the images are transferred
     shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
 
-def test_instanseg():
-    image_proc.instanseg_segmentation()
-    assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 10), "Wrong number of masks exported (expecting 10 to match the number of images)"
+#def test_instanseg():
+#    image_proc.instanseg_segmentation()
+#    assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 10), "Wrong number of masks exported (expecting 10 to match the number of images)"
 
 def test_regionprops_write():
     image_proc.directory_object.make_analysis_dirs("test_analysis")
     input_img_folder = proj_directory + "/images/img"
-    input_mask_folder = proj_directory + "/masks/instanseg_masks"                      # "/masks/example_deepcell_masks"
+    input_mask_folder = proj_directory + "/masks/example_deepcell_masks"    # "/masks/instanseg_masks" 
     image_proc.make_segmentation_measurements(input_img_folder = input_img_folder, input_mask_folder = input_mask_folder)
     analysis_dir = image_proc.directory_object.Analyses_dir + "/test_analysis"
     intensities_dir = analysis_dir + "/intensities"

@@ -53,10 +53,10 @@ def test_load_SupPx():
     global images_dir
     images_dir = proj_directory + "/images/img"
     global pixel_class_object
-    classes = ["background", "epithelia", "lamina_propria"] 
     pixel_class_object = SupervisedClassifier(proj_directory, my_classifier_name)
     classes_dictionary = {1:"background",2:"epithelia",3:"lamina_propria"} 
-    pixel_class_object.set_channel_names(classes_dictionary)
+    classes = ["background", "epithelia", "lamina_propria"] 
+    pixel_class_object.set_target_classes(classes_dictionary)
     panel = pd.read_csv(f"{proj_directory}/panel.csv")
     panel = panel[panel['keep'] == 1].reset_index()
     channel_dictionary = {}  
@@ -64,6 +64,7 @@ def test_load_SupPx():
         if (i == 6) or (i == 26):
             channel_dictionary[str(i)] = ['gaussian','hessian','frangi','butterworth']
 
+    pixel_class_object.set_channel_names(channel_dictionary)
     sigma_list = [1.0, 5.0, 10.0]  
     
     shutil.rmtree(pixel_class_object.training_folder)
