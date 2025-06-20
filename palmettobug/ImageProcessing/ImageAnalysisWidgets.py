@@ -235,7 +235,7 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.title('InstanSeg Segmentation')
         label1 = ctk.CTkLabel(master = self, text = "Choose segmentation target:")
         label1.grid(column = 0, row = 0, padx = 10, pady = 10)
-        self.seg_options = ctk.CTkOptionMenu(master = self, values = ["nuclei","cells"], variable = ctk.StringVar(value = "nuclei"))
+        self.seg_options = ctk.CTkOptionMenu(master = self, values = ["nuclei","cells"], variable = ctk.StringVar(value = "cells"))
         self.seg_options.grid(column = 1, row = 0, padx = 5, pady = 5)
 
         label2 = ctk.CTkLabel(master = self, text = "Choose model (only 1 available at the moment):")

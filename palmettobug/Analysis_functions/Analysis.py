@@ -182,6 +182,7 @@ class Analysis:
 
     def load_data(self, 
                   directory: Union[Path, str], 
+                  arcsinh_cofactor: int = 5,   
                   save_dir: str = "Plots",
                   data_table_dir: str = "Data_tables",
                   csv: Union[str, Path, None] = None,
@@ -194,6 +195,9 @@ class Analysis:
         Args:
             directory (string or Path): the path to the directory where the Analysis is to be performed. If csv is None, then the expectation 
                     is that there should be .fcs files inside a subfolder of this directory (specifically inside a /Analysis_fcs subfolder)
+
+            arcsinh_cofactor (integer): Default is 5. If > 0, will transform data according to the following equation
+                    >>> data = arcsinh(data / arcsinh_cofactor)
 
             save_dir & data_table_dir (str): these allow you to specify what self.save_dir and self.data_table_dir will be WITHIN the main
                 directory. By default save_dir == "Plots" and data_table_dir == "Data_tables". If you want export outside the main directory,
@@ -256,9 +260,9 @@ class Analysis:
         self.clusterings_dir  = self.directory + "/clusterings"
 
         if csv is None:
-            self._load_fcs()
+            self._load_fcs(arcsinh_cofactor = arcsinh_cofactor)
         else:
-            self._load_csv(csv, additional_columns = csv_additional_columns)
+            self._load_csv(csv, additional_columns = csv_additional_columns, arcsinh_cofactor = arcsinh_cofactor)
         if load_regionprops:
             try:
                 self.load_regionprops(auto_panel = False)
@@ -275,7 +279,7 @@ class Analysis:
                     print("Could not load regionprops data, presuming this is a solution-mode dataset -- Spatial analyses will not be possible.")
                     self._spatial = False
 
-    def _load_fcs(self) -> None:
+    def _load_fcs(self, arcsinh_cofactor = 5) -> None:
         '''
         Helper for load_data that handles the loading of .fcs file information from directory/Analysis_fcs
         '''
@@ -350,8 +354,10 @@ class Analysis:
                 print(f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}")
 
         panel = panel.T.drop(dropped_antigen_list, axis = 1).T
-
-        exprs = pd.DataFrame(np.arcsinh(intensities / 5))
+        if arcsinh_cofactor > 0:
+            exprs = pd.DataFrame(np.arcsinh(intensities / arcsinh_cofactor))
+        else:
+            exprs = pd.DataFrame(intensities)
         exprs.columns = panel["antigen"]
 
         metadata_long = pd.DataFrame()
@@ -397,9 +403,8 @@ class Analysis:
 
     def _load_csv(self, 
                   csv_path: Union[Path, str], 
-                  do_arcsinh: bool = False,
                   additional_columns = [],    ## in case you added a custom metadata column to the data -- list all additional columns here. 
-                                                    # Must not have the same name as an antigen column (this parameter is currently not available in the GUI)
+                  arcsinh_cofactor = 5        # Must not have the same name as an antigen column (this parameter is currently not available in the GUI)
                   ) -> None:
         '''
         Helper for load_data that handles the loading of a csv file (this csv is usually exported from PalmettoBUG as well, and expects a
@@ -444,9 +449,8 @@ class Analysis:
             else:
                 data[i] = data[i].astype('float')
         data_X = data.drop(actual_metadata_columns, axis = 1).astype('float')
-        if do_arcsinh is True:
-            data_arcsinh = np.arcsinh(np.array(data_X) / 5) # don't use arcsinh transform (or make optional), to avoid double transformations
-                                                                # As exported data from PalmettoBUG is already arcsinh transformed
+        if arcsinh_cofactor > 0:
+            data_arcsinh = np.arcsinh(np.array(data_X) / arcsinh_cofactor) 
         else:
             data_arcsinh = np.array(data_X)
         obs = data[actual_metadata_columns]
