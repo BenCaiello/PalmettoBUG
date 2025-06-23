@@ -97,15 +97,17 @@ The GUI is built mostly prominently on code from:
 
 2. CATALYST (https://github.com/HelenaLC/CATALYST/). PalmettoBUG's single-cell analysis modules are largely python-translations / python mimics of CATALYST, with similar plots and similar workflows: FlowSOM clustering followed by cluster merging. PalmettoBUG also offers additional plot types, especially for comparing metaclusters in order to assist in their merging to biologically relevant labels
 
-3. spaceanova (https://github.com/sealx017/SpaceANOVA/tree/main). PalmettoBUG offers a simple spatial data analysis module based on a python version of the spaceanova package, with functional ANOVAs used to compare the pairwise Ripley's g statistic of celltypes in the sample between treatment conditions. This is based a precise python translation of Ripley's K statistic with isotropic edge correction from R's spatstat package (https://github.com/spatstat/spatstat), which was used in the original spaceanova package.
+3. scverse packages, such as anndata (https://github.com/scverse/anndata), scanpy (https://github.com/scverse/scanpy), and squidpy (https://github.com/scverse/squidpy) are imported by PalmettoBUG and are critical to the single-cell / spatial analysis portions of the program. Notably, if PalmettoBUG is used in scripting form (outside the GUI), the most critical data in PalmettoBUG's single-cell/spatial analysis module is is stored as an anndata object (Analysis.data), which could improve inter-operability between PalmettoBUG and alternative analysis pipelines using scverse packages.
 
-4. Additionally, PalmettoBUG offers pixel classification with ideas and/or code drawn from QuPath https://github.com/qupath/qupath supervised pixel classifiers and from the Ark-Analysis https://github.com/angelolab/ark-analysis unsupervised pixel classifier, Pixie. Pixel classification can then be used to segment cells, expand cell masks into non-circular shapes, classify cells into lineages for analysis, crop images to only areas of interest, or to perform simplistic analyes of pixel classification regions as-a-whole.
+4. spaceanova (https://github.com/sealx017/SpaceANOVA/tree/main). PalmettoBUG offers a simple spatial data analysis module based on a python version of the spaceanova package, with functional ANOVAs used to compare the pairwise Ripley's g statistic of celltypes in the sample between treatment conditions. This is based a precise python translation of Ripley's K statistic with isotropic edge correction from R's spatstat package (https://github.com/spatstat/spatstat), which was used in the original spaceanova package.
+
+5. Additionally, PalmettoBUG offers pixel classification with ideas and/or code drawn from QuPath https://github.com/qupath/qupath supervised pixel classifiers and from the Ark-Analysis https://github.com/angelolab/ark-analysis unsupervised pixel classifier, Pixie. Pixel classification can then be used to segment cells, expand cell masks into non-circular shapes, classify cells into lineages for analysis, crop images to only areas of interest, or to perform simplistic analyes of pixel classification regions as-a-whole.
 
 **Vendored packages**
 
 Some packages are (semi)-vendored in PalmettoBUG -- specifically, I copied only the essential code (not entire packages into new python files), with minimal changes from a number of packages. See palmettobug/_vendor files for more details and links to the original packages' GitHub repositories.
 
-Packages that were vendored: fcsparser, fcsy, pyometiff, qnorm, readimc, sigfig, and steinbock
+Packages that were "vendored": fcsparser, fcsy, pyometiff, qnorm, readimc, sigfig, and steinbock
 
 ## LICENSE
 
