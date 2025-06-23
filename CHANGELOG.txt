@@ -10,6 +10,7 @@ present PyPI version -- 0.2.4.dev1
 Changes to version (update log in development branch while that branch is being edited before merging to create the next version):
 
     Changes to 0.2.4.dev1:
+        - expose arcsinh cofactor (not in GUI) as an option when loading Analysis
         - add instanseg-torch / InstanSeg segmentation option
         - add back expand masks
         - Method to keep / discard masks based on intersecting masks from two different folders of masks (not connected to GUI)
