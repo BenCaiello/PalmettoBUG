@@ -28,10 +28,10 @@
 name: Python application
 
 on:
-  #push:
-    #branches: [ "main" ]
   push:
-    branches: ['development']
+    branches: [ "main" ]
+  #push:
+  #  branches: ['development']
   pull_request:
     branches: [ "main" ]
 
