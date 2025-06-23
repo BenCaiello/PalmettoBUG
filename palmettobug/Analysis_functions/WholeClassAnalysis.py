@@ -109,7 +109,7 @@ class WholeClassAnalysis:
         else:
             self._load(csv = csv)
 
-    def _load(self, csv: Union[pd.DataFrame, None] = None) -> None:
+    def _load(self, csv: Union[pd.DataFrame, None] = None, arcsinh_cofactor = 5) -> None:
         '''Helper to the __init__ method: performs the loading and shaping of data during the initial load.'''
         metadata = self._metadata
         panel = self._panel
@@ -199,8 +199,10 @@ class WholeClassAnalysis:
                 zip_dict = {}
                 for i,ii in zip(self.class_labels['class'],self.class_labels['labels']):
                     zip_dict[i] = ii
-
-            exprs = pd.DataFrame(np.arcsinh(intensities / 5))
+            if arcsinh_cofactor > 0:
+                exprs = pd.DataFrame(np.arcsinh(intensities / arcsinh_cofactor))
+            else:
+                exprs = pd.DataFrame(intensities)
             exprs.columns = panel["antigen"]
 
             metadata_long = pd.DataFrame()

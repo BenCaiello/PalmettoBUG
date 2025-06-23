@@ -133,7 +133,7 @@ class Spatial_py(ctk.CTkFrame):
             self.load_button = ctk.CTkButton(master = self, text = "Create Spatial Neighbor grid", command = self.master.load_spatial)
             self.load_button.grid(column = 1, row = 4, padx = 5, pady = 5)
 
-    def load_spatial(self):    #### TODO: move this frame to be above the neighbor-dependent frames (distinguish from frames with functions that do not need this step)
+    def load_spatial(self):  
         ''''''
         self.squidpy_spatial.do_neighbors()
         self.CN_widgets.targeted_enable()
@@ -1521,7 +1521,7 @@ class CNwindowSaveLoad(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def save(self):
         identifier = self.identifier.get()
-        if filename_checker(identifier, self):   ##TODO: check if warning is proper
+        if filename_checker(identifier, self):
             return
         if not overwrite_approval(f"{self.master.master.master_exp.clusterings_dir}/CN_cellular_neighborhood_{identifier}.csv", file_or_folder = "file", GUI_object = self):
             return
@@ -1546,7 +1546,6 @@ class CNwindowSaveLoad(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.master.clustering = ""
 
-        ## TODO: test!
         try: ## either space_analysis or data_table attributes may not exist
             if np.sum(np.array(self.master.master.master_exp.data_table['cellType'] == 'CN')) > 0:
                 self.master.master.widgets.disable_buttons() 
@@ -1689,7 +1688,7 @@ class CellularNeighborhoodWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow
 
             self.master.clustering = celltype
             self.master.figure = figure
-            ## TODO: test!
+
             try: ## either space_analysis or data_table attributes may not exist
                 if np.sum(np.array(self.master.master.master_exp.data_table['cellType'] == 'CN')) > 0:
                     self.master.master.widgets.disable_buttons() 

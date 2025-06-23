@@ -560,11 +560,11 @@ class DirectoryDisplay(ctk.CTkFrame):
                 except Exception:
                     pass
             elif identifier == ".csv":
-                if (parent.currentdir == parent.directories.main) & (file_name != "spatialtable"): ## TODO: fix to match current labeling
+                if (file_name.find("panel") != -1) or (file_name.find("metadata") != -1):   ## be sure to display full table if panel / metadata files
                     TableLaunch(1, 1, parent.currentdir, None, (parent.out), parent.experiment)
                 else:
-                    dataframe_head = pd.read_csv(filepath).head(25)
-                    TableLaunch(1, 1, parent.currentdir, dataframe_head, f"First 25 entries of {file_name}{identifier}", parent.experiment)
+                    dataframe_head = pd.read_csv(filepath).head(35)
+                    TableLaunch(1, 1, parent.currentdir, dataframe_head, f"First 35 entries of {file_name}{identifier}", parent.experiment)
             elif identifier == ".tiff":
                 image = tf.imread(filepath)
                 if image.dtype != 'int':

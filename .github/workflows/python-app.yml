@@ -28,8 +28,10 @@
 name: Python application
 
 on:
+  #push:
+    #branches: [ "main" ]
   push:
-    branches: [ "main" ]
+    branches: ['development']
   pull_request:
     branches: [ "main" ]
 
@@ -49,7 +51,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install uv pip-licenses
-        uv pip install . --system
+        uv pip install .[instanseg] --system
         pip freeze
         pip install pytest pytest-cov pytest-xvfb
     - name: Lint with ruff
@@ -58,8 +60,10 @@ jobs:
     - name: pytest
       run: |  
         python -m pytest -p pytest_cov --cov-report xml:coverage.xml --cov=palmettobug tests/  
+      # python -m pytest -p pytest_cov --cov-report xml:coverage.xml --cov=palmettobug tests/test_alt_classifiers.py  
 
-    - uses: codecov/codecov-action@v5
+
+#    - uses: codecov/codecov-action@v5
 
     # just do manual check for any packages listed as UNKNOWN / proprietary for GPL3-compatibility
     - name: Check licenses

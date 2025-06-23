@@ -1934,6 +1934,7 @@ def smooth_isolated_pixels(unsupervised_class_map: np.ndarray[int],
     all_isolated_pixels_removed = (unsupervised_class_map * all_isolated_pixels_removed).astype('int')
 
     if not fill_in:
+        all_isolated_pixels_removed[all_isolated_pixels_removed == zero_number] = 0 ## added to preserve blank patchs after merging
         return all_isolated_pixels_removed
     else:
         ## now use pixel-surroundings to fill in holes
@@ -1944,16 +1945,15 @@ def smooth_isolated_pixels(unsupervised_class_map: np.ndarray[int],
         else:
             raise ValueError("mode_mode argument must either be 'original_image' or 'dropped_image'!")
         
-        isolated_removed = np.copy(all_isolated_pixels_removed)
         for i,ii in enumerate(all_isolated_pixels_removed):
             for j,jj in enumerate(ii):
                 if jj == 0:                                                                 
                     mode = _find_mode(padded_array, [i,j], search_radius, warn = warn)   
                                     ## do not have to take into account the padding in  [i,j] because of how the find_mode function slices
-                    isolated_removed[i,j] = mode
+                    all_isolated_pixels_removed[i,j] = mode
 
         all_isolated_pixels_removed[all_isolated_pixels_removed == zero_number] = 0 ## added to preserve blank patchs after merging
-        return isolated_removed
+        return all_isolated_pixels_removed
 
 def _find_mode(padded_array: np.ndarray[int], 
                point: list[int], 

@@ -320,7 +320,12 @@ def _generate_ome_tiff_metadata(panel_csv: pd.DataFrame,
 
     The fields chosen for the metadata were taken from a .ome.tiff file with multi-channels, 
     from a publicly available IMC experiment on Zenodo (should be: https://zenodo.org/records/8023452,
-    Or perhaps instead was a tumor-sphere dataset from the Bodenmiller group [find] TODO). 
+    Or perhaps instead was from the tumor-sphere dataset from this paper by the Bodenmiller group: 
+                                                                    Zanotelli, Vito Rt et al. 
+                                                                    “A quantitative analysis of the interplay of environment, neighborhood, 
+                                                                    and cell state in 3D spheroids.” 
+                                                                    Molecular systems biology vol. 16,12 (2020): e9798. 
+                                                                    doi:10.15252/msb.20209798). 
     '''
     ome_metadata = {}
     ome_metadata['Directory'] = str(output_directory)
@@ -683,9 +688,11 @@ class ImageAnalysis:
                     write_ome_tiff(image, ome_tiff_metadata, out)
 
     def instanseg_segmentation(self, 
+                               re_do = False,
                                input_img_folder: Union[Path, str, None] = None, 
                                output_mask_folder: Union[Path, str, None] = None,
                                channel_slice: Union[None, np.array] = None,
+                               merge_channels: bool = False,
                                pixel_size: Union[float, None] = None,
                                target: str = "cells",
                                mean_threshold: float = 0.0,
@@ -706,8 +713,11 @@ class ImageAnalysis:
                 If provided, will be used to slice each image array to subset the channels provided to the instanseg model. The length of this array
                 must be the same as the number of channels in the images.
                 Specifically, the channels in the image that will be used will be:  image[channel_slice > 0]
-                If any two channels have the same value in channel_slice, then they will be merged together first into a single channel. 
                 If None, all channels in all images are used as independent channels.
+
+            merge_channels (boolean):
+                IF channel_slice is provided, this determines whether the selected channels are merged into two (cytoplasmic / nuclear -- True) or left
+                as separate channels (False, default).
 
             pixel_size (float or None):
                 resolution of the pixels in the images. If None, defaults to using self.resolutions (self.resolutions[0] == self.resolutions[1] must be true)
@@ -726,8 +736,8 @@ class ImageAnalysis:
                 More options will hopefully open up as this segmentation model is developed. Theoretically, there should be a way to allow custom-trained
                 models to loaded as well, which could be quite nice.
 
-        ## example test script  -- results so far: it works in that it runs, but the results are poor compared to deepcell
-        ## maybe instanseg needs a dedicated IMC model, or needs a larger training set (like TissueNet, but that would create 
+        ## example test script  -- results so far: it works in that it runs, but the results are very poor compared to deepcell
+        ## maybe instanseg needs a dedicated IMC model, or needs a larger training set (like TissueNet, but that particular dataset would create 
         ## license issues))
         import palmettobug
         proj_dir = f"{my_computer_path}/Example_IMC"
@@ -754,6 +764,10 @@ class ImageAnalysis:
         model = InstanSeg(model)
 
         source_images = [i for i in os.listdir(input_img_folder) if i.lower().find(".tif") != -1]
+        if not re_do:
+            existing = os.listdir(output_mask_folder)
+            source_images = [i for i in source_images if i not in existing]
+
         for i in source_images:
             image_array = tf.imread(f'{input_img_folder}/{i}')
             for j,jj in enumerate(image_array):
@@ -763,57 +777,172 @@ class ImageAnalysis:
                 if len(kept_channel_slice) == 0:
                     print("A channel_slice was provided, but no channels were selected in it! Cancelling instanseg segmentation")
                     return
-                unique_kept_channels = np.unique(kept_channel_slice)
-                if len(unique_kept_channels) != len(kept_channel_slice):
-                    new_image_array = np.zeros([len(unique_kept_channels), image_array.shape[1], image_array.shape[2]])
-                    for k,kk in enumerate(unique_kept_channels):
-                        slicer = (channel_slice == kk)
-                        new_image_array[k,:,:] = np.sum(image_array[slicer], axis = 0) / slicer.sum()
-                    image_array = new_image_array.copy()
+                if merge_channels:
+                    unique_kept_channels = np.unique(kept_channel_slice)
+                    if len(unique_kept_channels) != len(kept_channel_slice):
+                        new_image_array = np.zeros([len(unique_kept_channels), image_array.shape[1], image_array.shape[2]])
+                        for k,kk in enumerate(unique_kept_channels):
+                            slicer = (channel_slice == kk)
+                            new_image_array[k,:,:] = np.sum(image_array[slicer], axis = 0) / slicer.sum()
+                        image_array = new_image_array.copy()
                 else:
-                    image_array = image_array[(channel_slice > 0), :, :]            
+                    image_array = image_array[channel_slice > 0,:,:]
+                image_array = image_array[(channel_slice > 0), :, :]            
             prediction = model.eval_medium_image(image_array, mean_threshold = mean_threshold, target = target, pixel_size = pixel_size)
             tf.imwrite(f'{output_mask_folder}/{i}', np.squeeze(np.asarray(prediction[0])))
 
-    def mask_expand(distance: int, 
-                    image_source: str, 
-                    output_directory: str,
-                    ) -> None:                                 # ****stein_derived (ish -- only in the sense that it conciously replicates a 
-                                                                # particular steinbock utility  
-                                                                # The actual implementation here is not very similar to steinbocks')
+    def boolean_mask_transform(self, masks_folder1, masks_folder2, kind = 'intersection1', object_threshold = 1, pixel_threshold = 1, re_order = True, output_folder = None):
         '''
-        Function that expands the size of cell masks (copied back from isosegdenoise on 4/24/25, original code):
+        (This functionn is under development / is a non-finalized addition to the program. It also needs testing & connection to the GUI!)
 
-        Args:
-            distance (integer):  
-                the number of pixels to expand the masks by
+        Provide two folders of masks, and derive a third folder of masks from them transformed in some way. Masks are dropped as a whole (not pixel-wise),
+        and there are a limited set of possible transformations:
 
-            image_source (string or Path): 
-                the file path to a folder containing the cell masks (as tiff files) to expand
+             intersection1 (one-way) -- This keeps the masks from the first folder of masks, but only the masks that overlap with sufficient masks from folder2
+                                        No masks from folder2 carry over to the output folder
 
-            output_directory (string or Path): 
-                the file path to a folder where you want to write the expanded masks. Must already exist or be creatable by os.mkdir()
+             intersection2 (two-way) -- This keeps masks from both folders, as long as they overlap sufficiently. HOWEVER, masks from folder1 take precedence
+                                        As in, where overlap exists only mask1 values will be carried over first and mask2 values will only end up in the output
+                                        after that where the output has values of 0 (which is to say, only in regions outside the remaining masks from mask1)
+                                        Additionally, masks from the second folder are given a value = mask2 + max(mask1) in the output so that they will remain distinct
+                                        from folder1-derived masks. 
 
-        Inputs / Outputs:
-            Inputs: 
-                reads every file in image_source folder (expecting .tiff format for all)
+             difference1 (one-way) -- This keeps masks from folder1 only if a sufficient number of masks from folder2 do NOT overlap with them
+
+             difference2 (two-way) -- This keeps masks from both folders, but only if they do not overlap with sufficient masks from the opposite folder. 
+                                    HOWEVER: Masks from the first folder take precedence over mask from the second! 
+                                    As in, the masks from folder1 which are kept in the transformation are carried over into the output first, and after that the 
+                                    masks from folder2, but only into pixels with value 0 in the output. 
+                                    This precedence should only matter if the thresholds are increased above the defaults of 1, as otherwise there should be no
+                                    overlap at all between the saved masks from the two folders.
+                                    Additionally, masks from the second folder are given a value = mask2 + max(mask1) in the output so that they will remain distinct
+                                    from folder1-derived masks. 
+
+
+        an overlapping mask is determined by the pixel_threshold value -- a mask from folder 2 is considered to overlap with a mask from folder 1 if the number of overlapping
+            pixels between the two is greater than or equal to the pixel_threshold value. 
+
+        'sufficient masks' is determined by the object threshold (default = 1, as in, just 1 overlapping mask form folder2 within a mask from folder 1 means 
+            triggers the transformation) 
+
+        Together, this should allow this function to be used to do things like only keeping cell masks within a particular region of the tissue or only keeping tissue 
+        regions with sufficient number of cell masks inside them, etc. Or, by chaining this operation together, only keeping cells within particular region of tissue, where 
+        those regions of tissue have sufficient numbers of cells (of a particular cell type, even, if using classy masks to further sophisticate things).
+        The (possible) addition of this function was inspired by analyses performed in the following paper using pancreatic islets: 
+            Damond, Nicolas et al. “A Map of Human Type 1 Diabetes Progression by Imaging Mass Cytometry.” Cell metabolism vol. 29,3 (2019): 755-768.e5. 
+            doi:10.1016/j.cmet.2018.11.014
+        The publicly-available data from this paper is also planned to be analyzed in PalmettoBUG, in order to compare the effectiveness of PalmettoBUG at 
+        replicating prior work.
         
-            Outputs: 
-                writes a (.ome).tiff into the output_directory folder for each file read-in from image_source
-                The filenames in the image_source folder as preserved in the output_directory, so if image_source == output_directory
-                then the original masks will be overwritten. 
-        ''' 
-        from skimage.segmentation import expand_labels
-        if not os.path.exists(output_directory):
-            os.mkdir(output_directory)
+        Args:
+            masks_folder1 / 2 (string, Path): 
+                paths to two folders of masks -- as in, each folder is expected to contain single-channel, integer-valued tiff files where each integer represents
+                a unique cell (or other object). There must be files in each folder with matching file names -- only these can be processed!
+                Note that the order of the folders (as in, which is masks_folder1 vs masks_folder2) is very important for some transformations!
 
-        list_of_images = [i for i in sorted(os.listdir(image_source)) if i.lower().find(".tif") != -1]
-        for i in list_of_images:
-            read_dir = "".join([image_source, "/", i])
-            out_dir = "".join([output_directory, "/", i])
-            read_in_mask = tf.imread(read_dir)
-            expanded_mask = expand_labels(read_in_mask, distance)
-            tf.imwrite(out_dir, expanded_mask, photometric = "minisblack")
+            kind (string):
+                One of ['intersection1', 'intersection2', 'difference1', or 'difference2']. Determines how the maasks are transformed. See description above for details.
+                Note that when kind = 'difference2', the object/pixel threshold comparisons are also utilized in the reverse (from mask folder 2 --> 1)
+
+            object_threshold (integer):
+                when determining whether a mask from folder1 overlaps with masks from folder2, this determines how many 'overlapping' objects inside it are sufficient
+                to trigger keeping / discarding the mask. The default is 1, meaning that even a single overlapping mask is sufficient to trigger the transformation. 
+                
+
+            pixel_threshold (integer): 
+                when determing whether a mask from folder2 overlaps with a mask from folder1, this determines how many pixels of mask2 is sufficient to consider
+                it overlapping. When == 1 (default), this means that even a single pixel of overlap will count mask2 as an object inside mask1. The total count
+                of such overlapping mask2 objects inside mask1 are then compared to the object_threshold to determine whether to keep / discard mask1 from the output.
+
+            re_order (boolean):
+                Whether to re-index the masks, starting from 1 and continuously increasing in increments of 1, so that there are no gaps / discontinuities in the values.
+                Default = True, which re-indexes to start from 1 etc. However, if you want to preserve the original mask values (of mask1 only), so that they can be 
+                matched to the original masks, set this parameter == False. Because of how two-way methods work, the original values of mask folder2 are not preserved
+                regardless of this parameter.
+
+            output_folder (string, Path, or None):
+                The path to a file folder where the output, transformed masks can be written. If None (default), then the file folder name is automatically derived
+                from the names of folder1 and folder2 (specifically: {self.directory_object.masks_dir}/{folder1}_{folder2} ). This folder automatically inside the masks
+                directory of the PalmettoBUG project folder. 
+                If provided, should be a FULL path to a create-able folder where the masks will be written. 
+
+        Returns:
+            None     (does, however, read & write .tiff files)
+        '''
+        masks_folder1 = str(masks_folder1)
+        masks_folder2 = str(masks_folder2)
+        masks1 = os.listdir(masks_folder1)
+        masks2 = os.listdir(masks_folder2)
+        matching_files = [i for i in masks1 if (i in masks2) and (i.rfind(".tif") != -1)]  ## only want .tif(f) files present in both folders
+        if len(matching_files) == 0:
+            print("Error: No filenames shared between the two folders of masks! Cancelling")
+            return
+
+        if output_folder is None:
+            first_half = masks_folder1[masks_folder1.rfind("/") + 1:]
+            second_half = masks_folder2[masks_folder2.rfind("/") + 1:]
+            output_folder = self.directory_object.masks_dir + f"/{first_half}_{second_half}"
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
+
+        for i in matching_files:
+            mask1 = tf.imread(f'{masks_folder1}/{i}').astype('int32')
+            mask2 = tf.imread(f'{masks_folder2}/{i}').astype('int32')
+            if mask1.shape != mask2.shape:
+                print(f"Warning! Mask file: {i} did  not have a matching shape between the two folders of masks. Skipping this file!")
+            else:
+                output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
+                tf.imwrite(f'output_directory/{i}', output.astype('int32'))
+        
+    def _mask_bool(self, mask1, mask2, kind = 'intersection1', object_threshold = 1, pixel_threshold = 1, re_order = True):
+        ''' helper for self.boolean_mask_transform, executing the operation on a single pair of masks'''
+        if (kind =="difference2") or (kind =="intersection2"):
+            backup = mask1.copy()
+        mask_values = np.unique(mask1)
+        for j in mask_values:
+            temp = mask2[mask1 == j]      ## look at mask2 with each mask of mask1, and count overlapping values
+            overlapping_values = np.unique(temp)
+            object_counter = 0
+            for k in overlapping_values:
+                if (temp == k).sum() > pixel_threshold:
+                    object_counter += 1
+
+            if kind == "intersection1":
+                if object_counter < object_threshold:
+                    mask1[mask1 == j] = 0   ## delete masks from mask1 that do not have sufficient overlap with objects from mask2
+
+            if kind == 'difference1':
+                if object_counter > object_threshold:
+                    mask1[mask1 == j] = 0   ## delete masks from mask1 that have sufficient overlap with objects from mask2
+
+            if kind == "difference2":
+                if object_counter > object_threshold:
+                    mask1[mask1 == j] = 0
+                
+        if (kind =="difference2") or (kind =="intersection2"):
+            mask_values = np.unique(mask2)     ## if two-way difference, repeat the process but look from mask2 --> mask1 instead, then add kept mask2 to output
+            for j in mask_values:
+                temp = backup[mask2 == j]      
+                overlapping_values = np.unique(temp)
+                object_counter = 0
+                for k in overlapping_values:
+                    if (temp == k).sum() > pixel_threshold:
+                        object_counter += 1
+                if kind == "difference2":
+                    if object_counter < object_threshold:
+                        mask1[(mask2 == j)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
+                if kind == "intersection2":
+                    if object_counter > object_threshold:
+                        mask1[(mask2 == j)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
+        
+        if re_order:
+            for m,mm in enumerate(np.unique(mask1, sorted = True)):
+                if mask1.min() != 0:   ## if masks take up the entire space of the image / there is no background, then need to index from 1 instead of 0
+                    m = m + 1
+                mask1[mask1 == mm] = m
+
+        return mask1
+
         
 
     ### This function calculates and writes the intesities, regionprops csv files. 

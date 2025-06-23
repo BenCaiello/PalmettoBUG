@@ -660,7 +660,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master.plot_bank.cluster_vs_group.configure(state = "normal")
         Analysis_widget_logger.info(f"LoadedClustering: {identifier}!")
 
-        ## TODO: test this! -- purpose is to re-disable SpaceANOVA buttons if spaceANOVA column has been overwritten
+        ## purpose o following code block is to re-disable SpaceANOVA buttons if spaceANOVA column has been overwritten
         try: ## either space_analysis or data_table attributes may not exist
             load_types = ["metaclustering", "leiden", "merging", "classification", "CN"]
             load_types2 = np.array([identifier.find(i) for i in load_types])
@@ -680,7 +680,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return   
         self.master.cat_exp.load_classification(cell_classifications = (self.classy_dir + "/" + identifier))
 
-        ## TODO: test!-- purpose is to re-disable SpaceANOVA buttons if spaceANOVA column has been overwritten
+        ## purpose of the following is to re-disable SpaceANOVA buttons if spaceANOVA column has been overwritten
         try: ## either space_analysis or data_table attributes may not exist
             if self.master.cat_exp.space_analysis.cellType_key == 'classification':
                 self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
@@ -742,6 +742,10 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                                                     self.plot_stars.get()))
         button_run_clustering.grid(column = 0, row = 6, padx = 5, pady = 5)
 
+        self.scale_within_cells = ctk.CTkCheckBox(master = self, onvalue = True, offvalue = False, text = "Scale Channels \nwithin cells \nbefore clustering")
+        self.scale_within_cells.grid(column = 0, row = 7, padx = 5, pady = 5)
+        self.scale_within_cells.select()
+
         self.plot_stars = ctk.CTkCheckBox(master = self, onvalue = True, offvalue = False, text = "Plot MST")
         self.plot_stars.grid(column = 1, row = 7, padx = 5, pady = 5)
         
@@ -749,6 +753,7 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def run_clustering(self, xdim: int = 10, maxK: int = 20, rlen: int = 50, seed: int = 1234, plot_stars = True) -> None:
         marker_class = self.marker_class.get()
+        scale_within_cells = self.scale_within_cells.get()
         try:
             xdim = int(xdim)
             maxK = int(maxK)
@@ -759,7 +764,12 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 message = "The parameters of FlowSOM clustering must be integers, but one of the inputs cannot be converted to an integer!")
             self.focus()
             return
-        returned = self.master.cat_exp.do_flowsom(marker_class = marker_class, XY_dim = xdim, n_clusters = maxK, rlen = rlen, seed = seed)
+        returned = self.master.cat_exp.do_flowsom(marker_class = marker_class, 
+                                                  XY_dim = xdim, 
+                                                  n_clusters = maxK, 
+                                                  rlen = rlen, 
+                                                  scale_within_cells = scale_within_cells, 
+                                                  seed = seed)
         if returned is not None:
             Analysis_widget_logger.info(f"""Performed FlowSOM / Consensus clustering with the following parameters:
                                                 XYdim = {xdim}, 
@@ -770,7 +780,7 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
             self.master.plot_bank.cluster_vs_group.configure(state = "normal")
 
-            ## TODO: test this! -- purpose is to re-disable buttons is spaceANOVA column has been overwritten
+            ## purpose of the following is to re-disable buttons is spaceANOVA column has been overwritten
             try: ## either space_analysis or data_table attributes may not exist
                 if self.master.cat_exp.space_analysis.cellType_key == 'metaclustering':
                     self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
@@ -1196,14 +1206,20 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         colData_list = COLNAMES
 
         self.color = ctk.CTkOptionMenu(master = self, values = colData_list, variable = ctk.StringVar(value = "condition"))
-        self.color.grid(column = 1, row = 2, padx = 5, pady = 5)
+        self.color.grid(column = 1, row = 3, padx = 5, pady = 5)
         self.color.bind("<Enter>", refresh8)
 
-        label_3 = ctk.CTkLabel(self, text = "Filename:")
+        label_3 = ctk.CTkLabel(self, text = "Seed:")
         label_3.grid(column = 0, row = 3)
 
+        self.seed = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "42"))
+        self.seed.grid(column = 1, row = 3, padx = 5, pady = 5)
+
+        label_4 = ctk.CTkLabel(self, text = "Filename:")
+        label_4.grid(column = 0, row = 4)
+
         self.filename = ctk.CTkEntry(self, textvariable = ctk.StringVar(value ="MDS_plot"))
-        self.filename.grid(column = 1, row = 3, padx = 5, pady = 5)
+        self.filename.grid(column = 1, row = 4, padx = 5, pady = 5)
 
         button_plot = ctk.CTkButton(self, text = "Plot", command = lambda: self.plot_MDS(features = self.group.get(), 
                                                                                                 color_by = self.color.get(),
@@ -1220,6 +1236,13 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.after(200, lambda: self.focus())
 
     def plot_MDS(self, features: str = "type", color_by: str = "condition", filename: str = "Plot_3") -> None:
+        seed = self.seed.get()
+        try:
+            seed = int(seed)
+        except Exception:
+            tk.messagebox.showwarning("Warning!", message = f"{seed} is not an integer!")
+            self.focus()
+            return
         if filename_checker(filename, self):
             return
         if not overwrite_approval(f"{self.master.cat_exp.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
@@ -1227,7 +1250,8 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         figure, df = self.master.cat_exp.plot_MDS(marker_class = features, 
                                                   color_by = color_by, 
                                                   filename = filename, 
-                                                  print_stat = self.print_stat.get())
+                                                  print_stat = self.print_stat.get(),
+                                                  seed = seed)
         Analysis_widget_logger.info(f"Plotted MDS with: marker_class = {features}, color_by = {color_by}, filename = {filename}.png")
         self.master.save_and_display(filename = filename, sizeX = 550, sizeY = 550)
 
@@ -1710,7 +1734,7 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.new.table.special_to_csv()
         self.master.cat_exp.do_cluster_merging(file_path = merging_file_path, groupby_column = meta_or_leiden)
 
-        ## TODO: test this! -- purpose is to re-disable buttons is spaceANOVA column has been overwritten
+        ## purpose of the following is to re-disable buttons if spaceANOVA column has been overwritten
         try: ## either space_analysis or data_table attributes may not exist
             if self.master.cat_exp.space_analysis.cellType_key == 'merging':
                 self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
@@ -2371,7 +2395,6 @@ class image_drop_restore_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                                     f"column = {self.column}, \n" +
                                     f"to_drop = {str(filter_sample_ids)}")
         
-        ## TODO: test this! -- purpose is to re-disable buttons in spaceANOVA, as the data for that has been changed
         self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
 
         self.destroy()
@@ -2770,7 +2793,6 @@ class do_leiden_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if success:
             self.master.plot_bank.umap_plot.configure(state = 'normal')
 
-            ## TODO: test!
             try: ## either space_analysis or data_table attributes may not exist
                 if self.master.cat_exp.space_analysis.cellType_key == 'leiden':
                     self.master.master.master.Spatial.widgets.widgets.disable_buttons() 
