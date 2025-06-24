@@ -771,7 +771,6 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 tk.messagebox.showwarning("Warning", 
                     message = "The number of masks and the number of pixel classification maps do not match! \n" 
                             "Did you only do part of the classifier prediction, or only segmented some of your images?")
-                return
                                
             
             output_folder = f'''{self.master.main_directory}/classy_masks/{self.master.name}_{self.mask_option_menu.get()}'''
