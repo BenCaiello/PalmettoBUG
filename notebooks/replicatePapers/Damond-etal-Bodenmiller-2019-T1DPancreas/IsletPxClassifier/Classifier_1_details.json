@@ -25,9 +25,6 @@
     "number_of_classes": 2,
     "number_of_input_neurons": 72,
     "categorical": true,
-    "classes_dict": {
-        "1": "background",
-        "2": "islet"
-    },
+    "classes_dict": {},
     "img_directory": "C:/Users/Default/Desktop/data/PBUG/images/ImageSubset"
 }
