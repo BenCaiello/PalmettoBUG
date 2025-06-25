@@ -3506,6 +3506,13 @@ class Analysis:
                 groupby_object.columns = ['count']
 
             groupby_object = groupby_object.reset_index()
+            if statistic == 'count':
+                groupby_object = groupby_object.loc[groupby_object['count'].notna(),:]
+            else:
+                backup_groupby = pd.DataFrame(groupby_object[groupby_columns], index = groupby_object.index)
+                groupby_object = groupby_object.drop(groupby_columns, axis = 1).dropna(how = 'all')
+                groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
+
 
             for i in data_col_list:
                 if (i in groupby_object.columns.astype('str')) and (i not in groupby_columns):
