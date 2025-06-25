@@ -68,12 +68,12 @@ Modifying the installation command to:
 
     > pip install palmettobug[instanseg]  
 
-(or really, since the development branch has not been uploaded to PyPI yet, you have to download the development branch of the repo and then run >>> pip install .[instaseg] in the directory where you saved the repo)
+(since 0.2.5.dev1 version on PyPI)
 
 Will install instanseg with PalmettoBUG, allowing you to segment cells without needing isosegdenoise at all. Instanseg is a channel-invariant, fully open-source segmentation
-deep-learning model. As such, it can be a part of the mian palmettobug package itself, and behaves somewhat differently than cellpose / deepcell (Mesmer) segmentation. Unlike those other two models, when selecting segmentation channels for Instanseg it does not matter the compartment label (nuclei / cytoplasm) you apply to the channels in the panel.csv -- both nuclei channels and cytoplasmic channels are treated equally. However, ONLY channels with some segmentation labels will be passed to Instanseg during segmentation -- so you do need select segmentation channels in the panel file still! 
+deep-learning model. As such, it can be a part of the main palmettobug package itself, and behaves somewhat differently than cellpose / deepcell (Mesmer) segmentation. Unlike those other two models, when selecting segmentation channels for Instanseg it does not matter the compartment label (nuclei / cytoplasm) you apply to the channels in the panel.csv -- both nuclei channels and cytoplasmic channels are treated equally. However, ONLY channels with some segmentation labels will be passed to Instanseg during segmentation -- so you do need select segmentation channels in the panel file still! 
 
-In a future version of the program, this may become a 
+In a future version of the program, this may become a non-optional part of the program.
 
 ## Documentation & Scripting use (using the package outside the GUI)
 
