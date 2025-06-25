@@ -394,10 +394,10 @@ class Analysis:
 
         self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype('category')
 
-        special_category = pd.CategoricalDtype(list(data["patient_id"].astype('str').unique()), ordered = True)
+        special_category = pd.CategoricalDtype(list(self.data["patient_id"].astype('str').unique()), ordered = True)
         self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype(special_category)
 
-        special_category = pd.CategoricalDtype(list(data["condition"].astype('str').unique()), ordered = True)
+        special_category = pd.CategoricalDtype(list(self.data["condition"].astype('str').unique()), ordered = True)
         self.data.obs["condition"] =  self.data.obs["condition"].astype(special_category)
         self.data.obs = self.data.obs.reset_index().drop("index", axis = 1)
 
