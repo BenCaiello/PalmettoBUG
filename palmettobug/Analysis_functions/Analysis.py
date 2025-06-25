@@ -392,7 +392,7 @@ class Analysis:
 
         self.data = ann.AnnData(X = exprs, var = panel, obs = metadata_long)
 
-        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype('category'')
+        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype('category')
 
         special_category = pd.CategoricalDtype(list(data["patient_id"].astype('str').unique()), ordered = True)
         self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype(special_category)
