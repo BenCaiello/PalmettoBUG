@@ -391,9 +391,14 @@ class Analysis:
         self.metadata["number_of_cells"] = length_of_images2
 
         self.data = ann.AnnData(X = exprs, var = panel, obs = metadata_long)
-        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype("category")
-        self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype("category")
-        self.data.obs["condition"] =  self.data.obs["condition"].astype("category")
+
+        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype('category'')
+
+        special_category = pd.CategoricalDtype(list(data["patient_id"].astype('str').unique()), ordered = True)
+        self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype(special_category)
+
+        special_category = pd.CategoricalDtype(list(data["condition"].astype('str').unique()), ordered = True)
+        self.data.obs["condition"] =  self.data.obs["condition"].astype(special_category)
         self.data.obs = self.data.obs.reset_index().drop("index", axis = 1)
 
         self.data.uns['counts'] = np.array(intensities)   
@@ -476,6 +481,7 @@ class Analysis:
 
             self.metadata = self.metadata.sort_values('sample_id', ascending = True)
             self.metadata['sample_id'] = self.metadata['sample_id'].astype('category')
+
             metadata_cat = pd.CategoricalDtype(categories = self.metadata['condition'].unique(), ordered = True)
             self.metadata['condition'] = self.metadata['condition'].astype(metadata_cat)
 
@@ -511,7 +517,9 @@ class Analysis:
 
         self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype('str').astype("category")
         self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype("category")
-        self.data.obs["condition"] =  self.data.obs["condition"].astype("category")
+
+        special_category = pd.CategoricalDtype(list(data["condition"].astype('str').unique()), ordered = True)
+        self.data.obs["condition"] =  self.data.obs["condition"].astype(special_category)
         self.data.obs = self.data.obs.reset_index().drop("index", axis = 1)
 
         try:
