@@ -2842,7 +2842,7 @@ class Analysis:
 
             family (string -- "Poisson", "NegativeBinomial"): 
                 The distribution to use in the GLM. Can be "Poisson" or "NegativeBinomial". Other distributions, such as "Gaussian" and "Binomial" are 
-                no recommended or not currently configured properly. 
+                not recommended or not currently configured properly. 
 
             filename (string or None):  
                 the filename for the csv exported into self.data_table_dir. If None, no such file is exported
@@ -2854,6 +2854,10 @@ class Analysis:
             Outputs: 
                 If filename is provided (is not None), then exports the summary statistic table to self.data_table_dir/filename.csv
         '''
+        conditions = [i for i in list(self.data.obs[variable].dtype.categories) if i in conditions]  ## preserve order!
+        if len(conditions) < 2:
+            print("Error! Only 1 or 0 of the provided conditions are in the variable. Cannot make a statistical comparison!")
+            return
         GLM_dict = {"Poisson" : sm.families.Poisson,
                     "Binomial" : sm.families.Binomial, 
                     "NegativeBinomial" : sm.families.NegativeBinomial, 
@@ -2868,10 +2872,6 @@ class Analysis:
         slicer = np.array([(str(i) in conditions) for i in data[variable].astype('str')])
         data = data[slicer]
         data['sample_id'] = data['sample_id'].astype('str').astype('category')
-
-        special_category = pd.CategoricalDtype(list(data[variable].astype('str').unique()), ordered = True)
-        data[variable] = data[variable].astype('str')
-        data[variable] = data[variable].astype(special_category)
 
         data[groupby_column] = data[groupby_column].astype('str').str.replace(" ","_").str.replace("+","")
         try:
@@ -2944,7 +2944,7 @@ class Analysis:
                         to_drop_list.append(i)
                         
             grouped = grouped.reset_index()
-            grouped[variable] = grouped['sample_id'].astype('str').replace(zip_dict)
+            grouped[variable] = grouped['sample_id'].astype('str').replace(zip_dict).astype(self.data.obs[variable].dtype)
             for i in to_drop_list:
                 slicer = (np.array(grouped[groupby_column] != i[0]).astype('int') + np.array(grouped[variable] != i[1]).astype('int')) != 0
                 grouped = grouped[slicer]
@@ -2971,6 +2971,7 @@ class Analysis:
                 to_do_stats = ready_for_GLM[ready_for_GLM[i].notna()].reset_index()
                 to_do_stats[i] = to_do_stats[i].astype('int')
                 remaining_conditions = to_do_stats[variable].astype('str').unique()
+                remaining_conditions = [i for i in list(self.data.obs[variable].dtype.categories) if i in remaining_conditions]  ## preserve order
                 special_category = pd.CategoricalDtype(remaining_conditions, ordered = True)
                 to_do_stats[variable] = to_do_stats[variable].astype('str')
                 to_do_stats[variable] = to_do_stats[variable].astype(special_category)
@@ -3060,7 +3061,7 @@ class Analysis:
                         to_drop_list.append(i)
                         
             grouped = grouped.reset_index()
-            grouped[variable] = grouped['sample_id'].astype('str').replace(zip_dict)
+            grouped[variable] = grouped['sample_id'].astype('str').replace(zip_dict).astype(self.data.obs[variable].dtype)
             for i in to_drop_list:
                 slicer = (np.array(grouped[groupby_column] != i[0]).astype('int') + np.array(grouped[variable] != i[1]).astype('int')) != 0
                 grouped = grouped[slicer]
@@ -3086,6 +3087,7 @@ class Analysis:
 
                 to_do_stats = ready_for_GLM[ready_for_GLM[i].notna()].reset_index()
                 remaining_conditions = to_do_stats[variable].astype('str').unique()
+                remaining_conditions = [i for i in list(self.data.obs[variable].dtype.categories) if i in remaining_conditions]  ## preserve order
                 special_category = pd.CategoricalDtype(remaining_conditions, ordered = True)
                 to_do_stats[variable] = to_do_stats[variable].astype('str')
                 to_do_stats[variable] = to_do_stats[variable].astype(special_category)
