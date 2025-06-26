@@ -1083,7 +1083,7 @@ class Analysis:
         for ii,i in enumerate(regionprops):
             box = i.bbox
             slicer = i.image
-            single_cell = classifier_map[box[0]:box[2],box[1]:box[3]][slicer]
+            single_cell = region_map[box[0]:box[2],box[1]:box[3]][slicer]
             counts = np.unique(single_cell, return_counts = True)
             classes = counts[0]
             counts = counts[1]
@@ -1613,7 +1613,7 @@ class Analysis:
         figure = plt.figure()
         ax = plt.gca()
         if hue == 'Density':
-            data.obsm['X_scatter'] = pd.DataFrame(data.X[:,(data.var['antigen'] == antigen1) + (data.var['antigen'] == antigen2)])
+            data.obsm['X_scatter'] = pd.DataFrame(data.X[:,np.array((data.var['antigen'] == antigen1) + (data.var['antigen'] == antigen2))])
             sc.tl.embedding_density(data, basis = 'scatter')
             plot = sc.pl.embedding_density(data, basis = 'scatter', color_map = 'jet', size = size, alpha = alpha, ax = ax)
         plot = sc.pl.scatter(data, antigen1, antigen2, color = hue, alpha = alpha, size = size, ax = ax)
