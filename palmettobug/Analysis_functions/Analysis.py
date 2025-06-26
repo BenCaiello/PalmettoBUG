@@ -1063,7 +1063,7 @@ class Analysis:
             if mask.shape != region_map.shape:
                 raise ValueError(f"The ROI: {i}, has a mismatch in size between the cell masks and the regions provided!")
             output = self._assign_regions(mask, region_map, image_number = ii + 1)  ## 1-index the images, so as to match the Analysis
-            assignments.append(output)
+            assignments = assignments + output
         self.data.obs['regions'] = assignments    ## as with the do_spatial_leiden function, not currently set up to sync 
                                                   ## perfectly with a UMAP / PCA (run dimensionality reduction AFTER after these if you want things to be in sync)
 
