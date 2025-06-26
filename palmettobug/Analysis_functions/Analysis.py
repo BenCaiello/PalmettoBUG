@@ -1035,6 +1035,51 @@ class Analysis:
         plt.close()
         return figure
 
+    def _do_spatial_leiden(self, 
+                          n_neighbors: int = 15, 
+                          resolution: int = 1, 
+                          random_state: int = 42,
+                          ) -> None:
+        '''
+        This function takes the centroid information from regionprops (centroid-0 and centroid-1) and calculates a neighborhood graph / leiden 
+        clustering for that. 
+        This is similar to the use of leiden on UMAPs, just in this case the input to the UMAP is only the physical X / Y coordinates of the 
+        centroids.
+
+        Appends the resulting spatial clustering -- which is calculated per image -- to self.data.obs in the format 
+        f"{image number}_{cluster number}"  
+
+        Uncertain how useful this is, but it is available      
+        '''
+        data = self.data.copy()
+        slicer = ((self.data.var['antigen'] == 'centroid-0').astype('int') + (self.data.var['antigen'] == 'centroid-1').astype('int')).astype('bool')
+        new_data = data.T[slicer].copy()
+        new_data = new_data.T
+        ## for now, copy the defaults of the major paramteres of scanpy's neighbors function below --> 
+        # so that I can easily use a paramter if I decide to add as an option for the user
+        all_leiden = []
+        for i in new_data.obs['sample_id'].astype('int').unique():   ## be sure of proper order
+                                                ## consider testing sc.external.pp.bbknn(), instead of doing my own
+                                                ## most of the slow-down, however, seems to come from loading (aka, failing to load) the 
+                                                # GPU at the start....
+            slicer = new_data.obs['sample_id'].astype('int') == i
+            this_sample = new_data[slicer]
+            sc.pp.neighbors(this_sample, 
+                            n_neighbors = n_neighbors, 
+                            n_pcs = 0, 
+                            knn = True, 
+                            method = 'umap', 
+                            random_state = random_state)
+            sc.tl.leiden(this_sample, 
+                         resolution = resolution, 
+                         random_state = random_state,
+                         flavor = "leidenalg", 
+                        n_iterations = 2)
+            this_sample_leiden = list((str(i) + "_") + this_sample.obs['spatial_leiden'].astype('str'))
+            all_leiden = all_leiden + this_sample_leiden
+        self.data.obs['spatial_leiden'] = all_leiden
+
+
     def plot_cell_counts(self,
                          group_by: str = "sample_id", 
                          color_by: str = "condition", 
