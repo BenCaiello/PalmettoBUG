@@ -1035,6 +1035,67 @@ class Analysis:
         plt.close()
         return figure
 
+    def do_regions(self,
+                    region_folder: Union[Path, str], 
+                    mask_folder: Union[Path, str] = None
+                    ) -> pd.DataFrame:
+        '''
+        (Modified from mode_classify_folder) function to classify cells by the region and sample_id they are in.
+        As in, for every matching image in the mask and region folders, looks at the cells in the mask image -- for every cell
+        it will check if that cell lies within a region of the region image (the mode of its pixels lies within a region with value > 0).
+        Then will assign a label to that cell: 0 if outside a region, or {region#}_{image#} if it does lie within a region. 
+        These labels are accumulated into a list which is appended to the Analysis Object
+
+        '''
+        if mask_folder is None:
+            mask_folder = self.input_mask_folder
+        mask_folder = str(mask_folder)
+        masks = sorted(os.listdir(mask_folder))
+        region_folder = str(region_folder)
+        overlapping = [i for i in sorted(os.listdir(region_folder)) if i in masks]
+        if len(overlapping) != len(mask_folder):
+            print('Warning! The regions provided do not match ALL the source masks of the analysis. ')
+            return
+        assignments = []
+        for ii,i in enumerate(overlapping):
+            mask = tf.imread("".join([mask_folder,"/",i])).astype('int')
+            region_map = tf.imread("".join([region_folder,"/",i])).astype('int')
+            if mask.shape != region_map.shape:
+                raise ValueError(f"The ROI: {i}, has a mismatch in size between the cell masks and the regions provided!")
+            output = self._assign_regions(mask, region_map, image_number = ii + 1)  ## 1-index the images, so as to match the Analysis
+            assignments.append(output)
+        self.data.obs['regions'] = assignments    ## as with the do_spatial_leiden function, not currently set up to sync 
+                                                  ## perfectly with a UMAP / PCA (run dimensionality reduction AFTER after these if you want things to be in sync)
+
+    def _assign_regions(self, 
+                        mask: np.ndarray[Union[float, int]], 
+                        region_map: np.ndarray[int],
+                        image_number: Union[str, int]
+                        ) -> tuple[np.ndarray[float], np.ndarray[int], pd.DataFrame]:
+        '''
+        This function iterates through two matching-sized numpy arrays (one representing cell masks & one representing 
+        region of the image [these regions are also masks, with background pixels of value == 0]), and returns a list of assigned regions 
+        to each of the cells ('0' if not within a region, and {region#}_{image#} if within a region, such as '2_3' for region 2 of the third image).
+        The image number must be passed into the function.  
+        '''                
+        regionprops = skimage.measure.regionprops(mask)
+        cell_class_list = []
+        for ii,i in enumerate(regionprops):
+            box = i.bbox
+            slicer = i.image
+            single_cell = classifier_map[box[0]:box[2],box[1]:box[3]][slicer]
+            counts = np.unique(single_cell, return_counts = True)
+            classes = counts[0]
+            counts = counts[1]
+            mode_num = np.argmax(counts)
+            mode = classes[mode_num]
+            if mode == 0:   ## this only occurs if there is a 'background' class, after merging
+                assignment = '0'
+            else:
+                assignment = f'{str(mode)}_{str(image_number)}'
+            cell_class_list.append(assignment)
+        return cell_class_list
+
     def _do_spatial_leiden(self, 
                           n_neighbors: int = 15, 
                           resolution: int = 1, 
@@ -1548,39 +1609,19 @@ class Analysis:
             
             
         '''
-        data = pd.DataFrame(self.data.X.copy(), columns = self.data.var['antigen'].copy())
-        # hue_norm = None
-        palette = None
-        if hue is not None:
-            if hue == "Density":
-                density = KernelDensity()
-                X = data.loc[:,[antigen1, antigen2]]
-                density = density.fit(X)
-                density = density.score_samples(X)
-                to_scale = np.exp(density)
-                to_scale = to_scale / np.quantile(to_scale, 0.99)
-                to_scale[to_scale > 1] = 1
-                data['Density'] = list(to_scale)
-                # hue_norm = (0,1)
-                palette = 'coolwarm'
-            elif hue in self.data.obs.columns:
-                data[hue] = list(self.data.obs[hue].copy())
+        data = self.data.copy()
         figure = plt.figure()
         ax = plt.gca()
-        sns.scatterplot(data, 
-                        x = antigen1, 
-                        y = antigen2, 
-                        hue = hue, 
-                        palette = palette, 
-                        # hue_norm = hue_norm, 
-                        size = size, 
-                        alpha = alpha,
-                        ax = ax, 
-                        **kwargs)
+        if hue == 'Density':
+            data.obsm['X_scatter'] = pd.DataFrame(data.X[(data.var['antigen'] == antigen1) + (data.var['antigen'] == antigen2)]])
+            sc.tl.embedding_density(data, basis = 'scatter')
+            plot = sc.pl.embedding_density(data, basis = 'scatter', color_map = 'jet', size = size, alpha = alpha, ax = ax)
+        plot = sc.pl.scatter(data, antigen1, antigen2, alpha = alpha, size = size, ax = ax)
+
         if filename is not None:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
-        plt.close()  
-        return figure
+        plt.close() 
+        return figure 
 
     def plot_UMAP(self,
                 color_by: Union[None, str] = 'metaclustering', 
