@@ -1053,7 +1053,7 @@ class Analysis:
         masks = sorted(os.listdir(mask_folder))
         region_folder = str(region_folder)
         overlapping = [i for i in sorted(os.listdir(region_folder)) if i in masks]
-        if len(overlapping) != len(mask_folder):
+        if len(overlapping) != len(masks):
             print('Warning! The regions provided do not match ALL the source masks of the analysis. ')
             return
         assignments = []
