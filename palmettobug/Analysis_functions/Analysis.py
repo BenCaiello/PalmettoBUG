@@ -1613,7 +1613,7 @@ class Analysis:
         figure = plt.figure()
         ax = plt.gca()
         if hue == 'Density':
-            data.obsm['X_scatter'] = pd.DataFrame(data.X[:,np.array((data.var['antigen'] == antigen1) + (data.var['antigen'] == antigen2))])
+            data.obsm['X_scatter'] = data.X[:,np.array((data.var['antigen'] == antigen1) + (data.var['antigen'] == antigen2))]
             sc.tl.embedding_density(data, basis = 'scatter')
             plot = sc.pl.embedding_density(data, basis = 'scatter', color_map = 'jet', size = size, alpha = alpha, ax = ax)
         plot = sc.pl.scatter(data, antigen1, antigen2, color = hue, alpha = alpha, size = size, ax = ax)
