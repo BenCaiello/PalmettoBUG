@@ -2570,6 +2570,7 @@ class Analysis:
         
     def plot_cluster_abundance_1(self, 
                                  groupby_column: str = "metaclustering", 
+                                 bars_by: str  = 'sample_id',
                                  number_of_columns: int = 3,
                                  filename: Union[str, None] = None,
                                  **kwargs) -> plt.figure:                                # *** deriv_CATALYST (plot appearance / output)
@@ -2598,14 +2599,15 @@ class Analysis:
             a matplotlib figure
         '''
         to_abundance_plots = self.data.obs.copy()
-        abundance_plot_prep = to_abundance_plots.groupby(['sample_id', groupby_column, 'condition'], observed = False).count().reset_index()
-        abundance_plot_prep['patient_id'] = abundance_plot_prep['patient_id'].astype('int')
-        divisor = abundance_plot_prep[["sample_id","patient_id"]].groupby("sample_id", observed = False).sum().reset_index()
+        to_abundance_plots['count'] = 0
+        abundance_plot_prep = to_abundance_plots.groupby([bars_by, groupby_column, 'condition'], observed = False).count().reset_index()
+        abundance_plot_prep['count'] = abundance_plot_prep['count'].astype('int')
+        divisor = abundance_plot_prep[[bars_by,"count"]].groupby(bars_by, observed = False).sum().reset_index()
         div_dict = {}
         for i in divisor.index:
-            div_dict[int(divisor["sample_id"][i])] = divisor["patient_id"][i]
-        abundance_plot_prep["total"] =  (abundance_plot_prep["patient_id"].astype('int') 
-                                             / abundance_plot_prep["sample_id"].astype('int').replace(div_dict))
+            div_dict[int(divisor[bars_by][i])] = divisor["count"][i]
+        abundance_plot_prep["total"] =  (abundance_plot_prep["count"].astype('int') 
+                                             / abundance_plot_prep[bars_by].astype('int').replace(div_dict))
         abundance_plot_prep[groupby_column] = abundance_plot_prep[groupby_column].astype('category')
         abundance_plot_prep = abundance_plot_prep[abundance_plot_prep['file_name'] != 0]
         number_of_panels = len(abundance_plot_prep['condition'].unique())
@@ -2623,8 +2625,8 @@ class Analysis:
 
         for i,ii in enumerate(abundance_plot_prep['condition'].unique()):
             for_facet = abundance_plot_prep[abundance_plot_prep['condition'] == ii].copy()
-            for_facet['sample_id'] = for_facet['sample_id'].astype('str')
-            plot = so.Plot(for_facet, x = "sample_id", y = "total", color = groupby_column).add(so.Bar(), so.Stack(), **kwargs)
+            for_facet[bars_by] = for_facet[bars_by].astype('str')
+            plot = so.Plot(for_facet, x = bars_by, y = "total", color = groupby_column).add(so.Bar(), so.Stack(), **kwargs)
             plot = plot.on(axs[i]).plot()
             axs[i].set_title(f"{ii}")
             if ((i + 1) % number_of_columns) != 1:
