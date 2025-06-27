@@ -1067,7 +1067,7 @@ class Analysis:
             region_map = tf.imread("".join([region_folder,"/",i])).astype('int')
             if mask.shape != region_map.shape:
                 raise ValueError(f"The ROI: {i}, has a mismatch in size between the cell masks and the regions provided!")
-            output = self._assign_regions(mask, region_map, image_number = ii + 1)  ## 1-index the images, so as to match the Analysis
+            output = self._assign_regions(mask, region_map, image_number = ii) 
             assignments = assignments + output
         self.data.obs['regions'] = assignments    ## as with the do_spatial_leiden function, not currently set up to sync 
                                                   ## perfectly with a UMAP / PCA (run dimensionality reduction AFTER after these if you want things to be in sync)
@@ -1095,7 +1095,7 @@ class Analysis:
             mode_num = np.argmax(counts)
             mode = classes[mode_num]
             if mode == 0:   ## this only occurs if there is a 'background' class, after merging
-                assignment = '0'
+                assignment = '0_0'
             else:
                 assignment = f'{str(mode)}_{str(image_number)}'
             cell_class_list.append(assignment)
