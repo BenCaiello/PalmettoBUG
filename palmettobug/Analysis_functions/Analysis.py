@@ -686,6 +686,8 @@ class Analysis:
         '''
         if self.back_up_data is None:
             self.back_up_data = self.data.copy()
+            if self._spatial:
+                self.back_up_regions = self.regionprops_data.copy()
             
         filterer = self.data.obs[column].astype('str') != str(to_drop) 
         if (column == "sample_id") or (column == "patient_id") or (column == "condition"):
@@ -695,6 +697,9 @@ class Analysis:
         self.data = self.data[filterer].copy()
         if self.unscaled_data is not None:
             self.unscaled_data = self.unscaled_data[filterer].copy()
+
+        if self._spatial:
+            self.regionprops_data = self.regionprops_data[filterer].copy()
 
         if column in self.metadata.columns:
             self.metadata = self.metadata[self.metadata[column] != str(to_drop)]
