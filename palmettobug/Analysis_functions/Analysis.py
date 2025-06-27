@@ -2066,7 +2066,7 @@ class Analysis:
         #show_cluster_centers = False
         warnings.filterwarnings("ignore", message = "divide by zero encountered in divide") ########## zero divisions are very common
         warnings.filterwarnings("ignore", message = "invalid value encountered in divide") 
-        panel = self.panel
+        panel = self.data.var
         if subset_df is not None:
             for_fs = subset_df.copy()
             if marker_class != "All":    ## None ==> show all
