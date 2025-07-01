@@ -3507,10 +3507,10 @@ class Analysis:
 
             groupby_object = groupby_object.reset_index()
             if statistic == 'count':
-                groupby_object = groupby_object.loc[groupby_object['count'].notna(),:]
+                pass
             else:
                 backup_groupby = pd.DataFrame(groupby_object[groupby_columns], index = groupby_object.index)
-                groupby_object = groupby_object.drop(groupby_columns, axis = 1).dropna(how = 'all')
+                groupby_object = groupby_object.drop(groupby_columns, axis = 1).fillna(0)
                 groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
 
 
