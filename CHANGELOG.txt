@@ -21,13 +21,13 @@ Changes to version (update log in development branch while that branch is being 
             - Disadvantages: likely require substantial updates to documentation, no longer share features & supervised classifiers with QuPath / opencv
 
 
-    Changes to 0.2.5:
-        -
-        -
-        -
-        -
-        -
-
+    Changes to 0.2.5.dev1:
+        - Add cryptic functions to certain classes (spatial_leiden, region_identification, boolean_mask_transform) largely as a result of replication notebook work
+            - These functions are not available in the GUI (yet), but are available by scripting
+        - Fixes / improvements to plot_medians_heatmap and plot_cluster_abundance_1 methods in Analysis
+        - Change data_export from Analysis and whole-class analysis -- now handles NaNs differently after groupby operations (in GUI, sets them to 0) and handles
+          missing categories differently. Specifically, all unique combination of gropuby categories are included in the export, even if that unique combintation is not
+          present in the Analysis, with one exception: only existing unique combination of categories from columns present in the metadata.csv are kept for those columns.
 
     Changes to 0.2.6:
         -
