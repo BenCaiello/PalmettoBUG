@@ -60,7 +60,7 @@ import statsmodels.api as sm
 import sklearn.preprocessing as skpre
 from sklearn.manifold import MDS
 from sklearn.decomposition import PCA
-from sklearn.neighbors import KernelDensity
+# from sklearn.neighbors import KernelDensity ## possibly superseded by scanpy version of this
 import skimage
 import tifffile as tf
 
@@ -1621,7 +1621,7 @@ class Analysis:
             data.obsm['X_scatter'] = data.X[:,np.array((data.var['antigen'] == antigen1) + (data.var['antigen'] == antigen2))]
             sc.tl.embedding_density(data, basis = 'scatter')
             plot = sc.pl.embedding_density(data, basis = 'scatter', color_map = 'jet', size = size, alpha = alpha, ax = ax)
-        plot = sc.pl.scatter(data, antigen1, antigen2, color = hue, alpha = alpha, size = size, ax = ax)
+        sc.pl.scatter(data, antigen1, antigen2, color = hue, alpha = alpha, size = size, ax = ax)
 
         if filename is not None:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
@@ -3550,7 +3550,6 @@ class Analysis:
             else:
                 data_points[str(i)] = list(data.obs[str(i)])
                 data_points[str(i)] = data_points[str(i)].astype(data.obs[str(i)].dtype)
-            #data.obs[i] = data.obs[i].astype('str')
                 
         if self._scaling == "%quantile":
             data_points['scaling'] = str(self._scaling) + str(self._quantile_choice)
@@ -3630,7 +3629,7 @@ class Analysis:
                 elif groupby_nan_handling == 'zero':
                     groupby_object = groupby_object.drop(groupby_columns, axis = 1).fillna(0)
 
-                groupby_object = groupby_object.drop(groupby_columns, axis = 1).fillna(0)
+                groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
 
             
     

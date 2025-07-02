@@ -4,6 +4,7 @@ This log started on 6-19-25 to track major changes in each development branch / 
 Plans / Possibilities:
     - Possible: off pseudotime option in GUI's analysis module (via scanpy) 
     - Probable: copy simple denoise from iSD to PalmettoBUG (or offer some other denoising option so iSD is only for cellpose and deepcell/Mesmer)
+    - Need to Do: test scatterplot option in Analysis, test density option (likely need to implement downsampling to make computationally tractable & perhaps less crowded)
 
 present PyPI version -- 0.2.4.dev1
 
