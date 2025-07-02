@@ -3596,11 +3596,14 @@ class Analysis:
             extra_columns = None
             if len(groupby_columns) > 1:
                 extra_columns = [i for i in groupby_columns if i in self.metadata.columns]
-                extra_data_points = data_points[extra_columns]
-                def concat(*args):
-                    return "_|_|_".join(*args)
-                data_points['use'] = extra_data_points.T.apply(concat)
-                groupby_columns = ['use'] + [i for i in groupby_columns if i not in self.metadata.columns]
+                if len(extra_columns) > 1:
+                    extra_data_points = data_points[extra_columns]
+                    def concat(*args):
+                        return "_|_|_".join(*args)
+                    data_points['use'] = extra_data_points.T.apply(concat, engine = 'numba')
+                    groupby_columns = ['use'] + [i for i in groupby_columns if i not in self.metadata.columns]
+                else:
+                    extra_columns = None
       
             groupby_object = data_points.groupby(groupby_columns, observed = False)
     
@@ -3622,9 +3625,9 @@ class Analysis:
                 groupby_object = groupby_object.loc[groupby_object['count'].notna(),:]
             else:
                 backup_groupby = pd.DataFrame(groupby_object[groupby_columns], index = groupby_object.index)
-                if nan_handling == 'drop':
+                if groupby_nan_handling == 'drop':
                     groupby_object = groupby_object.drop(groupby_columns, axis = 1).dropna(how = 'all')
-                elif nan_handling == 'zero':
+                elif groupby_nan_handling == 'zero':
                     groupby_object = groupby_object.drop(groupby_columns, axis = 1).fillna(0)
                 groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
             

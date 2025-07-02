@@ -1,6 +1,6 @@
 [project]
 name = "palmettobug"
-version = "0.2.5.dev1"
+version = "0.2.5.dev2"
 description = "A GUI for (imaging) mass cyometry analysis predominantly based on the popular Steinbock and CATALYST image processing and data analysis packages and written in customtkinter."
 authors = [
     {name = "Ben Caiello", email = "<caiello@musc.edu>"},
