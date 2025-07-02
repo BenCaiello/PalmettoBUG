@@ -3524,7 +3524,7 @@ class Analysis:
         ## anndata to pd.DataFrame:
         data_points = pd.DataFrame(data.X)
         data_points.columns = data.var.index.astype('str')
-
+    
         to_add = []
         if (include_marker_class_row is True) & (groupby_columns is None):
             data_points = data_points.T
@@ -3533,7 +3533,7 @@ class Analysis:
             data_points['marker_class'] = data_points['marker_class'].replace(marker_class_dict)
             data_points = data_points.T
             to_add = [4]
-
+    
         if groupby_columns is None:
             try:
                 data_points["centroid_X"] = list(self.data.obsm['spatial'].T[0]) + to_add
@@ -3541,7 +3541,7 @@ class Analysis:
                 data_points["areas"] = list(self.data.uns['areas']) + to_add
             except Exception:
                 pass
-
+    
         data.obs.columns = data.obs.columns.astype('str')
         data_col_list = [i for i in data.obs.columns]
         for i in data_col_list:
@@ -3549,15 +3549,16 @@ class Analysis:
                 data_points[str(i)] = list(data.obs[str(i)]) + ["na"]
             else:
                 data_points[str(i)] = list(data.obs[str(i)])
-                data_points[str(i)]  = data_points[str(i)].astype(data.obs[str(i)].dtype)
+                data_points[str(i)] = data_points[str(i)].astype(data.obs[str(i)].dtype)
+            #data.obs[i] = data.obs[i].astype('str')
                 
         if self._scaling == "%quantile":
             data_points['scaling'] = str(self._scaling) + str(self._quantile_choice)
         else:
             data_points['scaling'] = self._scaling
-
+    
         data_points['masks_folder'] = self.input_mask_folder
-
+    
         if (include_marker_class_row is True) & (groupby_columns is None):
             data_points.loc[data_points.index[-1],'scaling'] = "na"
             data_points.loc[data_points.index[-1],'masks_folder'] = "na"
@@ -3580,7 +3581,6 @@ class Analysis:
                 else:
                     output_df = output_df.merge(new_data, how = 'inner')
             data_points = output_df
-                    
         if groupby_columns is None:
             if output_path is not None:
                 if self._in_gui:
@@ -3590,20 +3590,20 @@ class Analysis:
                         tk.messagebox.showwarning("Error writing to csv!")
                 else:
                     data_points.to_csv(str(output_path), index = False)
+    
             return data_points
-
         else:
-            if (len(groupby_columns) > 1):
-                metadata_columns = [i for i in groupby_columns if i in self.metadata.columns]
-                if len(metadata_columns) > 1:
-                    groupby_columns = [i for i in groupby_columns if i not in self.metadata.columns]
-                    def concat(*args):
-                        return "_|_|_".join(*args)
-                    data_points_meta_columns = data_points[metadata_columns]
-                    data_points['use'] = data_points_meta_columns.T.apply(concat)
-                    groupby_columns = ['use'] + groupby_columns
-
+            extra_columns = None
+            if len(groupby_columns) > 1:
+                extra_columns = [i for i in groupby_columns if i in self.metadata.columns]
+                extra_data_points = data_points[extra_columns]
+                def concat(*args):
+                    return "_|_|_".join(*args)
+                data_points['use'] = extra_data_points.T.apply(concat)
+                groupby_columns = ['use'] + [i for i in groupby_columns if i not in self.metadata.columns]
+      
             groupby_object = data_points.groupby(groupby_columns, observed = False)
+    
             if statistic == 'mean':
                 groupby_object = groupby_object.mean(numeric_only = True)
             if statistic =='median':
@@ -3616,23 +3616,32 @@ class Analysis:
                 groupby_object = groupby_object.count()
                 groupby_object = pd.DataFrame(groupby_object[groupby_object.columns[0]])
                 groupby_object.columns = ['count']
-
+    
             groupby_object = groupby_object.reset_index()
             if statistic == 'count':
                 groupby_object = groupby_object.loc[groupby_object['count'].notna(),:]
             else:
                 backup_groupby = pd.DataFrame(groupby_object[groupby_columns], index = groupby_object.index)
-                if groupby_nan_handling == 'drop':
+                if nan_handling == 'drop':
                     groupby_object = groupby_object.drop(groupby_columns, axis = 1).dropna(how = 'all')
-                    groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
-                elif groupby_nan_handling == 'zero':
+                elif nan_handling == 'zero':
                     groupby_object = groupby_object.drop(groupby_columns, axis = 1).fillna(0)
-                    groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
-
+                groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
+            
+    
             for i in data_col_list:
                 if (i in groupby_object.columns.astype('str')) and (i not in groupby_columns):
                     groupby_object = groupby_object.drop(i, axis = 1)
-
+            if extra_columns:
+                def split(value, part = 0):
+                    return value.split("_|_|_")[part]
+                interim = pd.DataFrame()
+                for i,ii in enumerate(extra_columns):
+                    interim[ii] = groupby_object['use'].apply(split, part = i)
+                groupby_object = pd.concat([interim, groupby_object], axis = 1)
+                groupby_object = groupby_object.drop('use', axis = 1)
+    
+    
             if output_path is not None:
                 if self._in_gui:
                     try:
@@ -3641,7 +3650,7 @@ class Analysis:
                         tk.messagebox.showwarning("Error writing to csv!")
                 else:
                     groupby_object.to_csv(str(output_path), index = False)
-
+    
             return groupby_object
         
     def export_DR(self, 
