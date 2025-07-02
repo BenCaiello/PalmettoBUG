@@ -3440,6 +3440,7 @@ class Analysis:
                     subset_types: Union[list[list[str]], None] = None, 
                     groupby_columns: Union[list[str], None] = None, 
                     statistic: str = 'mean',
+                    groupby_nan_handling: str = 'zero',
                     include_marker_class_row: bool = False,
                     untransformed: bool = False,
                     filename: Union[str, None] = None, 
@@ -3475,6 +3476,16 @@ class Analysis:
                 Possible values: 'mean','median','sum','std','count'. Denotes the pandas groupby method to be used after grouping (ignored if groupby_columns is None).
                 Numeric methods (mean, median, sum, std) are only applied to numeric columns, so only those columns + the groupby columns 
                 will be in the final dataframe / csv
+            
+            groupby_nan_handling(str):
+                'zero' or 'drop' -- when grouping the data whether to drop (nans), which usually represent non-existent category combinations or to 
+                convert nans to zeros. Any other values of this parameter will cause NaNs to be left as-is in the data export
+                Note that the default (and only option available in GUI) is 'zero', which converts ALL NaN values to 0, while the 'drop' option only drops
+                rows where EVERY numerical value is NaN.
+                By default, all possible groupby_columns combinations are included in the export (even if they are not present in the data, such cell types 
+                not present in every ROI), This is the source of most NaN values. Notably, columnns in the metadata (not data.obs!) of the Analysis are given special 
+                treatment to try to prevent non-existent experimental categories from having data exported (for example, each ROI / sample_id should have been 
+                with a single condition, not every possible condition in the dataset). 
 
             include_marker_class_row (bool): 
                 Whether to include the marker_class information as a row at the bottom of the table --> True to 
@@ -3538,7 +3549,7 @@ class Analysis:
                 data_points[str(i)] = list(data.obs[str(i)]) + ["na"]
             else:
                 data_points[str(i)] = list(data.obs[str(i)])
-            data.obs[i] = data.obs[i].astype('str')
+                data_points[str(i)]  = data_points[str(i)].astype(data.obs[str(i)].dtype)
                 
         if self._scaling == "%quantile":
             data_points['scaling'] = str(self._scaling) + str(self._quantile_choice)
@@ -3579,12 +3590,20 @@ class Analysis:
                         tk.messagebox.showwarning("Error writing to csv!")
                 else:
                     data_points.to_csv(str(output_path), index = False)
-
             return data_points
 
         else:
-            groupby_object = data_points.groupby(groupby_columns, observed = False)
+            if (len(groupby_columns) > 1):
+                metadata_columns = [i for i in groupby_columns if i in self.metadata.columns]
+                if len(metadata_columns) > 1:
+                    groupby_columns = [i for i in groupby_columns if i not in self.metadata.columns]
+                    def concat(*args):
+                        return "_|_|_".join(*args)
+                    data_points_meta_columns = data_points[metadata_columns]
+                    data_points['use'] = data_points_meta_columns.T.apply(concat)
+                    groupby_columns = ['use'] + groupby_columns
 
+            groupby_object = data_points.groupby(groupby_columns, observed = False)
             if statistic == 'mean':
                 groupby_object = groupby_object.mean(numeric_only = True)
             if statistic =='median':
@@ -3603,14 +3622,16 @@ class Analysis:
                 groupby_object = groupby_object.loc[groupby_object['count'].notna(),:]
             else:
                 backup_groupby = pd.DataFrame(groupby_object[groupby_columns], index = groupby_object.index)
-                groupby_object = groupby_object.drop(groupby_columns, axis = 1).dropna(how = 'all')
-                groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
-
+                if groupby_nan_handling == 'drop':
+                    groupby_object = groupby_object.drop(groupby_columns, axis = 1).dropna(how = 'all')
+                    groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
+                elif groupby_nan_handling == 'zero':
+                    groupby_object = groupby_object.drop(groupby_columns, axis = 1).fillna(0)
+                    groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
 
             for i in data_col_list:
                 if (i in groupby_object.columns.astype('str')) and (i not in groupby_columns):
                     groupby_object = groupby_object.drop(i, axis = 1)
-
 
             if output_path is not None:
                 if self._in_gui:
