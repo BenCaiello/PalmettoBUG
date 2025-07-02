@@ -3600,7 +3600,7 @@ class Analysis:
                     extra_data_points = data_points[extra_columns]
                     def concat(*args):
                         return "_|_|_".join(*args)
-                    data_points['use'] = extra_data_points.T.apply(concat, engine = 'numba')
+                    data_points['use'] = extra_data_points.T.apply(concat)
                     groupby_columns = ['use'] + [i for i in groupby_columns if i not in self.metadata.columns]
                 else:
                     extra_columns = None
