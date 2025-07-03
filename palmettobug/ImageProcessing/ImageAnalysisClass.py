@@ -892,16 +892,16 @@ class ImageAnalysis:
                 print(f"Warning! Mask file: {i} did  not have a matching shape between the two folders of masks. Skipping this file!")
             else:
                 output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
-                tf.imwrite(f'output_directory/{i}', output.astype('int32'))
+                tf.imwrite(f'{output_folder}/{i}', output.astype('int32'))
         
     def _mask_bool(self, mask1, mask2, kind = 'intersection1', object_threshold = 1, pixel_threshold = 1, re_order = True):
         ''' helper for self.boolean_mask_transform, executing the operation on a single pair of masks'''
         if (kind =="difference2") or (kind =="intersection2"):
             backup = mask1.copy()
-        mask_values = np.unique(mask1)
+        mask_values = [i for i in np.unique(mask1) if i > 0]
         for j in mask_values:
             temp = mask2[mask1 == j]      ## look at mask2 with each mask of mask1, and count overlapping values
-            overlapping_values = np.unique(temp)
+            overlapping_values = [i for i in np.unique(temp) if i > 0]
             object_counter = 0
             for k in overlapping_values:
                 if (temp == k).sum() > pixel_threshold:
@@ -920,10 +920,10 @@ class ImageAnalysis:
                     mask1[mask1 == j] = 0
                 
         if (kind =="difference2") or (kind =="intersection2"):
-            mask_values = np.unique(mask2)     ## if two-way difference, repeat the process but look from mask2 --> mask1 instead, then add kept mask2 to output
+            mask_values = [i for i in np.unique(mask2) if i > 0]     ## if two-way difference, repeat the process but look from mask2 --> mask1 instead, then add kept mask2 to output
             for j in mask_values:
                 temp = backup[mask2 == j]      
-                overlapping_values = np.unique(temp)
+                overlapping_values = [i for i in np.unique(temp) if i > 0]
                 object_counter = 0
                 for k in overlapping_values:
                     if (temp == k).sum() > pixel_threshold:
@@ -936,7 +936,7 @@ class ImageAnalysis:
                         mask1[(mask2 == j)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
         
         if re_order:
-            for m,mm in enumerate(np.unique(mask1, sorted = True)):
+            for m,mm in enumerate(sorted(np.unique(mask1))):
                 if mask1.min() != 0:   ## if masks take up the entire space of the image / there is no background, then need to index from 1 instead of 0
                     m = m + 1
                 mask1[mask1 == mm] = m

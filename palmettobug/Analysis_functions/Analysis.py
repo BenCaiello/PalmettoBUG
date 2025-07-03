@@ -60,7 +60,7 @@ import statsmodels.api as sm
 import sklearn.preprocessing as skpre
 from sklearn.manifold import MDS
 from sklearn.decomposition import PCA
-from sklearn.neighbors import KernelDensity
+# from sklearn.neighbors import KernelDensity ## possibly superseded by scanpy version of this
 import skimage
 import tifffile as tf
 
@@ -686,6 +686,8 @@ class Analysis:
         '''
         if self.back_up_data is None:
             self.back_up_data = self.data.copy()
+            if self._spatial:
+                self.back_up_regions = self.regionprops_data.copy()
             
         filterer = self.data.obs[column].astype('str') != str(to_drop) 
         if (column == "sample_id") or (column == "patient_id") or (column == "condition"):
@@ -695,6 +697,9 @@ class Analysis:
         self.data = self.data[filterer].copy()
         if self.unscaled_data is not None:
             self.unscaled_data = self.unscaled_data[filterer].copy()
+
+        if self._spatial:
+            self.regionprops_data = self.regionprops_data[np.array(list(filterer))].copy()
 
         if column in self.metadata.columns:
             self.metadata = self.metadata[self.metadata[column] != str(to_drop)]
@@ -1034,6 +1039,112 @@ class Analysis:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
         plt.close()
         return figure
+
+    def do_regions(self,
+                    region_folder: Union[Path, str], 
+                    mask_folder: Union[Path, str] = None
+                    ) -> pd.DataFrame:
+        '''
+        (Modified from mode_classify_folder) function to classify cells by the region and sample_id they are in.
+        As in, for every matching image in the mask and region folders, looks at the cells in the mask image -- for every cell
+        it will check if that cell lies within a region of the region image (the mode of its pixels lies within a region with value > 0).
+        Then will assign a label to that cell: 0 if outside a region, or {region#}_{image#} if it does lie within a region. 
+        These labels are accumulated into a list which is appended to the Analysis Object
+
+        '''
+        if mask_folder is None:
+            mask_folder = self.input_mask_folder
+        mask_folder = str(mask_folder)
+        masks = sorted(os.listdir(mask_folder))
+        region_folder = str(region_folder)
+        overlapping = [i for i in sorted(os.listdir(region_folder)) if i in masks]
+        if len(overlapping) != len(masks):
+            print('Warning! The regions provided do not match ALL the source masks of the analysis. ')
+            return
+        assignments = []
+        for ii,i in enumerate(overlapping):
+            mask = tf.imread("".join([mask_folder,"/",i])).astype('int')
+            region_map = tf.imread("".join([region_folder,"/",i])).astype('int')
+            if mask.shape != region_map.shape:
+                raise ValueError(f"The ROI: {i}, has a mismatch in size between the cell masks and the regions provided!")
+            output = self._assign_regions(mask, region_map, image_number = ii) 
+            assignments = assignments + output
+        self.data.obs['regions'] = assignments    ## as with the do_spatial_leiden function, not currently set up to sync 
+                                                  ## perfectly with a UMAP / PCA (run dimensionality reduction AFTER after these if you want things to be in sync)
+
+    def _assign_regions(self, 
+                        mask: np.ndarray[Union[float, int]], 
+                        region_map: np.ndarray[int],
+                        image_number: Union[str, int]
+                        ) -> tuple[np.ndarray[float], np.ndarray[int], pd.DataFrame]:
+        '''
+        This function iterates through two matching-sized numpy arrays (one representing cell masks & one representing 
+        region of the image [these regions are also masks, with background pixels of value == 0]), and returns a list of assigned regions 
+        to each of the cells ('0' if not within a region, and {region#}_{image#} if within a region, such as '2_3' for region 2 of the third image).
+        The image number must be passed into the function.  
+        '''                
+        regionprops = skimage.measure.regionprops(mask)
+        cell_class_list = []
+        for ii,i in enumerate(regionprops):
+            box = i.bbox
+            slicer = i.image
+            single_cell = region_map[box[0]:box[2],box[1]:box[3]][slicer]
+            counts = np.unique(single_cell, return_counts = True)
+            classes = counts[0]
+            counts = counts[1]
+            mode_num = np.argmax(counts)
+            mode = classes[mode_num]
+            if mode == 0:   ## this only occurs if there is a 'background' class, after merging
+                assignment = '0_0'
+            else:
+                assignment = f'{str(mode)}_{str(image_number)}'
+            cell_class_list.append(assignment)
+        return cell_class_list
+
+    def _do_spatial_leiden(self, 
+                          n_neighbors: int = 15, 
+                          resolution: int = 1, 
+                          random_state: int = 42,
+                          ) -> None:
+        '''
+        This function takes the centroid information from regionprops (centroid-0 and centroid-1) and calculates a neighborhood graph / leiden 
+        clustering for that. 
+        This is similar to the use of leiden on UMAPs, just in this case the input to the UMAP is only the physical X / Y coordinates of the 
+        centroids.
+
+        Appends the resulting spatial clustering -- which is calculated per image -- to self.data.obs in the format 
+        f"{image number}_{cluster number}"  
+
+        Uncertain how useful this is, but it is available      
+        '''
+        data = self.data.copy()
+        slicer = ((self.data.var['antigen'] == 'centroid-0').astype('int') + (self.data.var['antigen'] == 'centroid-1').astype('int')).astype('bool')
+        new_data = data.T[slicer].copy()
+        new_data = new_data.T
+        ## for now, copy the defaults of the major paramteres of scanpy's neighbors function below --> 
+        # so that I can easily use a paramter if I decide to add as an option for the user
+        all_leiden = []
+        for i in new_data.obs['sample_id'].astype('int').unique():   ## be sure of proper order
+                                                ## consider testing sc.external.pp.bbknn(), instead of doing my own
+                                                ## most of the slow-down, however, seems to come from loading (aka, failing to load) the 
+                                                # GPU at the start....
+            slicer = new_data.obs['sample_id'].astype('int') == i
+            this_sample = new_data[slicer]
+            sc.pp.neighbors(this_sample, 
+                            n_neighbors = n_neighbors, 
+                            n_pcs = 0, 
+                            knn = True, 
+                            method = 'umap', 
+                            random_state = random_state)
+            sc.tl.leiden(this_sample, 
+                         resolution = resolution, 
+                         random_state = random_state,
+                         flavor = "leidenalg", 
+                        n_iterations = 2)
+            this_sample_leiden = list((str(i) + "_") + this_sample.obs['spatial_leiden'].astype('str'))
+            all_leiden = all_leiden + this_sample_leiden
+        self.data.obs['spatial_leiden'] = all_leiden
+
 
     def plot_cell_counts(self,
                          group_by: str = "sample_id", 
@@ -1503,39 +1614,19 @@ class Analysis:
             
             
         '''
-        data = pd.DataFrame(self.data.X.copy(), columns = self.data.var['antigen'].copy())
-        # hue_norm = None
-        palette = None
-        if hue is not None:
-            if hue == "Density":
-                density = KernelDensity()
-                X = data.loc[:,[antigen1, antigen2]]
-                density = density.fit(X)
-                density = density.score_samples(X)
-                to_scale = np.exp(density)
-                to_scale = to_scale / np.quantile(to_scale, 0.99)
-                to_scale[to_scale > 1] = 1
-                data['Density'] = list(to_scale)
-                # hue_norm = (0,1)
-                palette = 'coolwarm'
-            elif hue in self.data.obs.columns:
-                data[hue] = list(self.data.obs[hue].copy())
+        data = self.data.copy()
         figure = plt.figure()
         ax = plt.gca()
-        sns.scatterplot(data, 
-                        x = antigen1, 
-                        y = antigen2, 
-                        hue = hue, 
-                        palette = palette, 
-                        # hue_norm = hue_norm, 
-                        size = size, 
-                        alpha = alpha,
-                        ax = ax, 
-                        **kwargs)
+        if hue == 'Density':
+            data.obsm['X_scatter'] = data.X[:,np.array((data.var['antigen'] == antigen1) + (data.var['antigen'] == antigen2))]
+            sc.tl.embedding_density(data, basis = 'scatter')
+            sc.pl.embedding_density(data, basis = 'scatter', color_map = 'jet', size = size, alpha = alpha, ax = ax)
+        sc.pl.scatter(data, antigen1, antigen2, color = hue, alpha = alpha, size = size, ax = ax)
+
         if filename is not None:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
-        plt.close()  
-        return figure
+        plt.close() 
+        return figure 
 
     def plot_UMAP(self,
                 color_by: Union[None, str] = 'metaclustering', 
@@ -1975,7 +2066,7 @@ class Analysis:
         #show_cluster_centers = False
         warnings.filterwarnings("ignore", message = "divide by zero encountered in divide") ########## zero divisions are very common
         warnings.filterwarnings("ignore", message = "invalid value encountered in divide") 
-        panel = self.panel
+        panel = self.data.var
         if subset_df is not None:
             for_fs = subset_df.copy()
             if marker_class != "All":    ## None ==> show all
@@ -2479,6 +2570,7 @@ class Analysis:
         
     def plot_cluster_abundance_1(self, 
                                  groupby_column: str = "metaclustering", 
+                                 bars_by: str  = 'sample_id',
                                  number_of_columns: int = 3,
                                  filename: Union[str, None] = None,
                                  **kwargs) -> plt.figure:                                # *** deriv_CATALYST (plot appearance / output)
@@ -2507,14 +2599,15 @@ class Analysis:
             a matplotlib figure
         '''
         to_abundance_plots = self.data.obs.copy()
-        abundance_plot_prep = to_abundance_plots.groupby(['sample_id', groupby_column, 'condition'], observed = False).count().reset_index()
-        abundance_plot_prep['patient_id'] = abundance_plot_prep['patient_id'].astype('int')
-        divisor = abundance_plot_prep[["sample_id","patient_id"]].groupby("sample_id", observed = False).sum().reset_index()
+        to_abundance_plots['count'] = 0
+        abundance_plot_prep = to_abundance_plots.groupby([bars_by, groupby_column, 'condition'], observed = False).count().reset_index()
+        abundance_plot_prep['count'] = abundance_plot_prep['count'].astype('int')
+        divisor = abundance_plot_prep[[bars_by,"count"]].groupby(bars_by, observed = False).sum().reset_index()
         div_dict = {}
         for i in divisor.index:
-            div_dict[int(divisor["sample_id"][i])] = divisor["patient_id"][i]
-        abundance_plot_prep["total"] =  (abundance_plot_prep["patient_id"].astype('int') 
-                                             / abundance_plot_prep["sample_id"].astype('int').replace(div_dict))
+            div_dict[int(divisor[bars_by][i])] = divisor["count"][i]
+        abundance_plot_prep["total"] =  (abundance_plot_prep["count"].astype('int') 
+                                             / abundance_plot_prep[bars_by].astype('int').replace(div_dict))
         abundance_plot_prep[groupby_column] = abundance_plot_prep[groupby_column].astype('category')
         abundance_plot_prep = abundance_plot_prep[abundance_plot_prep['file_name'] != 0]
         number_of_panels = len(abundance_plot_prep['condition'].unique())
@@ -2532,8 +2625,8 @@ class Analysis:
 
         for i,ii in enumerate(abundance_plot_prep['condition'].unique()):
             for_facet = abundance_plot_prep[abundance_plot_prep['condition'] == ii].copy()
-            for_facet['sample_id'] = for_facet['sample_id'].astype('str')
-            plot = so.Plot(for_facet, x = "sample_id", y = "total", color = groupby_column).add(so.Bar(), so.Stack(), **kwargs)
+            for_facet[bars_by] = for_facet[bars_by].astype('str')
+            plot = so.Plot(for_facet, x = bars_by, y = "total", color = groupby_column).add(so.Bar(), so.Stack(), **kwargs)
             plot = plot.on(axs[i]).plot()
             axs[i].set_title(f"{ii}")
             if ((i + 1) % number_of_columns) != 1:
@@ -3347,6 +3440,7 @@ class Analysis:
                     subset_types: Union[list[list[str]], None] = None, 
                     groupby_columns: Union[list[str], None] = None, 
                     statistic: str = 'mean',
+                    groupby_nan_handling: str = 'zero',
                     include_marker_class_row: bool = False,
                     untransformed: bool = False,
                     filename: Union[str, None] = None, 
@@ -3382,6 +3476,16 @@ class Analysis:
                 Possible values: 'mean','median','sum','std','count'. Denotes the pandas groupby method to be used after grouping (ignored if groupby_columns is None).
                 Numeric methods (mean, median, sum, std) are only applied to numeric columns, so only those columns + the groupby columns 
                 will be in the final dataframe / csv
+            
+            groupby_nan_handling(str):
+                'zero' or 'drop' -- when grouping the data whether to drop (nans), which usually represent non-existent category combinations or to 
+                convert nans to zeros. Any other values of this parameter will cause NaNs to be left as-is in the data export
+                Note that the default (and only option available in GUI) is 'zero', which converts ALL NaN values to 0, while the 'drop' option only drops
+                rows where EVERY numerical value is NaN.
+                By default, all possible groupby_columns combinations are included in the export (even if they are not present in the data, such cell types 
+                not present in every ROI), This is the source of most NaN values. Notably, columnns in the metadata (not data.obs!) of the Analysis are given special 
+                treatment to try to prevent non-existent experimental categories from having data exported (for example, each ROI / sample_id should have been 
+                with a single condition, not every possible condition in the dataset). 
 
             include_marker_class_row (bool): 
                 Whether to include the marker_class information as a row at the bottom of the table --> True to 
@@ -3420,7 +3524,7 @@ class Analysis:
         ## anndata to pd.DataFrame:
         data_points = pd.DataFrame(data.X)
         data_points.columns = data.var.index.astype('str')
-
+    
         to_add = []
         if (include_marker_class_row is True) & (groupby_columns is None):
             data_points = data_points.T
@@ -3429,7 +3533,7 @@ class Analysis:
             data_points['marker_class'] = data_points['marker_class'].replace(marker_class_dict)
             data_points = data_points.T
             to_add = [4]
-
+    
         if groupby_columns is None:
             try:
                 data_points["centroid_X"] = list(self.data.obsm['spatial'].T[0]) + to_add
@@ -3437,7 +3541,7 @@ class Analysis:
                 data_points["areas"] = list(self.data.uns['areas']) + to_add
             except Exception:
                 pass
-
+    
         data.obs.columns = data.obs.columns.astype('str')
         data_col_list = [i for i in data.obs.columns]
         for i in data_col_list:
@@ -3445,15 +3549,15 @@ class Analysis:
                 data_points[str(i)] = list(data.obs[str(i)]) + ["na"]
             else:
                 data_points[str(i)] = list(data.obs[str(i)])
-            data.obs[i] = data.obs[i].astype('str')
+                data_points[str(i)] = data_points[str(i)].astype(data.obs[str(i)].dtype)
                 
         if self._scaling == "%quantile":
             data_points['scaling'] = str(self._scaling) + str(self._quantile_choice)
         else:
             data_points['scaling'] = self._scaling
-
+    
         data_points['masks_folder'] = self.input_mask_folder
-
+    
         if (include_marker_class_row is True) & (groupby_columns is None):
             data_points.loc[data_points.index[-1],'scaling'] = "na"
             data_points.loc[data_points.index[-1],'masks_folder'] = "na"
@@ -3476,7 +3580,6 @@ class Analysis:
                 else:
                     output_df = output_df.merge(new_data, how = 'inner')
             data_points = output_df
-                    
         if groupby_columns is None:
             if output_path is not None:
                 if self._in_gui:
@@ -3486,12 +3589,23 @@ class Analysis:
                         tk.messagebox.showwarning("Error writing to csv!")
                 else:
                     data_points.to_csv(str(output_path), index = False)
-
+    
             return data_points
-
         else:
+            extra_columns = None
+            if len(groupby_columns) > 1:
+                extra_columns = [i for i in groupby_columns if i in self.metadata.columns]
+                if len(extra_columns) > 1:
+                    extra_data_points = data_points[extra_columns]
+                    def concat(*args):
+                        return "_|_|_".join(*args)
+                    data_points['use'] = extra_data_points.T.apply(concat)
+                    groupby_columns = ['use'] + [i for i in groupby_columns if i not in self.metadata.columns]
+                else:
+                    extra_columns = None
+      
             groupby_object = data_points.groupby(groupby_columns, observed = False)
-
+    
             if statistic == 'mean':
                 groupby_object = groupby_object.mean(numeric_only = True)
             if statistic =='median':
@@ -3504,21 +3618,34 @@ class Analysis:
                 groupby_object = groupby_object.count()
                 groupby_object = pd.DataFrame(groupby_object[groupby_object.columns[0]])
                 groupby_object.columns = ['count']
-
+    
             groupby_object = groupby_object.reset_index()
             if statistic == 'count':
                 pass
             else:
                 backup_groupby = pd.DataFrame(groupby_object[groupby_columns], index = groupby_object.index)
-                groupby_object = groupby_object.drop(groupby_columns, axis = 1).fillna(0)
+                if groupby_nan_handling == 'drop':
+                    groupby_object = groupby_object.drop(groupby_columns, axis = 1).dropna(how = 'all')
+                elif groupby_nan_handling == 'zero':
+                    groupby_object = groupby_object.drop(groupby_columns, axis = 1).fillna(0)
+
                 groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
 
-
+            
+    
             for i in data_col_list:
                 if (i in groupby_object.columns.astype('str')) and (i not in groupby_columns):
                     groupby_object = groupby_object.drop(i, axis = 1)
-
-
+            if extra_columns:
+                def split(value, part = 0):
+                    return value.split("_|_|_")[part]
+                interim = pd.DataFrame()
+                for i,ii in enumerate(extra_columns):
+                    interim[ii] = groupby_object['use'].apply(split, part = i)
+                groupby_object = pd.concat([interim, groupby_object], axis = 1)
+                groupby_object = groupby_object.drop('use', axis = 1)
+    
+    
             if output_path is not None:
                 if self._in_gui:
                     try:
@@ -3527,7 +3654,7 @@ class Analysis:
                         tk.messagebox.showwarning("Error writing to csv!")
                 else:
                     groupby_object.to_csv(str(output_path), index = False)
-
+    
             return groupby_object
         
     def export_DR(self, 

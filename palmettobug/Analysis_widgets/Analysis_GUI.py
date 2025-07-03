@@ -3074,7 +3074,7 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.hue.grid(column= 1, row = 4, padx = 5, pady = 5)
 
         def refresh_scatter_hue(enter = ""):
-            color_list = ["None", "Density", ] + COLNAMES
+            color_list = ["None", ] + COLNAMES  # "Density",
             color_list_obs = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns.unique())]
             color_list_antigens = list(self.master.cat_exp.data.var['antigen'].unique())
             color_list = color_list + color_list_obs + color_list_antigens
