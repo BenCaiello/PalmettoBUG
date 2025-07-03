@@ -699,7 +699,7 @@ class Analysis:
             self.unscaled_data = self.unscaled_data[filterer].copy()
 
         if self._spatial:
-            self.regionprops_data = self.regionprops_data[filterer].copy()
+            self.regionprops_data = self.regionprops_data[np.array(list(filterer))].copy()
 
         if column in self.metadata.columns:
             self.metadata = self.metadata[self.metadata[column] != str(to_drop)]
