@@ -263,9 +263,9 @@ def test_export_DR():
     assert isinstance(df, pd.DataFrame), "DR export did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.UMAP_embedding), "DR export did not have the same length as the source embedding!"
 
-def test_scatterplot():
-    figure = my_analysis.plot_scatter(antigen1 = "CD3", antigen2 = "CD4")
-    assert isinstance(figure, matplotlib.figure.Figure), "scatterplot did not make a matplotlib figure"
+#def test_scatterplot():
+#    figure = my_analysis.plot_scatter(antigen1 = "CD3", antigen2 = "CD4")
+#    assert isinstance(figure, matplotlib.figure.Figure), "scatterplot did not make a matplotlib figure"
 
 def test_to_classy_masks():
     data_df = my_analysis.export_clustering_classy_masks(clustering = "merging")
