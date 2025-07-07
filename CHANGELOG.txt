@@ -4,6 +4,7 @@ This log started on 6-19-25 to track major changes in each development branch / 
 Plans / Possibilities:
     - Possible: off pseudotime option in GUI's analysis module (via scanpy) 
     - Probable: copy simple denoise from iSD to PalmettoBUG (or offer some other denoising option so iSD is only for cellpose and deepcell/Mesmer)
+    - Need to Do: test scatterplot option in Analysis, test density option (likely need to implement downsampling to make computationally tractable & perhaps less crowded)
 
 present PyPI version -- 0.2.4.dev1
 
@@ -21,13 +22,14 @@ Changes to version (update log in development branch while that branch is being 
             - Disadvantages: likely require substantial updates to documentation, no longer share features & supervised classifiers with QuPath / opencv
 
 
-    Changes to 0.2.5:
-        -
-        -
-        -
-        -
-        -
-
+    Changes to 0.2.5.dev1:
+        - Add cryptic functions to certain classes (spatial_leiden, region_identification, boolean_mask_transform) largely as a result of replication notebook work
+            - These functions are not available in the GUI (yet), but are available by scripting
+        - Fixes / improvements to plot_medians_heatmap and plot_cluster_abundance_1 methods in Analysis
+        - Change analysis scatterplot option to directly use scanpy's scatter plot related methods(needs troubleshooting, temporarily removed 'density' hue option from GUI)
+        - Change data_export from Analysis and whole-class analysis -- now handles NaNs differently after groupby operations (in GUI, sets them to 0) and handles
+          missing categories differently. Specifically, all unique combination of gropuby categories are included in the export, even if that unique combintation is not
+          present in the Analysis, with one exception: only existing unique combination of categories from columns present in the metadata.csv are kept for those columns.
 
     Changes to 0.2.6:
         -

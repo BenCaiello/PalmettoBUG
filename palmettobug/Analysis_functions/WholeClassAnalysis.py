@@ -612,6 +612,7 @@ class WholeClassAnalysis:
                     subset_types: Union[list[list[str]], None] = None, 
                     groupby_columns: Union[list[str], None] = None, 
                     statistic: str = 'mean',
+                    groupby_nan_handling: str = 'zero',
                     include_marker_class_row: bool = False,
                     untransformed: bool = False,
                     filename: Union[str, None] = None, 
@@ -647,6 +648,16 @@ class WholeClassAnalysis:
                 Possible values: 'mean','median','sum','std','count'. Denotes the pandas groupby method to be used after grouping (ignored if groupby_columns is None).
                 Numeric methods (mean, median, sum, std) are only applied to numeric columns, so only those columns + the groupby columns 
                 will be in the final dataframe / csv
+            
+            groupby_nan_handling(str):
+                'zero' or 'drop' -- when grouping the data whether to drop (nans), which usually represent non-existent category combinations or to 
+                convert nans to zeros. Any other values of this parameter will cause NaNs to be left as-is in the data export
+                Note that the default (and only option available in GUI) is 'zero', which converts ALL NaN values to 0, while the 'drop' option only drops
+                rows where EVERY numerical value is NaN.
+                By default, all possible groupby_columns combinations are included in the export (even if they are not present in the data, such cell types 
+                not present in every ROI), This is the source of most NaN values. Notably, columnns in the metadata (not data.obs!) of the Analysis are given special 
+                treatment to try to prevent non-existent experimental categories from having data exported (for example, each ROI / sample_id should have been 
+                with a single condition, not every possible condition in the dataset). 
 
             include_marker_class_row (bool): 
                 Whether to include the marker_class information as a row at the bottom of the table --> True to 
@@ -685,14 +696,6 @@ class WholeClassAnalysis:
         ## anndata to pd.DataFrame:
         data_points = pd.DataFrame(data.X)
         data_points.columns = data.var.index.astype('str')
-
-        if (include_marker_class_row is True) & (groupby_columns is None):
-            data_points = data_points.T
-            marker_class_dict = {'none' : 0, 'type' : 1, 'state' : 2, 'spatial_edt' : 3, 'other': 4}     # so not mixed type on read
-            data_points['marker_class'] = list(data.var['marker_class'])
-            data_points['marker_class'] = data_points['marker_class'].replace(marker_class_dict)
-            data_points = data_points.T
-
         data.obs.columns = data.obs.columns.astype('str')
         data_col_list = [i for i in data.obs.columns]
         for i in data_col_list:
@@ -700,7 +703,7 @@ class WholeClassAnalysis:
                 data_points[str(i)] = list(data.obs[str(i)]) + ["na"]
             else:
                 data_points[str(i)] = list(data.obs[str(i)])
-            data.obs[i] = data.obs[i].astype('str')
+                data_points[str(i)] = data_points[str(i)].astype(data.obs[str(i)].dtype)
         
         # subset:
         if (subset_types is not None) and (subset_columns is not None):
@@ -720,15 +723,27 @@ class WholeClassAnalysis:
                 else:
                     output_df = output_df.merge(new_data, how = 'inner')
             data_points = output_df
-                    
+            
         if groupby_columns is None:
             if output_path is not None:
                 data_points.to_csv(str(output_path), index = False)
             return data_points
 
         else:
+            extra_columns = None
+            if len(groupby_columns) > 1:
+                extra_columns = [i for i in groupby_columns if i in self.metadata.columns]
+                if len(extra_columns) > 1:
+                    extra_data_points = data_points[extra_columns]
+                    def concat(*args):
+                        return "_|_|_".join(*args)
+                    data_points['use'] = extra_data_points.T.apply(concat)
+                    groupby_columns = ['use'] + [i for i in groupby_columns if i not in self.metadata.columns]
+                else:
+                    extra_columns = None
+      
             groupby_object = data_points.groupby(groupby_columns, observed = False)
-
+    
             if statistic == 'mean':
                 groupby_object = groupby_object.mean(numeric_only = True)
             if statistic =='median':
@@ -741,15 +756,33 @@ class WholeClassAnalysis:
                 groupby_object = groupby_object.count()
                 groupby_object = pd.DataFrame(groupby_object[groupby_object.columns[0]])
                 groupby_object.columns = ['count']
-
+    
             groupby_object = groupby_object.reset_index()
+            if statistic == 'count':
+                pass
+            else:
+                backup_groupby = pd.DataFrame(groupby_object[groupby_columns], index = groupby_object.index)
+                if groupby_nan_handling == 'drop':
+                    groupby_object = groupby_object.drop(groupby_columns, axis = 1).dropna(how = 'all')
+                elif groupby_nan_handling == 'zero':
+                    groupby_object = groupby_object.drop(groupby_columns, axis = 1).fillna(0)
+
+                groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
 
             for i in data_col_list:
                 if (i in groupby_object.columns.astype('str')) and (i not in groupby_columns):
                     groupby_object = groupby_object.drop(i, axis = 1)
-
-
+            if extra_columns:
+                def split(value, part = 0):
+                    return value.split("_|_|_")[part]
+                interim = pd.DataFrame()
+                for i,ii in enumerate(extra_columns):
+                    interim[ii] = groupby_object['use'].apply(split, part = i)
+                groupby_object = pd.concat([interim, groupby_object], axis = 1)
+                groupby_object = groupby_object.drop('use', axis = 1)
+    
+    
             if output_path is not None:
                 groupby_object.to_csv(str(output_path), index = False)
-
+    
             return groupby_object
