@@ -381,8 +381,11 @@ class SpatialANOVA():
             cell_type_copy = obs[obs[cellType_key] == i]
             compare_to_threshold = cell_type_copy.groupby(['condition','sample_id'], observed = True).count()[cellType_key].reset_index()
             for k in compare_to_threshold['condition'].unique():
+                counter = 0
                 compare_to_threshold_copy = compare_to_threshold[compare_to_threshold['condition'] == k]
                 if compare_to_threshold_copy[cellType_key].max() < self.threshold:
+                    counter += 1
+                if (len(compare_to_threshold['condition'].unique()) - counter) <= 1:
                     bad_cell_types.append(str(i))
                     print(f"The celltype {str(i)} is only present in one condition -- ANOVAs and F-statistics will not be available for that celltype!")
                     break   
