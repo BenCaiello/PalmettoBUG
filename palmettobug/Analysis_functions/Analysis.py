@@ -699,11 +699,7 @@ class Analysis:
             self.unscaled_data = self.unscaled_data[filterer].copy()
 
         if self._spatial:
-<<<<<<< HEAD
-            self.regionprops_data = self.regionprops_data[filterer].copy()
-=======
             self.regionprops_data = self.regionprops_data[np.array(list(filterer))].copy()
->>>>>>> 5edfc7f0fa700174433624cae5bc5225b83998af
 
         if column in self.metadata.columns:
             self.metadata = self.metadata[self.metadata[column] != str(to_drop)]
@@ -1624,13 +1620,8 @@ class Analysis:
         if hue == 'Density':
             data.obsm['X_scatter'] = data.X[:,np.array((data.var['antigen'] == antigen1) + (data.var['antigen'] == antigen2))]
             sc.tl.embedding_density(data, basis = 'scatter')
-<<<<<<< HEAD
-            plot = sc.pl.embedding_density(data, basis = 'scatter', color_map = 'jet', size = size, alpha = alpha, ax = ax)
-        plot = sc.pl.scatter(data, antigen1, antigen2, color = hue, alpha = alpha, size = size, ax = ax)
-=======
             sc.pl.embedding_density(data, basis = 'scatter', color_map = 'jet', size = size, alpha = alpha, ax = ax)
         sc.pl.scatter(data, antigen1, antigen2, color = hue, alpha = alpha, size = size, ax = ax)
->>>>>>> 5edfc7f0fa700174433624cae5bc5225b83998af
 
         if filename is not None:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
@@ -3559,10 +3550,6 @@ class Analysis:
             else:
                 data_points[str(i)] = list(data.obs[str(i)])
                 data_points[str(i)] = data_points[str(i)].astype(data.obs[str(i)].dtype)
-<<<<<<< HEAD
-            #data.obs[i] = data.obs[i].astype('str')
-=======
->>>>>>> 5edfc7f0fa700174433624cae5bc5225b83998af
                 
         if self._scaling == "%quantile":
             data_points['scaling'] = str(self._scaling) + str(self._quantile_choice)
@@ -3641,14 +3628,8 @@ class Analysis:
                     groupby_object = groupby_object.drop(groupby_columns, axis = 1).dropna(how = 'all')
                 elif groupby_nan_handling == 'zero':
                     groupby_object = groupby_object.drop(groupby_columns, axis = 1).fillna(0)
-<<<<<<< HEAD
-                groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
-=======
 
-                groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
-
->>>>>>> 5edfc7f0fa700174433624cae5bc5225b83998af
-            
+                groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)            
     
             for i in data_col_list:
                 if (i in groupby_object.columns.astype('str')) and (i not in groupby_columns):
