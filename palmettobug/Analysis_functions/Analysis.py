@@ -88,27 +88,31 @@ temp_img_dir = homedir + "/Assets/temp_image.png"
 
 def _py_catalyst_quantile_norm(pd_groupby) -> np.ndarray[float]:
     ''' 
-    This is a helper function for the median / heatmap plotting function immediately below 
+    This is a helper function for the median / heatmap plotting function
     '''
     pd_groupby = pd_groupby.copy()
     np_groupby = np.array(pd_groupby)
     np_groupby = np.median(np_groupby, axis = 0)
-    np_groupby = _quant(np_groupby)
+    #np_groupby = _quant(np_groupby)
     return np_groupby
 
-def _quant(array: np.ndarray[float], 
+def _quant(array: np.ndarray[float],                       # *** deriv_CATALYST (replicates CATALYST's scaling)
           lower: float = 0.01, 
           upper:float = 0.99, 
           axis: int = None,
           ) -> np.ndarray[float]:
     '''
-    This is a helper function for _py_catalyst_quantile_norm
+    This is a helper function for the median / heatmap plotting function, meant to imitate CATALYST's heatmap scaling 
     '''
     quantiles = np.quantile(array, (lower, upper), axis = axis) 
+    if axis == 1:
+        array = array.T
     array = (array - quantiles[0])  / (quantiles[1] - quantiles[0])
     array = np.nan_to_num(array)
     array[array > 1] = 1
     array[array < 0] = 0
+    if axis == 1:
+        array = array.T
     return array
 
 class Analysis:   
@@ -392,7 +396,8 @@ class Analysis:
 
         self.data = ann.AnnData(X = exprs, var = panel, obs = metadata_long)
 
-        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype('category')
+        special_category = pd.CategoricalDtype(list(self.data.obs["sample_id"].astype('str').unique()), ordered = True)
+        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype(special_category)
 
         special_category = pd.CategoricalDtype(list(self.data.obs["patient_id"].astype('str').unique()), ordered = True)
         self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype(special_category)
@@ -515,8 +520,11 @@ class Analysis:
         self.unscaled_data = None
         self._scaling = 'unscale'
 
-        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype('str').astype("category")
-        self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype("category")
+        special_category = pd.CategoricalDtype(list(self.data.obs["sample_id"].astype('str').unique()), ordered = True)
+        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype(special_category)
+
+        special_category = pd.CategoricalDtype(list(self.data.obs["patient_id"].astype('str').unique()), ordered = True)
+        self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype(special_category)
 
         special_category = pd.CategoricalDtype(list(data["condition"].astype('str').unique()), ordered = True)
         self.data.obs["condition"] =  self.data.obs["condition"].astype(special_category)
@@ -1213,16 +1221,17 @@ class Analysis:
             a matplotlib.pyplot figure and a pandas dataframe
         '''
         metadata = self.metadata.copy()
-        panel = self.panel.copy()
+        panel = self.data.var.copy()
 
-        flowsom_clustering = self.data.copy()
+        MDS_data = self.data.copy()
         if marker_class != "All":  
             slicer = panel['marker_class'] == marker_class 
-            flowsom_clustering = flowsom_clustering[:,slicer]
+            MDS_data = MDS_data[:,slicer]
             panel = panel[slicer]
 
-        median_df = pd.DataFrame(flowsom_clustering.X, columns = flowsom_clustering.var['antigen'])
-        median_df['sample_id'] = list(flowsom_clustering.obs['sample_id'])
+        median_df = pd.DataFrame(MDS_data.X, columns = MDS_data.var['antigen'])
+        median_df['sample_id'] = list(MDS_data.obs['sample_id'])
+        median_df['sample_id'] = median_df['sample_id'].astype(MDS_data.obs['sample_id'].dtype)
 
         median_df = median_df.groupby("sample_id", observed = False).median()
         
@@ -2021,13 +2030,14 @@ class Analysis:
                              groupby: str = "metaclustering",  
                              subset_df: pd.DataFrame = None, 
                              subset_obs: pd.DataFrame = None, 
+                             colormap = "coolwarm",
                              figsize: tuple[Union[int,float]] = (10,10),
                              filename: Union[str, None] = None, 
                              **kwargs) -> plt.figure:                                      # *** deriv_CATALYST (tries to imitate the heatmaps of 
                                                                                                                 # CATALYST)
         ''' 
         Plots a heatmap in a manner similar to CATALYST by first taking the median of each channel in each category of [groupby] column, then
-        %quantile normalizing the medians from 1%-99% across the entire set of medians.
+        %quantile normalizing the medians from 1%-99% across the antigens.
 
         Args:
             filename (string): 
@@ -2080,9 +2090,10 @@ class Analysis:
             manipul_df = for_fs.copy().drop(["index", groupby], axis = 1)
             manipul_df['metacluster'] = for_fs[groupby]
             main_df = pd.DataFrame()
-            for ii,i in enumerate(manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)):
-                slice = pd.DataFrame(i, index = antigens, columns = [ii])
-                main_df = pd.concat([main_df,slice], axis = 1)
+            grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
+            for ii,i in zip(grouped.index, grouped):
+                slicer = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
+                main_df = pd.concat([main_df,slicer], axis = 1)
             cluster_centers = main_df.T
         else:
             for_fs = self.data.copy()
@@ -2092,9 +2103,11 @@ class Analysis:
             manipul_df = pd.DataFrame(for_fs.X)
             manipul_df["metacluster"] = list(for_fs.obs[groupby])
             main_df = pd.DataFrame()
-            for ii,i in enumerate(manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)):
-                slice = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
-                main_df = pd.concat([main_df,slice], axis = 1)
+            categories = list(manipul_df['metacluster'].unique())
+            grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
+            for ii,i in zip(grouped.index, grouped):
+                slicer = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
+                main_df = pd.concat([main_df,slicer], axis = 1)
             cluster_centers = main_df.T
 
         #### different way to quantile after taking medians (along axis of clusters, instead of quantiling the global numbers as above):
@@ -2128,11 +2141,13 @@ class Analysis:
                 percentiles = percentiles.sort_values('index')
                 cluster_centers.index = list(percentiles['percents'])   
         else:
-            cluster_centers['sample_id'] = cluster_centers.reset_index()['index']
+            cluster_centers['sample_id'] = list(cluster_centers.reset_index()['index'])
             cluster_centers.index = cluster_centers['sample_id']
             cluster_centers = cluster_centers.drop('sample_id', axis = 1)
+        transform = _quant(cluster_centers, axis = 0)
+        cluster_centers = pd.DataFrame(transform, index = cluster_centers.index, columns = cluster_centers.columns)
         plot = sns.clustermap(cluster_centers, 
-                             cmap = "coolwarm", 
+                             cmap = colormap, 
                              linewidths = 0.01, 
                              xticklabels = True, 
                              yticklabels = True, 
