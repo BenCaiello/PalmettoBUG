@@ -2027,7 +2027,8 @@ class Analysis:
 
     def plot_medians_heatmap(self,  
                              marker_class: str = "type", 
-                             groupby: str = "metaclustering",  
+                             groupby: str = "metaclustering",
+                             scale_axis = 0,  
                              subset_df: pd.DataFrame = None, 
                              subset_obs: pd.DataFrame = None, 
                              colormap = "coolwarm",
@@ -2144,7 +2145,7 @@ class Analysis:
             cluster_centers['sample_id'] = list(cluster_centers.reset_index()['index'])
             cluster_centers.index = cluster_centers['sample_id']
             cluster_centers = cluster_centers.drop('sample_id', axis = 1)
-        transform = _quant(cluster_centers, axis = 0)
+        transform = _quant(cluster_centers, axis = scale_axis)
         cluster_centers = pd.DataFrame(transform, index = cluster_centers.index, columns = cluster_centers.columns)
         plot = sns.clustermap(cluster_centers, 
                              cmap = colormap, 
