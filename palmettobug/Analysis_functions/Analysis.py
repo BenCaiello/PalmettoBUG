@@ -1550,6 +1550,7 @@ class Analysis:
         fs_anndata = anndata_in.copy()
         anndata_df = pd.DataFrame(fs_anndata.X, columns = fs_anndata.var['antigen'])
         anndata_df['sample_id'] = list(fs_anndata.obs['sample_id'])
+        anndata_df['sample_id'] = anndata_df['sample_id'].astype(fs_anndata.obs['sample_id'].dtype)
         anndata_df.index = fs_anndata.obs.index.astype('int')
         sample_together = pd.DataFrame()
         for i in anndata_df['sample_id'].astype('str').unique():
