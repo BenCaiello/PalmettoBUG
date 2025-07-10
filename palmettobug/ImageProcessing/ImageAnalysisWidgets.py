@@ -187,7 +187,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
 
     def call_intersection_difference(self):
         '''
-        Runs the intersection / difference segmentation. Also writes the panel file
+        Runs the intersection / difference mask transform. Also writes the panel file
         '''
         self.call_write_panel()
         self.Experiment_object._panel_setup()
@@ -385,14 +385,19 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         masks_folder2 = self.masks_folder2.get()
         def check_masks_or_px(path):
             if path in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir):
-                print(os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir + "/" + path))
-                if not "merged_classification_maps" in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir + "/" + path):
+                if "merged_classification_maps" in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir + "/" + path):
                     return self.master.Experiment_object.directory_object.px_classifiers_dir +"/" + path + "/merged_classification_maps"     
                     ## only used merged pixel class maps, so that background is 0 and outside the masks (otherwise every pixel will be 'inside' a mask)
+                else:
+                    return None
             else:
                 return self.master.Experiment_object.directory_object.masks_dir + "/" + path
         masks_folder1 = check_masks_or_px(masks_folder1)
         masks_folder2 = check_masks_or_px(masks_folder2)
+        if (masks_folder1 is None) or (masks_folder2 is None):
+            tk.messagebox.showwarning("Warning!", 
+                     message = "One of the pixel classifiers provided does not have a merged folder. \nOnly merged pixel classification maps can be used by this function! Cancelling")
+            return
 
         kind1 = self.kind1.get()
         kind2 = self.kind2.get()
