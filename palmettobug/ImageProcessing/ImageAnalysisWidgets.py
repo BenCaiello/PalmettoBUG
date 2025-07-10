@@ -101,13 +101,13 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             self.Instanseg = ctk.CTkButton(self, text = "Run InstanSeg")
             self.intersection = ctk.CTkButton(self, text = "Mask Transform by Intersection/Difference")
             self.expander = ctk.CTkButton(self, text = "Expand Masks")
+            self.Instanseg.grid(column = 1, row = 4, padx= 5, pady = 5)
+            self.intersection.grid(column = 1, row = 5, padx= 5, pady = 5)
+            self.expander.grid(column = 1, row = 6, padx= 5, pady = 5)
             try:
                 from instanseg import InstanSeg  # noqa: F401
-                self.Instanseg.grid(column = 1, row = 4, padx= 5, pady = 5)
-                self.intersection.grid(column = 1, row = 5, padx= 5, pady = 5)
-                self.expander.grid(column = 1, row = 6, padx= 5, pady = 5)
             except Exception:
-                pass
+                self.instanseg_available = False
             self.Instanseg.configure(state = "disabled")
             self.expander.configure(state = "disabled")
 
@@ -177,6 +177,9 @@ class ImageProcessingWidgets(ctk.CTkFrame):
         '''
         Runs the instanseg segmentation. Also writes the panel file
         '''
+        if not self.instanseg_available:
+            tk.messagebox.showwarning("Warning!", message = "Instanseg is not installed! To fix this warning, \ninstall instanseg-torch package using pip")
+            return
         ## the panel write / setup block is too ensure the panel settings are saved while running
         self.call_write_panel()
         self.Experiment_object._panel_setup()
@@ -382,6 +385,7 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         masks_folder2 = self.masks_folder2.get()
         def check_masks_or_px(path):
             if path in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir):
+                print(os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir + "/" + path))
                 if not "merged_classification_maps" in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir + "/" + path):
                     return self.master.Experiment_object.directory_object.px_classifiers_dir +"/" + path + "/merged_classification_maps"     
                     ## only used merged pixel class maps, so that background is 0 and outside the masks (otherwise every pixel will be 'inside' a mask)
