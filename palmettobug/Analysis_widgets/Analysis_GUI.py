@@ -1882,16 +1882,24 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.DA_button.grid(column = 0, columnspan = 2, row = 3, padx = 5, pady = 5)
         self.DA_button.configure(state = "disabled")
 
+        self.plot_state = ctk.CTkButton(master = self, text = "Plot State Expression comparing conditions")
+        self.plot_state.grid(column = 3, row = 3, padx = 5, pady = 5)
+        self.plot_state.configure(state = "disabled")
+
     def initialize_buttons(self) -> None:
         ### goal: decouple widget placement & initialization from data loading & button activation
         self.make_model.configure(state = "normal", command = self.launch_abundance_ANOVAs_window)
         self.DA_button.configure(state = "normal", command = self.launch_state_ANOVAs_window)
+        self.plot_state.configure(state = "normal", command = self.launch_state_distribution)
 
     def launch_abundance_ANOVAs_window(self) -> None:
         run_abundance_ANOVAs_window(self.master)
 
     def launch_state_ANOVAs_window(self) -> None:
         run_state_ANOVAs_window(self.master)
+
+    def launch_state_distribution(self):
+        state_distribution_window(self)
 
 class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
@@ -3186,3 +3194,58 @@ class classy_masker_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         '''  '''
         self.master.cat_exp.export_clustering_classy_masks(clustering = clustering, identifier = identifier)
         self.destroy()
+
+
+class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
+
+    def __init__(self, master):
+        super().__init__(master)
+        self.title("Plot Marker Expression Boxplots")
+        self.master = master
+
+        label_1 = ctk.CTkLabel(self, text = "Marker Class")
+        label_1.grid(column = 0, row = 2)
+
+        self.marker_class = ctk.CTkOptionMenu(master = self, 
+                                            values = ["All","none","type","state"], variable = ctk.StringVar(value = "state"))
+        self.marker_class.grid(column= 1, row = 2, padx = 5, pady = 5)
+
+        self.clustering = ctk.CTkOptionMenu(master = self, 
+                                            values = [""] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns],
+                                            variable = ctk.StringVar(value = ""))
+        self.clustering.grid(column= 1, row = 2, padx = 5, pady = 5)
+
+        def refresher1(enter = ""):
+            self.clustering.configure(values = [""] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns])
+        self.clustering.bind("<Enter>", refresher1)
+
+        self.colorby = ctk.CTkOptionMenu(master = self, 
+                                            values = [""] + [i for i in COLNAMES if i in self.master.cat_exp.data.obs.columns],
+                                            variable = ctk.StringVar(value = "condition"))
+        self.colorby.grid(column= 1, row = 2, padx = 5, pady = 5)
+
+        def refresher2(enter = ""):
+            self.colorby.configure(values = [""] + [i for i in COLNAMES if i in self.master.cat_exp.data.obs.columns])
+        self.colorby.bind("<Enter>", refresher2)
+
+        button_plot = ctk.CTkButton(self, text = "Create", command = self.plot)
+        button_plot.grid(column = 0, row = 4, padx = 5, pady = 5)
+        self.after(200, lambda: self.focus())
+
+    def plot(self, clustering = "merging", identifier = "") -> None:
+        '''  '''
+        marker_class = self.marker_class.get()
+        subset_column = self.clustering.get()
+        colorby = self.colorby.get()
+
+
+        self.master.cat_exp.plot_state_distributions(marker_class = marker_class, 
+                                                    subset_column = subset_column, 
+                                                    colorby = colorby, 
+                                                    grouping = 'sample_id', 
+                                                    grouping_stat = 'median',
+                                                    wrap_col = 3, 
+                                                    suptitle = True,
+                                                    figsize = None)
+        self.destroy()
+
