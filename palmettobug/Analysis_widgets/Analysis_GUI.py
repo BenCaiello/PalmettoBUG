@@ -3237,7 +3237,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         label_7 = ctk.CTkLabel(self, text = "Filename:")
         label_7.grid(column = 0, row = 3)
 
-        self.filename = ctk.CTkEntry(self, textvariable = ctk.StringVar(value ="scatter"))
+        self.filename = ctk.CTkEntry(self, textvariable = ctk.StringVar(value ="state_boxplots_condition"))
         self.filename.grid(column = 1, row = 3, padx = 5, pady = 5)
 
         button_plot = ctk.CTkButton(self, text = "Create", command = self.plot)

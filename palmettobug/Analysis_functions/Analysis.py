@@ -3345,7 +3345,7 @@ class Analysis:
             figure.suptitle(f"{scale}Expression of {marker_class} markers, in the '{subset_column}' cell groups, colored by {colorby}")
             
         if filename is not None:
-            plot.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
         plt.close()
         return figure
 
