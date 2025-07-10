@@ -357,13 +357,13 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
 
         label5 = ctk.CTkLabel(master = self, text = "Intersection or Difference:")
         label5.grid(column = 0, row = 4, padx = 10, pady = 10)
-        self.single_image = ctk.CTkOptionMenu(self, values = ["intersection","difference"], variable = ctk.StringVar(value = "intersection"))
-        self.single_image.grid(column = 1, row = 4, padx = 5, pady = 5)
+        self.kind1 = ctk.CTkOptionMenu(self, values = ["intersection","difference"], variable = ctk.StringVar(value = "intersection"))
+        self.kind1.grid(column = 1, row = 4, padx = 5, pady = 5)
 
         label6 = ctk.CTkLabel(master = self, text = "One way or Two way:")
         label6.grid(column = 0, row = 5, padx = 10, pady = 10)
-        self.single_image = ctk.CTkOptionMenu(self, values = ["one-way","two-way"], variable = ctk.StringVar(value = "one-way"))
-        self.single_image.grid(column = 1, row = 5, padx = 5, pady = 5)
+        self.kind2 = ctk.CTkOptionMenu(self, values = ["one-way","two-way"], variable = ctk.StringVar(value = "one-way"))
+        self.kind2.grid(column = 1, row = 5, padx = 5, pady = 5)
 
         accept_values = ctk.CTkButton(master = self, text = "Transform!", command = self.read_values)
         accept_values.grid(padx = 10, pady = 10)
