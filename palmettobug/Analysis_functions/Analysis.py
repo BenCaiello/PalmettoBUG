@@ -1450,8 +1450,8 @@ class Analysis:
                             bbox_to_anchor = (x_anchor, 
                                                 0.9))
         fig.subplots_adjust(hspace = 0.5)
-        sup_Y = 1.04 + (row_num * -0.01)
         if suptitle:
+            sup_Y = 1.04 + (row_num * -0.01)
             fig.suptitle("KDE / Histogram plots of normalized Exprs of each marker \n facetted by sample_id ", y = sup_Y)
         fig.supxlabel("normalized Exprs")
         if filename is not None:
@@ -2385,7 +2385,7 @@ class Analysis:
         Returns:
             a matplotlib figure
         '''
-        flowsom_clustering = self.data.copy()
+        data = self.data.copy()
         scale = self._scaling
         if scale == "unscale":
             scale = ""
@@ -2393,10 +2393,10 @@ class Analysis:
             scale = "Scaled"
 
         if marker_class != "All":
-            manipul_df = pd.DataFrame((flowsom_clustering.X.T[self.panel['marker_class'] == marker_class]).T)
+            manipul_df = pd.DataFrame((data.X.T[self.panel['marker_class'] == marker_class]).T)
             manipul_df.columns = self.panel[self.panel['marker_class'] == marker_class]['antigen']
         else:
-            manipul_df = pd.DataFrame(flowsom_clustering.X)
+            manipul_df = pd.DataFrame(data.X)
             manipul_df.columns = self.panel['antigen']
 
         manipul_df[groupby_column] =  list(self.data.obs[groupby_column].astype('str'))
@@ -2452,7 +2452,7 @@ class Analysis:
             plt.close()
             return griddy.figure
             
-        elif plot_type == "bar":
+        elif (plot_type == "bar") or (plot_type == "box"):
             griddy = sns.catplot(data_long_form, y = facet_title, 
                             hue = "antigen", 
                             palette = 'tab20',
