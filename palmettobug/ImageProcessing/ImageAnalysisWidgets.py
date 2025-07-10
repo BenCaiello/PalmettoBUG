@@ -387,6 +387,8 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
                     ## only used merged pixel class maps, so that background is 0 and outside the masks (otherwise every pixel will be 'inside' a mask)
             else:
                 return self.master.Experiment_object.directory_object.masks_dir + "/" + path
+        mask_folder1 = check_masks_or_px(mask_folder1)
+        masks_folder2 = check_masks_or_px(masks_folder2)
 
         kind1 = self.kind1.get()
         kind2 = self.kind2.get()
