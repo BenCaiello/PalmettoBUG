@@ -3203,21 +3203,27 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.title("Plot Marker Expression Boxplots")
         self.master = master
 
-        label_1 = ctk.CTkLabel(self, text = "Marker Class")
-        label_1.grid(column = 0, row = 2)
+        label_1 = ctk.CTkLabel(self, text = "Marker Class:")
+        label_1.grid(column = 0, row = 0)
 
         self.marker_class = ctk.CTkOptionMenu(master = self, 
                                             values = ["All","none","type","state"], variable = ctk.StringVar(value = "state"))
-        self.marker_class.grid(column= 1, row = 2, padx = 5, pady = 5)
+        self.marker_class.grid(column= 1, row = 0, padx = 5, pady = 5)
+
+        label_1 = ctk.CTkLabel(self, text = "Subsetting Cluster:")
+        label_1.grid(column = 0, row = 0)
 
         self.clustering = ctk.CTkOptionMenu(master = self, 
                                             values = [""] + [i for i in CLUSTER_NAMES if i in self.master.master.cat_exp.data.obs.columns],
                                             variable = ctk.StringVar(value = ""))
-        self.clustering.grid(column= 1, row = 2, padx = 5, pady = 5)
+        self.clustering.grid(column= 1, row = 1, padx = 5, pady = 5)
 
         def refresher1(enter = ""):
             self.clustering.configure(values = [""] + [i for i in CLUSTER_NAMES if i in self.master.master.cat_exp.data.obs.columns])
         self.clustering.bind("<Enter>", refresher1)
+
+        label_1 = ctk.CTkLabel(self, text = "Color By:")
+        label_1.grid(column = 0, row = 0)
 
         self.colorby = ctk.CTkOptionMenu(master = self, 
                                             values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns],
@@ -3229,7 +3235,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.colorby.bind("<Enter>", refresher2)
 
         button_plot = ctk.CTkButton(self, text = "Create", command = self.plot)
-        button_plot.grid(column = 0, row = 4, padx = 5, pady = 5)
+        button_plot.grid(column = 0, row = 3, padx = 5, pady = 5)
         self.after(200, lambda: self.focus())
 
     def plot(self, clustering = "merging", identifier = "") -> None:

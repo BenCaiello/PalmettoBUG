@@ -3398,7 +3398,7 @@ class Analysis:
         output_data = (output_data - output_data.mean(axis = 0)) / output_data.std(axis = 0)
         output_df = pd.DataFrame(output_data, output_df.index, output_df.columns)
         if include_p:
-            output_df.loc['p_value',:] = - np.log(np.array(p_values)) / 1.5
+            output_df.loc['p_value',:] = (- np.log(np.array(p_values)) / 1.5).astype('float32')
         figure, ax = plt.subplots(1,1, figsize = figsize)
         sns.heatmap(output_df.T, cmap = 'coolwarm', square = True, vmin = -3, vmax = 3, center = 0.0, ax = ax)
         plt.close()
