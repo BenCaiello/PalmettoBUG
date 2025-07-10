@@ -3211,21 +3211,21 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.marker_class.grid(column= 1, row = 2, padx = 5, pady = 5)
 
         self.clustering = ctk.CTkOptionMenu(master = self, 
-                                            values = [""] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns],
+                                            values = [""] + [i for i in CLUSTER_NAMES if i in self.master.master.cat_exp.data.obs.columns],
                                             variable = ctk.StringVar(value = ""))
         self.clustering.grid(column= 1, row = 2, padx = 5, pady = 5)
 
         def refresher1(enter = ""):
-            self.clustering.configure(values = [""] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns])
+            self.clustering.configure(values = [""] + [i for i in CLUSTER_NAMES if i in self.master.master.cat_exp.data.obs.columns])
         self.clustering.bind("<Enter>", refresher1)
 
         self.colorby = ctk.CTkOptionMenu(master = self, 
-                                            values = [""] + [i for i in COLNAMES if i in self.master.cat_exp.data.obs.columns],
+                                            values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns],
                                             variable = ctk.StringVar(value = "condition"))
         self.colorby.grid(column= 1, row = 2, padx = 5, pady = 5)
 
         def refresher2(enter = ""):
-            self.colorby.configure(values = [""] + [i for i in COLNAMES if i in self.master.cat_exp.data.obs.columns])
+            self.colorby.configure(values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns])
         self.colorby.bind("<Enter>", refresher2)
 
         button_plot = ctk.CTkButton(self, text = "Create", command = self.plot)
@@ -3239,7 +3239,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         colorby = self.colorby.get()
 
 
-        self.master.cat_exp.plot_state_distributions(marker_class = marker_class, 
+        self.master.master.cat_exp.plot_state_distributions(marker_class = marker_class, 
                                                     subset_column = subset_column, 
                                                     colorby = colorby, 
                                                     grouping = 'sample_id', 
