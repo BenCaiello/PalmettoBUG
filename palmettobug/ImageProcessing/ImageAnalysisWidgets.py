@@ -106,6 +106,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             self.expander.grid(column = 1, row = 6, padx= 5, pady = 5)
             try:
                 from instanseg import InstanSeg  # noqa: F401
+                self.instanseg_available = True
             except Exception:
                 self.instanseg_available = False
             self.Instanseg.configure(state = "disabled")
@@ -381,8 +382,10 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         except Exception:
             tk.messagebox.showwarning("Warning!", message = "Error: both pixel and object thresholds must be numerical!")
             return
+
         masks_folder1 = self.masks_folder1.get()
         masks_folder2 = self.masks_folder2.get()
+        output_folder = f'{masks_folder1}_{masks_folder2}'
         def check_masks_or_px(path):
             if path in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir):
                 if "merged_classification_maps" in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir + "/" + path):
@@ -411,7 +414,7 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
                                                                     object_threshold = object_threshold, 
                                                                     pixel_threshold = pixel_threshold, 
                                                                     re_order = True,    #leave re-order & output folder as defaults for now
-                                                                    output_folder = None)
+                                                                    output_folder = output_folder)
         self.master.buttonframe.initialize_buttons()
 
 
