@@ -99,7 +99,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             '''
             
             self.Instanseg = ctk.CTkButton(self, text = "Run InstanSeg")
-            self.intersection = ctk.CTkButton(self, text = "Run InstanSeg")
+            self.intersection = ctk.CTkButton(self, text = "Mask Transform by Intersection/Difference")
             self.expander = ctk.CTkButton(self, text = "Expand Masks")
             try:
                 from instanseg import InstanSeg  # noqa: F401
@@ -329,7 +329,7 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
             created_px_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir)) if i.find(".") == -1]
             self.folders1 = created_mask_classifiers + created_px_classifiers
             self.masks_folder1.configure(values = self.folders1)
-            self.masks_folder2.configure(values = self.folders2)
+            self.masks_folder2.configure(values = self.folders1)
 
         self.masks_folder1 = ctk.CTkOptionMenu(master = self, 
                                             values = [""], 
@@ -342,7 +342,7 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         self.masks_folder2 = ctk.CTkOptionMenu(master = self, 
                                             values = os.listdir(self.master.Experiment_object.directory_object.masks_dir), 
                                             variable = ctk.StringVar(value = ""))
-        self.masks_folder2.grid(column = 1, row = 0, padx = 5, pady = 5)
+        self.masks_folder2.grid(column = 1, row = 1, padx = 5, pady = 5)
         self.masks_folder2.bind("<Enter>", refresh1)
 
         label3 = ctk.CTkLabel(master = self, text = "Pixel Threshold (integer > 1):")
@@ -357,12 +357,12 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
 
         label5 = ctk.CTkLabel(master = self, text = "Intersection or Difference:")
         label5.grid(column = 0, row = 4, padx = 10, pady = 10)
-        self.single_image = ctk.CTkOptionMenu(self, values = ["intersection","difference"], variable = ctk.StringVar(value = ""))
+        self.single_image = ctk.CTkOptionMenu(self, values = ["intersection","difference"], variable = ctk.StringVar(value = "intersection"))
         self.single_image.grid(column = 1, row = 4, padx = 5, pady = 5)
 
         label6 = ctk.CTkLabel(master = self, text = "One way or Two way:")
         label6.grid(column = 0, row = 5, padx = 10, pady = 10)
-        self.single_image = ctk.CTkOptionMenu(self, values = ["one-way","two-way"], variable = ctk.StringVar(value = ""))
+        self.single_image = ctk.CTkOptionMenu(self, values = ["one-way","two-way"], variable = ctk.StringVar(value = "one-way"))
         self.single_image.grid(column = 1, row = 5, padx = 5, pady = 5)
 
         accept_values = ctk.CTkButton(master = self, text = "Transform!", command = self.read_values)
