@@ -3252,7 +3252,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         filename = self.filename.get()
         if filename_checker(filename, self):
             return
-        if not overwrite_approval(self.master.cat_exp.save_dir + f"/{filename}.png", file_or_folder = "file", GUI_object = self):
+        if not overwrite_approval(self.master.master.cat_exp.save_dir + f"/{filename}.png", file_or_folder = "file", GUI_object = self):
             return
 
 
