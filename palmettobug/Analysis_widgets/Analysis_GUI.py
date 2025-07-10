@@ -3234,8 +3234,14 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
             self.colorby.configure(values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns])
         self.colorby.bind("<Enter>", refresher2)
 
+        label_7 = ctk.CTkLabel(self, text = "Filename:")
+        label_7.grid(column = 0, row = 3)
+
+        self.filename = ctk.CTkEntry(self, textvariable = ctk.StringVar(value ="scatter"))
+        self.filename.grid(column = 1, row = 3, padx = 5, pady = 5)
+
         button_plot = ctk.CTkButton(self, text = "Create", command = self.plot)
-        button_plot.grid(column = 0, row = 3, padx = 5, pady = 5)
+        button_plot.grid(column = 0, row = 4, padx = 5, pady = 5)
         self.after(200, lambda: self.focus())
 
     def plot(self, clustering = "merging", identifier = "") -> None:
@@ -3243,6 +3249,11 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         marker_class = self.marker_class.get()
         subset_column = self.clustering.get()
         colorby = self.colorby.get()
+        filename = self.filename.get()
+        if filename_checker(filename, self):
+            return
+        if not overwrite_approval(self.master.cat_exp.save_dir + f"/{filename}.png", file_or_folder = "file", GUI_object = self):
+            return
 
 
         self.master.master.cat_exp.plot_state_distributions(marker_class = marker_class, 
@@ -3252,6 +3263,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                                                     grouping_stat = 'median',
                                                     wrap_col = 3, 
                                                     suptitle = True,
-                                                    figsize = None)
+                                                    figsize = None,
+                                                    filename = filename)
         self.destroy()
 

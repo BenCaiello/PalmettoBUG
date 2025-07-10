@@ -3275,7 +3275,8 @@ class Analysis:
                                  grouping_stat = 'median',
                                  wrap_col = 3, 
                                  suptitle = False,
-                                 figsize = None):
+                                 figsize = None,
+                                 filename = None):
         ''''''
         text_size = 10
         data = self.data.copy()
@@ -3343,11 +3344,16 @@ class Analysis:
             sup_Y = 1.03 + (rows * -0.01)
             figure.suptitle(f"{scale}Expression of {marker_class} markers, in the '{subset_column}' cell groups, colored by {colorby}")
             
+        if filename is not None:
+            plot.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
         plt.close()
         return figure
 
 
-    def plot_state_p_value_heatmap(self, stats_df = None, top_n = 50, heatmap_x = ['condition','sample_id'], ANOVA_kwargs = {}, include_p = True, figsize = (10,10)):
+    def plot_state_p_value_heatmap(self, stats_df = None, 
+                                    top_n = 50, heatmap_x = ['condition','sample_id'], 
+                                    ANOVA_kwargs = {}, include_p = True, 
+                                    figsize = (10,10), filename = None):
         '''
         Plots a heatmap of the top most significantly differences found with the self.do_state_exprs_ANOVAs() method
         
@@ -3401,6 +3407,8 @@ class Analysis:
             output_df.loc['p_value',:] = (- np.log(np.array(p_values)) / 1.5).astype('float32')
         figure, ax = plt.subplots(1,1, figsize = figsize)
         sns.heatmap(output_df.T, cmap = 'coolwarm', square = True, vmin = -3, vmax = 3, center = 0.0, ax = ax)
+        if filename is not None:
+            figure.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
         plt.close()
         return figure
 
