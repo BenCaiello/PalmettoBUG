@@ -3267,6 +3267,85 @@ class Analysis:
         if filename is not None:
             to_return.to_csv(self.data_table_dir + f"/{filename}.csv", index = False)
         return to_return
+
+    def plot_state_distributions(self, marker_class = 'state', 
+                                 subset_column = 'merging', 
+                                 colorby = 'condition', 
+                                 grouping = 'sample_id', 
+                                 grouping_stat = 'median',
+                                 wrap_col = 3, 
+                                 suptitle = False,
+                                 figsize = None):
+        ''''''
+        text_size = 10
+        data = self.data.copy()
+        scale = self._scaling
+        if scale == 'unscale':
+            scale = ''
+        else:
+            scale = 'Scaled '
+        if marker_class != "All":
+            data_state = pd.DataFrame((data.X.T[self.data.var['marker_class'] == marker_class]).T, 
+                                      columns = self.data.var[self.data.var['marker_class'] == marker_class]['antigen'])
+        else:
+            data_state = pd.DataFrame(data.X, columns = self.data.var['antigen'])
+        if subset_column == 'All':
+            data_state[subset_column] = ""
+        else:
+            data_state[subset_column] = list(self.data.obs[subset_column].astype('str'))
+            data_state[subset_column] = data_state[subset_column].astype(self.data.obs[subset_column].dtype)
+        data_state[colorby] = list(self.data.obs[colorby].astype('str'))
+        data_state[colorby] = data_state[colorby].astype(self.data.obs[colorby].dtype)
+        data_state[grouping] = list(self.data.obs[grouping].astype('str'))
+        data_state[grouping] = data_state[grouping].astype(self.data.obs[grouping].dtype)
+        data_state = list(data_state.groupby([subset_column], observed = False))
+        panels = len(data_state)
+        if (panels % wrap_col) == 0:
+            rows = panels // wrap_col
+        else:
+            rows = (panels // wrap_col) + 1
+        grid_specifications = {'wspace':0.05, 'hspace':0.1}
+        if figsize is None:
+            figsize = (rows*3.75, wrap_col*3.0)
+        if subset_column == "All":
+            rows = 1
+            wrap_col = 1
+            figsize = (figsize[0]*1.5, figsize[1] / 1.5)
+        figure, axs = plt.subplots(rows, wrap_col, figsize = figsize, sharey = True, sharex = True, gridspec_kw = grid_specifications)
+        if isinstance(axs, np.ndarray):
+            axs = axs.ravel()
+        else:
+            axs = np.array([axs])
+        for i,ii in enumerate(data_state):
+            ax = axs[i]
+            temp_data = ii[1].drop([subset_column], axis = 1).melt([colorby,grouping])
+            if grouping_stat == 'mean':
+                temp_data = temp_data.groupby([colorby,grouping,'antigen'], observed = False).mean(numeric_only = True).reset_index()
+            elif grouping_stat == 'median':
+                temp_data = temp_data.groupby([colorby,grouping,'antigen'], observed = False).median(numeric_only = True).reset_index()
+            if i != (panels - 1):
+                panel = sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', legend = None, ax = ax)
+                ax.set_title(ii[0][0], size = text_size, y = 0.95)
+            else:    ## only put the legend on the last panel
+                panel = sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', ax = ax)
+                ax.set_title(ii[0][0], size = text_size, y = 0.975)
+            ax.set_ylabel(f'{scale}Expression', size = text_size)
+            ax.set_xlabel(ax.get_xlabel(), size = text_size)
+            ax.set_xmargin(0.05)
+            ax.set_ymargin(0.05)
+            #ax.set_yticks([0,0.5,1], labels = ["0","0.5","1"], size = text_size)
+            ax.set_xticks(ax.get_xticks(), labels = temp_data['antigen'].unique(), size = text_size, rotation = 'vertical')
+    
+        for k in range(i+1, wrap_col*rows, 1):
+            axs[k].set_axis_off()
+    
+        if suptitle:
+            sup_Y = 1.03 + (rows * -0.01)
+            figure.suptitle(f"{scale}Expression of {marker_class} markers, in the '{subset_column}' cell groups, colored by {colorby}")
+            
+        plt.close()
+        return figure
+
     
     def do_state_exprs_ANOVAs(self,                     
                             marker_class: str = "state", 
