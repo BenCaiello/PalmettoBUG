@@ -3346,6 +3346,64 @@ class Analysis:
         plt.close()
         return figure
 
+
+    def plot_state_p_value_heatmap(self, stats_df = None, top_n = 50, heatmap_x = ['condition','sample_id'], ANOVA_kwargs = {}, include_p = True, figsize = (10,10)):
+        '''
+        Plots a heatmap of the top most significantly differences found with the self.do_state_exprs_ANOVAs() method
+        
+        Presumes the supplied stats_df matches the format exported by self.do_state_exprs_ANOVAs() method! 
+        Including structure, columns, rank ordering by F-statistic top-to-bottom, etc.
+        '''
+        if stats_df is None:
+            if ANOVA_kwargs != {}:
+                stats_df = self.do_state_exprs_ANOVAs(**ANOVA_kwargs)
+            else:
+                print("Error! Neither a precalculated dataframe of statistics from self.do_state_exprs_ANOVAs," 
+                    "nor keyword arguments for calling self.do_state_exprs_ANOVAs were provided!")
+                return
+    
+        stats_df = stats_df.head(top_n).copy()
+    
+        label_column_names = list(stats_df.columns[:2].values)  ## the way self.do_state_exprs_ANOVAs works, there should always be two label columns: 'antigen', and the groupby column
+        label_columns = stats_df[label_column_names]
+        p_value_columns = stats_df[["p_value","p_adj","F statistic"]]
+        exprs_and_dev_columns = stats_df.iloc[:,5:]
+        number_of_compared_conditions = len(exprs_and_dev_columns) / 2
+    
+        stats_df['labels_merged'] = [f'{i}({ii})' for i,ii in zip(label_columns.iloc[:,0], label_columns.iloc[:,1])]
+        stats_df['labels_merged'] = stats_df['labels_merged'].astype('str')
+        cell_type_column = stats_df.columns[1]
+    
+        raw_data = pd.DataFrame(self.data.X.copy(), index = self.data.obs.index, columns = self.data.var.index)
+        if cell_type_column != 'whole dataset':
+            whole = False
+            grouping_columns = heatmap_x + [cell_type_column]
+        else:
+            whole = True
+        raw_data[grouping_columns] = self.data.obs[grouping_columns]
+        raw_data = raw_data.groupby(grouping_columns, observed = False).median(numeric_only = True).dropna(how = 'all').reset_index()
+        raw_data = raw_data.melt(grouping_columns)
+        raw_data['labels_merged'] = [f'{i}({ii})' for i,ii in zip(raw_data[label_column_names[0]], raw_data[label_column_names[1]])]
+        raw_data['labels_merged'] = raw_data['labels_merged'].astype('str')
+    
+        p_values = []
+        output_df = pd.DataFrame()
+        for ii,i in enumerate(stats_df['labels_merged'].unique()):
+            stats_df_slice = stats_df[stats_df['labels_merged'] == i]
+            p_values.append(stats_df_slice['p_adj'].values[0])
+            raw_data_slice = raw_data[raw_data['labels_merged'] == i]
+            raw_data_slice.index = [f'{i}({ii})' for i,ii in zip(raw_data_slice[heatmap_x[0]], raw_data_slice[heatmap_x[1]])]
+            output_df[f'{i}'] = raw_data_slice['value']
+        output_data = np.array(output_df)
+        output_data = (output_data - output_data.mean(axis = 0)) / output_data.std(axis = 0)
+        output_df = pd.DataFrame(output_data, output_df.index, output_df.columns)
+        if include_p:
+            output_df.loc['p_value',:] = - np.log(np.array(p_values)) / 1.5
+        figure, ax = plt.subplots(1,1, figsize = figsize)
+        sns.heatmap(output_df.T, cmap = 'coolwarm', square = True, vmin = -3, vmax = 3, center = 0.0, ax = ax)
+        plt.close()
+        return figure
+
     
     def do_state_exprs_ANOVAs(self,                     
                             marker_class: str = "state", 
