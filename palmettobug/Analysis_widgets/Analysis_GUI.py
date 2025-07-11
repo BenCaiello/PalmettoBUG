@@ -2068,6 +2068,9 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         button = ctk.CTkButton(master = self, text = "Run state markers expression ANOVAs", command = self.run_state_ANOVAs)
         button.grid(padx = 3, pady = 3)
 
+        self.heatmap = ctk.CTkCheckBox(master = self, text = "Make heatmap of top 50 changes?", onvalue = True, offvalue = False)
+        self.heatmap.grid(padx = 3, pady = 3)
+
         self.after(200, self.focus())
 
     def run_state_ANOVAs(self) -> None:
@@ -2099,6 +2102,10 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if success is None:
             warning_window("There are no channels of this marker_class!")
             return
+
+        if self.heatmap.get():
+            self.master.cat_exp.plot_state_p_value_heatmap(stats_df = success, filename = "state_ANOVA_heatmap")
+            self.master.save_and_display(filename = "state_ANOVA_heatmap", sizeX = 550, sizeY = 550)
         
         Analysis_widget_logger.info(f"""Ran marker Expression ANOVA tests: 
                                     marker class = {self.marker_class.get()}
@@ -3274,4 +3281,3 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
             self.withdraw()
         else:
             self.destroy()
-
