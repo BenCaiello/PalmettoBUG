@@ -3293,11 +3293,11 @@ class Analysis:
         if subset_column == 'All':
             data_state[subset_column] = ""
         else:
-            data_state[subset_column] = list(self.data.obs[subset_column].astype('str'))
+            data_state[subset_column] = list(self.data.obs[subset_column])
             data_state[subset_column] = data_state[subset_column].astype(self.data.obs[subset_column].dtype)
-        data_state[colorby] = list(self.data.obs[colorby].astype('str'))
+        data_state[colorby] = list(self.data.obs[colorby])
         data_state[colorby] = data_state[colorby].astype(self.data.obs[colorby].dtype)
-        data_state[grouping] = list(self.data.obs[grouping].astype('str'))
+        data_state[grouping] = list(self.data.obs[grouping])
         data_state[grouping] = data_state[grouping].astype(self.data.obs[grouping].dtype)
         data_state = list(data_state.groupby([subset_column], observed = False))
         panels = len(data_state)
