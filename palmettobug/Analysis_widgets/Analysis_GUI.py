@@ -3268,7 +3268,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                                                     suptitle = True,
                                                     figsize = None,
                                                     filename = filename)
-        self.master.save_and_display(filename = filename, sizeX = 550, sizeY = 550)
+        self.master.master.save_and_display(filename = filename, sizeX = 550, sizeY = 550)
         if self.pop_up.get() is True:
             Plot_window_display(figure)
             self.withdraw()
