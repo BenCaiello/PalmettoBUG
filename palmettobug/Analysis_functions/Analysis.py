@@ -3386,6 +3386,7 @@ class Analysis:
             grouping_columns = heatmap_x + [cell_type_column]
         else:
             whole = True
+            grouping_columns = heatmap_x
         raw_data[grouping_columns] = self.data.obs[grouping_columns]
         raw_data = raw_data.groupby(grouping_columns, observed = False).median(numeric_only = True).dropna(how = 'all').reset_index()
         raw_data = raw_data.melt(grouping_columns)
