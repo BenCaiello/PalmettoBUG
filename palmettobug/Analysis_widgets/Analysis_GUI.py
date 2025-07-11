@@ -3241,7 +3241,10 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.filename.grid(column = 1, row = 3, padx = 5, pady = 5)
 
         button_plot = ctk.CTkButton(self, text = "Create", command = self.plot)
-        button_plot.grid(column = 0, row = 4, padx = 5, pady = 5)
+        button_plot.grid(column = 1, row = 4, padx = 5, pady = 5)
+
+        self.pop_up = ctk.CTkCheckBox(master = self, text = "Make detailed Plot Editing Pop-up?", onvalue = True, offvalue = False)
+        self.pop_up.grid(column = 0, row = 5, padx = 3, pady = 3)
         self.after(200, lambda: self.focus())
 
     def plot(self, clustering = "merging", identifier = "") -> None:
@@ -3256,7 +3259,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
             return
 
 
-        self.master.master.cat_exp.plot_state_distributions(marker_class = marker_class, 
+        figure = self.master.master.cat_exp.plot_state_distributions(marker_class = marker_class, 
                                                     subset_column = subset_column, 
                                                     colorby = colorby, 
                                                     grouping = 'sample_id', 
@@ -3265,5 +3268,10 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                                                     suptitle = True,
                                                     figsize = None,
                                                     filename = filename)
-        self.destroy()
+        self.master.save_and_display(filename = filename, sizeX = 550, sizeY = 550)
+        if self.pop_up.get() is True:
+            Plot_window_display(figure)
+            self.withdraw()
+        else:
+            self.destroy()
 
