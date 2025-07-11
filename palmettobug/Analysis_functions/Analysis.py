@@ -3276,7 +3276,7 @@ class Analysis:
                                  wrap_col = 3, 
                                  suptitle = False,
                                  figsize = None,
-                                 filename = None):
+                                 filename = None):                # *** deriv_CATALYST(ish, only by imitation of the CATALYST paper's figures)
         ''''''
         text_size = 10
         data = self.data.copy()
@@ -3353,7 +3353,7 @@ class Analysis:
     def plot_state_p_value_heatmap(self, stats_df = None, 
                                     top_n = 50, heatmap_x = ['condition','sample_id'], 
                                     ANOVA_kwargs = {}, include_p = True, 
-                                    figsize = (10,10), filename = None):
+                                    figsize = (10,10), filename = None):                  # *** deriv_CATALYST(ish, only by imitation of the CATALYST paper's figures)
         '''
         Plots a heatmap of the top most significantly differences found with the self.do_state_exprs_ANOVAs() method
         
@@ -3404,7 +3404,7 @@ class Analysis:
         output_data = (output_data - output_data.mean(axis = 0)) / output_data.std(axis = 0)
         output_df = pd.DataFrame(output_data, output_df.index, output_df.columns)
         if include_p:
-            output_df.loc['p_value',:] = (- np.log(np.array(p_values)) / 1.5).astype('float32')
+            output_df.loc['-Log(P-value)',:] = (- np.log(np.array(p_values))).astype('float32')
         figure, ax = plt.subplots(1,1, figsize = figsize)
         sns.heatmap(output_df.T, cmap = 'coolwarm', square = True, vmin = -3, vmax = 3, center = 0.0, ax = ax)
         if filename is not None:
