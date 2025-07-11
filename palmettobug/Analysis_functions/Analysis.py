@@ -3401,8 +3401,8 @@ class Analysis:
             raw_data_slice = raw_data[raw_data['labels_merged'] == i]
             raw_data_slice.index = [f'{i}({ii})' for i,ii in zip(raw_data_slice[heatmap_x[0]], raw_data_slice[heatmap_x[1]])]
             output_df[f'{i}'] = raw_data_slice['value']
-        output_data = np.array(output_df)
-        output_data = (output_data - output_data.mean(axis = 0)) / output_data.std(axis = 0)
+        output_data = np.nan_to_num(np.array(output_df))
+        output_data = np.nan_to_num((output_data - output_data.mean(axis = 0)) / output_data.std(axis = 0))
         output_df = pd.DataFrame(output_data, output_df.index, output_df.columns)
         if include_p:
             output_df.loc['-Log(P-value)',:] = (- np.log(np.array(p_values))).astype('float32')
