@@ -1121,7 +1121,17 @@ class TableWidget(ctk.CTkScrollableFrame):
             self.widgetframe = self.widgetframe.drop('index', axis = 1)
         except KeyError:
             pass
-        for i,ii in zip(self.widgetframe.columns, self.table_dataframe.iloc[:,:(len(self.widgetframe.columns))]):
+        if (len(self.widgetframe.columns) < len(self.table_dataframe.columns)) or 
+                        ((len(self.widgetframe.columns) == len(self.table_dataframe.columns)) and 
+                             ((self.type == "Analysis_panel") or (self.type == "Regionprops_panel") or (self.type == "metadata"))):
+            ## the specifically mentioned table types have delete columns at the end
+            proceed = tk.messagebox.askokcancel(title = "Proceed?", 
+                            message = f"\nThe file that this {self.type} table was read from has more columns than what is displayed."
+                            "\n\nDo you want to proceed? Any extra columns of the data will have their data deleted - only what"
+                            "\nis displayed in the GUI will be retained in the file on the disk.")
+            if not proceed:
+                raise Exception
+        for i,ii in zip(self.widgetframe.columns, self.table_dataframe.iloc[:,:(len(self.widgetframe.columns) - 1)]):
             column_of_interest = self.widgetframe[i]
             retrieval_list = []
             for i in column_of_interest:
@@ -1578,18 +1588,7 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
                 try:
                     out = i.get()
                 except Exception:
-                    try:
-                        out = i.real_text
-                    except Exception:
-                        if len(out) != "":
-                            proceed = tk.messagebox.askokcancel(title = "Proceed?", 
-                                            message = "A possible error was encountered when reading the data enterd for this table:"
-                                            f"\nThe file that this {self.type} table was read from may have more columns than what is displayed."
-                                            "\n\nDo you want to proceed? Any extra columns of the data will have their data deleted - only what"
-                                            "\nis displayed in the GUI will be retained in the file on the disk.")
-                            if not proceed:
-                                raise Exception
-                        out = ""
+                    out = i.real_text
                 out = out.strip()
                 if (self.type == "panel") and ((ii == 3) or (ii == "segmentation")):
                     if out == "Nuclei":
