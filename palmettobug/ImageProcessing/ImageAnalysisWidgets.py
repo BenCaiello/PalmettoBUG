@@ -10,7 +10,6 @@ import os
 import tkinter as tk
 
 import customtkinter as ctk
-from pathlib import Path
 
 from ..Utils.sharedClasses import (CtkSingletonWindow, 
                                    DirectoryDisplay, 
@@ -320,7 +319,7 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                              model = model)
         self.master.ImageAnalysisPortionLogger.info(f"Performed Instanseg segmentation with re_do = {str(re_do)},"
                                                             f"input_img_folder = {input_folder}, single_image = {str(single_image)},"
-                                                            f"mean_threshold = {str(mean_threshold)}, target = {str(target)},"
+                                                            f"mean_threshold = {str(threshold)}, target = {str(target)},"
                                                             f"model = {model}")
         self.master.buttonframe.initialize_buttons()
 
@@ -424,8 +423,7 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         self.master.ImageAnalysisPortionLogger.info(f"Performed Mask Intersection Transform with:"
                                                             f"masks_folder1 = {masks_folder1}, masks_folder2 = {str(masks_folder2)},"
                                                             f"kind = {str(kind)}, object_threshold = {str(object_threshold)},"
-                                                            f"pixel_threshold = {pixel_threshold}, re_order = {str(re_order)},"
-                                                            f"output_folder = {output_folder}")
+                                                            f"pixel_threshold = {pixel_threshold}, output_folder = {output_folder}")
         self.master.buttonframe.initialize_buttons()
 
 

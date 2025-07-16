@@ -3373,7 +3373,7 @@ class Analysis:
             elif grouping_stat == 'median':
                 temp_data = temp_data.groupby([colorby,grouping,'antigen'], observed = False).median(numeric_only = True).reset_index()
             if i != (panels - 1):
-                panel = sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', legend = None, ax = ax)
+                sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', legend = None, ax = ax)
                 ax.set_title(ii[0][0], size = text_size, y = 0.95)
             else:    ## only put the legend on the last panel
                 sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', ax = ax)
@@ -3471,7 +3471,6 @@ class Analysis:
     
         label_column_names = list(stats_df.columns[:2].values)  ## the way self.do_state_exprs_ANOVAs works, there should always be two label columns: 'antigen', and the groupby column
         label_columns = stats_df[label_column_names]
-        exprs_and_dev_columns = stats_df.iloc[:,5:]
     
         stats_df['labels_merged'] = [f'{i}({ii})' for i,ii in zip(label_columns.iloc[:,0], label_columns.iloc[:,1])]
         stats_df['labels_merged'] = stats_df['labels_merged'].astype('str')

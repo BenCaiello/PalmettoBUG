@@ -17,6 +17,7 @@ import json
 import tkinter as tk
 from multiprocessing import Process
 
+from pathlib import Path
 import customtkinter as ctk
 import pandas as pd
 import numpy as np
