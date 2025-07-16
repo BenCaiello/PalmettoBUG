@@ -92,7 +92,7 @@ def ButterWorthFilter(image: np.ndarray[float], ratio: float, high_pass: bool = 
 def calculate_features(image: np.ndarray[float], 
                        channels: dict = {}, 
                        feature_list: list[str] = ['gaussian'], 
-                       sigmas: list[float] = [1.0, 5.0, 10.0]) -> tuple(np.ndarray[float], dict):
+                       sigmas: list[float] = [1.0, 5.0, 10.0]) -> tuple[np.ndarray[float], dict]:
     ''''''
     length = 0
     if channels == {}:
