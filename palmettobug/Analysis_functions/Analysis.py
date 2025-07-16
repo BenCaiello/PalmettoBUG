@@ -3471,16 +3471,20 @@ class Analysis:
     
         label_column_names = list(stats_df.columns[:2].values)  ## the way self.do_state_exprs_ANOVAs works, there should always be two label columns: 'antigen', and the groupby column
         label_columns = stats_df[label_column_names]
-    
-        stats_df['labels_merged'] = [f'{i}({ii})' for i,ii in zip(label_columns.iloc[:,0], label_columns.iloc[:,1])]
-        stats_df['labels_merged'] = stats_df['labels_merged'].astype('str')
+
         cell_type_column = stats_df.columns[1]
-    
-        raw_data = pd.DataFrame(self.data.X.copy(), index = self.data.obs.index, columns = self.data.var.index)
+
         if cell_type_column != 'whole dataset':
             grouping_columns = heatmap_x + [cell_type_column]
+            cluster_grouping = label_columns.iloc[:,1]
         else:
             grouping_columns = heatmap_x
+            cluster_grouping = ['All'] * len(label_columns.iloc[:,0])
+    
+        stats_df['labels_merged'] = [f'{i}({ii})' for i,ii in zip(label_columns.iloc[:,0], cluster_grouping)]
+        stats_df['labels_merged'] = stats_df['labels_merged'].astype('str')
+    
+        raw_data = pd.DataFrame(self.data.X.copy(), index = self.data.obs.index, columns = self.data.var.index)
         raw_data[grouping_columns] = self.data.obs[grouping_columns]
         raw_data = raw_data.groupby(grouping_columns, observed = False).median(numeric_only = True).dropna(how = 'all').reset_index()
         raw_data = raw_data.melt(grouping_columns)
@@ -3491,14 +3495,13 @@ class Analysis:
             cluster_group = ['All'] * len(raw_data[label_column_names[0]])
         raw_data['labels_merged'] = [f'{i}({ii})' for i,ii in zip(antigen_group, cluster_group)]
         raw_data['labels_merged'] = raw_data['labels_merged'].astype('str')
-    
         p_values = []
         output_df = pd.DataFrame()
         for ii,i in enumerate(stats_df['labels_merged'].unique()):
             stats_df_slice = stats_df[stats_df['labels_merged'] == i]
             p_values.append(stats_df_slice['p_adj'].values[0])
             raw_data_slice = raw_data[raw_data['labels_merged'] == i]
-            raw_data_slice.index = [f'{i}({ii})' for i,ii in zip(raw_data_slice[heatmap_x[0]], raw_data_slice[heatmap_x[1]])]
+            raw_data_slice.index = [f'{j}({jj})' for j,jj in zip(raw_data_slice[heatmap_x[0]], raw_data_slice[heatmap_x[1]])]
             output_df[f'{i}'] = raw_data_slice['value']
         output_data = np.nan_to_num(np.array(output_df))
         output_data = np.nan_to_num((output_data - output_data.mean(axis = 0)) / output_data.std(axis = 0))
