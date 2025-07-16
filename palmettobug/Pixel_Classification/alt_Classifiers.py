@@ -42,7 +42,13 @@ from flowsom import FlowSOM
 import napari
 
 __all__ = []
-
+''' __all__ = ['SupervisedClassifier', 
+               'UnsupervisedClassifier', 
+               'plot_pixel_heatmap', 
+               'smooth_folder', 
+               'smooth_isolated_pixels', 
+               'segment_class_map_folder']
+'''
 
 def _py_mean_quantile_norm(pd_groupby) -> np.ndarray[float]:    ##  median shouldn't be used used because the median often can be 0 for mass cytometry data (not a problem in 
                                                                     ## single-cell data because the mean intensity is taken of every cell first)
@@ -70,20 +76,23 @@ def _quant(array: np.ndarray[float],
     array[array < 0] = 0
     return array
 
-def GaussianFilter(image, sigma):  ## standard gaussian -- only function capable of operating on multi-channels at once
+def GaussianFilter(image: np.ndarray[float], sigma: float) -> np.ndarray[float]:  ## standard gaussian -- only function capable of operating on multi-channels at once
     '''Note: this also scales the image to be between -1 and 1'''
     return ski.filters.gaussian(image, sigma = sigma)
 
-def HessianFilter(image):          ## edge detection
+def HessianFilter(image: np.ndarray[float]) -> np.ndarray[float]:          ## edge detection
     return ski.filters.hessian(image)
 
-def FrangiFilter(image):
+def FrangiFilter(image: np.ndarray[float]) -> np.ndarray[float]:
     return ski.filters.frangi(image)
 
-def ButterWorthFilter(image, ratio, high_pass = True):
+def ButterWorthFilter(image: np.ndarray[float], ratio: float, high_pass: bool = True) -> np.ndarray[float]:
     return ski.filters.butterworth(image, cutoff_frequency_ratio = ratio, high_pass = high_pass)
 
-def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas = [1.0, 5.0, 10.0]):
+def calculate_features(image: np.ndarray[float], 
+                       channels: dict = {}, 
+                       feature_list: list[str] = ['gaussian'], 
+                       sigmas: list[float] = [1.0, 5.0, 10.0]) -> tuple(np.ndarray[float], dict):
     ''''''
     length = 0
     if channels == {}:
@@ -124,8 +133,9 @@ def calculate_features(image, channels = {}, feature_list = ['gaussian'], sigmas
     return final_array, channels
 
 class SupervisedClassifier:
-    def __init__(self, directory, name):
+    def __init__(self, directory: Union[str, Path], name: str):
         ''''''
+        directory = str(directory)
         if not os.path.exists(f'{directory}/Pixel_Classification'):
             os.mkdir(f'{directory}/Pixel_Classification')
         self.name = name
@@ -152,21 +162,24 @@ class SupervisedClassifier:
         self._image_name = None
         self._user_labels = None
 
-    def set_channel_names(self, channel_names_dict):
+    def set_channel_names(self, channel_names_dict: dict) -> None:
         ''' This is intended for setting a dictionary corresponding {channel integer numbers : channel antigen names}'''
         self.channel_names = channel_names_dict
 
-    def set_target_classes(self, classes_dict):
+    def set_target_classes(self, classes_dict: dict) -> None:
         '''for setting a dictionary corrseponding to the names of the target classes { class# : class name }'''
         self.classes = classes_dict
 
-    def write_classifier(self, image_folder, 
-                           channel_dictionary = {},
-                           sigmas = [1.0, 5.0, 10.0],
-                           quantile = 0.999,
-                           hidden_layers = [100],
-                           learning_rate = 0.001):
-        '''Point of this method is to set up the .json that will store the information relevant to the classifier'''
+    def write_classifier(self, image_folder: Union[str, Path], 
+                           channel_dictionary: dict = {},
+                           sigmas: list[float] = [1.0, 5.0, 10.0],
+                           quantile: float = 0.999,
+                           hidden_layers: list[int] = [100],
+                           learning_rate: float = 0.001) -> None:
+        '''
+        Point of this method is to set up the .json that will store the information relevant to the classifier
+        '''
+        image_folder = str(image_folder)
         write_dictionary = {}
         write_dictionary['type'] = 'supervised'
         write_dictionary['image_folder'] = image_folder
@@ -209,9 +222,9 @@ class SupervisedClassifier:
             print("Version of Scikit-Learn is different than when the pixel classifier model was originally trained! Model not loaded.")
 
     def launch_Napari(self, 
-                         image_path: Union[Path, str], 
-                         display_all_channels: bool = False,
-                         ) -> None:
+                      image_path: Union[Path, str], 
+                      display_all_channels: bool = False,
+                      ) -> None:
         '''
         This launches napari for generating training labels, receving a path (image_path) to the image file you want to make labels for
         '''
@@ -258,16 +271,16 @@ class SupervisedClassifier:
         self._image_name = None
         
 
-    def train(self, image_folder, 
-                    training_folder = None, 
-                    channel_dictionary = {}, 
-                    feature_list = ['gaussian'],         ## only used if channel_dictionary == {}
-                    sigmas = [1.0, 5.0, 10.0],
-                    quantile = 0.999,
-                    hidden_layers = [100],
-                    learning_rate = 0.001,
-                    from_save = False,
-                    auto_predict = False):
+    def train(self, image_folder: Union[str, Path], 
+                    training_folder: Union[str, Path, None] = None, 
+                    channel_dictionary: dict = {}, 
+                    feature_list: list[str] = ['gaussian'],         ## only used if channel_dictionary == {}
+                    sigmas: list[float] = [1.0, 5.0, 10.0],
+                    quantile: float = 0.999,
+                    hidden_layers: list[int] = [100],
+                    learning_rate: float = 0.001,
+                    from_save: bool = False,
+                    auto_predict: bool = False) -> None:
         ''''''
         if training_folder is None:
             training_folder = self.training_folder
@@ -282,6 +295,8 @@ class SupervisedClassifier:
             #    self.model = joblib.load(self.model_path)
             #except Exception:
             #    pass
+        image_folder = str(image_folder)
+        training_folder = str(training_folder)
         training_images = [i for i in sorted(os.listdir(training_folder)) if i.lower().rfind('.tif') != -1]
         all_images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind('.tif') != -1]
         images = [i for i in training_images if i in all_images]
@@ -309,10 +324,15 @@ class SupervisedClassifier:
         if auto_predict:
             self.predict(image_folder, output_folder = self.output_folder, filenames = None)
 
-    def predict(self, image_folder, output_folder = None, filenames = None):
-        ''''''
+    def predict(self, image_folder: Union[str, Path], 
+                output_folder: Union[str, Path, None] = None, 
+                filenames: Union[str, list[str]] = None) -> None:
+        '''
+        '''
+        image_folder = str(image_folder)
         if output_folder is None:
             output_folder = self.output_folder
+        output_folder = str(output_folder)
         channel_dictionary = self.model_info['channels']
         sigmas = self.model_info['sigmas']
         quantile = self.model_info['quantile']
@@ -331,13 +351,13 @@ class SupervisedClassifier:
                 predict_image(filename)
         elif isinstance(filenames, list):
             for filename in filenames:
-                predict_image(filename)
+                predict_image(str(filename))
         elif isinstance(filenames, str):
             predict_image(filename)
         else:
             raise(ValueError, "Filenames parameter must be a str, list, or None")
 
-    def scaled_features(self, array, quantile):
+    def scaled_features(self, array: np.ndarray[float], quantile: float) -> np.ndarray[float]:
         '''Quantile scales within channels, then min-max channels across channels'''
         new_shape = (array.shape[0], array.shape[1]*array.shape[2])    ## reshape to remove X,Y dimensions but preserve channels
         array = np.reshape(array, new_shape)
@@ -348,8 +368,11 @@ class SupervisedClassifier:
         return array
         
 class UnsupervisedClassifier:
-    def __init__(self, directory, name):
-        ''''''
+    def __init__(self, directory: Union[str, Path], name: str):
+        '''
+        
+        '''
+        directory = str(directory)
         if not os.path.exists(f'{directory}/Pixel_Classification'):
             os.mkdir(f'{directory}/Pixel_Classification')
         self.name = name
@@ -371,25 +394,26 @@ class UnsupervisedClassifier:
         self.channel_names = {}
         self._channels = {}
 
-    def set_class_names(self, class_names_dict):
+    def set_class_names(self, class_names_dict: dict) -> None:
         ''' This is intended for setting a dictionary corresponding {channel integer numbers : channel antigen names}'''
         self.classes = class_names_dict
 
-    def set_channel_names(self, channel_names_dict):
+    def set_channel_names(self, channel_names_dict: dict) -> None:
         ''' This is intended for setting a dictionary corresponding {channel integer numbers : channel antigen names}'''
         self.channel_names = channel_names_dict
 
-    def write_classifier(self, image_folder, 
-                         channel_dictionary = {}, 
-                         sigmas = [1.0, 5.0, 10.0],
-                         pixel_number = 250000, 
-                         quantile = 0.999,
-                         XYdim = 10,
-                         metaclusters = 15,
-                         training_cycles = 50,
-                         smoothing = 0,
-                         seed = 42):
+    def write_classifier(self, image_folder: Union[str, Path], 
+                         channel_dictionary: dict = {}, 
+                         sigmas: list[float] = [1.0, 5.0, 10.0],
+                         pixel_number: int = 250000, 
+                         quantile: float = 0.999,
+                         XYdim: int = 10,
+                         metaclusters: int = 15,
+                         training_cycles: int = 50,
+                         smoothing: int = 0,
+                         seed: int = 42) -> None:
         '''Point of this method is to set up the .json that will store the information relevant to the classifier'''
+        image_folder = str(image_folder)
         write_dictionary = {}
         write_dictionary['type'] = 'unsupervised'
         write_dictionary['image_folder'] = image_folder
@@ -435,19 +459,19 @@ class UnsupervisedClassifier:
         except sklearn.exceptions.InconsistentVersionWarning:
             print("Version of Scikit-Learn is different than when the pixel classifier model was originally trained! Model not loaded.")
 
-    def train(self, image_folder, 
-                    pixel_number = 250000, 
-                    quantile = 0.999,
-                    channel_dictionary = {}, 
-                    feature_list = ['gaussian'],         ## only used if channel_dictionary == {}, all channels will be used with the listed feature filters
-                    sigmas = [1.0, 5.0, 10.0],
-                    XYdim = 10,
-                    metaclusters = 15,
-                    training_cycles = 50,
-                    smoothing = 0,
-                    seed = 42,
-                    from_save = False,
-                    auto_predict = False):
+    def train(self, image_folder: Union[str, Path], 
+                    pixel_number: int = 250000, 
+                    quantile: float = 0.999,
+                    channel_dictionary: dict = {}, 
+                    feature_list: list[str] = ['gaussian'],         ## only used if channel_dictionary == {}, all channels will be used with the listed feature filters
+                    sigmas: list[float] = [1.0, 5.0, 10.0],
+                    XYdim: int = 10,
+                    metaclusters: int = 15,
+                    training_cycles: int = 50,
+                    smoothing: int = 0,
+                    seed: int = 42,
+                    from_save: bool = False,
+                    auto_predict: bool = False) -> None:
         ''''''
         if from_save:
             image_folder = self.model_info['image_folder']
@@ -459,6 +483,7 @@ class UnsupervisedClassifier:
             metaclusters = self.model_info['metaclusters']
             training_cycles = self.model_info['training_cycles']
             seed = self.model_info['seed']
+        image_folder = image_folder(str)
         gen = np.random.default_rng(seed)
         images = [i for i in sorted(os.listdir(image_folder)) if i.lower().rfind('.tif') != -1]
         if len(images) == 0:
@@ -490,10 +515,14 @@ class UnsupervisedClassifier:
         if auto_predict:
             self.predict(image_folder, output_folder = self.output_folder, filenames = None)
 
-    def predict(self, image_folder, output_folder = None, filenames = None):
+    def predict(self, image_folder: Union[str, Path], 
+                output_folder: Union[None, str, Path] = None, 
+                filenames: Union[None, list[str]] = None) -> None:
         ''''''
         if output_folder is None:
             output_folder = self.output_folder
+        image_folder = str(image_folder)
+        output_folder = str(output_folder)
         channel_dictionary = self.model_info['channels']
         smoothing = self.model_info['smoothing']
         metaclusters = self.model_info['metaclusters']
@@ -522,7 +551,7 @@ class UnsupervisedClassifier:
         else:
             raise(ValueError, "Filenames parameter must be a str, list, or None")
 
-    def scaled_features(self, array, quantile):
+    def scaled_features(self, array: np.ndarray[float], quantile: float) -> np.ndarray[float]:
         '''Quantile scales within channels, then min-max channels across channels'''
         new_shape = (array.shape[0], array.shape[1]*array.shape[2])    ## reshape to remove X,Y dimensions but preserve channels
         array = np.reshape(array, new_shape)
@@ -639,7 +668,7 @@ def smooth_isolated_pixels(unsupervised_class_map: np.ndarray[int],
                            search_radius: int = 1, 
                            mode_mode: str = "original_image",
                            fill_in: bool = True,
-                           warn = True,
+                           warn: bool = True,
                            ) -> np.ndarray[int]:
     '''
     This function converts isolated pixels (pixels in a contiguous group smaller than the threshold size) to the mode of the neighboring 

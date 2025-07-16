@@ -2806,6 +2806,12 @@ class do_leiden_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                  seed = seed,
                                                  try_from_umap_embedding = False)
         if success:
+            Analysis_widget_logger.info(f"""Ran Leiden clustering with:
+                                            marker_class = {str(marker_class)},
+                                            resolution = {str(resolution)},
+                                            min_dist = {str(minimum_distance)},
+                                            n_neighbors = {str(n_neighbors)},
+                                            seed = {str(seed)}""")
             self.master.plot_bank.umap_plot.configure(state = 'normal')
 
             try: ## either space_analysis or data_table attributes may not exist
@@ -3160,6 +3166,12 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                  alpha = alpha, 
                                                  filename = filename)
         self.master.save_and_display(filename = filename, sizeX = 550, sizeY = 550)
+        Analysis_widget_logger.info(f"""Plotted scatterplot with:
+                                            antigen1 = {str(antigen1)},
+                                            antigen2 = {str(antigen2)},
+                                            size = {str(size)},
+                                            alpha = {str(alpha)},
+                                            filename = {str(filename)}""")
         if self.pop_up.get() is True:
             Plot_window_display(figure)
             self.withdraw()
@@ -3200,6 +3212,9 @@ class classy_masker_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def classy_mask(self, clustering = "merging", identifier = "") -> None:
         '''  '''
         self.master.cat_exp.export_clustering_classy_masks(clustering = clustering, identifier = identifier)
+        Analysis_widget_logger.info(f"""Ran classy Masker with:
+                                            clustering = {str(clustering)},
+                                            identifier = {str(identifier)}""")
         self.destroy()
 
 
@@ -3276,6 +3291,11 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                                                     figsize = None,
                                                     filename = filename)
         self.master.master.save_and_display(filename = filename, sizeX = 550, sizeY = 550)
+        Analysis_widget_logger.info(f"""Plotted state distribution with:
+                                            marker_class = {str(marker_class)},
+                                            subset_column = {str(subset_column)},
+                                            colorby = {str(colorby)},
+                                            filename = {str(filename)}""")
         if self.pop_up.get() is True:
             Plot_window_display(figure)
             self.withdraw()
