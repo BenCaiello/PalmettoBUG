@@ -3488,7 +3488,7 @@ class Analysis:
         if cell_type_column != 'whole dataset':
             cluster_group = raw_data[label_column_names[1]]
         else:                               
-            cluster_group = ['All'] * len(raw_data[label_column_names[1]])
+            cluster_group = ['All'] * len(raw_data[label_column_names[0]])
         raw_data['labels_merged'] = [f'{i}({ii})' for i,ii in zip(antigen_group, cluster_group)]
         raw_data['labels_merged'] = raw_data['labels_merged'].astype('str')
     
