@@ -2087,7 +2087,6 @@ class Analysis:
             if marker_class != "All":    ## None ==> show all
                 slicer = panel['marker_class'] == marker_class 
                 for_fs = for_fs.iloc[:,np.array(slicer)]
-                antigens = for_fs.copy().columns
             for_fs['index'] = for_fs.index.astype('str')
             to_merge = pd.DataFrame(subset_obs[groupby]).reset_index()
             to_merge['index'] = to_merge['index'].astype('str')
@@ -2108,7 +2107,6 @@ class Analysis:
             manipul_df = pd.DataFrame(for_fs.X)
             manipul_df["metacluster"] = list(for_fs.obs[groupby])
             main_df = pd.DataFrame()
-            categories = list(manipul_df['metacluster'].unique())
             grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
             for ii,i in zip(grouped.index, grouped):
                 slicer = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
@@ -3378,7 +3376,7 @@ class Analysis:
                 panel = sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', legend = None, ax = ax)
                 ax.set_title(ii[0][0], size = text_size, y = 0.95)
             else:    ## only put the legend on the last panel
-                panel = sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', ax = ax)
+                sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', ax = ax)
                 ax.set_title(ii[0][0], size = text_size, y = 0.975)
             ax.set_ylabel(f'{scale}Expression', size = text_size)
             ax.set_xlabel(ax.get_xlabel(), size = text_size)
@@ -3392,7 +3390,7 @@ class Analysis:
     
         if suptitle:
             sup_Y = 1.03 + (rows * -0.01)
-            figure.suptitle(f"{scale}Expression of {marker_class} markers, in the '{subset_column}' cell groups, colored by {colorby}")
+            figure.suptitle(f"{scale}Expression of {marker_class} markers, in the '{subset_column}' cell groups, colored by {colorby}", y = sup_Y)
             
         if filename is not None:
             figure.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
@@ -3473,9 +3471,7 @@ class Analysis:
     
         label_column_names = list(stats_df.columns[:2].values)  ## the way self.do_state_exprs_ANOVAs works, there should always be two label columns: 'antigen', and the groupby column
         label_columns = stats_df[label_column_names]
-        p_value_columns = stats_df[["p_value","p_adj","F statistic"]]
         exprs_and_dev_columns = stats_df.iloc[:,5:]
-        number_of_compared_conditions = len(exprs_and_dev_columns) / 2
     
         stats_df['labels_merged'] = [f'{i}({ii})' for i,ii in zip(label_columns.iloc[:,0], label_columns.iloc[:,1])]
         stats_df['labels_merged'] = stats_df['labels_merged'].astype('str')
@@ -3483,10 +3479,8 @@ class Analysis:
     
         raw_data = pd.DataFrame(self.data.X.copy(), index = self.data.obs.index, columns = self.data.var.index)
         if cell_type_column != 'whole dataset':
-            whole = False
             grouping_columns = heatmap_x + [cell_type_column]
         else:
-            whole = True
             grouping_columns = heatmap_x
         raw_data[grouping_columns] = self.data.obs[grouping_columns]
         raw_data = raw_data.groupby(grouping_columns, observed = False).median(numeric_only = True).dropna(how = 'all').reset_index()

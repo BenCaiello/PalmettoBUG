@@ -8,7 +8,9 @@ This file is licensed under the GPL3 license. No significant portion of the code
 
 import os
 import tkinter as tk
+
 import customtkinter as ctk
+from pathlib import Path
 
 from ..Utils.sharedClasses import (CtkSingletonWindow, 
                                    DirectoryDisplay, 
@@ -316,7 +318,7 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                              mean_threshold = threshold,
                                                              target = target,
                                                              model = model)
-        self.master.ImageAnalysisPortionLogger.info(f"Performed Instanseg segmentation with re_do = {str(re_do})},"
+        self.master.ImageAnalysisPortionLogger.info(f"Performed Instanseg segmentation with re_do = {str(re_do)},"
                                                             f"input_img_folder = {input_folder}, single_image = {str(single_image)},"
                                                             f"mean_threshold = {str(mean_threshold)}, target = {str(target)},"
                                                             f"model = {model}")
