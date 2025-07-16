@@ -690,6 +690,7 @@ class ImageAnalysis:
     def instanseg_segmentation(self, 
                                re_do = False,
                                input_img_folder: Union[Path, str, None] = None, 
+                               single_image: Union[Path, str, None] = None,
                                output_mask_folder: Union[Path, str, None] = None,
                                channel_slice: Union[None, np.array] = None,
                                merge_channels: bool = False,
@@ -708,6 +709,9 @@ class ImageAnalysis:
             
             output_mask_folder (str, Path, or None):
                 The path to a folder where you want the segmentation masks to be written to. If None, defaults to f"{self.directory_object.masks_dir}/instanseg_masks"
+
+            single_image (str, Path, or None):
+                If not None (and not the empty string ""), this parameter provides the name or path of a single image in the input_img_folder to segment.
 
             channel_slice (integer numpy array or None):
                 If provided, will be used to slice each image array to subset the channels provided to the instanseg model. The length of this array
@@ -764,6 +768,15 @@ class ImageAnalysis:
         model = InstanSeg(model)
 
         source_images = [i for i in os.listdir(input_img_folder) if i.lower().find(".tif") != -1]
+        if (single_image is not None) and (single_image != ""):
+            single_image = str(single_image)
+            path_or_name = single_image.find("/")
+            if path_or_name != -1:   ## if single_image is a path, convert it to just the filename
+                single_image = single_image[(path_or_name + 1):]
+            if single_image not in source_images:
+                raise ValueError(f"No valid .tif filename -- {single_image} -- was found in the supplied input folder: {input_img_folder}")
+            source_images = [single_image]
+            
         if not re_do:
             existing = os.listdir(output_mask_folder)
             source_images = [i for i in source_images if i not in existing]
@@ -791,10 +804,15 @@ class ImageAnalysis:
             prediction = model.eval_medium_image(image_array, mean_threshold = mean_threshold, target = target, pixel_size = pixel_size)
             tf.imwrite(f'{output_mask_folder}/{i}', np.squeeze(np.asarray(prediction[0])))
 
-    def boolean_mask_transform(self, masks_folder1, masks_folder2, kind = 'intersection1', object_threshold = 1, pixel_threshold = 1, re_order = True, output_folder = None):
+    def mask_intersection_difference(self, 
+                                    masks_folder1, 
+                                    masks_folder2, 
+                                    kind = 'intersection1', 
+                                    object_threshold = 1, 
+                                    pixel_threshold = 1, 
+                                    re_order = True, 
+                                    output_folder = None):
         '''
-        (This functionn is under development / is a non-finalized addition to the program. It also needs testing & connection to the GUI!)
-
         Provide two folders of masks, and derive a third folder of masks from them transformed in some way. Masks are dropped as a whole (not pixel-wise),
         and there are a limited set of possible transformations:
 

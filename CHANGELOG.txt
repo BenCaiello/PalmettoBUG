@@ -6,7 +6,7 @@ Plans / Possibilities:
     - Probable: copy simple denoise from iSD to PalmettoBUG (or offer some other denoising option so iSD is only for cellpose and deepcell/Mesmer)
     - Need to Do: test scatterplot option in Analysis, test density option (likely need to implement downsampling to make computationally tractable & perhaps less crowded)
 
-present PyPI version -- 0.2.4.dev1
+present PyPI version -- 0.2.5.dev2
 
 Changes to version (update log in development branch while that branch is being edited before merging to create the next version):
 
@@ -22,10 +22,18 @@ Changes to version (update log in development branch while that branch is being 
             - Disadvantages: likely require substantial updates to documentation, no longer share features & supervised classifiers with QuPath / opencv
 
 
-    Changes to 0.2.5.dev1:
+    Changes to 0.2.5.dev1-2:
         - Add cryptic functions to certain classes (spatial_leiden, region_identification, boolean_mask_transform) largely as a result of replication notebook work
-            - These functions are not available in the GUI (yet), but are available by scripting
+            - Some of these functions are not available in the GUI (yet), but are available by scripting
+
         - Fixes / improvements to plot_medians_heatmap and plot_cluster_abundance_1 methods in Analysis
+            - including making more similar to CATALYST implementation
+        - fixes to how the Analysis handles metadata / panel information for sample_id column to prevent 
+            reorder-ing of samples and associated metadata (!!). This issue was noticed after editing the order of
+            of the metadata manually (to re-order the conditions) and plotting with sample_id for the MDS and medians_heatmap function
+        - Added state marker expression distribution plot & statistics heatmaps (including GUI connection)
+        - Changes to table widgets to handle over-sized source CSVs (extra columns copmared to PalmettoBUG expectations) for certain files.
+
         - Change analysis scatterplot option to directly use scanpy's scatter plot related methods(needs troubleshooting, temporarily removed 'density' hue option from GUI)
         - Change data_export from Analysis and whole-class analysis -- now handles NaNs differently after groupby operations (in GUI, sets them to 0) and handles
           missing categories differently. Specifically, all unique combination of gropuby categories are included in the export, even if that unique combintation is not

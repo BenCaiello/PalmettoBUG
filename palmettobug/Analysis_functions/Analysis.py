@@ -88,27 +88,31 @@ temp_img_dir = homedir + "/Assets/temp_image.png"
 
 def _py_catalyst_quantile_norm(pd_groupby) -> np.ndarray[float]:
     ''' 
-    This is a helper function for the median / heatmap plotting function immediately below 
+    This is a helper function for the median / heatmap plotting function
     '''
     pd_groupby = pd_groupby.copy()
     np_groupby = np.array(pd_groupby)
     np_groupby = np.median(np_groupby, axis = 0)
-    np_groupby = _quant(np_groupby)
+    #np_groupby = _quant(np_groupby)
     return np_groupby
 
-def _quant(array: np.ndarray[float], 
+def _quant(array: np.ndarray[float],                       # *** deriv_CATALYST (replicates CATALYST's scaling)
           lower: float = 0.01, 
           upper:float = 0.99, 
           axis: int = None,
           ) -> np.ndarray[float]:
     '''
-    This is a helper function for _py_catalyst_quantile_norm
+    This is a helper function for the median / heatmap plotting function, meant to imitate CATALYST's heatmap scaling 
     '''
     quantiles = np.quantile(array, (lower, upper), axis = axis) 
+    if axis == 1:
+        array = array.T
     array = (array - quantiles[0])  / (quantiles[1] - quantiles[0])
     array = np.nan_to_num(array)
     array[array > 1] = 1
     array[array < 0] = 0
+    if axis == 1:
+        array = array.T
     return array
 
 class Analysis:   
@@ -392,7 +396,8 @@ class Analysis:
 
         self.data = ann.AnnData(X = exprs, var = panel, obs = metadata_long)
 
-        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype('category')
+        special_category = pd.CategoricalDtype(list(self.data.obs["sample_id"].astype('str').unique()), ordered = True)
+        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype(special_category)
 
         special_category = pd.CategoricalDtype(list(self.data.obs["patient_id"].astype('str').unique()), ordered = True)
         self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype(special_category)
@@ -515,8 +520,11 @@ class Analysis:
         self.unscaled_data = None
         self._scaling = 'unscale'
 
-        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype('str').astype("category")
-        self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype("category")
+        special_category = pd.CategoricalDtype(list(self.data.obs["sample_id"].astype('str').unique()), ordered = True)
+        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype(special_category)
+
+        special_category = pd.CategoricalDtype(list(self.data.obs["patient_id"].astype('str').unique()), ordered = True)
+        self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype(special_category)
 
         special_category = pd.CategoricalDtype(list(data["condition"].astype('str').unique()), ordered = True)
         self.data.obs["condition"] =  self.data.obs["condition"].astype(special_category)
@@ -1213,16 +1221,17 @@ class Analysis:
             a matplotlib.pyplot figure and a pandas dataframe
         '''
         metadata = self.metadata.copy()
-        panel = self.panel.copy()
+        panel = self.data.var.copy()
 
-        flowsom_clustering = self.data.copy()
+        MDS_data = self.data.copy()
         if marker_class != "All":  
             slicer = panel['marker_class'] == marker_class 
-            flowsom_clustering = flowsom_clustering[:,slicer]
+            MDS_data = MDS_data[:,slicer]
             panel = panel[slicer]
 
-        median_df = pd.DataFrame(flowsom_clustering.X, columns = flowsom_clustering.var['antigen'])
-        median_df['sample_id'] = list(flowsom_clustering.obs['sample_id'])
+        median_df = pd.DataFrame(MDS_data.X, columns = MDS_data.var['antigen'])
+        median_df['sample_id'] = list(MDS_data.obs['sample_id'])
+        median_df['sample_id'] = median_df['sample_id'].astype(MDS_data.obs['sample_id'].dtype)
 
         median_df = median_df.groupby("sample_id", observed = False).median()
         
@@ -1441,8 +1450,8 @@ class Analysis:
                             bbox_to_anchor = (x_anchor, 
                                                 0.9))
         fig.subplots_adjust(hspace = 0.5)
-        sup_Y = 1.04 + (row_num * -0.01)
         if suptitle:
+            sup_Y = 1.04 + (row_num * -0.01)
             fig.suptitle("KDE / Histogram plots of normalized Exprs of each marker \n facetted by sample_id ", y = sup_Y)
         fig.supxlabel("normalized Exprs")
         if filename is not None:
@@ -1541,6 +1550,7 @@ class Analysis:
         fs_anndata = anndata_in.copy()
         anndata_df = pd.DataFrame(fs_anndata.X, columns = fs_anndata.var['antigen'])
         anndata_df['sample_id'] = list(fs_anndata.obs['sample_id'])
+        anndata_df['sample_id'] = anndata_df['sample_id'].astype(fs_anndata.obs['sample_id'].dtype)
         anndata_df.index = fs_anndata.obs.index.astype('int')
         sample_together = pd.DataFrame()
         for i in anndata_df['sample_id'].astype('str').unique():
@@ -2018,16 +2028,18 @@ class Analysis:
 
     def plot_medians_heatmap(self,  
                              marker_class: str = "type", 
-                             groupby: str = "metaclustering",  
+                             groupby: str = "metaclustering",
+                             scale_axis = 0,  
                              subset_df: pd.DataFrame = None, 
                              subset_obs: pd.DataFrame = None, 
+                             colormap = "coolwarm",
                              figsize: tuple[Union[int,float]] = (10,10),
                              filename: Union[str, None] = None, 
                              **kwargs) -> plt.figure:                                      # *** deriv_CATALYST (tries to imitate the heatmaps of 
                                                                                                                 # CATALYST)
         ''' 
         Plots a heatmap in a manner similar to CATALYST by first taking the median of each channel in each category of [groupby] column, then
-        %quantile normalizing the medians from 1%-99% across the entire set of medians.
+        %quantile normalizing the medians from 1%-99% across the antigens.
 
         Args:
             filename (string): 
@@ -2080,9 +2092,10 @@ class Analysis:
             manipul_df = for_fs.copy().drop(["index", groupby], axis = 1)
             manipul_df['metacluster'] = for_fs[groupby]
             main_df = pd.DataFrame()
-            for ii,i in enumerate(manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)):
-                slice = pd.DataFrame(i, index = antigens, columns = [ii])
-                main_df = pd.concat([main_df,slice], axis = 1)
+            grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
+            for ii,i in zip(grouped.index, grouped):
+                slicer = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
+                main_df = pd.concat([main_df,slicer], axis = 1)
             cluster_centers = main_df.T
         else:
             for_fs = self.data.copy()
@@ -2092,9 +2105,11 @@ class Analysis:
             manipul_df = pd.DataFrame(for_fs.X)
             manipul_df["metacluster"] = list(for_fs.obs[groupby])
             main_df = pd.DataFrame()
-            for ii,i in enumerate(manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)):
-                slice = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
-                main_df = pd.concat([main_df,slice], axis = 1)
+            categories = list(manipul_df['metacluster'].unique())
+            grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
+            for ii,i in zip(grouped.index, grouped):
+                slicer = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
+                main_df = pd.concat([main_df,slicer], axis = 1)
             cluster_centers = main_df.T
 
         #### different way to quantile after taking medians (along axis of clusters, instead of quantiling the global numbers as above):
@@ -2128,11 +2143,13 @@ class Analysis:
                 percentiles = percentiles.sort_values('index')
                 cluster_centers.index = list(percentiles['percents'])   
         else:
-            cluster_centers['sample_id'] = cluster_centers.reset_index()['index']
+            cluster_centers['sample_id'] = list(cluster_centers.reset_index()['index'])
             cluster_centers.index = cluster_centers['sample_id']
             cluster_centers = cluster_centers.drop('sample_id', axis = 1)
+        transform = _quant(cluster_centers, axis = scale_axis)
+        cluster_centers = pd.DataFrame(transform, index = cluster_centers.index, columns = cluster_centers.columns)
         plot = sns.clustermap(cluster_centers, 
-                             cmap = "coolwarm", 
+                             cmap = colormap, 
                              linewidths = 0.01, 
                              xticklabels = True, 
                              yticklabels = True, 
@@ -2368,7 +2385,7 @@ class Analysis:
         Returns:
             a matplotlib figure
         '''
-        flowsom_clustering = self.data.copy()
+        data = self.data.copy()
         scale = self._scaling
         if scale == "unscale":
             scale = ""
@@ -2376,10 +2393,10 @@ class Analysis:
             scale = "Scaled"
 
         if marker_class != "All":
-            manipul_df = pd.DataFrame((flowsom_clustering.X.T[self.panel['marker_class'] == marker_class]).T)
+            manipul_df = pd.DataFrame((data.X.T[self.panel['marker_class'] == marker_class]).T)
             manipul_df.columns = self.panel[self.panel['marker_class'] == marker_class]['antigen']
         else:
-            manipul_df = pd.DataFrame(flowsom_clustering.X)
+            manipul_df = pd.DataFrame(data.X)
             manipul_df.columns = self.panel['antigen']
 
         manipul_df[groupby_column] =  list(self.data.obs[groupby_column].astype('str'))
@@ -2435,7 +2452,7 @@ class Analysis:
             plt.close()
             return griddy.figure
             
-        elif plot_type == "bar":
+        elif (plot_type == "bar") or (plot_type == "box"):
             griddy = sns.catplot(data_long_form, y = facet_title, 
                             hue = "antigen", 
                             palette = 'tab20',
@@ -3250,6 +3267,152 @@ class Analysis:
         if filename is not None:
             to_return.to_csv(self.data_table_dir + f"/{filename}.csv", index = False)
         return to_return
+
+    def plot_state_distributions(self, marker_class = 'state', 
+                                 subset_column = 'merging', 
+                                 colorby = 'condition', 
+                                 grouping = 'sample_id', 
+                                 grouping_stat = 'median',
+                                 wrap_col = 3, 
+                                 suptitle = False,
+                                 figsize = None,
+                                 filename = None):                # *** deriv_CATALYST(ish, only by imitation of the CATALYST paper's figures)
+        ''''''
+        text_size = 10
+        data = self.data.copy()
+        scale = self._scaling
+        if scale == 'unscale':
+            scale = ''
+        else:
+            scale = 'Scaled '
+        if marker_class != "All":
+            data_state = pd.DataFrame((data.X.T[self.data.var['marker_class'] == marker_class]).T, 
+                                      columns = self.data.var[self.data.var['marker_class'] == marker_class]['antigen'])
+        else:
+            data_state = pd.DataFrame(data.X, columns = self.data.var['antigen'])
+        if subset_column == 'All':
+            data_state[subset_column] = ""
+        else:
+            data_state[subset_column] = list(self.data.obs[subset_column])
+            data_state[subset_column] = data_state[subset_column].astype(self.data.obs[subset_column].dtype)
+        data_state[colorby] = list(self.data.obs[colorby])
+        data_state[colorby] = data_state[colorby].astype(self.data.obs[colorby].dtype)
+        data_state[grouping] = list(self.data.obs[grouping])
+        data_state[grouping] = data_state[grouping].astype(self.data.obs[grouping].dtype)
+        data_state = list(data_state.groupby([subset_column], observed = False))
+        panels = len(data_state)
+        if (panels % wrap_col) == 0:
+            rows = panels // wrap_col
+        else:
+            rows = (panels // wrap_col) + 1
+        grid_specifications = {'wspace':0.05, 'hspace':0.1}
+        if figsize is None:
+            figsize = (rows*3.75, wrap_col*3.0)
+        if subset_column == "All":
+            rows = 1
+            wrap_col = 1
+            figsize = (figsize[0]*1.5, figsize[1] / 1.5)
+        figure, axs = plt.subplots(rows, wrap_col, figsize = figsize, sharey = True, sharex = True, gridspec_kw = grid_specifications)
+        if isinstance(axs, np.ndarray):
+            axs = axs.ravel()
+        else:
+            axs = np.array([axs])
+        for i,ii in enumerate(data_state):
+            ax = axs[i]
+            temp_data = ii[1].drop([subset_column], axis = 1).melt([colorby,grouping])
+            if grouping_stat == 'mean':
+                temp_data = temp_data.groupby([colorby,grouping,'antigen'], observed = False).mean(numeric_only = True).reset_index()
+            elif grouping_stat == 'median':
+                temp_data = temp_data.groupby([colorby,grouping,'antigen'], observed = False).median(numeric_only = True).reset_index()
+            if i != (panels - 1):
+                panel = sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', legend = None, ax = ax)
+                ax.set_title(ii[0][0], size = text_size, y = 0.95)
+            else:    ## only put the legend on the last panel
+                panel = sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', ax = ax)
+                ax.set_title(ii[0][0], size = text_size, y = 0.975)
+            ax.set_ylabel(f'{scale}Expression', size = text_size)
+            ax.set_xlabel(ax.get_xlabel(), size = text_size)
+            ax.set_xmargin(0.05)
+            ax.set_ymargin(0.05)
+            #ax.set_yticks([0,0.5,1], labels = ["0","0.5","1"], size = text_size)
+            ax.set_xticks(ax.get_xticks(), labels = temp_data['antigen'].unique(), size = text_size, rotation = 'vertical')
+    
+        for k in range(i+1, wrap_col*rows, 1):
+            axs[k].set_axis_off()
+    
+        if suptitle:
+            sup_Y = 1.03 + (rows * -0.01)
+            figure.suptitle(f"{scale}Expression of {marker_class} markers, in the '{subset_column}' cell groups, colored by {colorby}")
+            
+        if filename is not None:
+            figure.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
+        plt.close()
+        return figure
+
+
+    def plot_state_p_value_heatmap(self, stats_df = None, 
+                                    top_n = 50, heatmap_x = ['condition','sample_id'], 
+                                    ANOVA_kwargs = {}, include_p = True, 
+                                    figsize = (10,10), filename = None):                  # *** deriv_CATALYST(ish, only by imitation of the CATALYST paper's figures)
+        '''
+        Plots a heatmap of the top most significantly differences found with the self.do_state_exprs_ANOVAs() method
+        
+        Presumes the supplied stats_df matches the format exported by self.do_state_exprs_ANOVAs() method! 
+        Including structure, columns, rank ordering by F-statistic top-to-bottom, etc.
+        '''
+        if stats_df is None:
+            if ANOVA_kwargs != {}:
+                stats_df = self.do_state_exprs_ANOVAs(**ANOVA_kwargs)
+            else:
+                print("Error! Neither a precalculated dataframe of statistics from self.do_state_exprs_ANOVAs," 
+                    "nor keyword arguments for calling self.do_state_exprs_ANOVAs were provided!")
+                return
+    
+        stats_df = stats_df.head(top_n).copy()
+    
+        label_column_names = list(stats_df.columns[:2].values)  ## the way self.do_state_exprs_ANOVAs works, there should always be two label columns: 'antigen', and the groupby column
+        label_columns = stats_df[label_column_names]
+        p_value_columns = stats_df[["p_value","p_adj","F statistic"]]
+        exprs_and_dev_columns = stats_df.iloc[:,5:]
+        number_of_compared_conditions = len(exprs_and_dev_columns) / 2
+    
+        stats_df['labels_merged'] = [f'{i}({ii})' for i,ii in zip(label_columns.iloc[:,0], label_columns.iloc[:,1])]
+        stats_df['labels_merged'] = stats_df['labels_merged'].astype('str')
+        cell_type_column = stats_df.columns[1]
+    
+        raw_data = pd.DataFrame(self.data.X.copy(), index = self.data.obs.index, columns = self.data.var.index)
+        if cell_type_column != 'whole dataset':
+            whole = False
+            grouping_columns = heatmap_x + [cell_type_column]
+        else:
+            whole = True
+            grouping_columns = heatmap_x
+        raw_data[grouping_columns] = self.data.obs[grouping_columns]
+        raw_data = raw_data.groupby(grouping_columns, observed = False).median(numeric_only = True).dropna(how = 'all').reset_index()
+        raw_data = raw_data.melt(grouping_columns)
+        raw_data['labels_merged'] = [f'{i}({ii})' for i,ii in zip(raw_data[label_column_names[0]], raw_data[label_column_names[1]])]
+        raw_data['labels_merged'] = raw_data['labels_merged'].astype('str')
+    
+        p_values = []
+        output_df = pd.DataFrame()
+        for ii,i in enumerate(stats_df['labels_merged'].unique()):
+            stats_df_slice = stats_df[stats_df['labels_merged'] == i]
+            p_values.append(stats_df_slice['p_adj'].values[0])
+            raw_data_slice = raw_data[raw_data['labels_merged'] == i]
+            raw_data_slice.index = [f'{i}({ii})' for i,ii in zip(raw_data_slice[heatmap_x[0]], raw_data_slice[heatmap_x[1]])]
+            output_df[f'{i}'] = raw_data_slice['value']
+        output_data = np.nan_to_num(np.array(output_df))
+        output_data = np.nan_to_num((output_data - output_data.mean(axis = 0)) / output_data.std(axis = 0))
+        output_df = pd.DataFrame(output_data, output_df.index, output_df.columns)
+        if include_p:
+            output_df.loc['-Log(P-value)',:] = (- np.log(np.array(p_values))).astype('float32')
+        figure, ax = plt.subplots(1,1, figsize = figsize)
+        sns.heatmap(output_df.T, cmap = 'coolwarm', square = True, vmin = -3, vmax = 3, center = 0.0, ax = ax)
+        if filename is not None:
+            figure.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
+        plt.close()
+        return figure
+
     
     def do_state_exprs_ANOVAs(self,                     
                             marker_class: str = "state", 
@@ -3629,9 +3792,7 @@ class Analysis:
                 elif groupby_nan_handling == 'zero':
                     groupby_object = groupby_object.drop(groupby_columns, axis = 1).fillna(0)
 
-                groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)
-
-            
+                groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)            
     
             for i in data_col_list:
                 if (i in groupby_object.columns.astype('str')) and (i not in groupby_columns):

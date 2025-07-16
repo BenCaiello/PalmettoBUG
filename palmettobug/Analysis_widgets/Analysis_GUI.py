@@ -1882,16 +1882,24 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.DA_button.grid(column = 0, columnspan = 2, row = 3, padx = 5, pady = 5)
         self.DA_button.configure(state = "disabled")
 
+        self.plot_state = ctk.CTkButton(master = self, text = "Plot State Expression comparing conditions")
+        self.plot_state.grid(column = 3, row = 3, padx = 5, pady = 5)
+        self.plot_state.configure(state = "disabled")
+
     def initialize_buttons(self) -> None:
         ### goal: decouple widget placement & initialization from data loading & button activation
         self.make_model.configure(state = "normal", command = self.launch_abundance_ANOVAs_window)
         self.DA_button.configure(state = "normal", command = self.launch_state_ANOVAs_window)
+        self.plot_state.configure(state = "normal", command = self.launch_state_distribution)
 
     def launch_abundance_ANOVAs_window(self) -> None:
         run_abundance_ANOVAs_window(self.master)
 
     def launch_state_ANOVAs_window(self) -> None:
         run_state_ANOVAs_window(self.master)
+
+    def launch_state_distribution(self):
+        state_distribution_window(self)
 
 class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
@@ -2060,6 +2068,9 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         button = ctk.CTkButton(master = self, text = "Run state markers expression ANOVAs", command = self.run_state_ANOVAs)
         button.grid(padx = 3, pady = 3)
 
+        self.heatmap = ctk.CTkCheckBox(master = self, text = "Make heatmap of top 50 changes?", onvalue = True, offvalue = False)
+        self.heatmap.grid(padx = 3, pady = 3)
+
         self.after(200, self.focus())
 
     def run_state_ANOVAs(self) -> None:
@@ -2091,6 +2102,10 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if success is None:
             warning_window("There are no channels of this marker_class!")
             return
+
+        if self.heatmap.get():
+            self.master.cat_exp.plot_state_p_value_heatmap(stats_df = success, filename = "state_ANOVA_heatmap")
+            self.master.save_and_display(filename = "state_ANOVA_heatmap", sizeX = 550, sizeY = 550)
         
         Analysis_widget_logger.info(f"""Ran marker Expression ANOVA tests: 
                                     marker class = {self.marker_class.get()}
@@ -3186,3 +3201,83 @@ class classy_masker_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         '''  '''
         self.master.cat_exp.export_clustering_classy_masks(clustering = clustering, identifier = identifier)
         self.destroy()
+
+
+class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
+
+    def __init__(self, master):
+        super().__init__(master)
+        self.title("Plot Marker Expression Boxplots")
+        self.master = master
+
+        label_1 = ctk.CTkLabel(self, text = "Marker Class:")
+        label_1.grid(column = 0, row = 0)
+
+        self.marker_class = ctk.CTkOptionMenu(master = self, 
+                                            values = ["All","none","type","state"], variable = ctk.StringVar(value = "state"))
+        self.marker_class.grid(column= 1, row = 0, padx = 5, pady = 5)
+
+        label_1 = ctk.CTkLabel(self, text = "Subsetting Cluster:")
+        label_1.grid(column = 0, row = 0)
+
+        self.clustering = ctk.CTkOptionMenu(master = self, 
+                                            values = [""] + [i for i in CLUSTER_NAMES if i in self.master.master.cat_exp.data.obs.columns],
+                                            variable = ctk.StringVar(value = ""))
+        self.clustering.grid(column= 1, row = 1, padx = 5, pady = 5)
+
+        def refresher1(enter = ""):
+            self.clustering.configure(values = [""] + [i for i in CLUSTER_NAMES if i in self.master.master.cat_exp.data.obs.columns])
+        self.clustering.bind("<Enter>", refresher1)
+
+        label_1 = ctk.CTkLabel(self, text = "Color By:")
+        label_1.grid(column = 0, row = 0)
+
+        self.colorby = ctk.CTkOptionMenu(master = self, 
+                                            values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns],
+                                            variable = ctk.StringVar(value = "condition"))
+        self.colorby.grid(column= 1, row = 2, padx = 5, pady = 5)
+
+        def refresher2(enter = ""):
+            self.colorby.configure(values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns])
+        self.colorby.bind("<Enter>", refresher2)
+
+        label_7 = ctk.CTkLabel(self, text = "Filename:")
+        label_7.grid(column = 0, row = 3)
+
+        self.filename = ctk.CTkEntry(self, textvariable = ctk.StringVar(value ="state_boxplots_condition"))
+        self.filename.grid(column = 1, row = 3, padx = 5, pady = 5)
+
+        button_plot = ctk.CTkButton(self, text = "Create", command = self.plot)
+        button_plot.grid(column = 1, row = 4, padx = 5, pady = 5)
+
+        self.pop_up = ctk.CTkCheckBox(master = self, text = "Make detailed Plot Editing Pop-up?", onvalue = True, offvalue = False)
+        self.pop_up.grid(column = 0, row = 5, padx = 3, pady = 3)
+        self.after(200, lambda: self.focus())
+
+    def plot(self, clustering = "merging", identifier = "") -> None:
+        '''  '''
+        marker_class = self.marker_class.get()
+        subset_column = self.clustering.get()
+        colorby = self.colorby.get()
+        filename = self.filename.get()
+        if filename_checker(filename, self):
+            return
+        if not overwrite_approval(self.master.master.cat_exp.save_dir + f"/{filename}.png", file_or_folder = "file", GUI_object = self):
+            return
+
+
+        figure = self.master.master.cat_exp.plot_state_distributions(marker_class = marker_class, 
+                                                    subset_column = subset_column, 
+                                                    colorby = colorby, 
+                                                    grouping = 'sample_id', 
+                                                    grouping_stat = 'median',
+                                                    wrap_col = 3, 
+                                                    suptitle = True,
+                                                    figsize = None,
+                                                    filename = filename)
+        self.master.master.save_and_display(filename = filename, sizeX = 550, sizeY = 550)
+        if self.pop_up.get() is True:
+            Plot_window_display(figure)
+            self.withdraw()
+        else:
+            self.destroy()
