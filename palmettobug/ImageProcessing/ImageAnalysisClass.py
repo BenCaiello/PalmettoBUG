@@ -688,7 +688,7 @@ class ImageAnalysis:
                     write_ome_tiff(image, ome_tiff_metadata, out)
 
     def instanseg_segmentation(self, 
-                               re_do = False,
+                               re_do: bool = False,
                                input_img_folder: Union[Path, str, None] = None, 
                                single_image: Union[Path, str, None] = None,
                                output_mask_folder: Union[Path, str, None] = None,
@@ -805,13 +805,13 @@ class ImageAnalysis:
             tf.imwrite(f'{output_mask_folder}/{i}', np.squeeze(np.asarray(prediction[0])))
 
     def mask_intersection_difference(self, 
-                                    masks_folder1, 
-                                    masks_folder2, 
-                                    kind = 'intersection1', 
-                                    object_threshold = 1, 
-                                    pixel_threshold = 1, 
-                                    re_order = True, 
-                                    output_folder = None):
+                                    masks_folder1: Union[str, Path], 
+                                    masks_folder2: Union[str, Path], 
+                                    kind: str = 'intersection1', 
+                                    object_threshold: int = 1, 
+                                    pixel_threshold: int = 1, 
+                                    re_order: bool = True, 
+                                    output_folder: Union[None, str, Path] = None):
         '''
         Provide two folders of masks, and derive a third folder of masks from them transformed in some way. Masks are dropped as a whole (not pixel-wise),
         and there are a limited set of possible transformations:
@@ -912,8 +912,15 @@ class ImageAnalysis:
                 output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
                 tf.imwrite(f'{output_folder}/{i}', output.astype('int32'))
         
-    def _mask_bool(self, mask1, mask2, kind = 'intersection1', object_threshold = 1, pixel_threshold = 1, re_order = True):
-        ''' helper for self.boolean_mask_transform, executing the operation on a single pair of masks'''
+    def _mask_bool(self, mask1: np.ndarray[int], 
+                   mask2: np.ndarray[int], 
+                   kind: str = 'intersection1', 
+                   object_threshold: int = 1, 
+                   pixel_threshold: int = 1, 
+                   re_order: bool = True) -> np.ndarray[int]:
+        ''' 
+        helper for self.boolean_mask_transform, executing the operation on a single pair of masks
+        '''
         if (kind =="difference2") or (kind =="intersection2"):
             backup = mask1.copy()
         mask_values = [i for i in np.unique(mask1) if i > 0]

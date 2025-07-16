@@ -30,7 +30,7 @@ from palmettobug import (fetch_IMC_example,
                         plot_classes,
                         WholeClassAnalysis)
 
-fetch_dir = homedir + "/px_class_test/"
+fetch_dir = homedir + "/project_folder/"
 if not os.path.exists(fetch_dir):
     os.mkdir(fetch_dir)
 proj_directory = fetch_dir + "Example_IMC"

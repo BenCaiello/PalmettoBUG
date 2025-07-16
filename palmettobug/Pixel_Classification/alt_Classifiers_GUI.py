@@ -17,6 +17,7 @@ import json
 import tkinter as tk
 from multiprocessing import Process
 
+from pathlib import Path
 import customtkinter as ctk
 import pandas as pd
 import numpy as np
@@ -235,8 +236,11 @@ class Pixel_class_widgets(ctk.CTkFrame):
         self.plot_pixel_heatmap(self.unsupervised.output_folder, image_folder_name, from_button = False)
         pixel_logger.info(f"Predicted classification map for following image folder: {image_folder_name}")
 
-    def plot_pixel_heatmap(self, classifier_folder = None, image_folder = None, from_button = True):
-        ''''''
+    def plot_pixel_heatmap(self, classifier_folder: Union[None, str, Path] = None, 
+                           image_folder: Union[None, str, Path] = None, 
+                           from_button:bool = True):
+        '''
+        '''
         if classifier_folder is None:
             classifier_folder = self.classifier_dir + "/" + self.name + "/classification_maps"
         if self.name is None:

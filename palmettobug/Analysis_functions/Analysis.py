@@ -186,7 +186,7 @@ class Analysis:
 
     def load_data(self, 
                   directory: Union[Path, str], 
-                  arcsinh_cofactor: int = 5,   
+                  arcsinh_cofactor: Union[int,float] = 5,   
                   save_dir: str = "Plots",
                   data_table_dir: str = "Data_tables",
                   csv: Union[str, Path, None] = None,
@@ -283,7 +283,7 @@ class Analysis:
                     print("Could not load regionprops data, presuming this is a solution-mode dataset -- Spatial analyses will not be possible.")
                     self._spatial = False
 
-    def _load_fcs(self, arcsinh_cofactor = 5) -> None:
+    def _load_fcs(self, arcsinh_cofactor: Union[int,float] = 5) -> None:
         '''
         Helper for load_data that handles the loading of .fcs file information from directory/Analysis_fcs
         '''
@@ -414,7 +414,8 @@ class Analysis:
     def _load_csv(self, 
                   csv_path: Union[Path, str], 
                   additional_columns = [],    ## in case you added a custom metadata column to the data -- list all additional columns here. 
-                  arcsinh_cofactor = 5        # Must not have the same name as an antigen column (this parameter is currently not available in the GUI)
+                                                # Must not have the same name as an antigen column (this parameter is currently not available in the GUI)
+                  arcsinh_cofactor: Union[int,float] = 5        
                   ) -> None:
         '''
         Helper for load_data that handles the loading of a csv file (this csv is usually exported from PalmettoBUG as well, and expects a
@@ -858,7 +859,7 @@ class Analysis:
                           min_dist: float = 0.1, 
                           n_neighbors: int = 15,
                           resolution: int = 1,
-                          flavor = "leidenalg",
+                          flavor: str = "leidenalg",
                           try_from_umap_embedding: bool = False,
                           ) -> None:
         '''Creates a UMAP from all the cells in the dataset and then performs leiden clustering. 
@@ -1023,7 +1024,7 @@ class Analysis:
             self.PCA_embedding.obs['metaclustering'] = self.PCA_embedding.obs['metaclustering'].astype('category') 
         return fs
 
-    def _plot_stars_CNs(self, fs, filename: Union[str, None] = None):
+    def _plot_stars_CNs(self, fs: FlowSOM, filename: Union[str, None] = None) -> plt.figure:
         '''
         Plots the minimum spanning tree / star plot from the FlowSOM package
 
@@ -1463,7 +1464,7 @@ class Analysis:
                 marker_class: str = "type", 
                 cell_number: int = 1000,
                 seed: int = 0,
-                n_neighbors = 15,
+                n_neighbors: int = 15,
                 min_dist: float = 0.1,
                 **kwargs) -> None:                                # *** deriv_CATALYST ()
         '''
@@ -1586,10 +1587,10 @@ class Analysis:
 
     def plot_scatter(self, antigen1: str, 
                      antigen2: str, 
-                     hue: Union[str, None]= None, 
+                     hue: Union[str, None] = None, 
                      filename: Union[str, None] = None, 
                      size: Union[int, float] = 1, 
-                     alpha: Union[int, float] = 0.5, **kwargs):
+                     alpha: Union[int, float] = 0.5, **kwargs) -> plt.figure:
         '''
         Makes a scatterplot of [antigen1] vs. [antigen2], colored by [hue]. Will write a png file from the plot to 
         self.save_dir if filename is not None. 
@@ -1620,9 +1621,7 @@ class Analysis:
                 are passed to seaborn.scatterplot()
 
         Returns:
-            a matplotlib.pyplot figure 
-            
-            
+            a matplotlib.pyplot figure            
         '''
         data = self.data.copy()
         figure = plt.figure()
@@ -2029,11 +2028,11 @@ class Analysis:
     def plot_medians_heatmap(self,  
                              marker_class: str = "type", 
                              groupby: str = "metaclustering",
-                             scale_axis = 0,  
+                             scale_axis: Union[None, int] = 0,  
                              subset_df: pd.DataFrame = None, 
                              subset_obs: pd.DataFrame = None, 
                              colormap = "coolwarm",
-                             figsize: tuple[Union[int,float]] = (10,10),
+                             figsize: tuple[Union[int,float], Union[int,float]] = (10,10),
                              filename: Union[str, None] = None, 
                              **kwargs) -> plt.figure:                                      # *** deriv_CATALYST (tries to imitate the heatmaps of 
                                                                                                                 # CATALYST)
@@ -2056,6 +2055,10 @@ class Analysis:
                         "metaclustering" --> cluster heatmap
                         "sample_id"   --> heatmap by ROI
                         "merging" / etc. --> heatmap by arbitrary column in self.data.obs
+
+            scale_axis (integer or None):
+                Either None, 0 or 1 -> Which axis of the final median array to scale along before plotting. Default is 0, to scale within antigens.
+                (0 --> scale within antigen, 1 --> scale within groupby categories, None --> scale medians across the entire array)
 
             subset_df (pandas DataFrame or None): 
                 a dataframe equivalent to self.data.X with column names = self.data.var.index allows 
@@ -2084,7 +2087,6 @@ class Analysis:
             if marker_class != "All":    ## None ==> show all
                 slicer = panel['marker_class'] == marker_class 
                 for_fs = for_fs.iloc[:,np.array(slicer)]
-                antigens = for_fs.copy().columns
             for_fs['index'] = for_fs.index.astype('str')
             to_merge = pd.DataFrame(subset_obs[groupby]).reset_index()
             to_merge['index'] = to_merge['index'].astype('str')
@@ -2105,7 +2107,6 @@ class Analysis:
             manipul_df = pd.DataFrame(for_fs.X)
             manipul_df["metacluster"] = list(for_fs.obs[groupby])
             main_df = pd.DataFrame()
-            categories = list(manipul_df['metacluster'].unique())
             grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
             for ii,i in zip(grouped.index, grouped):
                 slicer = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
@@ -2470,7 +2471,7 @@ class Analysis:
             return griddy.figure
         
     def plot_cluster_histograms(self,  
-                                antigen,
+                                antigen: str,
                                 groupby_column: str = 'metaclustering', 
                                 filename: Union[str, None] = None,
                                 **kwargs) -> plt.figure:                                             # *** deriv_CATALYST (ish, plot output)
@@ -2587,7 +2588,7 @@ class Analysis:
         
     def plot_cluster_abundance_1(self, 
                                  groupby_column: str = "metaclustering", 
-                                 bars_by: str  = 'sample_id',
+                                 bars_by: str = 'sample_id',
                                  number_of_columns: int = 3,
                                  filename: Union[str, None] = None,
                                  **kwargs) -> plt.figure:                                # *** deriv_CATALYST (plot appearance / output)
@@ -2932,7 +2933,7 @@ class Analysis:
                   conditions: list[str], 
                   variable: str = "condition", 
                   groupby_column: str = "merging",  
-                  family = "Poisson", 
+                  family: str = "Poisson", 
                   filename: Union[str, None] = None,
                   ) -> pd.DataFrame:
         '''
@@ -3268,16 +3269,63 @@ class Analysis:
             to_return.to_csv(self.data_table_dir + f"/{filename}.csv", index = False)
         return to_return
 
-    def plot_state_distributions(self, marker_class = 'state', 
-                                 subset_column = 'merging', 
-                                 colorby = 'condition', 
-                                 grouping = 'sample_id', 
-                                 grouping_stat = 'median',
-                                 wrap_col = 3, 
-                                 suptitle = False,
-                                 figsize = None,
-                                 filename = None):                # *** deriv_CATALYST(ish, only by imitation of the CATALYST paper's figures)
-        ''''''
+    def plot_state_distributions(self, marker_class: str = 'state', 
+                                 subset_column: str = 'merging', 
+                                 colorby: str = 'condition', 
+                                 grouping: str = 'sample_id', 
+                                 grouping_stat: str = 'median',
+                                 wrap_col: int = 3, 
+                                 suptitle: bool = False,
+                                 figsize: tuple[Union[int,float], Union[int,float]] = None,
+                                 filename: Union[None, str] = None) -> plt.figure:             # *** deriv_CATALYST(ish, only by imitation of the CATALYST paper's figures)
+        '''
+        Plots a facetted boxplot of the expression of a specified marker_class (usually 'state'), split into various cell groupings 
+        (subset_column, usually 'merging') per panel, comparing on colorby (usually 'condition'). 
+        Aggregates within each sub-group first by grouping (usually 'sample_id') using the aggregation statistic specified in grouping_stat, 
+        so that the boxplots aren't overwhelmed trying to plot thousands of individual cells. 
+        
+        Args:
+            marker_class (string):
+                What marker_class of antigens to use in the plot. Either 'type','state' (default), 'None', or 'All'. 
+
+            subset_column (string):
+                The name of a categorical column in self.data.obs to group the cells by. These groupings will constitute the panels of the final
+                plot. 
+
+            colorby (string):
+                The name of a categorical column in self.data.obs to group the cells by, typically 'condition'. These groups will define how the 
+                boxplots in each panel are colored. 
+
+            grouping (string):
+                 The name of a categorical column in self.data.obs to group the cells by, typically 'sample_id'. It is recommended to not change this
+                 as errors / strange looking plots are likely with any other value. It specifies how the data is aggregated before plotting,
+                 as plotting every cell for a large dataset is likely to make the boxplot too confusing, as there can be far too many outlier
+                 points on the plot.
+
+            grouping_stat (string):
+                How to aggregate the data using the grouping parameter -- as in, take the 'mean' of the sample_id's or the 'median' before plotting?
+
+            wrap_col (integer):
+                how many panels per column of the facetted plot before wrapping and starting a new row of boxplots
+
+            suptitle (boolean):
+                whether to include an automatically generated title at the top of the boxplot or not
+
+            figsize (tuple of two numerics):
+                The size, in inches, of the final plot's dimensions. Used in the matplotlib.pyplot.subplots() function
+
+            filename (None, or string):
+                If not None, then this method will write the plot as a .png file to the folder specificed by self.save_dir using the provided
+                filename. This filename should not include the file extension (the extension is always .png, and is automatically supplied by this
+                method). If None, then the figure is not written to the hard drive.
+
+        Returns:
+            matplotlib.pyplot figure
+
+        Inputs/Outputs:
+            Outputs: 
+                If filename is provided (is not None), then exports the figure as a .png file
+        '''
         text_size = 10
         data = self.data.copy()
         scale = self._scaling
@@ -3325,10 +3373,10 @@ class Analysis:
             elif grouping_stat == 'median':
                 temp_data = temp_data.groupby([colorby,grouping,'antigen'], observed = False).median(numeric_only = True).reset_index()
             if i != (panels - 1):
-                panel = sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', legend = None, ax = ax)
+                sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', legend = None, ax = ax)
                 ax.set_title(ii[0][0], size = text_size, y = 0.95)
             else:    ## only put the legend on the last panel
-                panel = sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', ax = ax)
+                sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', ax = ax)
                 ax.set_title(ii[0][0], size = text_size, y = 0.975)
             ax.set_ylabel(f'{scale}Expression', size = text_size)
             ax.set_xlabel(ax.get_xlabel(), size = text_size)
@@ -3342,7 +3390,7 @@ class Analysis:
     
         if suptitle:
             sup_Y = 1.03 + (rows * -0.01)
-            figure.suptitle(f"{scale}Expression of {marker_class} markers, in the '{subset_column}' cell groups, colored by {colorby}")
+            figure.suptitle(f"{scale}Expression of {marker_class} markers, in the '{subset_column}' cell groups, colored by {colorby}", y = sup_Y)
             
         if filename is not None:
             figure.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
@@ -3350,15 +3398,66 @@ class Analysis:
         return figure
 
 
-    def plot_state_p_value_heatmap(self, stats_df = None, 
-                                    top_n = 50, heatmap_x = ['condition','sample_id'], 
-                                    ANOVA_kwargs = {}, include_p = True, 
-                                    figsize = (10,10), filename = None):                  # *** deriv_CATALYST(ish, only by imitation of the CATALYST paper's figures)
+    def plot_state_p_value_heatmap(self, stats_df: Union[None, pd.DataFrame] = None, 
+                                   top_n: int = 50, 
+                                   heatmap_x: list[str] = ['condition','sample_id'], 
+                                   ANOVA_kwargs: dict = {}, 
+                                   include_p: bool = True, 
+                                   figsize: tuple[Union[int,float], Union[int,float]] = (10,10), 
+                                   filename = None) -> plt.figure:                  # *** deriv_CATALYST(ish, only by imitation of the CATALYST paper's figures)
         '''
         Plots a heatmap of the top most significantly differences found with the self.do_state_exprs_ANOVAs() method
         
         Presumes the supplied stats_df matches the format exported by self.do_state_exprs_ANOVAs() method! 
         Including structure, columns, rank ordering by F-statistic top-to-bottom, etc.
+
+        Args:
+            stats_df (None, or a pandas dataframe):
+                A pandas dataframe with marker expression statistics -- the returned output of the self.do_state_exprs_ANOVAs() method.
+                If None, then stats_df = self.do_state_exprs_ANOVAs(**ANOVA_kwargs) will be run to generate the statistics dataframe.
+        
+            top_n (integer):
+                How many of the top (order by F-statistic) antigen expression changes to plot on the heatmap. Default = 50
+
+            ANOVA_kwargs (dictionary):
+                Only used if stats_df is None. Provides the parameters of self.do_state_exprs_ANOVAs method, as in
+                stats_df = self.do_state_exprs_ANOVAs(**ANOVA_kwargs) will be run first before the heatmap is generated from the
+                stats_df.
+
+            heatmap_x (list of strings):
+                A list of column names in self.data.obs that determine how the data will be grouped for the x-axis of the heatmap.
+                The values of the heatmap tiles are the median expression of the antigen of interest in these groups.
+                NOTE: The y-axis of the heatmap is already determined by antigen/cellgrouping pairs in stats_df, and if the cell grouping
+                used to calculate statistics was not the entire dataset, then it will also be used in grouping the data to calculate medians
+                for the heatmap, along with the columns specified by this parameter. 
+                    As in, let's say state marker statistics were calculated between cell types defined in a 'merging' column, while heatmap_x
+                    was set to be ['condition','sample_id'] (the default) to group the data by each ROI, along with its treatment label -->
+                    Then, on the heatmap, the data will be grouped by sample_id, condition, and merging -- then the median taken of those groups
+                    and plotted on the heatmap.
+
+            include_p (boolean):
+                whether to include an additional column of the heatmap for the p-values associated with each row of the statistics calculated
+                in the stats_df. This column's values do not come ffrom the groupings explained above, but directly from the adjusted p-values
+                of the statistics table, transformed as follows:
+
+                    heatmap_value = -Log(adj_p_value)
+
+                NOTE that the negative log of 0.05 is ~1.3.
+
+            figsize (tuple of 2 numerics):
+                The dimensions of the final plot, in inches. Used in the matplotlib.pyplot.subplots call
+
+            filename (None, or string):
+                If not None, then this method will write the plot as a .png file to the folder specificed by self.save_dir using the provided
+                filename. This filename should not include the file extension (the extension is always .png, and is automatically supplied by this
+                method). If None, then the figure is not written to the hard drive.
+
+        Returns:
+            matplotlib.pyplot figure
+
+        Inputs/Outputs:
+            Outputs: 
+                If filename is provided (is not None), then exports the figure as a .png file
         '''
         if stats_df is None:
             if ANOVA_kwargs != {}:
@@ -3372,9 +3471,6 @@ class Analysis:
     
         label_column_names = list(stats_df.columns[:2].values)  ## the way self.do_state_exprs_ANOVAs works, there should always be two label columns: 'antigen', and the groupby column
         label_columns = stats_df[label_column_names]
-        p_value_columns = stats_df[["p_value","p_adj","F statistic"]]
-        exprs_and_dev_columns = stats_df.iloc[:,5:]
-        number_of_compared_conditions = len(exprs_and_dev_columns) / 2
     
         stats_df['labels_merged'] = [f'{i}({ii})' for i,ii in zip(label_columns.iloc[:,0], label_columns.iloc[:,1])]
         stats_df['labels_merged'] = stats_df['labels_merged'].astype('str')
@@ -3382,10 +3478,8 @@ class Analysis:
     
         raw_data = pd.DataFrame(self.data.X.copy(), index = self.data.obs.index, columns = self.data.var.index)
         if cell_type_column != 'whole dataset':
-            whole = False
             grouping_columns = heatmap_x + [cell_type_column]
         else:
-            whole = True
             grouping_columns = heatmap_x
         raw_data[grouping_columns] = self.data.obs[grouping_columns]
         raw_data = raw_data.groupby(grouping_columns, observed = False).median(numeric_only = True).dropna(how = 'all').reset_index()

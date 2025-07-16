@@ -8,6 +8,7 @@ This file is licensed under the GPL3 license. No significant portion of the code
 
 import os
 import tkinter as tk
+
 import customtkinter as ctk
 
 from ..Utils.sharedClasses import (CtkSingletonWindow, 
@@ -316,6 +317,10 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                              mean_threshold = threshold,
                                                              target = target,
                                                              model = model)
+        self.master.ImageAnalysisPortionLogger.info(f"Performed Instanseg segmentation with re_do = {str(re_do)},"
+                                                            f"input_img_folder = {input_folder}, single_image = {str(single_image)},"
+                                                            f"mean_threshold = {str(threshold)}, target = {str(target)},"
+                                                            f"model = {model}")
         self.master.buttonframe.initialize_buttons()
 
 
@@ -415,6 +420,10 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
                                                                     pixel_threshold = pixel_threshold, 
                                                                     re_order = True,    #leave re-order & output folder as defaults for now
                                                                     output_folder = output_folder)
+        self.master.ImageAnalysisPortionLogger.info(f"Performed Mask Intersection Transform with:"
+                                                            f"masks_folder1 = {masks_folder1}, masks_folder2 = {str(masks_folder2)},"
+                                                            f"kind = {str(kind)}, object_threshold = {str(object_threshold)},"
+                                                            f"pixel_threshold = {pixel_threshold}, output_folder = {output_folder}")
         self.master.buttonframe.initialize_buttons()
 
 
