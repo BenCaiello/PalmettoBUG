@@ -94,6 +94,8 @@ def _my_auto_hpf(image: np.ndarray[float], hpf: float = 0.75):
 
 def GaussianMixtureAutoThreshold(input_image: np.ndarray[float], channels: list[int] = [], sigma_threshold: float = 2, method: str = "subtract_background", **kwargs):
     '''
+    NOTE --- IN TESTING / may or may not become a final part of the program
+    
     Applies a Bayesian Gaussian Mixture Model to each channel of the input image
     to compute adaptive thresholds to either clip dim / bright pixels, or to subtract background noise.
 
