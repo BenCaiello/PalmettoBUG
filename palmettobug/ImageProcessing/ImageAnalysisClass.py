@@ -120,7 +120,7 @@ def GaussianMixtureAutoThreshold(input_image: np.ndarray[float], channels: list[
             channel_1d = channel.ravel()
             start_min = channel_1d.min()
             start_max = channel_1d.max()
-            channel_1d = (channel_1d - start_min)) / (start_max - start_min)
+            channel_1d = (channel_1d - start_min) / (start_max - start_min)
             
             model = BayesianGaussianMixture(n_components = 10, **kwargs)
             result = model.fit(channel_1d.reshape([-1,1]))
@@ -143,7 +143,7 @@ def GaussianMixtureAutoThreshold(input_image: np.ndarray[float], channels: list[
                 ## clip high and low values
                 channel_1d[channel_1d < sigma_low] = sigma_low
                 channel_1d[channel_1d > sigma_high] = sigma_high
-                channel_1d = (channel_1d - channel_1d.min())) / (channel_1d.max() - channel_1d.min())   ## redo min_max with the new range of data
+                channel_1d = (channel_1d - channel_1d.min()) / (channel_1d.max() - channel_1d.min())   ## redo min_max with the new range of data
                 channel_1d = channel_1d * start_max   # restore the range of the original data, except the minimum which can shift after the thresholding
     
             elif method == "subtract_background":
