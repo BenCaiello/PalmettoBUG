@@ -51,6 +51,7 @@ import skimage
 import tifffile as tf
 import pandas as pd
 import numpy as np
+from sklearn.mixture import BayesianGaussianMixture
 
 from .._vendor import readimc
 from .._vendor.fcsy import DataFrame
@@ -90,6 +91,59 @@ def _my_auto_hpf(image: np.ndarray[float], hpf: float = 0.75):
         image[ii,:,:] = stein_unhook.filter_hot_pixels(i,hpf_threshold)
         
     return image
+
+def GaussianMixtureAutoThreshold(input_image: np.ndarray[float], sigma_threshold: float = 2, method: str = "substract_background", **kwargs):
+    '''
+    Applies a Bayesian Gaussian Mixture Model to each channel of the input image
+    to compute adaptive thresholds to either clip dim / bright pixels, or to subtract background noise.
+
+    ## Use of Gaussian Mixture Models to identify and remove noise inspired by this paper:
+        ## Oliaeimotlagh et al., (2025), https://doi.org/10.1016/j.crmeth.2025.101088
+    ## Function was edited with the assistance of Microsoft CoPilot
+
+    Parameters:
+        input_image (np.ndarray): Multi-channel image (e.g., shape [C, H, W]).
+        sigma_threshold (float): Number of standard deviations for thresholding.
+        method (str): Either "clip_hi_lo" or "substract_background".
+        **kwargs: Additional arguments passed to BayesianGaussianMixture.
+
+    Returns:
+        np.ndarray: Thresholded image.
+    '''
+    input_image = input_image.copy()
+
+    for i in range(len(input_image)):
+        channel = input_image[i]
+        channel_1d = channel.ravel()
+        channel_1d = (channel_1d - channel_1d.min()) / (channel_1d.max() - channel_1d.min())
+        
+        model = BayesianGaussianMixture(n_components = 10, **kwargs)
+        result = model.fit(channel_1d.reshape([-1,1]))
+        means = result.means_.flatten()
+        covariances = result.covariances_.flatten()
+
+        low_mean = means[0]
+        high_mean = means[-1]
+        stdev_low = np.sqrt(covariances[0])
+        stdev_high = np.sqrt(covariances[-1])
+
+        ## identify upper threshold and lower threshold
+        sigma_low = low_mean - (stdev_low*sigma_threshold)
+        
+        if method == "clip_hi_lo":
+            sigma_high = high_mean + (stdev_high*sigma_threshold)
+
+            ## clip high and low values
+            channel_1d[channel_1d < sigma_low] = sigma_low
+            channel_1d[channel_1d > sigma_high] = sigma_high
+
+        elif method == "substract_background":
+            channel_1d = channel_1d - sigma_low
+
+        channel = np.reshape(channel_1d, channel.shape)
+        input_image[i] = channel
+
+    return input_image
 
 def imc_entrypoint(directory: Union[Path, str], 
                    resolutions: list[float] = [1.0,1.0], 
