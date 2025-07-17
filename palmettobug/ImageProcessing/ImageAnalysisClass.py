@@ -140,6 +140,7 @@ def GaussianMixtureAutoThreshold(input_image: np.ndarray[float], channels: list[
     
             elif method == "subtract_background":
                 channel_1d = channel_1d - sigma_low
+                channel_1d[channel_1d < 0] = 0
     
             channel = np.reshape(channel_1d, channel.shape)
             input_image[i] = channel
