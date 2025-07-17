@@ -116,7 +116,9 @@ def GaussianMixtureAutoThreshold(input_image: np.ndarray[float], channels: list[
         if (i in channels) or (len(channels) == 0):   ## only use the specified channels, or all channels if none specified
             channel = input_image[i]
             channel_1d = channel.ravel()
-            channel_1d = (channel_1d - channel_1d.min()) / (channel_1d.max() - channel_1d.min())
+            start_min = channel_1d.min()
+            start_max = channel_1d.max()
+            channel_1d = (channel_1d - start_min)) / (start_max - start_min)
             
             model = BayesianGaussianMixture(n_components = 10, **kwargs)
             result = model.fit(channel_1d.reshape([-1,1]))
@@ -130,6 +132,8 @@ def GaussianMixtureAutoThreshold(input_image: np.ndarray[float], channels: list[
     
             ## identify upper threshold and lower threshold
             sigma_low = low_mean - (stdev_low*sigma_threshold)
+            if sigma_low < 0:
+                sigma_low = 0
             
             if method == "clip_hi_lo":
                 sigma_high = high_mean + (stdev_high*sigma_threshold)
@@ -137,10 +141,13 @@ def GaussianMixtureAutoThreshold(input_image: np.ndarray[float], channels: list[
                 ## clip high and low values
                 channel_1d[channel_1d < sigma_low] = sigma_low
                 channel_1d[channel_1d > sigma_high] = sigma_high
+                channel_1d = (channel_1d - channel_1d.min())) / (channel_1d.max() - channel_1d.min())   ## redo min_max with the new range of data
+                channel_1d = channel_1d * start_max   # restore the range of the original data, except the minimum which can shift after the thresholding
     
             elif method == "subtract_background":
                 channel_1d = channel_1d - sigma_low
                 channel_1d[channel_1d < 0] = 0
+                channel_1d = channel_1d * start_max   # restore the range of the original data, except the minimum which may have been shifted by the thresholding
     
             channel = np.reshape(channel_1d, channel.shape)
             input_image[i] = channel
