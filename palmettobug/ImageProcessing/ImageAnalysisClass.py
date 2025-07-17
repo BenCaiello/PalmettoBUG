@@ -92,7 +92,7 @@ def _my_auto_hpf(image: np.ndarray[float], hpf: float = 0.75):
         
     return image
 
-def GaussianMixtureAutoThreshold(input_image: np.ndarray[float], channels: list[int] = [], sigma_threshold: float = 2, method: str = "substract_background", **kwargs):
+def GaussianMixtureAutoThreshold(input_image: np.ndarray[float], channels: list[int] = [], sigma_threshold: float = 2, method: str = "subtract_background", **kwargs):
     '''
     Applies a Bayesian Gaussian Mixture Model to each channel of the input image
     to compute adaptive thresholds to either clip dim / bright pixels, or to subtract background noise.
@@ -104,7 +104,7 @@ def GaussianMixtureAutoThreshold(input_image: np.ndarray[float], channels: list[
     Parameters:
         input_image (np.ndarray): Multi-channel image (e.g., shape [C, H, W]).
         sigma_threshold (float): Number of standard deviations for thresholding.
-        method (str): Either "clip_hi_lo" or "substract_background".
+        method (str): Either "clip_hi_lo" or "subtract_background".
         **kwargs: Additional arguments passed to BayesianGaussianMixture.
 
     Returns:
@@ -138,7 +138,7 @@ def GaussianMixtureAutoThreshold(input_image: np.ndarray[float], channels: list[
                 channel_1d[channel_1d < sigma_low] = sigma_low
                 channel_1d[channel_1d > sigma_high] = sigma_high
     
-            elif method == "substract_background":
+            elif method == "subtract_background":
                 channel_1d = channel_1d - sigma_low
     
             channel = np.reshape(channel_1d, channel.shape)
