@@ -1050,8 +1050,7 @@ class Analysis:
         return figure
 
     def do_regions(self,
-                    region_folder: Union[Path, str], 
-                    mask_folder: Union[Path, str] = None
+                    region_folder: Union[Path, str]
                     ) -> pd.DataFrame:
         '''
         (Modified from mode_classify_folder) function to classify cells by the region and sample_id they are in.
@@ -1061,14 +1060,14 @@ class Analysis:
         These labels are accumulated into a list which is appended to the Analysis Object
 
         '''
-        if mask_folder is None:
-            mask_folder = self.input_mask_folder
+        mask_folder = self.input_mask_folder
         mask_folder = str(mask_folder)
         masks = sorted(os.listdir(mask_folder))
+        used_masks = [i for i in masks if f'{i[:i.rfind(".tif")]}.fcs' in list(self.data.obs["file_name"].unique())]
         region_folder = str(region_folder)
-        overlapping = [i for i in sorted(os.listdir(region_folder)) if i in masks]
-        if len(overlapping) != len(masks):
-            print('Warning! The regions provided do not match ALL the source masks of the analysis. ')
+        overlapping = [i for i in sorted(os.listdir(region_folder)) if i in used_masks]
+        if len(overlapping) != len(used_masks):
+            print('Warning! The regions provided do not match ALL the source masks of the analysis. This is likely to create ')
             return
         assignments = []
         for ii,i in enumerate(overlapping):
@@ -1078,8 +1077,31 @@ class Analysis:
                 raise ValueError(f"The ROI: {i}, has a mismatch in size between the cell masks and the regions provided!")
             output = self._assign_regions(mask, region_map, image_number = ii) 
             assignments = assignments + output
-        self.data.obs['regions'] = assignments    ## as with the do_spatial_leiden function, not currently set up to sync 
-                                                  ## perfectly with a UMAP / PCA (run dimensionality reduction AFTER after these if you want things to be in sync)
+        self.data.obs['regions'] = assignments
+        if self.UMAP_embedding is not None:
+            merge_df = self.data.obs['regions']
+            merge_df['true_index'] = merge_df['index'].astype('int')
+            merge_df = merge_df.drop('index', axis = 1)
+            self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
+            try: 
+                self.UMAP_embedding.obs = self.UMAP_embedding.obs.drop(["regions"], axis = 1)  
+                                                                        ## if present, these columns should be dropped
+            except KeyError:
+                pass
+            self.UMAP_embedding.obs = pd.merge(self.UMAP_embedding.obs, merge_df, on = 'true_index')
+            self.UMAP_embedding.obs['regions'] = self.UMAP_embedding.obs['regions'].astype('category') 
+        if self.PCA_embedding is not None:
+            merge_df = self.data.obs['regions']
+            merge_df['true_index'] = merge_df['index'].astype('int')
+            merge_df = merge_df.drop('index', axis = 1)
+            self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
+            try: 
+                self.PCA_embedding.obs = self.PCA_embedding.obs.drop(["regions"], axis = 1)  
+                                                                        ## if present, these columns should be dropped
+            except KeyError:
+                pass
+            self.PCA_embedding.obs = pd.merge(self.PCA_embedding.obs, merge_df, on = 'true_index')
+            self.PCA_embedding.obs['regions'] = self.PCA_embedding.obs['regions'].astype('category') 
 
     def _assign_regions(self, 
                         mask: np.ndarray[Union[float, int]], 
@@ -1153,6 +1175,30 @@ class Analysis:
             this_sample_leiden = list((str(i) + "_") + this_sample.obs['spatial_leiden'].astype('str'))
             all_leiden = all_leiden + this_sample_leiden
         self.data.obs['spatial_leiden'] = all_leiden
+        if self.UMAP_embedding is not None:
+            merge_df = self.data.obs['spatial_leiden']
+            merge_df['true_index'] = merge_df['index'].astype('int')
+            merge_df = merge_df.drop('index', axis = 1)
+            self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
+            try: 
+                self.UMAP_embedding.obs = self.UMAP_embedding.obs.drop(["spatial_leiden"], axis = 1)  
+                                                                        ## if present, these columns should be dropped
+            except KeyError:
+                pass
+            self.UMAP_embedding.obs = pd.merge(self.UMAP_embedding.obs, merge_df, on = 'true_index')
+            self.UMAP_embedding.obs['spatial_leiden'] = self.UMAP_embedding.obs['spatial_leiden'].astype('category') 
+        if self.PCA_embedding is not None:
+            merge_df = self.data.obs['spatial_leiden']
+            merge_df['true_index'] = merge_df['index'].astype('int')
+            merge_df = merge_df.drop('index', axis = 1)
+            self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
+            try: 
+                self.PCA_embedding.obs = self.PCA_embedding.obs.drop(["spatial_leiden"], axis = 1)  
+                                                                        ## if present, these columns should be dropped
+            except KeyError:
+                pass
+            self.PCA_embedding.obs = pd.merge(self.PCA_embedding.obs, merge_df, on = 'true_index')
+            self.PCA_embedding.obs['spatial_leiden'] = self.PCA_embedding.obs['spatial_leiden'].astype('category') 
 
 
     def plot_cell_counts(self,
