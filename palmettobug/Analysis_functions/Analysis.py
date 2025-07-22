@@ -695,7 +695,7 @@ class Analysis:
         '''
         if self.back_up_data is None:
             self.back_up_data = self.data.copy()
-            if self._spatial:
+            if self._spatial and (self.back_up_regions is None):
                 self.back_up_regions = self.regionprops_data.copy()
             
         filterer = self.data.obs[column].astype('str') != str(to_drop) 
