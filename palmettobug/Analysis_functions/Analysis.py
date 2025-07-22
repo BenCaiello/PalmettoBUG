@@ -376,13 +376,15 @@ class Analysis:
             
         metadata_long['sample_id'] = sample_id_array.astype('int').astype('str')
 
+        metadata_long = pd.merge(metadata_long, metadata[["sample_id",'file_name', 'patient_id', 'condition']], on = 'sample_id')
+        '''
         meta_file_dict = {}
         meta_patient_dict = {}
         meta_condition_dict = {}
         for i,ii in enumerate(metadata["sample_id"]):
-            meta_file_dict[ii]= list(metadata.iloc[i])[0]
-            meta_patient_dict[ii]= list(metadata.iloc[i])[2]
-            meta_condition_dict[ii]= list(metadata.iloc[i])[3]
+            meta_file_dict[ii] = list(metadata.iloc[i])[0]
+            meta_patient_dict[ii] = list(metadata.iloc[i])[2]
+            meta_condition_dict[ii] = list(metadata.iloc[i])[3]
 
         filenames = metadata_long.replace(meta_file_dict)
         patient_ids = metadata_long.replace(meta_patient_dict)
@@ -391,6 +393,9 @@ class Analysis:
         metadata_long['file_name'] = filenames
         metadata_long['patient_id'] = patient_ids
         metadata_long['condition'] = conditions
+
+        '''
+
         metadata_long.index = exprs.index
 
         self.metadata["number_of_cells"] = length_of_images2
