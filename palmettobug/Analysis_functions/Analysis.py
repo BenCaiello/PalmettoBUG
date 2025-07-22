@@ -1080,8 +1080,8 @@ class Analysis:
             assignments = assignments + output
         self.data.obs['regions'] = assignments
         if self.UMAP_embedding is not None:
-            merge_df = self.data.obs['regions']
-            merge_df['true_index'] = merge_df.index.astype('int')
+            merge_df = self.data.obs['regions'].copy()
+            merge_df['true_index'] = self.data.obs.index.copy().astype('int')
             self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
             try: 
                 self.UMAP_embedding.obs = self.UMAP_embedding.obs.drop(["regions"], axis = 1)  
@@ -1091,8 +1091,8 @@ class Analysis:
             self.UMAP_embedding.obs = pd.merge(self.UMAP_embedding.obs, merge_df, on = 'true_index')
             self.UMAP_embedding.obs['regions'] = self.UMAP_embedding.obs['regions'].astype('category') 
         if self.PCA_embedding is not None:
-            merge_df = self.data.obs['regions']
-            merge_df['true_index'] = merge_df.index.astype('int')
+            merge_df = self.data.obs['regions'].copy()
+            merge_df['true_index'] = self.data.obs.index.copy().astype('int')
             self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
             try: 
                 self.PCA_embedding.obs = self.PCA_embedding.obs.drop(["regions"], axis = 1)  
@@ -1175,8 +1175,8 @@ class Analysis:
             all_leiden = all_leiden + this_sample_leiden
         self.data.obs['spatial_leiden'] = all_leiden
         if self.UMAP_embedding is not None:
-            merge_df = self.data.obs['spatial_leiden']
-            merge_df['true_index'] = merge_df.index.astype('int')
+            merge_df = self.data.obs['spatial_leiden'].copy()
+            merge_df['true_index'] = self.data.obs.index.copy().astype('int')
             self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
             try: 
                 self.UMAP_embedding.obs = self.UMAP_embedding.obs.drop(["spatial_leiden"], axis = 1)  
@@ -1186,8 +1186,8 @@ class Analysis:
             self.UMAP_embedding.obs = pd.merge(self.UMAP_embedding.obs, merge_df, on = 'true_index')
             self.UMAP_embedding.obs['spatial_leiden'] = self.UMAP_embedding.obs['spatial_leiden'].astype('category') 
         if self.PCA_embedding is not None:
-            merge_df = self.data.obs['spatial_leiden']
-            merge_df['true_index'] = merge_df.index.astype('int')
+            merge_df = self.data.obs['spatial_leiden'].copy()
+            merge_df['true_index'] = self.data.obs.index.copy().astype('int')
             self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
             try: 
                 self.PCA_embedding.obs = self.PCA_embedding.obs.drop(["spatial_leiden"], axis = 1)  
