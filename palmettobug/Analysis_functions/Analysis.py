@@ -175,6 +175,7 @@ class Analysis:
         self.directory = None
         self.data = None
         self.back_up_data = None
+        self.back_up_regions = None
         self.logger = None
         self.clusterings_dir = None
         self._scaling = "unscale"
