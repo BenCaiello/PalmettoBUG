@@ -1080,7 +1080,7 @@ class Analysis:
         self.data.obs['regions'] = assignments
         if self.UMAP_embedding is not None:
             merge_df = self.data.obs['regions']
-            merge_df['true_index'] = merge_df['index'].astype('int')
+            merge_df['true_index'] = merge_df.index.astype('int')
             merge_df = merge_df.drop('index', axis = 1)
             self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
             try: 
@@ -1092,7 +1092,7 @@ class Analysis:
             self.UMAP_embedding.obs['regions'] = self.UMAP_embedding.obs['regions'].astype('category') 
         if self.PCA_embedding is not None:
             merge_df = self.data.obs['regions']
-            merge_df['true_index'] = merge_df['index'].astype('int')
+            merge_df['true_index'] = merge_df.index.astype('int')
             merge_df = merge_df.drop('index', axis = 1)
             self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
             try: 
@@ -1177,7 +1177,7 @@ class Analysis:
         self.data.obs['spatial_leiden'] = all_leiden
         if self.UMAP_embedding is not None:
             merge_df = self.data.obs['spatial_leiden']
-            merge_df['true_index'] = merge_df['index'].astype('int')
+            merge_df['true_index'] = merge_df.index.astype('int')
             merge_df = merge_df.drop('index', axis = 1)
             self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
             try: 
@@ -1189,7 +1189,7 @@ class Analysis:
             self.UMAP_embedding.obs['spatial_leiden'] = self.UMAP_embedding.obs['spatial_leiden'].astype('category') 
         if self.PCA_embedding is not None:
             merge_df = self.data.obs['spatial_leiden']
-            merge_df['true_index'] = merge_df['index'].astype('int')
+            merge_df['true_index'] = merge_df.index.astype('int')
             merge_df = merge_df.drop('index', axis = 1)
             self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
             try: 
