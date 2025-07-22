@@ -312,7 +312,7 @@ class SpatialAnalysis:
                                     seed: int = 42, 
                                     center_on_zero: bool = False, 
                                     silence_zero_warnings: bool = True,
-                                    supress_threshold_warnings: bool = False):
+                                    suppress_threshold_warnings: bool = False):
         '''
         Calculates Ripley's spatial statistics for every celltype-celltype pair in clustering in every image. The necessary first step in the SpaceANOVA analysis
         pipeline.
@@ -379,7 +379,7 @@ class SpatialAnalysis:
             silence_zero_warnings (boolean):
                 this method generates a large number of zero division errors, even in a normal run. By default these are silenced. 
 
-            supress_threshold_warnings (boolean):
+            suppress_threshold_warnings (boolean):
                 If True, will not print warnings about images failing to meet cell number thresholds
         '''
         self.SpaceANOVA.do_spatial_analysis(
@@ -394,7 +394,7 @@ class SpatialAnalysis:
                             seed = seed, 
                             center_on_zero = center_on_zero, 
                             silence_zero_warnings = silence_zero_warnings,
-                            supress_threshold_warnings = supress_threshold_warnings,
+                            suppress_threshold_warnings = suppress_threshold_warnings,
                             )
 
     def plot_spaceANOVA_function(self, 
