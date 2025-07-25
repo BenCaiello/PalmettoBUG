@@ -270,7 +270,7 @@ class SpatialANOVA():
                             seed: int = 42, 
                             center_on_zero: bool = False, 
                             silence_zero_warnings: bool = True,
-                            supress_threshold_warnings: bool = False,
+                            suppress_threshold_warnings: bool = False,
                             ) -> tuple[list[str], list[str], dict[str,pd.DataFrame]]:
         '''
         This function takes does all of the key analysis steps from the Data table, two conditions, & radii range object.
@@ -311,7 +311,7 @@ class SpatialANOVA():
             silence_zero_warnings (boolean): if True, silences a pair of particularly common division-by-zero warnings (recommended), if False
                     those warnings will be shown
 
-            supress_threshold_warnings (boolean): If True, do not warn about image failing to meet the minimum cell number thresholds
+            suppress_threshold_warnings (boolean): If True, do not warn about image failing to meet the minimum cell number thresholds
 
         Returns:
             self._comparison_list:  a list of strings. It contains every pairwise comparison between cellTypes, in the format 
@@ -363,7 +363,8 @@ class SpatialANOVA():
             if (type1 != "dropped") and (type2 != "dropped"):
                 all_g, all_K, all_L = self._do_all_K_L_g(type1 = type1, type2 = type2, permutations = permutations, 
                                                         perm_state = seed, center_on_zero = center_on_zero, 
-                                                        supress_threshold_warnings = supress_threshold_warnings)
+                                                        suppress_threshold_warnings = suppress_threshold_warnings)
+
                 self._comparison_dictionary[i] = {"K":all_K, "L":all_L, "g":all_g}
         if silence_zero_warnings is True:
             warnings.filterwarnings("default", message = "divide by zero encountered in divide")  ## undo prior warnings modifications
@@ -420,7 +421,7 @@ class SpatialANOVA():
                       permutations: int = 0, 
                       perm_state: int = None, 
                       center_on_zero: bool = False,
-                      supress_threshold_warnings = False,
+                      suppress_threshold_warnings = False,
                       ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:
         '''
         This may end being more of a helper function for do_spatial_analysis(), but it can remain in the class.
@@ -459,7 +460,8 @@ class SpatialANOVA():
                                         permutations = permutations, 
                                         perm_state = perm_state, 
                                         center_on_zero = center_on_zero,
-                                        supress_threshold_warnings = supress_threshold_warnings) 
+                                        suppress_threshold_warnings = suppress_threshold_warnings) 
+            
             if K_df['K'].sum() != 0: ### if sum() == 0, this means a failure of the algorithm / insufficient cells in the image:
                 g_df["condition"] = group_img_dict[ii]
                 g_df['image'] = i
@@ -1080,7 +1082,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
           permutations: int = 0, 
           perm_state: int = 42, 
           center_on_zero: bool = True,
-          supress_threshold_warnings = False,
+          suppress_threshold_warnings = False,
           ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:       # *** deriv_spatstat (largely a direct translation, but some divergences)
     '''
     This function calculates K, L, and g for a given image and pair of cell types at a range of distances (fixed_r).
@@ -1128,7 +1130,8 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                                             type2 = type2, 
                                             threshold = threshold,
                                             image_name = image_name,
-                                            supress_threshold_warnings = supress_threshold_warnings)
+                                            suppress_threshold_warnings = suppress_threshold_warnings)
+    
     if (result_array.sum() == 0):
         '''This means that there are no cells / the number of cells is below the threshold '''
         K_df = pd.DataFrame(result_array, columns = ["K"])
@@ -1150,7 +1153,8 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                                 type2 = type2, 
                                 threshold = threshold,
                                 image_name = image_name,
-                                supress_threshold_warnings = supress_threshold_warnings)
+                                suppress_threshold_warnings = suppress_threshold_warnings)
+
             avg_K = avg_K + new_K
         avg_K = avg_K / permutations
         if center_on_zero is True:
@@ -1205,7 +1209,7 @@ def _K_cross_homogeneous(df: pd.DataFrame,
                          type2: str, 
                          threshold: int = 10,
                          image_name: str = '',
-                         supress_threshold_warnings: bool = False,
+                         suppress_threshold_warnings: bool = False,
                          ) -> tuple[np.ndarray[float],np.ndarray[float]]:                       
                                                  # *** deriv_spatstat (largely a direct translation, but some divergences)
     '''
@@ -1273,8 +1277,9 @@ def _K_cross_homogeneous(df: pd.DataFrame,
         append_array = np.zeros(diff_length)
     #    K_theo = np.concatenate([K_theo, append_array])
 
-    if (N_points_1 < threshold) or (N_points_2 < threshold) and (not supress_threshold_warnings):
-        print(f'One or both of {mark_type}s {type1} or {type2} has less than {threshold} cells in the image {image_name}!')
+    if ((N_points_1 < threshold) or (N_points_2 < threshold)):
+        if not suppress_threshold_warnings:
+            print(f'One or both of {mark_type}s {type1} or {type2} has less than {threshold} cells in the image {image_name}!')
         return np.zeros(len(K_theo)), K_theo
     
     lambda1 = N_points_1  ### technically divided by window 1 area, but that gets canceled out by later multiplication when K is calculated

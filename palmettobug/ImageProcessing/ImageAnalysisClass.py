@@ -51,6 +51,7 @@ import skimage
 import tifffile as tf
 import pandas as pd
 import numpy as np
+from sklearn.mixture import BayesianGaussianMixture
 
 from .._vendor import readimc
 from .._vendor.fcsy import DataFrame

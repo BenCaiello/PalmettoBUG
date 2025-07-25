@@ -175,6 +175,7 @@ class Analysis:
         self.directory = None
         self.data = None
         self.back_up_data = None
+        self.back_up_regions = None
         self.logger = None
         self.clusterings_dir = None
         self._scaling = "unscale"
@@ -375,13 +376,15 @@ class Analysis:
             
         metadata_long['sample_id'] = sample_id_array.astype('int').astype('str')
 
+        metadata_long = pd.merge(metadata_long, metadata[["sample_id",'file_name', 'patient_id', 'condition']], on = 'sample_id')
+        '''
         meta_file_dict = {}
         meta_patient_dict = {}
         meta_condition_dict = {}
         for i,ii in enumerate(metadata["sample_id"]):
-            meta_file_dict[ii]= list(metadata.iloc[i])[0]
-            meta_patient_dict[ii]= list(metadata.iloc[i])[2]
-            meta_condition_dict[ii]= list(metadata.iloc[i])[3]
+            meta_file_dict[ii] = list(metadata.iloc[i])[0]
+            meta_patient_dict[ii] = list(metadata.iloc[i])[2]
+            meta_condition_dict[ii] = list(metadata.iloc[i])[3]
 
         filenames = metadata_long.replace(meta_file_dict)
         patient_ids = metadata_long.replace(meta_patient_dict)
@@ -390,6 +393,9 @@ class Analysis:
         metadata_long['file_name'] = filenames
         metadata_long['patient_id'] = patient_ids
         metadata_long['condition'] = conditions
+
+        '''
+
         metadata_long.index = exprs.index
 
         self.metadata["number_of_cells"] = length_of_images2
@@ -695,7 +701,7 @@ class Analysis:
         '''
         if self.back_up_data is None:
             self.back_up_data = self.data.copy()
-            if self._spatial:
+            if self._spatial and (self.back_up_regions is None):
                 self.back_up_regions = self.regionprops_data.copy()
             
         filterer = self.data.obs[column].astype('str') != str(to_drop) 
@@ -1079,9 +1085,8 @@ class Analysis:
             assignments = assignments + output
         self.data.obs['regions'] = assignments
         if self.UMAP_embedding is not None:
-            merge_df = self.data.obs['regions']
-            merge_df['true_index'] = merge_df['index'].astype('int')
-            merge_df = merge_df.drop('index', axis = 1)
+            merge_df = self.data.obs[['regions']].copy()
+            merge_df['true_index'] = self.data.obs.index.copy().astype('int')
             self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
             try: 
                 self.UMAP_embedding.obs = self.UMAP_embedding.obs.drop(["regions"], axis = 1)  
@@ -1091,9 +1096,8 @@ class Analysis:
             self.UMAP_embedding.obs = pd.merge(self.UMAP_embedding.obs, merge_df, on = 'true_index')
             self.UMAP_embedding.obs['regions'] = self.UMAP_embedding.obs['regions'].astype('category') 
         if self.PCA_embedding is not None:
-            merge_df = self.data.obs['regions']
-            merge_df['true_index'] = merge_df['index'].astype('int')
-            merge_df = merge_df.drop('index', axis = 1)
+            merge_df = self.data.obs[['regions']].copy()
+            merge_df['true_index'] = self.data.obs.index.copy().astype('int')
             self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
             try: 
                 self.PCA_embedding.obs = self.PCA_embedding.obs.drop(["regions"], axis = 1)  
@@ -1176,9 +1180,8 @@ class Analysis:
             all_leiden = all_leiden + this_sample_leiden
         self.data.obs['spatial_leiden'] = all_leiden
         if self.UMAP_embedding is not None:
-            merge_df = self.data.obs['spatial_leiden']
-            merge_df['true_index'] = merge_df['index'].astype('int')
-            merge_df = merge_df.drop('index', axis = 1)
+            merge_df = self.data.obs[['spatial_leiden']].copy()
+            merge_df['true_index'] = self.data.obs.index.copy().astype('int')
             self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
             try: 
                 self.UMAP_embedding.obs = self.UMAP_embedding.obs.drop(["spatial_leiden"], axis = 1)  
@@ -1188,9 +1191,8 @@ class Analysis:
             self.UMAP_embedding.obs = pd.merge(self.UMAP_embedding.obs, merge_df, on = 'true_index')
             self.UMAP_embedding.obs['spatial_leiden'] = self.UMAP_embedding.obs['spatial_leiden'].astype('category') 
         if self.PCA_embedding is not None:
-            merge_df = self.data.obs['spatial_leiden']
-            merge_df['true_index'] = merge_df['index'].astype('int')
-            merge_df = merge_df.drop('index', axis = 1)
+            merge_df = self.data.obs[['spatial_leiden']].copy()
+            merge_df['true_index'] = self.data.obs.index.copy().astype('int')
             self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
             try: 
                 self.PCA_embedding.obs = self.PCA_embedding.obs.drop(["spatial_leiden"], axis = 1)  
@@ -3517,29 +3519,37 @@ class Analysis:
     
         label_column_names = list(stats_df.columns[:2].values)  ## the way self.do_state_exprs_ANOVAs works, there should always be two label columns: 'antigen', and the groupby column
         label_columns = stats_df[label_column_names]
-    
-        stats_df['labels_merged'] = [f'{i}({ii})' for i,ii in zip(label_columns.iloc[:,0], label_columns.iloc[:,1])]
-        stats_df['labels_merged'] = stats_df['labels_merged'].astype('str')
+
         cell_type_column = stats_df.columns[1]
-    
-        raw_data = pd.DataFrame(self.data.X.copy(), index = self.data.obs.index, columns = self.data.var.index)
+
         if cell_type_column != 'whole dataset':
             grouping_columns = heatmap_x + [cell_type_column]
+            cluster_grouping = label_columns.iloc[:,1]
         else:
             grouping_columns = heatmap_x
+            cluster_grouping = ['All'] * len(label_columns.iloc[:,0])
+    
+        stats_df['labels_merged'] = [f'{i}({ii})' for i,ii in zip(label_columns.iloc[:,0], cluster_grouping)]
+        stats_df['labels_merged'] = stats_df['labels_merged'].astype('str')
+    
+        raw_data = pd.DataFrame(self.data.X.copy(), index = self.data.obs.index, columns = self.data.var.index)
         raw_data[grouping_columns] = self.data.obs[grouping_columns]
         raw_data = raw_data.groupby(grouping_columns, observed = False).median(numeric_only = True).dropna(how = 'all').reset_index()
         raw_data = raw_data.melt(grouping_columns)
-        raw_data['labels_merged'] = [f'{i}({ii})' for i,ii in zip(raw_data[label_column_names[0]], raw_data[label_column_names[1]])]
+        antigen_group = raw_data[label_column_names[0]]
+        if cell_type_column != 'whole dataset':
+            cluster_group = raw_data[label_column_names[1]]
+        else:                               
+            cluster_group = ['All'] * len(raw_data[label_column_names[0]])
+        raw_data['labels_merged'] = [f'{i}({ii})' for i,ii in zip(antigen_group, cluster_group)]
         raw_data['labels_merged'] = raw_data['labels_merged'].astype('str')
-    
         p_values = []
         output_df = pd.DataFrame()
         for ii,i in enumerate(stats_df['labels_merged'].unique()):
             stats_df_slice = stats_df[stats_df['labels_merged'] == i]
             p_values.append(stats_df_slice['p_adj'].values[0])
             raw_data_slice = raw_data[raw_data['labels_merged'] == i]
-            raw_data_slice.index = [f'{i}({ii})' for i,ii in zip(raw_data_slice[heatmap_x[0]], raw_data_slice[heatmap_x[1]])]
+            raw_data_slice.index = [f'{j}({jj})' for j,jj in zip(raw_data_slice[heatmap_x[0]], raw_data_slice[heatmap_x[1]])]
             output_df[f'{i}'] = raw_data_slice['value']
         output_data = np.nan_to_num(np.array(output_df))
         output_data = np.nan_to_num((output_data - output_data.mean(axis = 0)) / output_data.std(axis = 0))
