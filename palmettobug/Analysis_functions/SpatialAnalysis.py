@@ -1015,7 +1015,6 @@ def spatial_by_edt_folder(masks_folder: Union[str, Path],
     edt_list = []
     masks = [masks_folder + "/" + i for i in sorted(os.listdir(masks_folder)) if i.lower().find(".tif") != -1]
     class_maps = [class_map_folder + "/" + i for i in sorted(os.listdir(class_map_folder)) if i.lower().find(".tif") != -1]
-    #print(available_file_names)
     if available_file_names is not None:
         mask_short = [i for i in sorted(os.listdir(masks_folder)) if i.lower().find(".tif") != -1]
         masks = [i for i,ii in zip(masks, mask_short) if f"{ii[:ii.rfind('.')]}.fcs" in available_file_names]
