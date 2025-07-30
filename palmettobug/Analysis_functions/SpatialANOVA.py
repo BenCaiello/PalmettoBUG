@@ -460,6 +460,7 @@ class SpatialANOVA():
                                         perm_state = perm_state, 
                                         center_on_zero = center_on_zero,
                                         suppress_threshold_warnings = suppress_threshold_warnings) 
+
             if K_df['K'].sum() != 0: ### if sum() == 0, this means a failure of the algorithm / insufficient cells in the image:
                 g_df["condition"] = group_img_dict[ii]
                 g_df['image'] = i
@@ -1129,6 +1130,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                                             threshold = threshold,
                                             image_name = image_name,
                                             suppress_threshold_warnings = suppress_threshold_warnings)
+
     if (result_array.sum() == 0):
         '''This means that there are no cells / the number of cells is below the threshold '''
         K_df = pd.DataFrame(result_array, columns = ["K"])
@@ -1152,6 +1154,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                                 image_name = image_name,
                                 suppress_threshold_warnings = suppress_threshold_warnings)
             avg_K = avg_K + new_K
+            
         avg_K = avg_K / permutations
         if center_on_zero is True:
             perm_correction = 0 - avg_K 
