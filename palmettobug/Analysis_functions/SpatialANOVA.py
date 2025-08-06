@@ -1141,6 +1141,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     
     centerer = 1
     if permutations > 0 :
+        perm_state = np.random.default_rng(perm_state)
         avg_K = np.zeros(len(result_array))
         perm = pointpattern.copy()
         for i in range(0, permutations, 1):
