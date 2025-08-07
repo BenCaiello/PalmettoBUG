@@ -938,7 +938,7 @@ class SpatialANOVA():
             a matplotlib.pylot figure (the heatmap plot)        
         '''
         if heatmap_salami is None:
-            if not hasattr(self, "heatmap_salami")
+            if not hasattr(self, "heatmap_salami"):
                 print("Salamification not performed! No heatmap salami was provided or is available!")
                 return
             else:
