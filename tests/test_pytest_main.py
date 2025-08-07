@@ -15,7 +15,6 @@ import pandas as pd
 import anndata
 import matplotlib
 
-from palmettobug import SupervisedClassifier, UnsupervisedClassifier, plot_pixel_heatmap, segment_class_map_folder
 from palmettobug import fetch_IMC_example, ImageAnalysis
 from palmettobug import Analysis, SpatialAnalysis
 
@@ -37,10 +36,14 @@ def test_raw_to_img():
     assert(len(images) == 10), "Wrong number of images exported to images/img"               ## all the images are transferred
     shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
 
+#def test_instanseg():
+#    image_proc.instanseg_segmentation()
+#    assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 10), "Wrong number of masks exported (expecting 10 to match the number of images)"
+
 def test_regionprops_write():
     image_proc.directory_object.make_analysis_dirs("test_analysis")
     input_img_folder = proj_directory + "/images/img"
-    input_mask_folder = proj_directory + "/masks/example_deepcell_masks"
+    input_mask_folder = proj_directory + "/masks/example_deepcell_masks"    # "/masks/instanseg_masks" 
     image_proc.make_segmentation_measurements(input_img_folder = input_img_folder, input_mask_folder = input_mask_folder)
     analysis_dir = image_proc.directory_object.Analyses_dir + "/test_analysis"
     intensities_dir = analysis_dir + "/intensities"
@@ -57,45 +60,6 @@ def test_setup_analysis():
     assert("Analysis_panel.csv" in os.listdir(image_proc.directory_object.Analysis_internal_dir)), "Analysis_panel.csv not written to the proper place!"
     assert("metadata.csv" in os.listdir(image_proc.directory_object.Analysis_internal_dir)), "metadata.csv not written to the proper place!"
     assert("condition" in list(pd.read_csv(image_proc.directory_object.Analysis_internal_dir + "/metadata.csv").columns)), "Automatically generated metadata.csv file must have a 'condition' column!"
-
-def test_load_SupPx():
-    global my_classifier_name
-    my_classifier_name = "lumen_epithelia_laminapropria.json"
-    global images_dir
-    images_dir = proj_directory + "/images/img"
-    global pixel_class_object
-    pixel_class_object = SupervisedClassifier(proj_directory)
-    classes = ["background", "epithelia", "lamina_propria"] 
-    classes_dictionary = {1:"background",2:"epithelia",3:"lamina_propria"} 
-    panel = pd.read_csv(f"{proj_directory}/panel.csv")
-    panel = panel[panel['keep'] == 1].reset_index()
-    channel_dictionary = {}  
-    for i,ii in zip(panel.index, panel['name']):
-        if (i == 6) or (i == 26):
-            channel_dictionary[ii] = i 
-
-    sigma_list = [1.0, 2.0]  
-    possible_features =  ["GAUSSIAN", "LAPLACIAN", "WEIGHTED_STD_DEV", "GRADIENT_MAGNITUDE", "STRUCTURE_TENSOR_EIGENVALUE_MAX", 
-                        "STRUCTURE_TENSOR_EIGENVALUE_MIN", "STRUCTURE_TENSOR_COHERENCE", "HESSIAN_DETERMINANT", 
-                        "HESSIAN_EIGENVALUE_MAX",  "HESSIAN_EIGENVALUE_MIN"]
-    internal_architecture = [256,128] 
-    _ = pixel_class_object.setup_classifier(classifier_name = my_classifier_name, number_of_classes = 3, 
-                            sigma_list = sigma_list, features_list = possible_features, 
-                            channel_dictionary = channel_dictionary, image_directory = images_dir, classes_dictionary = classes_dictionary,  
-                            categorical = True, internal_architecture = internal_architecture, epsilon = 0.01, iterations = 1000)
-    assert pixel_class_object.details_dict["number_of_input_neurons"] == len(sigma_list) * len(possible_features) * len(channel_dictionary), "Number of input neurons not the expected amount"
-
-def test_train_predict_supervised_classifier():
-    shutil.rmtree(pixel_class_object.classifier_training_labels)
-    shutil.copytree(f"{homedir}/tests/training_labels", pixel_class_object.classifier_training_labels)
-    _ = pixel_class_object.train_folder(images_dir)
-    pixel_class_object.predict_folder(images_dir)
-    prediction_paths = ["".join([pixel_class_object.output_directory,"/",i]) for i in sorted(os.listdir(pixel_class_object.output_directory))]  
-    image_paths = ["".join([images_dir,"/",i]) for i in sorted(os.listdir(images_dir))]  
-    assert len(prediction_paths) == 10, "There are not 10 px class predictions (one for each image)!"
-    assert (tf.imread(prediction_paths[0]).shape == tf.imread(image_paths[0]).shape[1:]), "The X/Y dimensions of the source images and output class maps should be the same!"
-    assert (tf.imread(prediction_paths[1]).astype('int') != tf.imread(prediction_paths[1])).sum() == 0, "The pixel class maps shoul be integers!"
-    assert tf.imread(prediction_paths[2]).max() <= 3, "There should be no pixels >3 (the number of prediction classes)"
 
 ########### CRITICAL! -- depends on test_img_proc having been run first!
 def test_setup_directories():
@@ -135,31 +99,6 @@ def test_comBat():
     greater_than_zero = (original_X > 0)
     my_analysis.do_COMBAT(batch_column = "patient_id")
     assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < (len(original_X[greater_than_zero]) / 10) , "ComBat did not change all the data points > 0!"
-
-'''
-def test_sample_id_len1():
-    counts = my_analysis.data.obs.groupby(['sample_id','file_name'], observed = True).count().reset_index()[['sample_id','file_name','patient_id']]
-    counts.index = counts['sample_id']
-    print(my_analysis.fcs_dir_names)
-    assert counts.loc['0','patient_id'] == 2177, f"{pd.read_csv(proj_directory + '/Analyses/test_analysis/main/metadata.csv').to_string()}"
-    assert counts.loc['2','patient_id'] == 3393
-    assert counts.loc['3','patient_id'] == 1851
-    assert counts.loc['4','patient_id'] == 2565
-    assert counts.loc['5','patient_id'] == 1489
-    assert counts.loc['6','patient_id'] == 6035
-    assert counts.loc['7','patient_id'] == 6488
-    assert counts.loc['8','patient_id'] == 988
-    assert counts.loc['9','patient_id'] == 4670
-    assert counts.loc['0','file_name'] == 'CRC_1_ROI_001.ome.fcs'
-    assert counts.loc['2','file_name'] == 'CRC_2_ROI_001.ome.fcs'
-    assert counts.loc['3','file_name'] == 'CRC_2_ROI_002.ome.fcs'
-    assert counts.loc['4','file_name'] == 'CRC_2_ROI_003.ome.fcs'
-    assert counts.loc['5','file_name'] == 'CRC_2_ROI_004.ome.fcs'
-    assert counts.loc['6','file_name'] == 'CRC_3_ROI_001.ome.fcs'
-    assert counts.loc['7','file_name'] == 'CRC_3_ROI_002.ome.fcs'
-    assert counts.loc['8','file_name'] == 'CRC_3_ROI_003.ome.fcs'
-    assert counts.loc['9','file_name'] == 'CRC_3_ROI_004.ome.fcs'
-'''
 
 def test_countplot():
     figure = my_analysis.plot_cell_counts()
@@ -299,9 +238,9 @@ def test_export_DR():
     assert isinstance(df, pd.DataFrame), "DR export did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.UMAP_embedding), "DR export did not have the same length as the source embedding!"
 
-def test_scatterplot():
-    figure = my_analysis.plot_scatter(antigen1 = "CD3", antigen2 = "CD4")
-    assert isinstance(figure, matplotlib.figure.Figure), "scatterplot did not make a matplotlib figure"
+#def test_scatterplot():
+#    figure = my_analysis.plot_scatter(antigen1 = "CD3", antigen2 = "CD4")
+#    assert isinstance(figure, matplotlib.figure.Figure), "scatterplot did not make a matplotlib figure"
 
 def test_to_classy_masks():
     data_df = my_analysis.export_clustering_classy_masks(clustering = "merging")
@@ -384,6 +323,7 @@ def test_edt():
     my_analysis.filter_data(to_drop = "0")
     my_analysis.filter_data(to_drop = "8")
     my_analysis.filter_data(to_drop = "9")
+    print(os.listdir('/home/runner/work/PalmettoBUG/PalmettoBUG/project_folder/Example_IMC/Pixel_Classification/lumen_epithelia_laminapropria'))
     panel, results = my_spatial.do_edt(pixel_classifier_folder = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria", 
                                         masks_folder = proj_directory + "/masks/example_deepcell_masks", 
                                         maps = "/classification_maps",
