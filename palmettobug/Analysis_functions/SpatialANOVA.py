@@ -80,6 +80,7 @@ class SpatialANOVA():
         self.condition1 = None
         self.condition2 = None
         self.threshold = 10
+        self.data_table = None
 
     def init_data(self, 
                   space_anova_table: pd.DataFrame, 
@@ -158,30 +159,25 @@ class SpatialANOVA():
         if not os.path.exists(output_directory + "/Functional_plots"):
             os.mkdir(output_directory + "/Functional_plots")
 
-    def _retrieve_data_table(self, for_cell_maps = False):
+    def _retrieve_data_table(self):
         ''''''
         if self.exp is None:     ### we've loaded from a pandas dataframe, not from an anndata object
             pass
         else:
+            self.data_table = pd.DataFrame()
+            self.data_table['x'] = self.exp.data.obsm['spatial'][:,0]
+            self.data_table['y'] = self.exp.data.obsm['spatial'][:,1]
+            self.data_table['condition'] = list(self.exp.data.obs['condition'].astype('str'))
+            self.data_table['sample_id']  = list(self.exp.data.obs['sample_id'].astype('str'))
+            self.data_table['patient_id'] = list(self.exp.data.obs['patient_id'].astype('str'))
             if self.exp.back_up_data is not None:
                 self.filenames = self.exp.back_up_data.obs['file_name']
-                self.data_table = pd.DataFrame()
-                self.data_table['x'] = self.exp.back_up_data.obsm['spatial'][:,0]
-                self.data_table['y'] = self.exp.back_up_data.obsm['spatial'][:,1]
-                self.data_table['condition'] = list(self.exp.back_up_data.obs['condition'].astype('str'))
-                self.data_table['sample_id']  = list(self.exp.back_up_data.obs['sample_id'].astype('str'))
-                self.data_table['patient_id'] = list(self.exp.back_up_data.obs['patient_id'].astype('str'))
-                self.data_table['cellType'] = 'dropped'
-                self.data_table.index = self.data_table.index.astype('str')
-                self.data_table.loc[self.exp.data.obs.index,['cellType']] = list(self.exp.data.obs[self.cellType_key].astype('str'))
-            else:
-                self.data_table = pd.DataFrame()
-                self.data_table['x'] = self.exp.data.obsm['spatial'][:,0]
-                self.data_table['y'] = self.exp.data.obsm['spatial'][:,1]
-                self.data_table['condition'] = list(self.exp.data.obs['condition'].astype('str'))
+                if self.cellType_key is not None:
+                    self.data_table['cellType'] = 'dropped'
+                    self.data_table.index = self.data_table.index.astype('str')
+                    self.data_table.loc[self.exp.data.obs.index,['cellType']] = list(self.exp.data.obs[self.cellType_key].astype('str'))
+            elif self.cellType_key is not None:
                 self.data_table['cellType'] = list(self.exp.data.obs[self.cellType_key].astype('str'))
-                self.data_table['sample_id']  = list(self.exp.data.obs['sample_id'].astype('str'))
-                self.data_table['patient_id'] = list(self.exp.data.obs['patient_id'].astype('str'))
         return self.data_table
 
     def set_conditions(self, 
@@ -943,10 +939,11 @@ class SpatialANOVA():
                 return
             else:
                 heatmap_salami = self.heatmap_salami
-        condition_number = int([i for i,ii in enumerate(list(self.data_table['condition'].unique())) if ii == condition][0])
+        conditions = [i for i in self.data_table['condition'].unique()]
+        condition_number = int([i for i,ii in enumerate(conditions) if ii == condition][0])
         radii_num = int([i for i,ii in enumerate(self.fixed_r) if ii == radii][0])
         title_string = f'{condition}: {str(radii)} micron, stat = {stat_label}'
-        index = Analysis.data.obs['cell_merging'].unique()
+        index = [i for i in self.data_table['cellType'].unique() if i != 'dropped']
         salami_slice = heatmap_salami[:,:,radii_num,condition_number]
         for_heatmap = pd.DataFrame(salami_slice, columns = index, index = index)
         figure = plt.figure()
@@ -991,7 +988,7 @@ class SpatialANOVA():
             return
         elif cellType_key is not None:
             self.cellType_key = cellType_key
-        space_anova = self._retrieve_data_table(for_cell_maps = True)
+        space_anova = self._retrieve_data_table()
 
         if output_directory is None:
             output_directory = self.output_dir + "/cell_maps"
