@@ -312,7 +312,7 @@ class SpatialAnalysis:
             region_props_data = self.exp.regionprops_data
         major_r = region_props_data['axis_major_length'] / 2
         minor_r = region_props_data['axis_minor_length'] / 2
-        mini = float(np.sqrt(major_r * minor_r) / 2) 
+        mini = (np.sqrt(major_r * minor_r) / 2).mean()
         if with_empty_space:
             data_table = pd.DataFrame()
             if self.exp.back_up_data is not None:
