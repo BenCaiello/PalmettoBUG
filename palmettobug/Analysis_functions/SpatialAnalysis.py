@@ -309,10 +309,17 @@ class SpatialAnalysis:
         perimeter_r = (region_props_data['perimeter'] / (np.pi*2))
         avg_radii = scipy.special.agm(area_r, perimeter_r)   ### this may not be the ideal way to estimate, but I try it here
         mini = avg_radii.mean()*2
-        if self.SpaceANOVA.data_table is None:
-            self.SpaceANOVA._retrieve_data_table()
-        minX_Y = self.SpaceANOVA.data_table.groupby('sample_id').min()[['x','y']]
-        maxX_Y = self.SpaceANOVA.data_table.groupby('sample_id').max()[['x','y']]
+        data_table = pd.DataFrame()
+        if self.exp.back_up_data is not None:
+            data_table['x'] = self.exp.back_up_data.obsm['spatial'][:,0]
+            data_table['y'] = self.exp.back_up_data.obsm['spatial'][:,1]
+            data_table['sample_id']  = list(self.exp.back_up_data.obs['sample_id'].astype('str'))
+        else:
+            data_table['x'] = self.exp.data.obsm['spatial'][:,0]
+            data_table['y'] = self.exp.data.obsm['spatial'][:,1]
+            data_table['sample_id']  = list(self.exp.data.obs['sample_id'].astype('str'))
+        minX_Y = data_table[['sample_id','x','y']].groupby('sample_id').min()[['x','y']]
+        maxX_Y = data_table[['sample_id','x','y']].groupby('sample_id').max()[['x','y']]
         total_areas = 0
         for i,ii,iii,iv in zip(minX_Y['x'], maxX_Y['x'], minX_Y['y'], maxX_Y['y']):
             total_areas += (ii - i)*(iv - iii)
