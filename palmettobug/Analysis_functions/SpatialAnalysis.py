@@ -300,6 +300,26 @@ class SpatialAnalysis:
         plot = self.neighbors.plot_CN_abundance(clustering, cols = cols)
         return plot
 
+    def estimate_SpaceANOVA_min_radii(self):
+        '''
+        This uses information about the cell masks & images (such as perimeter, area, cell occupied bounding-box areas, etc.)
+        '''
+        region_props_data = self.exp.regionprops_data
+        area_r = (np.sqrt(region_props_data['area'] / np.pi))
+        perimeter_r = (region_props_data['perimeter'] / (np.pi*2))
+        avg_radii = scipy.special.agm(area_r, perimeter_r)   ### this may not be the ideal way to estimate, but I try it here
+        mini = avg_radii.mean()*2
+        if not hasattr(self.SpaceANOVA, "data_table"):
+            self.SpaceANOVA._retrieve_data_table()
+        minX_Y = self.SpaceANOVA.data_table.groupby('sample_id').min()[['x','y']]
+        maxX_Y = self.SpaceANOVA.data_table.groupby('sample_id').max()[['x','y']]
+        total_areas = 0
+        for i,ii,iii,iv in zip(minX_Y['x'], maxX_Y['x'], minX_Y['y'], maxX_Y['y']):
+            total_areas += (ii - i)*(iv - iii)
+        empty_space = total_areas - region_props_data['area'].sum()
+        mini +=  mini*(empty_space / total_areas)
+        return int(mini)
+
     def do_SpaceANOVA_ripleys_stats(self,
                                     clustering: str,
                                     max: int = 100, 
