@@ -304,7 +304,7 @@ class SpatialAnalysis:
         '''
         This uses information about the cell masks & images (such as perimeter, area, cell occupied bounding-box areas, etc.)
         '''
-        if self.back_up_regions is not None:
+        if self.exp.back_up_regions is not None:
             region_props_data = self.exp.back_up_regions
         else:
             region_props_data = self.exp.regionprops_data
