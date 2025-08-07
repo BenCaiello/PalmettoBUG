@@ -944,11 +944,11 @@ class SpatialANOVA():
                 return
             else:
                 heatmap_salami = self.heatmap_salami
-        conditions = [i for i in self.data_table['condition'].unique() if i != 'dropped']
+        conditions = [i for i in self.data_table['condition'].unique()]
         condition_number = int([i for i,ii in enumerate(conditions) if ii == condition][0])
         radii_num = int([i for i,ii in enumerate(self.fixed_r) if ii == radii][0])
         title_string = f'{condition}: {str(radii)} micron, stat = {stat_label}'
-        index = self.data_table['cellType'].unique()
+        index = [i for i in self.data_table['cellType'].unique() if i != 'dropped']
         salami_slice = heatmap_salami[:,:,radii_num,condition_number]
         for_heatmap = pd.DataFrame(salami_slice, columns = index, index = index)
         figure = plt.figure()
