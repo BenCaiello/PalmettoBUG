@@ -80,6 +80,7 @@ class SpatialANOVA():
         self.condition1 = None
         self.condition2 = None
         self.threshold = 10
+        self.data_table = None
 
     def init_data(self, 
                   space_anova_table: pd.DataFrame, 

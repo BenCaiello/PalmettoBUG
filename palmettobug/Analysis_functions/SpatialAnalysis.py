@@ -309,7 +309,7 @@ class SpatialAnalysis:
         perimeter_r = (region_props_data['perimeter'] / (np.pi*2))
         avg_radii = scipy.special.agm(area_r, perimeter_r)   ### this may not be the ideal way to estimate, but I try it here
         mini = avg_radii.mean()*2
-        if not hasattr(self.SpaceANOVA, "data_table"):
+        if not self.SpaceANOVA.data_table:
             self.SpaceANOVA._retrieve_data_table()
         minX_Y = self.SpaceANOVA.data_table.groupby('sample_id').min()[['x','y']]
         maxX_Y = self.SpaceANOVA.data_table.groupby('sample_id').max()[['x','y']]
