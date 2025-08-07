@@ -82,9 +82,9 @@ homedir = __file__.replace("\\","/")
 homedir = homedir[:(homedir.rfind("/"))]
 
 print("The PalmettoBUG package is copyrighted 2024-2025 by the Medical University of South Carolina and licensed under the GPL-3 license."
-    "\n It is free & open source software, can  be redistributed in compliance with the GPL3 license, and comes with absolutely no warranty."
-    "\n In python, use palmettobug.print_license() to see the license, or use palmettobug.print_3rd_party_license_info() to print information"
-    "\n about the licenses and copyright of 3rd party software used in PalmettoBUG itself or in the creation of PalmettoBUG.")
+    "\nIt is free & open source software, can  be redistributed in compliance with the GPL3 license, and comes with absolutely no warranty."
+    "\nIn python, use palmettobug.print_license() to see the license, or use palmettobug.print_3rd_party_license_info() to print information"
+    "\nabout the licenses and copyright of 3rd party software used in PalmettoBUG itself or in the creation of PalmettoBUG.")
 
 def print_license():
     license_dir = homedir + "/Assets/LICENSE.txt"

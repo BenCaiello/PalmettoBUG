@@ -300,6 +300,26 @@ class SpatialAnalysis:
         plot = self.neighbors.plot_CN_abundance(clustering, cols = cols)
         return plot
 
+    def estimate_SpaceANOVA_min_radii(self):
+        '''
+        This uses information about the cell masks & images (such as perimeter, area, cell occupied bounding-box areas, etc.)
+        '''
+        region_props_data = self.exp.regionprops_data
+        area_r = (np.sqrt(region_props_data['area'] / np.pi))
+        perimeter_r = (region_props_data['perimeter'] / (np.pi*2))
+        avg_radii = scipy.special.agm(area_r, perimeter_r)   ### this may not be the ideal way to estimate, but I try it here
+        mini = avg_radii.mean()*2
+        if not hasattr(self.SpaceANOVA, "data_table"):
+            self.SpaceANOVA._retrieve_data_table()
+        minX_Y = self.SpaceANOVA.data_table.groupby('sample_id').min()[['x','y']]
+        maxX_Y = self.SpaceANOVA.data_table.groupby('sample_id').max()[['x','y']]
+        total_areas = 0
+        for i,ii,iii,iv in zip(minX_Y['x'], maxX_Y['x'], minX_Y['y'], maxX_Y['y']):
+            total_areas += (ii - i)*(iv - iii)
+        empty_space = total_areas - region_props_data['area'].sum()
+        mini +=  mini*(empty_space / total_areas)
+        return int(mini)
+
     def do_SpaceANOVA_ripleys_stats(self,
                                     clustering: str,
                                     max: int = 100, 
@@ -311,7 +331,8 @@ class SpatialAnalysis:
                                     permutations: int = 0, 
                                     seed: int = 42, 
                                     center_on_zero: bool = False, 
-                                    silence_zero_warnings: bool = True):
+                                    silence_zero_warnings: bool = True,
+                                    suppress_threshold_warnings: bool = False):
         '''
         Calculates Ripley's spatial statistics for every celltype-celltype pair in clustering in every image. The necessary first step in the SpaceANOVA analysis
         pipeline.
@@ -377,6 +398,9 @@ class SpatialAnalysis:
 
             silence_zero_warnings (boolean):
                 this method generates a large number of zero division errors, even in a normal run. By default these are silenced. 
+
+            suppress_threshold_warnings (boolean):
+                If True, will not print warnings about images failing to meet cell number thresholds
         '''
         self.SpaceANOVA.do_spatial_analysis(
                             condition1 = condition1, 
@@ -390,6 +414,7 @@ class SpatialAnalysis:
                             seed = seed, 
                             center_on_zero = center_on_zero, 
                             silence_zero_warnings = silence_zero_warnings,
+                            suppress_threshold_warnings = suppress_threshold_warnings,
                             )
 
     def plot_spaceANOVA_function(self, 
@@ -465,7 +490,7 @@ class SpatialAnalysis:
         self.padj, self.p, self.stat = self.SpaceANOVA.do_all_functional_ANOVAs(stat = stat, seed = seed)
         return self.padj, self.p, self.stat
 
-    def plot_spaceANOVA_heatmap(self, stat: str, filename = None):      ## TODO: configure filename properly
+    def plot_spaceANOVA_heatmap(self, stat: str, filename = None): 
         '''
         Plots a heatmap from one of the dataframes returned / created by self.run_SpaceANOVA_statistics. If plotting a (adjusted) p-value, as is typical, the 
         statistic is transformed by the negative log first so that high number indicate higher significance.
@@ -1199,7 +1224,6 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         new_anndata = ann.AnnData(final_array, var = var)
         if leiden_or_flowsom.lower() == "flowsom":
             self.neighbors_flowsom = FlowSOM(new_anndata, seed = seed, n_clusters = n_clusters, **kwargs) 
-                                    ## TODO: also need to unpack the new clustering into self.exp.data --> and from there into the main Analysis.data object (likely?)
             self.exp.data.obs['CN'] = list(self.neighbors_flowsom.get_cell_data().obs['metaclustering'])
             self.exp.data.obs['CN'] = self.exp.data.obs['CN'].astype('int') + 1
             figure = self._plot_stars_CNs()

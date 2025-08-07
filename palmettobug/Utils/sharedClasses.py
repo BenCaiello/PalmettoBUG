@@ -560,11 +560,11 @@ class DirectoryDisplay(ctk.CTkFrame):
                 except Exception:
                     pass
             elif identifier == ".csv":
-                if (parent.currentdir == parent.directories.main) & (file_name != "spatialtable"): ## TODO: fix to match current labeling
+                if (file_name.find("panel") != -1) or (file_name.find("metadata") != -1):   ## be sure to display full table if panel / metadata files
                     TableLaunch(1, 1, parent.currentdir, None, (parent.out), parent.experiment)
                 else:
-                    dataframe_head = pd.read_csv(filepath).head(25)
-                    TableLaunch(1, 1, parent.currentdir, dataframe_head, f"First 25 entries of {file_name}{identifier}", parent.experiment)
+                    dataframe_head = pd.read_csv(filepath).head(35)
+                    TableLaunch(1, 1, parent.currentdir, dataframe_head, f"First 35 entries of {file_name}{identifier}", parent.experiment)
             elif identifier == ".tiff":
                 image = tf.imread(filepath)
                 if image.dtype != 'int':
@@ -1121,7 +1121,17 @@ class TableWidget(ctk.CTkScrollableFrame):
             self.widgetframe = self.widgetframe.drop('index', axis = 1)
         except KeyError:
             pass
-        for i,ii in zip(self.widgetframe.columns, self.table_dataframe.iloc[:,:(len(self.widgetframe.columns))]):
+        if ((len(self.widgetframe.columns) < len(self.table_dataframe.columns)) or 
+                        ((len(self.widgetframe.columns) == len(self.table_dataframe.columns)) and 
+                             ((self.type == "Analysis_panel") or (self.type == "Regionprops_panel") or (self.type == "metadata")))):
+            ## the specifically mentioned table types have delete columns at the end
+            proceed = tk.messagebox.askokcancel(title = "Proceed?", 
+                            message = f"\nThe file that this {self.type} table was read from has more columns than what is displayed."
+                            "\n\nDo you want to proceed? Any extra columns of the data will have their data deleted - only what"
+                            "\nis displayed in the GUI will be retained in the file on the disk.")
+            if not proceed:
+                raise Exception
+        for i,ii in zip(self.widgetframe.columns, self.table_dataframe.iloc[:,:(len(self.widgetframe.columns) - 1)]):
             column_of_interest = self.widgetframe[i]
             retrieval_list = []
             for i in column_of_interest:

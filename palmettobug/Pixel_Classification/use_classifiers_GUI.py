@@ -771,7 +771,6 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 tk.messagebox.showwarning("Warning", 
                     message = "The number of masks and the number of pixel classification maps do not match! \n" 
                             "Did you only do part of the classifier prediction, or only segmented some of your images?")
-                return
                                
             
             output_folder = f'''{self.master.main_directory}/classy_masks/{self.master.name}_{self.mask_option_menu.get()}'''
@@ -933,7 +932,7 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
         self.heatmap_path = heatmap_path
 
         self.disp = display_image_button(self, PALMETTO_BUG_homedir + "/Assets/Capture2.png")
-        self.disp.save_and_display(image = heatmap_path)         ## TODO: simplify by moving path into line above (then test)
+        self.disp.save_and_display(image = heatmap_path)   
         self.disp.grid(column = 0, row = 0, rowspan = 5, padx = 3, pady = 3)
 
         label_napari = ctk.CTkLabel(master = self, text = "Select a mask to view in Napari")
