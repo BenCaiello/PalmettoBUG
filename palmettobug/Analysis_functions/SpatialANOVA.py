@@ -946,7 +946,7 @@ class SpatialANOVA():
         condition_number = int([i for i,ii in enumerate(list(self.data_table['condition'].unique())) if ii == condition][0])
         radii_num = int([i for i,ii in enumerate(self.fixed_r) if ii == radii][0])
         title_string = f'{condition}: {str(radii)} micron, stat = {stat_label}'
-        index = Analysis.data.obs['cell_merging'].unique()
+        index = self.data_table['cellType'].unique()
         salami_slice = heatmap_salami[:,:,radii_num,condition_number]
         for_heatmap = pd.DataFrame(salami_slice, columns = index, index = index)
         figure = plt.figure()
