@@ -304,7 +304,10 @@ class SpatialAnalysis:
         '''
         This uses information about the cell masks & images (such as perimeter, area, cell occupied bounding-box areas, etc.)
         '''
-        region_props_data = self.exp.regionprops_data
+        if self.back_up_regions is not None:
+            region_props_data = self.exp.back_up_regions
+        else:
+            region_props_data = self.exp.regionprops_data
         area_r = (np.sqrt(region_props_data['area'] / np.pi))
         perimeter_r = (region_props_data['perimeter'] / (np.pi*2))
         avg_radii = scipy.special.agm(area_r, perimeter_r)   ### this may not be the ideal way to estimate, but I try it here
