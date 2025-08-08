@@ -170,7 +170,6 @@ class SpatialANOVA():
             self.data_table['condition'] = list(self.exp.data.obs['condition'].astype('str'))
             self.data_table['sample_id']  = list(self.exp.data.obs['sample_id'].astype('str'))
             self.data_table['patient_id'] = list(self.exp.data.obs['patient_id'].astype('str'))
-            self.data_table.index = self.data_table.index.astype('str')
             if self.exp.back_up_data is not None:
                 self.filenames = self.exp.back_up_data.obs['file_name']
                 if self.cellType_key is not None:
@@ -178,6 +177,7 @@ class SpatialANOVA():
                     self.data_table.loc[self.exp.data.obs.index,['cellType']] = list(self.exp.data.obs[self.cellType_key].astype('str'))
             elif self.cellType_key is not None:
                 self.data_table['cellType'] = list(self.exp.data.obs[self.cellType_key].astype('str'))
+            self.data_table.index = self.data_table.index.astype('str')
         return self.data_table
 
     def set_conditions(self, 
