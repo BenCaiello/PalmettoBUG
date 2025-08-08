@@ -164,20 +164,25 @@ class SpatialANOVA():
         if self.exp is None:     ### we've loaded from a pandas dataframe, not from an anndata object
             pass
         else:
-            self.data_table = pd.DataFrame()
-            self.data_table['x'] = self.exp.data.obsm['spatial'][:,0]
-            self.data_table['y'] = self.exp.data.obsm['spatial'][:,1]
-            self.data_table['condition'] = list(self.exp.data.obs['condition'].astype('str'))
-            self.data_table['sample_id']  = list(self.exp.data.obs['sample_id'].astype('str'))
-            self.data_table['patient_id'] = list(self.exp.data.obs['patient_id'].astype('str'))
             if self.exp.back_up_data is not None:
                 self.filenames = self.exp.back_up_data.obs['file_name']
-                if self.cellType_key is not None:
-                    self.data_table['cellType'] = 'dropped'
-                    self.data_table.index = self.data_table.index.astype('str')
-                    self.data_table.loc[self.exp.data.obs.index,['cellType']] = list(self.exp.data.obs[self.cellType_key].astype('str'))
-            elif self.cellType_key is not None:
+                self.data_table = pd.DataFrame()
+                self.data_table['x'] = self.exp.back_up_data.obsm['spatial'][:,0]
+                self.data_table['y'] = self.exp.back_up_data.obsm['spatial'][:,1]
+                self.data_table['condition'] = list(self.exp.back_up_data.obs['condition'].astype('str'))
+                self.data_table['sample_id']  = list(self.exp.back_up_data.obs['sample_id'].astype('str'))
+                self.data_table['patient_id'] = list(self.exp.back_up_data.obs['patient_id'].astype('str'))
+                self.data_table['cellType'] = 'dropped'
+                self.data_table.index = self.data_table.index.astype('str')
+                self.data_table.loc[self.exp.data.obs.index,['cellType']] = list(self.exp.data.obs[self.cellType_key].astype('str'))
+            else:
+                self.data_table = pd.DataFrame()
+                self.data_table['x'] = self.exp.data.obsm['spatial'][:,0]
+                self.data_table['y'] = self.exp.data.obsm['spatial'][:,1]
+                self.data_table['condition'] = list(self.exp.data.obs['condition'].astype('str'))
                 self.data_table['cellType'] = list(self.exp.data.obs[self.cellType_key].astype('str'))
+                self.data_table['sample_id']  = list(self.exp.data.obs['sample_id'].astype('str'))
+                self.data_table['patient_id'] = list(self.exp.data.obs['patient_id'].astype('str'))
         return self.data_table
 
     def set_conditions(self, 
