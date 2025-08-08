@@ -174,7 +174,8 @@ class SpatialANOVA():
                 self.filenames = self.exp.back_up_data.obs['file_name']
                 if self.cellType_key is not None:
                     self.data_table['cellType'] = 'dropped'
-                    self.data_table.loc[self.exp.data.obs.index,['cellType']] = list(self.exp.data.obs[self.cellType_key].astype('str'))
+                    self.data_table.index = self.data_table.index.astype('str')
+                    self.data_table.loc[self.exp.data.obs.index.astype('str'),['cellType']] = list(self.exp.data.obs[self.cellType_key].astype('str'))
             elif self.cellType_key is not None:
                 self.data_table['cellType'] = list(self.exp.data.obs[self.cellType_key].astype('str'))
             self.data_table.index = self.data_table.index.astype('str')
