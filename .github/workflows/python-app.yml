@@ -59,7 +59,7 @@ jobs:
       run: |  
         python -m pytest -p pytest_cov --cov-report xml:coverage.xml --cov=palmettobug tests/  
 
-    - uses: codecov/codecov-action@v5
+   # - uses: codecov/codecov-action@v5
 
     # just do manual check for any packages listed as UNKNOWN / proprietary for GPL3-compatibility
     - name: Check licenses
