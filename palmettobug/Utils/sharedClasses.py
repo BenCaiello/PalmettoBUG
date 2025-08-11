@@ -924,10 +924,10 @@ class TableWidget(ctk.CTkScrollableFrame):
             variable = ctk.StringVar(value = str(ii))
             ## only want the segmentation colum to treated special:
             if (self.type == "panel") and (col_num == 3):
-                if str(ii) == "1.0":
-                    variable = ctk.StringVar(value = "Nuclei")
-                elif str(ii) == "2.0":
-                    variable = ctk.StringVar(value = "Cytoplasmic / Membrane")
+                if str(ii)[0] == "1":
+                    variable = ctk.StringVar(value = "Nuclei (1)")
+                elif str(ii)[0] == "2":
+                    variable = ctk.StringVar(value = "Cytoplasmic / Membrane (2)")
             col_dropdown = ctk.CTkOptionMenu(master = self, variable = variable, values = values)
             col_dropdown.grid(column = col_num + offset, row = i + 1, padx = 5, pady = 3)
             col_dropdown.configure(state = state)
@@ -1062,7 +1062,7 @@ class TableWidget(ctk.CTkScrollableFrame):
             self.label_column(0, offset = 1)
             self.entry_column(1, offset = 1)
             self.drop_down_column(2, values = ["0","1"], offset = 1, state = "disabled")
-            self.drop_down_column(3,values = ["", "Nuclei", "Cytoplasmic / Membrane"], offset = 1)
+            self.drop_down_column(3,values = ["", "Nuclei (1)", "Cytoplasmic / Membrane (2)"], offset = 1)
             self.offset = 1
         elif (self.type == "Analysis_panel") or (self.type == "Regionprops_panel"):
             self.label_column(0, add_row_optionns = True)
@@ -1121,17 +1121,15 @@ class TableWidget(ctk.CTkScrollableFrame):
             self.widgetframe = self.widgetframe.drop('index', axis = 1)
         except KeyError:
             pass
-        if ((len(self.widgetframe.columns) < len(self.table_dataframe.columns)) or 
-                        ((len(self.widgetframe.columns) == len(self.table_dataframe.columns)) and 
-                             ((self.type == "Analysis_panel") or (self.type == "Regionprops_panel") or (self.type == "metadata")))):
-            ## the specifically mentioned table types have delete columns at the end
+        has_delete_column = (self.type == "Analysis_panel") or (self.type == "Regionprops_panel") or (self.type == "metadata")
+        if (len(self.widgetframe.columns) < len(self.table_dataframe.columns)) or has_delete_column:
             proceed = tk.messagebox.askokcancel(title = "Proceed?", 
                             message = f"\nThe file that this {self.type} table was read from has more columns than what is displayed."
                             "\n\nDo you want to proceed? Any extra columns of the data will have their data deleted - only what"
                             "\nis displayed in the GUI will be retained in the file on the disk.")
             if not proceed:
                 raise Exception
-        for i,ii in zip(self.widgetframe.columns, self.table_dataframe.iloc[:,:(len(self.widgetframe.columns) - 1)]):
+        for i,ii in zip(self.widgetframe.columns, self.table_dataframe.columns):
             column_of_interest = self.widgetframe[i]
             retrieval_list = []
             for i in column_of_interest:
@@ -1142,8 +1140,8 @@ class TableWidget(ctk.CTkScrollableFrame):
                 out = out.strip()
                 retrieval_list.append(out)
             new_table_dataframe[ii] = retrieval_list
-            if (self.type == "panel") and (ii == 3):
-                new_table_dataframe[ii] = new_table_dataframe[ii].replace({"Nuclei":1,"Cytoplasmic / Membrane":2})
+            if (self.type == "panel") and (ii == 'segmentation'):
+                new_table_dataframe[ii] = new_table_dataframe[ii].replace({"Nuclei (1)":1,"Cytoplasmic / Membrane (2)":2})
         self.table_dataframe = new_table_dataframe
 
 class text_window(ctk.CTkToplevel):
@@ -1253,10 +1251,10 @@ class TableLaunch_nonGUI(ctk.CTk):
                 The specific table types, like 'metadata', etc. expect a particular format for the dataframe. For example, selecting a 
                 table_type of 'panel' means 4 data columns will be generated >> the first two are label/entry columns, the next column of 
                 drop-down option widgets with 0 / 1 as the choices and the last column of data will be a drop down with options of 
-                "Nuclei" and "Cytoplasmic / Membrane". This is to replicate the expectation of the panel file, but theoretically you could 
+                "Nuclei (1)" and "Cytoplasmic / Membrane (2)". This is to replicate the expectation of the panel file, but theoretically you could 
                 use 'other' for all table types and simply use the entry fields to have full control of the final table. 
                 Note that if you use 'other' instead of 'panel' in the example above, you should enter numbers for nuclei (1) and cytoplasmic (2) 
-                segmentation channels, NOT the strings "Nuclei" or "Cytoplasmic / Membrane", as the table_type == "panel" also auto-converts
+                segmentation channels, NOT the strings "Nuclei (1)" or "Cytoplasmic / Membrane (2)", as the table_type == "panel" also auto-converts
                 between the human-friendly strings and the computer friendly integers (1 or 2). 
 
             labels_editable (bool): 
@@ -1390,10 +1388,10 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
             variable = ctk.StringVar(value = str(ii))
             ## only want the segmentation colum to treated special:
             if (self.type == "panel") and (col_num == 3):
-                if str(ii) == "1.0":
-                    variable = ctk.StringVar(value = "Nuclei")
-                elif str(ii) == "2.0":
-                    variable = ctk.StringVar(value = "Cytoplasmic / Membrane")
+                if str(ii)[0] == "1":
+                    variable = ctk.StringVar(value = "Nuclei (1)")
+                elif str(ii)[0] == "2":
+                    variable = ctk.StringVar(value = "Cytoplasmic / Membrane (2)")
             col_dropdown = ctk.CTkOptionMenu(master = self, variable = variable, values = values)
             col_dropdown.grid(column = col_num + offset, row = i + 1, padx = 5, pady = 3)
             col_dropdown.configure(state = state)
@@ -1518,7 +1516,7 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
             column_func(0, offset = 1)
             self.entry_column(1, offset = 1)
             self.drop_down_column(2, values = ["0","1"], offset = 1, state = "normal")
-            self.drop_down_column(3,values = ["", "Nuclei", "Cytoplasmic / Membrane"], offset = 1)
+            self.drop_down_column(3,values = ["", "Nuclei (1)", "Cytoplasmic / Membrane (2)"], offset = 1)
             self.delete_column(4, offset  = 1)
             self.offset = 1
         elif (self.type == "Analysis_panel") or (self.type == "Regionprops_panel"):
@@ -1581,7 +1579,7 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
             self.widgetframe = self.widgetframe.drop('index', axis = 1)
         except KeyError:
             pass
-        for i,ii in zip(self.widgetframe.columns, self.table_dataframe.iloc[:,:(len(self.widgetframe.columns))]):
+        for i,ii in zip(self.widgetframe.columns, self.table_dataframe.columns):
             column_of_interest = self.widgetframe[i]
             retrieval_list = []
             for i in column_of_interest:
@@ -1590,10 +1588,10 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
                 except Exception:
                     out = i.real_text
                 out = out.strip()
-                if (self.type == "panel") and ((ii == 3) or (ii == "segmentation")):
-                    if out == "Nuclei":
+                if (self.type == "panel") and (ii == "segmentation"):
+                    if out == "Nuclei (1)":
                         out = 1
-                    elif out == "Cytoplasmic / Membrane":
+                    elif out == "Cytoplasmic / Membrane (2)":
                         out = 2
                 retrieval_list.append(out)
             new_table_dataframe[ii] = retrieval_list
