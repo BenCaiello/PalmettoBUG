@@ -924,9 +924,9 @@ class TableWidget(ctk.CTkScrollableFrame):
             variable = ctk.StringVar(value = str(ii))
             ## only want the segmentation colum to treated special:
             if (self.type == "panel") and (col_num == 3):
-                if str(ii) == "1.0":
+                if str(ii)[0] == "1":
                     variable = ctk.StringVar(value = "Nuclei (1)")
-                elif str(ii) == "2.0":
+                elif str(ii)[0] == "2":
                     variable = ctk.StringVar(value = "Cytoplasmic / Membrane (2)")
             col_dropdown = ctk.CTkOptionMenu(master = self, variable = variable, values = values)
             col_dropdown.grid(column = col_num + offset, row = i + 1, padx = 5, pady = 3)
@@ -1588,7 +1588,7 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
                 except Exception:
                     out = i.real_text
                 out = out.strip()
-                if (self.type == "panel") and ((ii == 3) or (ii == "segmentation")):
+                if (self.type == "panel") and (ii == "segmentation")):
                     if out == "Nuclei (1)":
                         out = 1
                     elif out == "Cytoplasmic / Membrane (2)":
