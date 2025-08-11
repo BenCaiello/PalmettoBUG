@@ -1121,8 +1121,8 @@ class TableWidget(ctk.CTkScrollableFrame):
             self.widgetframe = self.widgetframe.drop('index', axis = 1)
         except KeyError:
             pass
-        if ((len(self.widgetframe.columns) < len(self.table_dataframe.columns)) or 
-                        ((len(self.widgetframe.columns) == len(self.table_dataframe.columns)) and hasattr(self,"delete_column"))):
+        has_delete_column = (self.type == "Analysis_panel") or (self.type == "Regionprops_panel") or (self.type == "metadata")
+        if (len(self.widgetframe.columns) < len(self.table_dataframe.columns)) or has_delete_column:
             proceed = tk.messagebox.askokcancel(title = "Proceed?", 
                             message = f"\nThe file that this {self.type} table was read from has more columns than what is displayed."
                             "\n\nDo you want to proceed? Any extra columns of the data will have their data deleted - only what"
@@ -1579,7 +1579,7 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
             self.widgetframe = self.widgetframe.drop('index', axis = 1)
         except KeyError:
             pass
-        for i,ii in zip(self.widgetframe.columns, self.table_dataframe.iloc[:,:(len(self.widgetframe.columns))]):
+        for i,ii in zip(self.widgetframe.columns, self.table_dataframe.columns):
             column_of_interest = self.widgetframe[i]
             retrieval_list = []
             for i in column_of_interest:
