@@ -11,7 +11,7 @@ sphinx:
   configuration: docs/source/conf.py
 
 python:
-  pre-install: 
+  pre_install: 
     - python -m pip install pip==25.1.1  
   install:
     - method: pip
