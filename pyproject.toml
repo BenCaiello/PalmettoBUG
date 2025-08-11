@@ -37,7 +37,9 @@ dependencies = [
           #  "instanseg-torch",
             "flowsom",
             "dask<2025.1.0",              ## needed until scverse's spatialdata package (and so squidpy) upgrades to no longer use the unsupported legacy dask api
-            "zarr<3"                    ## needed until anndata updates to be compatible with zarr v3
+            "zarr<3",                    ## needed until anndata updates to be compatible with zarr v3
+            "s3fs==2025.7.0",
+            "fsspec==2025.7.0"
         ]
 
 [project.optional-dependencies]
