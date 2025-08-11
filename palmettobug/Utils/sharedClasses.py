@@ -1122,16 +1122,14 @@ class TableWidget(ctk.CTkScrollableFrame):
         except KeyError:
             pass
         if ((len(self.widgetframe.columns) < len(self.table_dataframe.columns)) or 
-                        ((len(self.widgetframe.columns) == len(self.table_dataframe.columns)) and 
-                             ((self.type == "Analysis_panel") or (self.type == "Regionprops_panel") or (self.type == "metadata")))):
-            ## the specifically mentioned table types have delete columns at the end
+                        ((len(self.widgetframe.columns) == len(self.table_dataframe.columns)) and hasattr(self,"delete_column")):
             proceed = tk.messagebox.askokcancel(title = "Proceed?", 
                             message = f"\nThe file that this {self.type} table was read from has more columns than what is displayed."
                             "\n\nDo you want to proceed? Any extra columns of the data will have their data deleted - only what"
                             "\nis displayed in the GUI will be retained in the file on the disk.")
             if not proceed:
                 raise Exception
-        for i,ii in zip(self.widgetframe.columns, self.table_dataframe.iloc[:,:(len(self.widgetframe.columns) - 1)]):
+        for i,ii in zip(self.widgetframe.columns, self.table_dataframe.columns):
             column_of_interest = self.widgetframe[i]
             retrieval_list = []
             for i in column_of_interest:
@@ -1142,7 +1140,7 @@ class TableWidget(ctk.CTkScrollableFrame):
                 out = out.strip()
                 retrieval_list.append(out)
             new_table_dataframe[ii] = retrieval_list
-            if (self.type == "panel") and (ii == 3):
+            if (self.type == "panel") and (ii == 'segmentation'):
                 new_table_dataframe[ii] = new_table_dataframe[ii].replace({"Nuclei":1,"Cytoplasmic / Membrane":2})
         self.table_dataframe = new_table_dataframe
 
