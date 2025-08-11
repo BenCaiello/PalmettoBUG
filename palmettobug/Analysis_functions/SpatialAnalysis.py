@@ -310,9 +310,13 @@ class SpatialAnalysis:
             region_props_data = self.exp.back_up_regions
         else:
             region_props_data = self.exp.regionprops_data
-        major_r = region_props_data['axis_major_length'] / 2
-        minor_r = region_props_data['axis_minor_length'] / 2
-        mini = (np.sqrt(major_r * minor_r) / 2).mean()
+        major_r = region_props_data['axis_major_length'] / 2      ## longest radius
+        minor_r = region_props_data['axis_minor_length'] / 2      ## shortest radius
+        mini = (np.sqrt(major_r * minor_r) / 2).mean()   ## geometric mean of the long & short radii -- "average" radius for our cells. 
+                                                         ## Note this algorithm for finding the average radius was made with AI assistance
+                                                         ## Howewer, precision is not really necessary for this function, just a decent starting estimate
+                                                         ## for the minimum radius to test by SpaceANOVA to reduce artifacts from the measurements being
+                                                         ## centroid-to-centroid (and not from edge-to-edge) of cells
         if with_empty_space:
             data_table = pd.DataFrame()
             if self.exp.back_up_data is not None:
