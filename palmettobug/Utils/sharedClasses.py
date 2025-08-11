@@ -1588,7 +1588,7 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
                 except Exception:
                     out = i.real_text
                 out = out.strip()
-                if (self.type == "panel") and (ii == "segmentation")):
+                if (self.type == "panel") and (ii == "segmentation"):
                     if out == "Nuclei (1)":
                         out = 1
                     elif out == "Cytoplasmic / Membrane (2)":
