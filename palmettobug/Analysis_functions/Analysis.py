@@ -225,30 +225,25 @@ class Analysis:
         Input/Output:
             Input: expects either a .csv file at the path defined by the [csv] argument, or expects a folder of only .fcs files located at [directory]/Analysis_fcs. 
         '''
+        ## I have preferred to work with the string representation of the path. Because I use "/" instead of "\\" these should be compatible with
+        ## all modern operating systems. Perhaps some very old versions of windows can't cope with that, but I'm not too concerned
         directory = str(directory)
         self.directory = directory
-        
         self.directory  = self.directory.replace("\\" , "/")
-        if csv is None:
-            self.metadata = pd.read_csv(self.directory + '/metadata.csv')
-            self.metadata['condition'] = self.metadata['condition'].astype('str')
-            metadata_cat = pd.CategoricalDtype(categories = self.metadata['condition'].unique(), ordered = True)
-            self.metadata['condition'] = self.metadata['condition'].astype(metadata_cat)
-            self.metadata['patient_id'] = self.metadata['patient_id'].astype('str')
-            self.metadata['sample_id'] = self.metadata['sample_id'].astype('str')
-            self.panel = pd.read_csv(self.directory + '/Analysis_panel.csv')
-        else:
-            pass
 
+        ## Create expected directories to save plots, data tables, etc.
         self.save_dir = self.directory + f"/{save_dir}"
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
-
         self.data_table_dir = self.directory + f"/{data_table_dir}"
         if not os.path.exists(self.data_table_dir):
             os.mkdir(self.data_table_dir)
+        self.mergings_dir  = self.directory + "/mergings"
+        if not os.path.exists(self.mergings_dir ):
+            os.mkdir(self.mergings_dir )
+        self.clusterings_dir  = self.directory + "/clusterings"
 
-        ## likely strictly unnecessary, as mergings can directly loaded or saved from pandas dataframes as people please without this folder being used
+        ## Setup logger if in GUI mode of PalmettoBUG
         if self._in_gui:
             if csv is not None:
                 log_dir = directory[:directory.rfind("/")]
@@ -258,23 +253,27 @@ class Analysis:
             Analysis_log = Analysis_logger(log_dir).return_log()
             self.logger = Analysis_log
 
-            self.mergings_dir  = self.directory + "/mergings"
-            if not os.path.exists(self.mergings_dir ):
-                os.mkdir(self.mergings_dir )
-        
-        self.clusterings_dir  = self.directory + "/clusterings"
-
+        ## handle metadata & panel is loading from FCS files, otherwise the requisite information is in the CSV itself
         if csv is None:
+            self.metadata = pd.read_csv(self.directory + '/metadata.csv')
+            self.metadata['condition'] = self.metadata['condition'].astype('str')
+            metadata_cat = pd.CategoricalDtype(categories = self.metadata['condition'].unique(), ordered = True)
+            self.metadata['condition'] = self.metadata['condition'].astype(metadata_cat)
+            self.metadata['patient_id'] = self.metadata['patient_id'].astype('str')
+            self.metadata['sample_id'] = self.metadata['sample_id'].astype('str')
+            self.panel = pd.read_csv(self.directory + '/Analysis_panel.csv')
             self._load_fcs(arcsinh_cofactor = arcsinh_cofactor)
         else:
             self._load_csv(csv, additional_columns = csv_additional_columns, arcsinh_cofactor = arcsinh_cofactor)
+        
+        ## Handle spatial experiment information
         if load_regionprops:
-            try:
+            try:  ## from FCS load
                 self.load_regionprops(auto_panel = False)
                     ## do this so that squidpy interoperativity is simpler / seam-less
                     #### append regionprops is a different matter though... require that to be chosen by the user
                 self._spatial = True
-            except Exception:
+            except Exception:   ## load from CSV may have spatial information, but it will already be in self.data
                 try:
                     self.data.obsm['spatial']
                     self.data.uns['areas']
@@ -286,20 +285,29 @@ class Analysis:
 
     def _load_fcs(self, arcsinh_cofactor: Union[int,float] = 5) -> None:
         '''
-        Helper for load_data that handles the loading of .fcs file information from directory/Analysis_fcs
+        Loads and processes .fcs files from the 'Analysis_fcs' directory, aligns them with metadata,
+        applies arcsinh transformation, and stores the result in an AnnData object for downstream analysis.
+
+        Args:
+            arcsinh_cofactor (int | float): The cofactor used for arcsinh transformation of intensity values.
+                                         If set to 0 or less, no transformation is applied.
         '''
+        # Suppress specific warnings that may arise during data loading
+            # These warnings are mainly associated with the creation of the AnnData object, and are generally not helpful in this case
         warnings.filterwarnings("ignore", message = "Passing a BlockManager")
         warnings.filterwarnings("ignore", message = "Transforming to str index")
         warnings.filterwarnings("ignore", message = "Observation names are not unique") 
+
+        # Reset an dimensionality reductions (PCA / UMAP) and look for FCS files in the expected location
         metadata = self.metadata
         panel = self.panel
         panel.index = panel['antigen']
-
         self.UMAP_embedding = None
         self.PCA_embedding = None
         self.fcs_directory = self.directory  + "/Analysis_fcs"
         self.fcs_dir_names = [i for i in sorted(os.listdir(self.fcs_directory)) if i.lower().find(".fcs") != -1]
 
+        ## only keep rows in the metadata that match available FCS files (includes the warning and subsequent code block)
         new_fcs_filenames = []
         truth_array = np.zeros(len(self.metadata)).astype('bool')
         for i in list(self.metadata['file_name']):
@@ -307,6 +315,7 @@ class Analysis:
                 new_fcs_filenames.append(i)
                 truth_array = truth_array + np.array(self.metadata['file_name'] == i).astype('bool')
 
+        ## Handle mismatches between the metadata table & the available FCS files:
         if (len(self.fcs_dir_names) != len(self.metadata)) or (len(new_fcs_filenames) != len(self.fcs_dir_names)):
             missing_in_metadata = [i for i in self.fcs_dir_names if i not in new_fcs_filenames]
             missing_in_FCS = [i for i in self.metadata['file_name'] if i not in new_fcs_filenames]
@@ -322,11 +331,13 @@ class Analysis:
                       "only keeping data present in both for analysis!"
                      f"FCS files absent in metdata: {str(missing_in_metadata)} \n"
                      f"metadata entries absent in FCS files: {str(missing_in_FCS)}") 
-
+        
+        # apply the metadata filtering
         self.metadata = self.metadata[truth_array]
         self.fcs_dir_names = new_fcs_filenames
         self.fcs_path_list = ["".join([self.fcs_directory,"/",i]) for i in self.fcs_dir_names]
 
+        ## Read in FCS files and concatenate into a single dataframe
         intensities = pd.DataFrame()
         self.length_of_images = [0]
         length_of_images2 = []
@@ -340,12 +351,15 @@ class Analysis:
             intensities = pd.concat([intensities, fcs_read_in], axis = 0)
         warnings.filterwarnings("default", message = "The default channel names")
 
+        ## drop 'Object' column if it exists (can cause misalignment with panel dataframe)
         if len(intensities.columns) > len(panel):
             try:
-                intensities = intensities.drop("Object", axis = 1)   ## if Object column is in the fcs's drop it
+                intensities = intensities.drop("Object", axis = 1)
             except KeyError:
                 pass
 
+        ## Antigens with all 0 values contribute no useful information to analysis 
+        # removing them can reduce computational load and prevent them from creating errors in certain calculations / plots
         dropped_antigen_list = []
         for i in intensities.columns:
             if intensities[i].sum() == 0:
@@ -357,14 +371,16 @@ class Analysis:
                 Analysis_log.info(f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}") 
             else:
                 print(f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}")
-
         panel = panel.T.drop(dropped_antigen_list, axis = 1).T
+        
+        # apply arcsinh transformation
         if arcsinh_cofactor > 0:
             exprs = pd.DataFrame(np.arcsinh(intensities / arcsinh_cofactor))
         else:
             exprs = pd.DataFrame(intensities)
         exprs.columns = panel["antigen"]
 
+        ## extend the metadata table to match the number of cells -- preparation for this becoming the .obs portion of the AnnData object
         metadata_long = pd.DataFrame()
         sample_id_array = np.zeros([0])
         counter = 0
@@ -372,67 +388,58 @@ class Analysis:
         for i,ii in zip(self.length_of_images[:-1], self.length_of_images[1:]):
             slicer = np.full(shape = [ii - i], fill_value = sample_ids[counter])
             sample_id_array = np.append(sample_id_array,slicer)
-            counter += 1
-            
+            counter += 1 
         metadata_long['sample_id'] = sample_id_array.astype('int').astype('str')
-
         metadata_long = pd.merge(metadata_long, metadata[["sample_id",'file_name', 'patient_id', 'condition']], on = 'sample_id')
-        '''
-        meta_file_dict = {}
-        meta_patient_dict = {}
-        meta_condition_dict = {}
-        for i,ii in enumerate(metadata["sample_id"]):
-            meta_file_dict[ii] = list(metadata.iloc[i])[0]
-            meta_patient_dict[ii] = list(metadata.iloc[i])[2]
-            meta_condition_dict[ii] = list(metadata.iloc[i])[3]
-
-        filenames = metadata_long.replace(meta_file_dict)
-        patient_ids = metadata_long.replace(meta_patient_dict)
-        conditions = metadata_long.replace(meta_condition_dict)
-
-        metadata_long['file_name'] = filenames
-        metadata_long['patient_id'] = patient_ids
-        metadata_long['condition'] = conditions
-
-        '''
-
         metadata_long.index = exprs.index
 
+        # load cell numbers into metadata attribute -- this makes the countplot simpler later
         self.metadata["number_of_cells"] = length_of_images2
 
+        ## initialize the AnnData object
         self.data = ann.AnnData(X = exprs, var = panel, obs = metadata_long)
 
-        special_category = pd.CategoricalDtype(list(self.data.obs["sample_id"].astype('str').unique()), ordered = True)
-        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype(special_category)
-
-        special_category = pd.CategoricalDtype(list(self.data.obs["patient_id"].astype('str').unique()), ordered = True)
-        self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype(special_category)
-
-        special_category = pd.CategoricalDtype(list(self.data.obs["condition"].astype('str').unique()), ordered = True)
-        self.data.obs["condition"] =  self.data.obs["condition"].astype(special_category)
+        ## set categorical orderings for .obs table & ensure a consistent index (0 --> len(obs))
+        for column in ["sample_id", "patient_id", "condition"] :
+            special_category = pd.CategoricalDtype(list(self.data.obs[column].astype('str').unique()), ordered = True)
+            self.data.obs[column] =  self.data.obs[column].astype(special_category)
         self.data.obs = self.data.obs.reset_index().drop("index", axis = 1)
 
+        # store pre-arcsinh transformed counts data and ensure scaling attributes are reset
         self.data.uns['counts'] = np.array(intensities)   
-                        # this will be the storage place for the pre-arcsinh transformed counts data (not really needed?)
         self.unscaled_data = None
         self._scaling = 'unscale'
 
     def _load_csv(self, 
                   csv_path: Union[Path, str], 
-                  additional_columns = [],    ## in case you added a custom metadata column to the data -- list all additional columns here. 
+                  additional_columns: list = [],    ## in case you added a custom metadata column to the data -- list all additional columns here. 
                                                 # Must not have the same name as an antigen column (this parameter is currently not available in the GUI)
                   arcsinh_cofactor: Union[int,float] = 5        
                   ) -> None:
         '''
         Helper for load_data that handles the loading of a csv file (this csv is usually exported from PalmettoBUG as well, and expects a
         particular format that PalmettoBUG can export)
+
+        Args:
+            csv_path (str or Path): Full path to the CSV file containing single-cell data (can be from outside the Analysis directory).
+
+            additional_columns (list): List of custom metadata columns to treat as metadata
+                (i.e., to include in `obs` rather than `X`). These must not conflict with antigen names.
+
+            arcsinh_cofactor (int or float): If > 0, applies arcsinh transformation to expression data
+                using: arcsinh(data / cofactor). If 0 or less, no transformation is applied.
         '''
-        csv_path = str(csv_path)
+        # Load CSV, clear any existing dimensionality reduction, and write CSV to the Analysis directory
         self.UMAP_embedding = None
         self.PCA_embedding = None
+        csv_path = str(csv_path)
         data = pd.read_csv(csv_path)
         data.to_csv(self.directory + "/source_CSV.csv")
 
+        ## See if the last row has marker_class information (this is the special type/state/none applied to each antigen)
+        ## if present, we want to save this information, but also remove the last row of the data table
+        ## The presence of this row can be triggered when PalmettoBUG exports a CSV, simplifying re-load.
+        ## If not present, then the antigen marker_class information will need to be inputted manually by the user
         marker_class_included = False
         marker_class = data.copy().iloc[-1,:]
         if np.array(marker_class == "na").sum() != 0: 
@@ -441,7 +448,8 @@ class Analysis:
             data = data.iloc[:-1, :]
             marker_class_included = True
 
-        # self.data anndata object should be relatively easy:
+        # Prepare the X and obs portions of the eventual annData object, dropping 'distance_to_bmu' if present 
+        ## (this is a column from FlowSOM clustering that PalmettoBUG does not interact with)
         try:
             data = data.drop('distance_to_bmu', axis = 1)
         except KeyError:
@@ -466,14 +474,16 @@ class Analysis:
             else:
                 data[i] = data[i].astype('float')
         data_X = data.drop(actual_metadata_columns, axis = 1).astype('float')
+
+        ## Apply arsinh transformation
         if arcsinh_cofactor > 0:
             data_arcsinh = np.arcsinh(np.array(data_X) / arcsinh_cofactor) 
         else:
             data_arcsinh = np.array(data_X)
         obs = data[actual_metadata_columns]
 
-        #self.directory = csv_path[:csv_path.rfind("/")]
-        # now self.metadata
+        ## If loaded previously, then a metadata file will already exist at the specified location
+        ## Otherwise a new metadata file should be created
         try:
             self.metadata = pd.read_csv(self.directory + '/metadata.csv') 
         except Exception:
@@ -499,7 +509,7 @@ class Analysis:
 
             self.metadata.to_csv(self.directory + '/metadata.csv', index = False) 
 
-        # now self.panel  (will assume ALL antigens are type, but export the self.panel to a file to allow editing of that)
+        # Do a similar re-load or create process for the panel file.
         try:
             self.panel  = pd.read_csv(self.directory + '/Analysis_panel.csv') 
         except Exception:
@@ -518,25 +528,25 @@ class Analysis:
                            "Open the Analysis_panel.csv file, edit, & reload the experiment to change this!")
 
             self.panel.to_csv(self.directory + '/Analysis_panel.csv', index = False) 
-            
+        
+        ## Setup the AnnData object
         var = self.panel.copy()
         var.index = var['antigen']
         self.data = ann.AnnData(data_arcsinh, var = var, obs = obs)
         self.data.uns['counts'] = np.array(data_X)
+
+        ## store cell count (for countplot) and clear / reset scaling parameters
         self.metadata["number_of_cells"] = list(obs.groupby('sample_id', observed = True).count()['condition'])
         self.unscaled_data = None
         self._scaling = 'unscale'
 
-        special_category = pd.CategoricalDtype(list(self.data.obs["sample_id"].astype('str').unique()), ordered = True)
-        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype(special_category)
-
-        special_category = pd.CategoricalDtype(list(self.data.obs["patient_id"].astype('str').unique()), ordered = True)
-        self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype(special_category)
-
-        special_category = pd.CategoricalDtype(list(data["condition"].astype('str').unique()), ordered = True)
-        self.data.obs["condition"] =  self.data.obs["condition"].astype(special_category)
+        ## Set categorical data types in .obs & reset index so that the index follows an expected /default format
+        for column in ["sample_id", "patient_id", "condition"] :
+            special_category = pd.CategoricalDtype(list(self.data.obs[column].astype('str').unique()), ordered = True)
+            self.data.obs[column] =  self.data.obs[column].astype(special_category)
         self.data.obs = self.data.obs.reset_index().drop("index", axis = 1)
 
+        ## Load spatial information, if available
         try:
             self.data.uns['areas'] = data['areas'] 
             cent_X = np.asarray(data['centroid_X'])
@@ -554,7 +564,8 @@ class Analysis:
                          auto_panel: bool = True,
                          ) -> pd.DataFrame:
         '''
-        This method handles the loading of regionprops data 
+        This method handles the loading of regionprops data (only from FCS directories --  directories from exported CSVs 
+        depend on regionprops data already in the CSV, if present).
         
         Args:
             regionprops_directory (Path, string, None): 
@@ -581,8 +592,9 @@ class Analysis:
                 writes a file to  --  self.directory/Regionpprops_panel.csv -- which is the same format as the Analysis_panel.csv, having 
                 a row for each "marker", with 3 columns for its name(s) and marker_class (type/state/none). But in this case, 
                 the "markers" are not antigens, but regionproperties like eccentricity, area, etc. 
-
         '''
+        ## Check if the regionprops data is already loaded (by the presence of the 'axis_major_length' column, which is from the 
+        ## default region measurements pipeline and should typically be present if regionprops were already loaded)
         try:
             self.data.var.T['axis_major_length']  
             if self._in_gui:  
@@ -595,19 +607,23 @@ class Analysis:
             return
         except KeyError:
             pass
+
+        ## setup directory expectations, find CSV files in the regionprops folder that match an FCS file in the Analysis
         if regionprops_directory is None:
             regionprops_directory = self.directory[:self.directory.rfind("/")] + "/regionprops/"
         regionprops_directory = str(regionprops_directory)
         roi_areas = [i for i in sorted(os.listdir(regionprops_directory)) if i.lower().find(".csv") != -1]
         region_props_tables = ["".join([regionprops_directory,"/",ii]) for ii in roi_areas if (ii[:-4] + ".fcs") in self.fcs_dir_names]
+
+        ## read CSV files and concatenate together to prepare for adding to the Analysis data
         regionprops = pd.DataFrame()
         for i in region_props_tables:
             read_in = pd.read_csv(i)
             regionprops = pd.concat([regionprops, read_in], axis = 0)
-
         regionprops.index = regionprops['Object']
-        # drop centroid-0/1 from main dataframe and load instead as self.data.obsm['spatial'] for interoperability with squidpy --> could also lead to 
-                # an alternate way to execute the spaceANOVA portion of the program
+
+        # Load centroids (0 and 1) into self.data.obsm['spatial'] for interoperability with squidpy, 
+            # and save cell areas for use in specific plotting functions
         X = np.array(regionprops['centroid-0'])
         Y = np.array(regionprops['centroid-1'])
         obsm_key = np.zeros([2, len(X)])
@@ -615,15 +631,21 @@ class Analysis:
         obsm_key[1] = Y
         self.data.obsm['spatial'] = obsm_key.T
         self.data.uns['areas'] = regionprops['area']
+
+        ## Drop unneeded columns (such as centroids), and if possible save the mask_folder so that a Spatial Analysis
+        ## can find the source masks for certain spatial calculations (such as EDTs)
         try:
             self.input_mask_folder = regionprops['mask_folder'].values[0]
             to_drop = ['Object', 'image_area', 'centroid-0', 'centroid-1', 'mask_folder']
         except Exception:
             to_drop = ['Object', 'image_area', 'centroid-0', 'centroid-1']
-
         regionprops = regionprops.drop(to_drop, axis = 1)
 
+        ## Save regionprops information to this class
         self.regionprops_data = regionprops
+
+        ## Create a panel for the new regionprops "antigens" so that a marker_class can be assigned to them
+            ## (or read in a prior panel if already available)
         try:
             regionprops_panel = pd.read_csv(self.directory + '/Regionprops_panel.csv')
             if (self._in_gui) and (len(regionprops_panel.index) != len(regionprops.columns)):

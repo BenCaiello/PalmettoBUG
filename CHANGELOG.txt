@@ -40,10 +40,10 @@ Changes to version (update log in development branch while that branch is being 
           present in the Analysis, with one exception: only existing unique combination of categories from columns present in the metadata.csv are kept for those columns.
 
     Changes to 0.2.6:
-        -
-        -
-        -
-        -
-        -
+        - Bugfixes (including panel / table widget handling)
+        - Add boolean_mask_transform to GUI
+        - Add "cryptic" (non-GUI) functions to SpaceANOVA -- estimate minimum radius, "salami slicer" methods 
+                    (visualize Ripley's stats at various distances as heatmaps)
+        - Minor changes to code comments / docstrings / documentation 
 
 

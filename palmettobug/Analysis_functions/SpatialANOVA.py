@@ -80,6 +80,7 @@ class SpatialANOVA():
         self.condition1 = None
         self.condition2 = None
         self.threshold = 10
+        self.data_table = None
 
     def init_data(self, 
                   space_anova_table: pd.DataFrame, 
@@ -158,7 +159,7 @@ class SpatialANOVA():
         if not os.path.exists(output_directory + "/Functional_plots"):
             os.mkdir(output_directory + "/Functional_plots")
 
-    def _retrieve_data_table(self, for_cell_maps = False):
+    def _retrieve_data_table(self):
         ''''''
         if self.exp is None:     ### we've loaded from a pandas dataframe, not from an anndata object
             pass
@@ -868,6 +869,96 @@ class SpatialANOVA():
 
         return fig_list
 
+    def do_salamification(self, stat: str = 'g') -> np.ndarray[float]:
+        '''
+        This is a salamifying method -- it creates a heatmap salami!
+
+        AKA: it creates 3-dimensinal arrays of the Ripley statistic / g values from the SpaceANOVA calculations
+        Two of the arrays's dimensions are celltype vs. celltype (like the main statistics heatmap), while the third
+        represents the many radii that the statistics were calculated at. These 3-D arrays (the salamis!) are part of a larger
+        4-D array, as each condition in the experiment will have a separate set of calculations.
+
+        This returned array can be used to plot the ripley's stat (with the aid of the plot_salami method following this one)
+        at a selected radius in a selected condition.
+
+        Args:
+            stat (string): 'K', 'L', or 'g' -- which Ripley's statistic to use
+
+        Returns:
+            a 4-dimensional numpy array of floats (also saves this as self.heatmap_salami)
+        '''
+        num_radii = int((self.max - self.min) / self.step) + 1
+        num_conditions = len(self.data_table['condition'].unique())
+        num_comparisons = int(np.sqrt(len(self._all_comparison_list)))
+        output = np.zeros([num_comparisons, num_comparisons, num_radii, num_conditions])
+        for i,ii in enumerate(self.data_table['condition'].unique()):
+            counter = 0
+            row = 0
+            for j,jj in enumerate(self._all_comparison_list):
+                data = self._comparison_dictionary[jj][stat]
+                data = data[data['condition'] == ii][[stat,'radii']]
+                data = np.array(data.groupby('radii', observed = False).mean()['g'])
+                
+                if len(data) != num_radii:
+                    data = np.full(num_radii, np.nan)
+                if counter == num_comparisons:
+                    row += 1
+                    counter = 0
+                output[row,counter,:,i] = data
+                counter += 1
+        self.heatmap_salami = output     
+        return output
+
+    def plot_salami(self, condition: str, 
+                    radii: int, 
+                    heatmap_salami: Union[None,np.ndarray[float]] = None, 
+                    stat_label: str = 'g',
+                    filename: Union[None, str] = None) -> plt.figure:
+        '''
+        Slices that sweet, sweet heatmap salami to expose the gorgeous internal structure as individual heatmaps.
+
+        AKA: will show the Ripley's statistics / g values for a selected condition in the experiment at a selected radii
+        as a heatmap, where the rows and columns of the heatmap as the unique cell types in the SpaceANOVA calculation
+
+        Args:
+            condition (string): which condition in the data to plot for
+
+            radii (integer): which radius to plot (must be a valid, present radius in the data!)
+
+            heatmap_salami (None, or 4D numpy array): the salami to slice! It is the product of the do_salamification method
+                if None, defaults to self.heatmap_salami (which IS the output of do_salamification, at least the last time it was run)
+
+            stat_label (string): which Ripley's stat to plot. Only for the title of the heatmap, not used in any calculations. For accuracy,
+                must match the stat used in the calculation of the heatmap salami (in do_salamification method). By default is 'g'.
+                Personally, 'g' is likely the only statistic to be commonly used for these methods, as it is the easiest to interpret 
+                (>1 or <1 meaning spatial association or dissocation).
+
+            filename(None, or string): if not None, the plot will be written to the location: {self.output_dir}/{filename}.png
+
+        Returns:
+            a matplotlib.pylot figure (the heatmap plot)        
+        '''
+        if heatmap_salami is None:
+            if not hasattr(self, "heatmap_salami"):
+                print("Salamification not performed! No heatmap salami was provided or is available!")
+                return
+            else:
+                heatmap_salami = self.heatmap_salami
+        conditions = [i for i in self.data_table['condition'].unique()]
+        condition_number = int([i for i,ii in enumerate(conditions) if ii == condition][0])
+        radii_num = int([i for i,ii in enumerate(self.fixed_r) if ii == radii][0])
+        title_string = f'{condition}: {str(radii)} micron, stat = {stat_label}'
+        index = [i for i in self.data_table['cellType'].unique() if i != 'dropped']
+        salami_slice = heatmap_salami[:,:,radii_num,condition_number]
+        for_heatmap = pd.DataFrame(salami_slice, columns = index, index = index)
+        figure = plt.figure()
+        ax = plt.gca()
+        sns.heatmap(for_heatmap, annot = True, ax = ax)
+        figure.suptitle(title_string)
+        if filename:
+            figure.savefig(self.output_dir + f"/{filename}.png", bbox_inches = "tight")
+        return figure
+
     def plot_cell_maps(self, 
                        multi_or_single: str, 
                        cellType_key: Union[str, None] = None,
@@ -902,7 +993,7 @@ class SpatialANOVA():
             return
         elif cellType_key is not None:
             self.cellType_key = cellType_key
-        space_anova = self._retrieve_data_table(for_cell_maps = True)
+        space_anova = self._retrieve_data_table()
 
         if output_directory is None:
             output_directory = self.output_dir + "/cell_maps"
@@ -1141,6 +1232,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     
     centerer = 1
     if permutations > 0 :
+        perm_state = np.random.default_rng(perm_state)
         avg_K = np.zeros(len(result_array))
         perm = pointpattern.copy()
         for i in range(0, permutations, 1):

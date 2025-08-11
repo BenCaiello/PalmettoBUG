@@ -107,9 +107,9 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             self.expander.grid(column = 1, row = 6, padx= 5, pady = 5)
             try:
                 from instanseg import InstanSeg  # noqa: F401
-                self.instanseg_available = True
+                self.master.instanseg_available = True
             except Exception:
-                self.instanseg_available = False
+                self.master.instanseg_available = False
             self.Instanseg.configure(state = "disabled")
             self.expander.configure(state = "disabled")
 

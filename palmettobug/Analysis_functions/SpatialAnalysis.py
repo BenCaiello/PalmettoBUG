@@ -300,6 +300,42 @@ class SpatialAnalysis:
         plot = self.neighbors.plot_CN_abundance(clustering, cols = cols)
         return plot
 
+    def estimate_SpaceANOVA_min_radii(self, with_empty_space = True):
+        '''
+        This uses information about the cell masks & images (such as perimeter, area, cell occupied bounding-box areas, etc.).
+
+        If with_empty_space is True, will further adjust up the estimating minimum radii using the proportion of empty space in the cell-occupied regions of the images
+        '''
+        if self.exp.back_up_regions is not None:
+            region_props_data = self.exp.back_up_regions
+        else:
+            region_props_data = self.exp.regionprops_data
+        major_r = region_props_data['axis_major_length'] / 2      ## longest radius
+        minor_r = region_props_data['axis_minor_length'] / 2      ## shortest radius
+        mini = (np.sqrt(major_r * minor_r) / 2).mean()   ## geometric mean of the long & short radii -- "average" radius for our cells. 
+                                                         ## Note this algorithm for finding the average radius was made with AI assistance
+                                                         ## Howewer, precision is not really necessary for this function, just a decent starting estimate
+                                                         ## for the minimum radius to test by SpaceANOVA to reduce artifacts from the measurements being
+                                                         ## centroid-to-centroid (and not from edge-to-edge) of cells
+        if with_empty_space:
+            data_table = pd.DataFrame()
+            if self.exp.back_up_data is not None:
+                data_table['x'] = self.exp.back_up_data.obsm['spatial'][:,0]
+                data_table['y'] = self.exp.back_up_data.obsm['spatial'][:,1]
+                data_table['sample_id']  = list(self.exp.back_up_data.obs['sample_id'].astype('str'))
+            else:
+                data_table['x'] = self.exp.data.obsm['spatial'][:,0]
+                data_table['y'] = self.exp.data.obsm['spatial'][:,1]
+                data_table['sample_id']  = list(self.exp.data.obs['sample_id'].astype('str'))
+            minX_Y = data_table[['sample_id','x','y']].groupby('sample_id').min()[['x','y']]
+            maxX_Y = data_table[['sample_id','x','y']].groupby('sample_id').max()[['x','y']]
+            total_areas = 0
+            for i,ii,iii,iv in zip(minX_Y['x'], maxX_Y['x'], minX_Y['y'], maxX_Y['y']):
+                total_areas += (ii - i)*(iv - iii)
+            empty_space = total_areas - region_props_data['area'].sum()
+            mini +=  mini*(empty_space / total_areas)
+        return int(mini)
+
     def do_SpaceANOVA_ripleys_stats(self,
                                     clustering: str,
                                     max: int = 100, 
