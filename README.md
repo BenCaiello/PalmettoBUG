@@ -8,6 +8,10 @@
 
 Badges made in: https://shields.io/
 
+## NOTE: PalmettoBUG is not yet published and is still intended to be reviewed & tested further, be sensible if you use it and keep an eye out for bugs / errors! 
+
+Also please raise an issue if you do encounter a bug, so that it can be fixed!
+
 ## What is PalmettoBUG
 
 ![PaperFig](https://github.com/BenCaiello/PalmettoBUG/blob/main/docs/source/media/Welcome1.png)
@@ -40,9 +44,9 @@ in the conda environment where the package was installed.
 
 As the scientific python package ecosystem updates, the current dependencies defined for PalmettoBUG (and isoSegDenoise) in the pyproject.toml files may break. Additionaly, you may be interested in using the programs on Python 3.9 -- however, the dependency requirements in the mian branch DO NOT work for python 3.9. 
 
-Therefore, I offer two versions of the program for strictly defining the version number of every dependency in the program -- version 0.1.2.dev39 (python 3.9) or 0.1.2.dev310 (Python 3.10). As in:
+Therefore, I offer two versions of the program for strictly defining the version number of every dependency in the program -- version 0.1.4.dev39 (python 3.9) or 0.1.4.dev310 (Python 3.10). As in:
 
-    > pip install palmettobug==0.1.2.dev39
+    > pip install palmettobug==0.1.4.dev39
 
 ## The isoSegDenoise sister-package
 

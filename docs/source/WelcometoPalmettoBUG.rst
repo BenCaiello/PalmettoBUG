@@ -38,11 +38,14 @@ using a different version like Python 3.11 is MUCH MORE RISKY right now in terms
 
 For Python 3.10 with strictly defined dependencies:
 
->>> pip install palmettobug==0.1.2.dev310
+>>> pip install palmettobug==0.1.4.dev310
 
-For Python 3.9, use:
+For Python 3.9 with strictly defined dependencies, use:
 
->>> pip install palmettobug==0.1.2.dev39
+>>> pip install palmettobug==0.1.4.dev39
+
+These versions should have a more durable / stable installation by reducing the chance of the many dependencies of PalmettoBUG breaking or coming into conflict 
+as they update. If the normal installation fails due to a dependency conflict or error, then trying one of these "strict" versions is a good idea.
 
 **Segmentation & Denoising sister-program**
 
@@ -50,7 +53,7 @@ To get PalmettoBUG's sister package, which handles image denoising and segmentat
 
 >>> pip install isosegdenoise 
 
-in the same environment. This package also has similar package versions with strictly-defined dependencies (like 0.1.2.dev39) 
+in the same environment. This package also has similar package versions with strictly-defined dependencies (like 0.1.4.dev39) 
 for Python 3.10 and 3.9. These dependencies (where they overlap) share similar version numbers, so installation in the same environment should be straightforwrad
 See isoSegDenoise's documentation for more details: https://isosegdenoise.readthedocs.io/en/latest/ 
 
@@ -89,7 +92,7 @@ Download that file, then run:
 
 Or use the python 3.10 version of the program:
 
-   >>> pip install palmettobug==0.1.2.dev310
+   >>> pip install palmettobug==0.1.4.dev310
 
 Note that isoSegDenoise has a separate environments file, etc. on its GitHub page for its dependencies (many of which overlap with PalmettoBUG).
 Both programs can, and typically would be, installed in the same environment so that the PalmettoBUG GUI can easily launch iSD, although this
