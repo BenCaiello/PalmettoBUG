@@ -1,7 +1,7 @@
 
 [project]
 name = "palmettobug"
-version = "0.1.2.dev39"
+version = "0.1.4.dev39"
 description = "A version of PalmettoBUG for python3.9 will STRICTLY defined dependencies. Intended to be particularly stable for installation."
 authors = [
     {name = "Ben Caiello", email = "<caiello@musc.edu>"},

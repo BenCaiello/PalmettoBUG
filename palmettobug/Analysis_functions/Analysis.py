@@ -60,7 +60,7 @@ import statsmodels.api as sm
 import sklearn.preprocessing as skpre
 from sklearn.manifold import MDS
 from sklearn.decomposition import PCA
-from sklearn.neighbors import KernelDensity
+# from sklearn.neighbors import KernelDensity ## possibly superseded by scanpy version of this
 import skimage
 import tifffile as tf
 
@@ -88,27 +88,31 @@ temp_img_dir = homedir + "/Assets/temp_image.png"
 
 def _py_catalyst_quantile_norm(pd_groupby) -> np.ndarray[float]:
     ''' 
-    This is a helper function for the median / heatmap plotting function immediately below 
+    This is a helper function for the median / heatmap plotting function
     '''
     pd_groupby = pd_groupby.copy()
     np_groupby = np.array(pd_groupby)
     np_groupby = np.median(np_groupby, axis = 0)
-    np_groupby = _quant(np_groupby)
+    #np_groupby = _quant(np_groupby)
     return np_groupby
 
-def _quant(array: np.ndarray[float], 
+def _quant(array: np.ndarray[float],                       # *** deriv_CATALYST (replicates CATALYST's scaling)
           lower: float = 0.01, 
           upper:float = 0.99, 
           axis: int = None,
           ) -> np.ndarray[float]:
     '''
-    This is a helper function for _py_catalyst_quantile_norm
+    This is a helper function for the median / heatmap plotting function, meant to imitate CATALYST's heatmap scaling 
     '''
     quantiles = np.quantile(array, (lower, upper), axis = axis) 
+    if axis == 1:
+        array = array.T
     array = (array - quantiles[0])  / (quantiles[1] - quantiles[0])
     array = np.nan_to_num(array)
     array[array > 1] = 1
     array[array < 0] = 0
+    if axis == 1:
+        array = array.T
     return array
 
 class Analysis:   
@@ -171,6 +175,7 @@ class Analysis:
         self.directory = None
         self.data = None
         self.back_up_data = None
+        self.back_up_regions = None
         self.logger = None
         self.clusterings_dir = None
         self._scaling = "unscale"
@@ -182,6 +187,7 @@ class Analysis:
 
     def load_data(self, 
                   directory: Union[Path, str], 
+                  arcsinh_cofactor: Union[int,float] = 5,   
                   save_dir: str = "Plots",
                   data_table_dir: str = "Data_tables",
                   csv: Union[str, Path, None] = None,
@@ -194,6 +200,9 @@ class Analysis:
         Args:
             directory (string or Path): the path to the directory where the Analysis is to be performed. If csv is None, then the expectation 
                     is that there should be .fcs files inside a subfolder of this directory (specifically inside a /Analysis_fcs subfolder)
+
+            arcsinh_cofactor (integer): Default is 5. If > 0, will transform data according to the following equation
+                    >>> data = arcsinh(data / arcsinh_cofactor)
 
             save_dir & data_table_dir (str): these allow you to specify what self.save_dir and self.data_table_dir will be WITHIN the main
                 directory. By default save_dir == "Plots" and data_table_dir == "Data_tables". If you want export outside the main directory,
@@ -216,30 +225,25 @@ class Analysis:
         Input/Output:
             Input: expects either a .csv file at the path defined by the [csv] argument, or expects a folder of only .fcs files located at [directory]/Analysis_fcs. 
         '''
+        ## I have preferred to work with the string representation of the path. Because I use "/" instead of "\\" these should be compatible with
+        ## all modern operating systems. Perhaps some very old versions of windows can't cope with that, but I'm not too concerned
         directory = str(directory)
         self.directory = directory
-        
         self.directory  = self.directory.replace("\\" , "/")
-        if csv is None:
-            self.metadata = pd.read_csv(self.directory + '/metadata.csv')
-            self.metadata['condition'] = self.metadata['condition'].astype('str')
-            metadata_cat = pd.CategoricalDtype(categories = self.metadata['condition'].unique(), ordered = True)
-            self.metadata['condition'] = self.metadata['condition'].astype(metadata_cat)
-            self.metadata['patient_id'] = self.metadata['patient_id'].astype('str')
-            self.metadata['sample_id'] = self.metadata['sample_id'].astype('str')
-            self.panel = pd.read_csv(self.directory + '/Analysis_panel.csv')
-        else:
-            pass
 
+        ## Create expected directories to save plots, data tables, etc.
         self.save_dir = self.directory + f"/{save_dir}"
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
-
         self.data_table_dir = self.directory + f"/{data_table_dir}"
         if not os.path.exists(self.data_table_dir):
             os.mkdir(self.data_table_dir)
+        self.mergings_dir  = self.directory + "/mergings"
+        if not os.path.exists(self.mergings_dir ):
+            os.mkdir(self.mergings_dir )
+        self.clusterings_dir  = self.directory + "/clusterings"
 
-        ## likely strictly unnecessary, as mergings can directly loaded or saved from pandas dataframes as people please without this folder being used
+        ## Setup logger if in GUI mode of PalmettoBUG
         if self._in_gui:
             if csv is not None:
                 log_dir = directory[:directory.rfind("/")]
@@ -249,23 +253,27 @@ class Analysis:
             Analysis_log = Analysis_logger(log_dir).return_log()
             self.logger = Analysis_log
 
-            self.mergings_dir  = self.directory + "/mergings"
-            if not os.path.exists(self.mergings_dir ):
-                os.mkdir(self.mergings_dir )
-        
-        self.clusterings_dir  = self.directory + "/clusterings"
-
+        ## handle metadata & panel is loading from FCS files, otherwise the requisite information is in the CSV itself
         if csv is None:
-            self._load_fcs()
+            self.metadata = pd.read_csv(self.directory + '/metadata.csv')
+            self.metadata['condition'] = self.metadata['condition'].astype('str')
+            metadata_cat = pd.CategoricalDtype(categories = self.metadata['condition'].unique(), ordered = True)
+            self.metadata['condition'] = self.metadata['condition'].astype(metadata_cat)
+            self.metadata['patient_id'] = self.metadata['patient_id'].astype('str')
+            self.metadata['sample_id'] = self.metadata['sample_id'].astype('str')
+            self.panel = pd.read_csv(self.directory + '/Analysis_panel.csv')
+            self._load_fcs(arcsinh_cofactor = arcsinh_cofactor)
         else:
-            self._load_csv(csv, additional_columns = csv_additional_columns)
+            self._load_csv(csv, additional_columns = csv_additional_columns, arcsinh_cofactor = arcsinh_cofactor)
+        
+        ## Handle spatial experiment information
         if load_regionprops:
-            try:
+            try:  ## from FCS load
                 self.load_regionprops(auto_panel = False)
                     ## do this so that squidpy interoperativity is simpler / seam-less
                     #### append regionprops is a different matter though... require that to be chosen by the user
                 self._spatial = True
-            except Exception:
+            except Exception:   ## load from CSV may have spatial information, but it will already be in self.data
                 try:
                     self.data.obsm['spatial']
                     self.data.uns['areas']
@@ -275,22 +283,31 @@ class Analysis:
                     print("Could not load regionprops data, presuming this is a solution-mode dataset -- Spatial analyses will not be possible.")
                     self._spatial = False
 
-    def _load_fcs(self) -> None:
+    def _load_fcs(self, arcsinh_cofactor: Union[int,float] = 5) -> None:
         '''
-        Helper for load_data that handles the loading of .fcs file information from directory/Analysis_fcs
+        Loads and processes .fcs files from the 'Analysis_fcs' directory, aligns them with metadata,
+        applies arcsinh transformation, and stores the result in an AnnData object for downstream analysis.
+
+        Args:
+            arcsinh_cofactor (int | float): The cofactor used for arcsinh transformation of intensity values.
+                                         If set to 0 or less, no transformation is applied.
         '''
+        # Suppress specific warnings that may arise during data loading
+            # These warnings are mainly associated with the creation of the AnnData object, and are generally not helpful in this case
         warnings.filterwarnings("ignore", message = "Passing a BlockManager")
         warnings.filterwarnings("ignore", message = "Transforming to str index")
         warnings.filterwarnings("ignore", message = "Observation names are not unique") 
+
+        # Reset an dimensionality reductions (PCA / UMAP) and look for FCS files in the expected location
         metadata = self.metadata
         panel = self.panel
         panel.index = panel['antigen']
-
         self.UMAP_embedding = None
         self.PCA_embedding = None
         self.fcs_directory = self.directory  + "/Analysis_fcs"
         self.fcs_dir_names = [i for i in sorted(os.listdir(self.fcs_directory)) if i.lower().find(".fcs") != -1]
 
+        ## only keep rows in the metadata that match available FCS files (includes the warning and subsequent code block)
         new_fcs_filenames = []
         truth_array = np.zeros(len(self.metadata)).astype('bool')
         for i in list(self.metadata['file_name']):
@@ -298,6 +315,7 @@ class Analysis:
                 new_fcs_filenames.append(i)
                 truth_array = truth_array + np.array(self.metadata['file_name'] == i).astype('bool')
 
+        ## Handle mismatches between the metadata table & the available FCS files:
         if (len(self.fcs_dir_names) != len(self.metadata)) or (len(new_fcs_filenames) != len(self.fcs_dir_names)):
             missing_in_metadata = [i for i in self.fcs_dir_names if i not in new_fcs_filenames]
             missing_in_FCS = [i for i in self.metadata['file_name'] if i not in new_fcs_filenames]
@@ -313,11 +331,13 @@ class Analysis:
                       "only keeping data present in both for analysis!"
                      f"FCS files absent in metdata: {str(missing_in_metadata)} \n"
                      f"metadata entries absent in FCS files: {str(missing_in_FCS)}") 
-
+        
+        # apply the metadata filtering
         self.metadata = self.metadata[truth_array]
         self.fcs_dir_names = new_fcs_filenames
         self.fcs_path_list = ["".join([self.fcs_directory,"/",i]) for i in self.fcs_dir_names]
 
+        ## Read in FCS files and concatenate into a single dataframe
         intensities = pd.DataFrame()
         self.length_of_images = [0]
         length_of_images2 = []
@@ -331,12 +351,15 @@ class Analysis:
             intensities = pd.concat([intensities, fcs_read_in], axis = 0)
         warnings.filterwarnings("default", message = "The default channel names")
 
+        ## drop 'Object' column if it exists (can cause misalignment with panel dataframe)
         if len(intensities.columns) > len(panel):
             try:
-                intensities = intensities.drop("Object", axis = 1)   ## if Object column is in the fcs's drop it
+                intensities = intensities.drop("Object", axis = 1)
             except KeyError:
                 pass
 
+        ## Antigens with all 0 values contribute no useful information to analysis 
+        # removing them can reduce computational load and prevent them from creating errors in certain calculations / plots
         dropped_antigen_list = []
         for i in intensities.columns:
             if intensities[i].sum() == 0:
@@ -348,12 +371,16 @@ class Analysis:
                 Analysis_log.info(f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}") 
             else:
                 print(f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}")
-
         panel = panel.T.drop(dropped_antigen_list, axis = 1).T
-
-        exprs = pd.DataFrame(np.arcsinh(intensities / 5))
+        
+        # apply arcsinh transformation
+        if arcsinh_cofactor > 0:
+            exprs = pd.DataFrame(np.arcsinh(intensities / arcsinh_cofactor))
+        else:
+            exprs = pd.DataFrame(intensities)
         exprs.columns = panel["antigen"]
 
+        ## extend the metadata table to match the number of cells -- preparation for this becoming the .obs portion of the AnnData object
         metadata_long = pd.DataFrame()
         sample_id_array = np.zeros([0])
         counter = 0
@@ -361,56 +388,58 @@ class Analysis:
         for i,ii in zip(self.length_of_images[:-1], self.length_of_images[1:]):
             slicer = np.full(shape = [ii - i], fill_value = sample_ids[counter])
             sample_id_array = np.append(sample_id_array,slicer)
-            counter += 1
-            
+            counter += 1 
         metadata_long['sample_id'] = sample_id_array.astype('int').astype('str')
-
-        meta_file_dict = {}
-        meta_patient_dict = {}
-        meta_condition_dict = {}
-        for i,ii in enumerate(metadata["sample_id"]):
-            meta_file_dict[ii]= list(metadata.iloc[i])[0]
-            meta_patient_dict[ii]= list(metadata.iloc[i])[2]
-            meta_condition_dict[ii]= list(metadata.iloc[i])[3]
-
-        filenames = metadata_long.replace(meta_file_dict)
-        patient_ids = metadata_long.replace(meta_patient_dict)
-        conditions = metadata_long.replace(meta_condition_dict)
-
-        metadata_long['file_name'] = filenames
-        metadata_long['patient_id'] = patient_ids
-        metadata_long['condition'] = conditions
+        metadata_long = pd.merge(metadata_long, metadata[["sample_id",'file_name', 'patient_id', 'condition']], on = 'sample_id')
         metadata_long.index = exprs.index
 
+        # load cell numbers into metadata attribute -- this makes the countplot simpler later
         self.metadata["number_of_cells"] = length_of_images2
 
+        ## initialize the AnnData object
         self.data = ann.AnnData(X = exprs, var = panel, obs = metadata_long)
-        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype("category")
-        self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype("category")
-        self.data.obs["condition"] =  self.data.obs["condition"].astype("category")
+
+        ## set categorical orderings for .obs table & ensure a consistent index (0 --> len(obs))
+        for column in ["sample_id", "patient_id", "condition"] :
+            special_category = pd.CategoricalDtype(list(self.data.obs[column].astype('str').unique()), ordered = True)
+            self.data.obs[column] =  self.data.obs[column].astype(special_category)
         self.data.obs = self.data.obs.reset_index().drop("index", axis = 1)
 
+        # store pre-arcsinh transformed counts data and ensure scaling attributes are reset
         self.data.uns['counts'] = np.array(intensities)   
-                        # this will be the storage place for the pre-arcsinh transformed counts data (not really needed?)
         self.unscaled_data = None
         self._scaling = 'unscale'
 
     def _load_csv(self, 
                   csv_path: Union[Path, str], 
-                  do_arcsinh: bool = False,
-                  additional_columns = [],    ## in case you added a custom metadata column to the data -- list all additional columns here. 
-                                                    # Must not have the same name as an antigen column (this parameter is currently not available in the GUI)
+                  additional_columns: list = [],    ## in case you added a custom metadata column to the data -- list all additional columns here. 
+                                                # Must not have the same name as an antigen column (this parameter is currently not available in the GUI)
+                  arcsinh_cofactor: Union[int,float] = 5        
                   ) -> None:
         '''
         Helper for load_data that handles the loading of a csv file (this csv is usually exported from PalmettoBUG as well, and expects a
         particular format that PalmettoBUG can export)
+
+        Args:
+            csv_path (str or Path): Full path to the CSV file containing single-cell data (can be from outside the Analysis directory).
+
+            additional_columns (list): List of custom metadata columns to treat as metadata
+                (i.e., to include in `obs` rather than `X`). These must not conflict with antigen names.
+
+            arcsinh_cofactor (int or float): If > 0, applies arcsinh transformation to expression data
+                using: arcsinh(data / cofactor). If 0 or less, no transformation is applied.
         '''
-        csv_path = str(csv_path)
+        # Load CSV, clear any existing dimensionality reduction, and write CSV to the Analysis directory
         self.UMAP_embedding = None
         self.PCA_embedding = None
+        csv_path = str(csv_path)
         data = pd.read_csv(csv_path)
         data.to_csv(self.directory + "/source_CSV.csv")
 
+        ## See if the last row has marker_class information (this is the special type/state/none applied to each antigen)
+        ## if present, we want to save this information, but also remove the last row of the data table
+        ## The presence of this row can be triggered when PalmettoBUG exports a CSV, simplifying re-load.
+        ## If not present, then the antigen marker_class information will need to be inputted manually by the user
         marker_class_included = False
         marker_class = data.copy().iloc[-1,:]
         if np.array(marker_class == "na").sum() != 0: 
@@ -419,7 +448,8 @@ class Analysis:
             data = data.iloc[:-1, :]
             marker_class_included = True
 
-        # self.data anndata object should be relatively easy:
+        # Prepare the X and obs portions of the eventual annData object, dropping 'distance_to_bmu' if present 
+        ## (this is a column from FlowSOM clustering that PalmettoBUG does not interact with)
         try:
             data = data.drop('distance_to_bmu', axis = 1)
         except KeyError:
@@ -444,15 +474,16 @@ class Analysis:
             else:
                 data[i] = data[i].astype('float')
         data_X = data.drop(actual_metadata_columns, axis = 1).astype('float')
-        if do_arcsinh is True:
-            data_arcsinh = np.arcsinh(np.array(data_X) / 5) # don't use arcsinh transform (or make optional), to avoid double transformations
-                                                                # As exported data from PalmettoBUG is already arcsinh transformed
+
+        ## Apply arsinh transformation
+        if arcsinh_cofactor > 0:
+            data_arcsinh = np.arcsinh(np.array(data_X) / arcsinh_cofactor) 
         else:
             data_arcsinh = np.array(data_X)
         obs = data[actual_metadata_columns]
 
-        #self.directory = csv_path[:csv_path.rfind("/")]
-        # now self.metadata
+        ## If loaded previously, then a metadata file will already exist at the specified location
+        ## Otherwise a new metadata file should be created
         try:
             self.metadata = pd.read_csv(self.directory + '/metadata.csv') 
         except Exception:
@@ -472,12 +503,13 @@ class Analysis:
 
             self.metadata = self.metadata.sort_values('sample_id', ascending = True)
             self.metadata['sample_id'] = self.metadata['sample_id'].astype('category')
+
             metadata_cat = pd.CategoricalDtype(categories = self.metadata['condition'].unique(), ordered = True)
             self.metadata['condition'] = self.metadata['condition'].astype(metadata_cat)
 
             self.metadata.to_csv(self.directory + '/metadata.csv', index = False) 
 
-        # now self.panel  (will assume ALL antigens are type, but export the self.panel to a file to allow editing of that)
+        # Do a similar re-load or create process for the panel file.
         try:
             self.panel  = pd.read_csv(self.directory + '/Analysis_panel.csv') 
         except Exception:
@@ -496,20 +528,25 @@ class Analysis:
                            "Open the Analysis_panel.csv file, edit, & reload the experiment to change this!")
 
             self.panel.to_csv(self.directory + '/Analysis_panel.csv', index = False) 
-            
+        
+        ## Setup the AnnData object
         var = self.panel.copy()
         var.index = var['antigen']
         self.data = ann.AnnData(data_arcsinh, var = var, obs = obs)
         self.data.uns['counts'] = np.array(data_X)
+
+        ## store cell count (for countplot) and clear / reset scaling parameters
         self.metadata["number_of_cells"] = list(obs.groupby('sample_id', observed = True).count()['condition'])
         self.unscaled_data = None
         self._scaling = 'unscale'
 
-        self.data.obs["sample_id"] =  self.data.obs["sample_id"].astype('str').astype("category")
-        self.data.obs["patient_id"] =  self.data.obs["patient_id"].astype("category")
-        self.data.obs["condition"] =  self.data.obs["condition"].astype("category")
+        ## Set categorical data types in .obs & reset index so that the index follows an expected /default format
+        for column in ["sample_id", "patient_id", "condition"] :
+            special_category = pd.CategoricalDtype(list(self.data.obs[column].astype('str').unique()), ordered = True)
+            self.data.obs[column] =  self.data.obs[column].astype(special_category)
         self.data.obs = self.data.obs.reset_index().drop("index", axis = 1)
 
+        ## Load spatial information, if available
         try:
             self.data.uns['areas'] = data['areas'] 
             cent_X = np.asarray(data['centroid_X'])
@@ -527,7 +564,8 @@ class Analysis:
                          auto_panel: bool = True,
                          ) -> pd.DataFrame:
         '''
-        This method handles the loading of regionprops data 
+        This method handles the loading of regionprops data (only from FCS directories --  directories from exported CSVs 
+        depend on regionprops data already in the CSV, if present).
         
         Args:
             regionprops_directory (Path, string, None): 
@@ -554,8 +592,9 @@ class Analysis:
                 writes a file to  --  self.directory/Regionpprops_panel.csv -- which is the same format as the Analysis_panel.csv, having 
                 a row for each "marker", with 3 columns for its name(s) and marker_class (type/state/none). But in this case, 
                 the "markers" are not antigens, but regionproperties like eccentricity, area, etc. 
-
         '''
+        ## Check if the regionprops data is already loaded (by the presence of the 'axis_major_length' column, which is from the 
+        ## default region measurements pipeline and should typically be present if regionprops were already loaded)
         try:
             self.data.var.T['axis_major_length']  
             if self._in_gui:  
@@ -568,19 +607,23 @@ class Analysis:
             return
         except KeyError:
             pass
+
+        ## setup directory expectations, find CSV files in the regionprops folder that match an FCS file in the Analysis
         if regionprops_directory is None:
             regionprops_directory = self.directory[:self.directory.rfind("/")] + "/regionprops/"
         regionprops_directory = str(regionprops_directory)
         roi_areas = [i for i in sorted(os.listdir(regionprops_directory)) if i.lower().find(".csv") != -1]
         region_props_tables = ["".join([regionprops_directory,"/",ii]) for ii in roi_areas if (ii[:-4] + ".fcs") in self.fcs_dir_names]
+
+        ## read CSV files and concatenate together to prepare for adding to the Analysis data
         regionprops = pd.DataFrame()
         for i in region_props_tables:
             read_in = pd.read_csv(i)
             regionprops = pd.concat([regionprops, read_in], axis = 0)
-
         regionprops.index = regionprops['Object']
-        # drop centroid-0/1 from main dataframe and load instead as self.data.obsm['spatial'] for interoperability with squidpy --> could also lead to 
-                # an alternate way to execute the spaceANOVA portion of the program
+
+        # Load centroids (0 and 1) into self.data.obsm['spatial'] for interoperability with squidpy, 
+            # and save cell areas for use in specific plotting functions
         X = np.array(regionprops['centroid-0'])
         Y = np.array(regionprops['centroid-1'])
         obsm_key = np.zeros([2, len(X)])
@@ -588,15 +631,21 @@ class Analysis:
         obsm_key[1] = Y
         self.data.obsm['spatial'] = obsm_key.T
         self.data.uns['areas'] = regionprops['area']
+
+        ## Drop unneeded columns (such as centroids), and if possible save the mask_folder so that a Spatial Analysis
+        ## can find the source masks for certain spatial calculations (such as EDTs)
         try:
             self.input_mask_folder = regionprops['mask_folder'].values[0]
             to_drop = ['Object', 'image_area', 'centroid-0', 'centroid-1', 'mask_folder']
         except Exception:
             to_drop = ['Object', 'image_area', 'centroid-0', 'centroid-1']
-
         regionprops = regionprops.drop(to_drop, axis = 1)
 
+        ## Save regionprops information to this class
         self.regionprops_data = regionprops
+
+        ## Create a panel for the new regionprops "antigens" so that a marker_class can be assigned to them
+            ## (or read in a prior panel if already available)
         try:
             regionprops_panel = pd.read_csv(self.directory + '/Regionprops_panel.csv')
             if (self._in_gui) and (len(regionprops_panel.index) != len(regionprops.columns)):
@@ -674,6 +723,8 @@ class Analysis:
         '''
         if self.back_up_data is None:
             self.back_up_data = self.data.copy()
+            if self._spatial and (self.back_up_regions is None):
+                self.back_up_regions = self.regionprops_data.copy()
             
         filterer = self.data.obs[column].astype('str') != str(to_drop) 
         if (column == "sample_id") or (column == "patient_id") or (column == "condition"):
@@ -683,6 +734,9 @@ class Analysis:
         self.data = self.data[filterer].copy()
         if self.unscaled_data is not None:
             self.unscaled_data = self.unscaled_data[filterer].copy()
+
+        if self._spatial:
+            self.regionprops_data = self.regionprops_data[np.array(list(filterer))].copy()
 
         if column in self.metadata.columns:
             self.metadata = self.metadata[self.metadata[column] != str(to_drop)]
@@ -833,7 +887,7 @@ class Analysis:
                           min_dist: float = 0.1, 
                           n_neighbors: int = 15,
                           resolution: int = 1,
-                          flavor = "leidenalg",
+                          flavor: str = "leidenalg",
                           try_from_umap_embedding: bool = False,
                           ) -> None:
         '''Creates a UMAP from all the cells in the dataset and then performs leiden clustering. 
@@ -913,6 +967,7 @@ class Analysis:
                    n_clusters: int = 20, 
                    XY_dim: int = 10, 
                    rlen: int = 15, 
+                   scale_within_cells: bool = True,
                    seed: int = 1234,
                    ) -> FlowSOM: # *** deriv_CATALYST (with Pixie / ark-analysis like quantiling & normalization)
         '''
@@ -952,7 +1007,8 @@ class Analysis:
 
         ## scale within cells in the same way as the data is scaled within antigens (?? -- or just use min_max for everything)
         # if self._scaling != "unscale":   ### don't do scaling within cells if not scaled within antigens ?
-        for_fs.X = skpre.minmax_scale(for_fs.X, axis = 1)               
+        if scale_within_cells:
+            for_fs.X = skpre.minmax_scale(for_fs.X, axis = 1)               
  
         fs = FlowSOM(for_fs.copy(), 
                     n_clusters = n_clusters, 
@@ -996,7 +1052,7 @@ class Analysis:
             self.PCA_embedding.obs['metaclustering'] = self.PCA_embedding.obs['metaclustering'].astype('category') 
         return fs
 
-    def _plot_stars_CNs(self, fs, filename: Union[str, None] = None):
+    def _plot_stars_CNs(self, fs: FlowSOM, filename: Union[str, None] = None) -> plt.figure:
         '''
         Plots the minimum spanning tree / star plot from the FlowSOM package
 
@@ -1020,6 +1076,154 @@ class Analysis:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
         plt.close()
         return figure
+
+    def do_regions(self,
+                    region_folder: Union[Path, str]
+                    ) -> pd.DataFrame:
+        '''
+        (Modified from mode_classify_folder) function to classify cells by the region and sample_id they are in.
+        As in, for every matching image in the mask and region folders, looks at the cells in the mask image -- for every cell
+        it will check if that cell lies within a region of the region image (the mode of its pixels lies within a region with value > 0).
+        Then will assign a label to that cell: 0 if outside a region, or {region#}_{image#} if it does lie within a region. 
+        These labels are accumulated into a list which is appended to the Analysis Object
+
+        '''
+        mask_folder = self.input_mask_folder
+        mask_folder = str(mask_folder)
+        masks = sorted(os.listdir(mask_folder))
+        used_masks = [i for i in masks if f'{i[:i.rfind(".tif")]}.fcs' in list(self.data.obs["file_name"].unique())]
+        region_folder = str(region_folder)
+        overlapping = [i for i in sorted(os.listdir(region_folder)) if i in used_masks]
+        if len(overlapping) != len(used_masks):
+            print('Warning! The regions provided do not match ALL the source masks of the analysis. This is likely to create ')
+            return
+        assignments = []
+        for ii,i in enumerate(overlapping):
+            mask = tf.imread("".join([mask_folder,"/",i])).astype('int')
+            region_map = tf.imread("".join([region_folder,"/",i])).astype('int')
+            if mask.shape != region_map.shape:
+                raise ValueError(f"The ROI: {i}, has a mismatch in size between the cell masks and the regions provided!")
+            output = self._assign_regions(mask, region_map, image_number = ii) 
+            assignments = assignments + output
+        self.data.obs['regions'] = assignments
+        if self.UMAP_embedding is not None:
+            merge_df = self.data.obs[['regions']].copy()
+            merge_df['true_index'] = self.data.obs.index.copy().astype('int')
+            self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
+            try: 
+                self.UMAP_embedding.obs = self.UMAP_embedding.obs.drop(["regions"], axis = 1)  
+                                                                        ## if present, these columns should be dropped
+            except KeyError:
+                pass
+            self.UMAP_embedding.obs = pd.merge(self.UMAP_embedding.obs, merge_df, on = 'true_index')
+            self.UMAP_embedding.obs['regions'] = self.UMAP_embedding.obs['regions'].astype('category') 
+        if self.PCA_embedding is not None:
+            merge_df = self.data.obs[['regions']].copy()
+            merge_df['true_index'] = self.data.obs.index.copy().astype('int')
+            self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
+            try: 
+                self.PCA_embedding.obs = self.PCA_embedding.obs.drop(["regions"], axis = 1)  
+                                                                        ## if present, these columns should be dropped
+            except KeyError:
+                pass
+            self.PCA_embedding.obs = pd.merge(self.PCA_embedding.obs, merge_df, on = 'true_index')
+            self.PCA_embedding.obs['regions'] = self.PCA_embedding.obs['regions'].astype('category') 
+
+    def _assign_regions(self, 
+                        mask: np.ndarray[Union[float, int]], 
+                        region_map: np.ndarray[int],
+                        image_number: Union[str, int]
+                        ) -> tuple[np.ndarray[float], np.ndarray[int], pd.DataFrame]:
+        '''
+        This function iterates through two matching-sized numpy arrays (one representing cell masks & one representing 
+        region of the image [these regions are also masks, with background pixels of value == 0]), and returns a list of assigned regions 
+        to each of the cells ('0' if not within a region, and {region#}_{image#} if within a region, such as '2_3' for region 2 of the third image).
+        The image number must be passed into the function.  
+        '''                
+        regionprops = skimage.measure.regionprops(mask)
+        cell_class_list = []
+        for ii,i in enumerate(regionprops):
+            box = i.bbox
+            slicer = i.image
+            single_cell = region_map[box[0]:box[2],box[1]:box[3]][slicer]
+            counts = np.unique(single_cell, return_counts = True)
+            classes = counts[0]
+            counts = counts[1]
+            mode_num = np.argmax(counts)
+            mode = classes[mode_num]
+            if mode == 0:   ## this only occurs if there is a 'background' class, after merging
+                assignment = '0_0'
+            else:
+                assignment = f'{str(mode)}_{str(image_number)}'
+            cell_class_list.append(assignment)
+        return cell_class_list
+
+    def _do_spatial_leiden(self, 
+                          n_neighbors: int = 15, 
+                          resolution: int = 1, 
+                          random_state: int = 42,
+                          ) -> None:
+        '''
+        This function takes the centroid information from regionprops (centroid-0 and centroid-1) and calculates a neighborhood graph / leiden 
+        clustering for that. 
+        This is similar to the use of leiden on UMAPs, just in this case the input to the UMAP is only the physical X / Y coordinates of the 
+        centroids.
+
+        Appends the resulting spatial clustering -- which is calculated per image -- to self.data.obs in the format 
+        f"{image number}_{cluster number}"  
+
+        Uncertain how useful this is, but it is available      
+        '''
+        data = self.data.copy()
+        slicer = ((self.data.var['antigen'] == 'centroid-0').astype('int') + (self.data.var['antigen'] == 'centroid-1').astype('int')).astype('bool')
+        new_data = data.T[slicer].copy()
+        new_data = new_data.T
+        ## for now, copy the defaults of the major paramteres of scanpy's neighbors function below --> 
+        # so that I can easily use a paramter if I decide to add as an option for the user
+        all_leiden = []
+        for i in new_data.obs['sample_id'].astype('int').unique():   ## be sure of proper order
+                                                ## consider testing sc.external.pp.bbknn(), instead of doing my own
+                                                ## most of the slow-down, however, seems to come from loading (aka, failing to load) the 
+                                                # GPU at the start....
+            slicer = new_data.obs['sample_id'].astype('int') == i
+            this_sample = new_data[slicer]
+            sc.pp.neighbors(this_sample, 
+                            n_neighbors = n_neighbors, 
+                            n_pcs = 0, 
+                            knn = True, 
+                            method = 'umap', 
+                            random_state = random_state)
+            sc.tl.leiden(this_sample, 
+                         resolution = resolution, 
+                         random_state = random_state,
+                         flavor = "leidenalg", 
+                        n_iterations = 2)
+            this_sample_leiden = list((str(i) + "_") + this_sample.obs['spatial_leiden'].astype('str'))
+            all_leiden = all_leiden + this_sample_leiden
+        self.data.obs['spatial_leiden'] = all_leiden
+        if self.UMAP_embedding is not None:
+            merge_df = self.data.obs[['spatial_leiden']].copy()
+            merge_df['true_index'] = self.data.obs.index.copy().astype('int')
+            self.UMAP_embedding.obs['true_index'] = self.UMAP_embedding.obs['true_index'].astype('int')
+            try: 
+                self.UMAP_embedding.obs = self.UMAP_embedding.obs.drop(["spatial_leiden"], axis = 1)  
+                                                                        ## if present, these columns should be dropped
+            except KeyError:
+                pass
+            self.UMAP_embedding.obs = pd.merge(self.UMAP_embedding.obs, merge_df, on = 'true_index')
+            self.UMAP_embedding.obs['spatial_leiden'] = self.UMAP_embedding.obs['spatial_leiden'].astype('category') 
+        if self.PCA_embedding is not None:
+            merge_df = self.data.obs[['spatial_leiden']].copy()
+            merge_df['true_index'] = self.data.obs.index.copy().astype('int')
+            self.PCA_embedding.obs['true_index'] = self.PCA_embedding.obs['true_index'].astype('int')
+            try: 
+                self.PCA_embedding.obs = self.PCA_embedding.obs.drop(["spatial_leiden"], axis = 1)  
+                                                                        ## if present, these columns should be dropped
+            except KeyError:
+                pass
+            self.PCA_embedding.obs = pd.merge(self.PCA_embedding.obs, merge_df, on = 'true_index')
+            self.PCA_embedding.obs['spatial_leiden'] = self.PCA_embedding.obs['spatial_leiden'].astype('category') 
+
 
     def plot_cell_counts(self,
                          group_by: str = "sample_id", 
@@ -1061,6 +1265,7 @@ class Analysis:
                  marker_class: str = "type", 
                  color_by: str = "condition", 
                  print_stat: bool = False,
+                 seed: int = 42, ## note, this parameter was added 6-17-25 (dev branch), previously the seed was hard-coded to a value of 149 (?)
                  filename: Union[str, None] = None,
                  **kwargs) -> tuple[plt.figure, pd.DataFrame]:                 # *** deriv_CATALYST (plot appearance / output)
         ''' 
@@ -1087,20 +1292,21 @@ class Analysis:
             a matplotlib.pyplot figure and a pandas dataframe
         '''
         metadata = self.metadata.copy()
-        panel = self.panel.copy()
+        panel = self.data.var.copy()
 
-        flowsom_clustering = self.data.copy()
+        MDS_data = self.data.copy()
         if marker_class != "All":  
             slicer = panel['marker_class'] == marker_class 
-            flowsom_clustering = flowsom_clustering[:,slicer]
+            MDS_data = MDS_data[:,slicer]
             panel = panel[slicer]
 
-        median_df = pd.DataFrame(flowsom_clustering.X, columns = flowsom_clustering.var['antigen'])
-        median_df['sample_id'] = list(flowsom_clustering.obs['sample_id'])
+        median_df = pd.DataFrame(MDS_data.X, columns = MDS_data.var['antigen'])
+        median_df['sample_id'] = list(MDS_data.obs['sample_id'])
+        median_df['sample_id'] = median_df['sample_id'].astype(MDS_data.obs['sample_id'].dtype)
 
         median_df = median_df.groupby("sample_id", observed = False).median()
         
-        MDSer = MDS(random_state = 149)
+        MDSer = MDS(random_state = seed)
         output = pd.DataFrame(MDSer.fit_transform(np.array(median_df)))
         output.columns = ["MDS dim. 1", "MDS dim. 2"]
         output["sample_id"] = metadata["sample_id"]
@@ -1315,8 +1521,8 @@ class Analysis:
                             bbox_to_anchor = (x_anchor, 
                                                 0.9))
         fig.subplots_adjust(hspace = 0.5)
-        sup_Y = 1.04 + (row_num * -0.01)
         if suptitle:
+            sup_Y = 1.04 + (row_num * -0.01)
             fig.suptitle("KDE / Histogram plots of normalized Exprs of each marker \n facetted by sample_id ", y = sup_Y)
         fig.supxlabel("normalized Exprs")
         if filename is not None:
@@ -1328,7 +1534,7 @@ class Analysis:
                 marker_class: str = "type", 
                 cell_number: int = 1000,
                 seed: int = 0,
-                n_neighbors = 15,
+                n_neighbors: int = 15,
                 min_dist: float = 0.1,
                 **kwargs) -> None:                                # *** deriv_CATALYST ()
         '''
@@ -1415,6 +1621,7 @@ class Analysis:
         fs_anndata = anndata_in.copy()
         anndata_df = pd.DataFrame(fs_anndata.X, columns = fs_anndata.var['antigen'])
         anndata_df['sample_id'] = list(fs_anndata.obs['sample_id'])
+        anndata_df['sample_id'] = anndata_df['sample_id'].astype(fs_anndata.obs['sample_id'].dtype)
         anndata_df.index = fs_anndata.obs.index.astype('int')
         sample_together = pd.DataFrame()
         for i in anndata_df['sample_id'].astype('str').unique():
@@ -1450,10 +1657,10 @@ class Analysis:
 
     def plot_scatter(self, antigen1: str, 
                      antigen2: str, 
-                     hue: Union[str, None]= None, 
+                     hue: Union[str, None] = None, 
                      filename: Union[str, None] = None, 
                      size: Union[int, float] = 1, 
-                     alpha: Union[int, float] = 0.5, **kwargs):
+                     alpha: Union[int, float] = 0.5, **kwargs) -> plt.figure:
         '''
         Makes a scatterplot of [antigen1] vs. [antigen2], colored by [hue]. Will write a png file from the plot to 
         self.save_dir if filename is not None. 
@@ -1484,43 +1691,21 @@ class Analysis:
                 are passed to seaborn.scatterplot()
 
         Returns:
-            a matplotlib.pyplot figure 
-            
-            
+            a matplotlib.pyplot figure            
         '''
-        data = pd.DataFrame(self.data.X.copy(), columns = self.data.var['antigen'].copy())
-        # hue_norm = None
-        palette = None
-        if hue is not None:
-            if hue == "Density":
-                density = KernelDensity()
-                X = data.loc[:,[antigen1, antigen2]]
-                density = density.fit(X)
-                density = density.score_samples(X)
-                to_scale = np.exp(density)
-                to_scale = to_scale / np.quantile(to_scale, 0.99)
-                to_scale[to_scale > 1] = 1
-                data['Density'] = list(to_scale)
-                # hue_norm = (0,1)
-                palette = 'coolwarm'
-            elif hue in self.data.obs.columns:
-                data[hue] = list(self.data.obs[hue].copy())
+        data = self.data.copy()
         figure = plt.figure()
         ax = plt.gca()
-        sns.scatterplot(data, 
-                        x = antigen1, 
-                        y = antigen2, 
-                        hue = hue, 
-                        palette = palette, 
-                        # hue_norm = hue_norm, 
-                        size = size, 
-                        alpha = alpha,
-                        ax = ax, 
-                        **kwargs)
+        if hue == 'Density':
+            data.obsm['X_scatter'] = data.X[:,np.array((data.var['antigen'] == antigen1) + (data.var['antigen'] == antigen2))]
+            sc.tl.embedding_density(data, basis = 'scatter')
+            sc.pl.embedding_density(data, basis = 'scatter', color_map = 'jet', size = size, alpha = alpha, ax = ax)
+        sc.pl.scatter(data, antigen1, antigen2, color = hue, alpha = alpha, size = size, ax = ax)
+
         if filename is not None:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
-        plt.close()  
-        return figure
+        plt.close() 
+        return figure 
 
     def plot_UMAP(self,
                 color_by: Union[None, str] = 'metaclustering', 
@@ -1912,16 +2097,18 @@ class Analysis:
 
     def plot_medians_heatmap(self,  
                              marker_class: str = "type", 
-                             groupby: str = "metaclustering",  
+                             groupby: str = "metaclustering",
+                             scale_axis: Union[None, int] = 0,  
                              subset_df: pd.DataFrame = None, 
                              subset_obs: pd.DataFrame = None, 
-                             figsize: tuple[Union[int,float]] = (10,10),
+                             colormap = "coolwarm",
+                             figsize: tuple[Union[int,float], Union[int,float]] = (10,10),
                              filename: Union[str, None] = None, 
                              **kwargs) -> plt.figure:                                      # *** deriv_CATALYST (tries to imitate the heatmaps of 
                                                                                                                 # CATALYST)
         ''' 
         Plots a heatmap in a manner similar to CATALYST by first taking the median of each channel in each category of [groupby] column, then
-        %quantile normalizing the medians from 1%-99% across the entire set of medians.
+        %quantile normalizing the medians from 1%-99% across the antigens.
 
         Args:
             filename (string): 
@@ -1938,6 +2125,10 @@ class Analysis:
                         "metaclustering" --> cluster heatmap
                         "sample_id"   --> heatmap by ROI
                         "merging" / etc. --> heatmap by arbitrary column in self.data.obs
+
+            scale_axis (integer or None):
+                Either None, 0 or 1 -> Which axis of the final median array to scale along before plotting. Default is 0, to scale within antigens.
+                (0 --> scale within antigen, 1 --> scale within groupby categories, None --> scale medians across the entire array)
 
             subset_df (pandas DataFrame or None): 
                 a dataframe equivalent to self.data.X with column names = self.data.var.index allows 
@@ -1960,13 +2151,12 @@ class Analysis:
         #show_cluster_centers = False
         warnings.filterwarnings("ignore", message = "divide by zero encountered in divide") ########## zero divisions are very common
         warnings.filterwarnings("ignore", message = "invalid value encountered in divide") 
-        panel = self.panel
+        panel = self.data.var
         if subset_df is not None:
             for_fs = subset_df.copy()
             if marker_class != "All":    ## None ==> show all
                 slicer = panel['marker_class'] == marker_class 
                 for_fs = for_fs.iloc[:,np.array(slicer)]
-                antigens = for_fs.copy().columns
             for_fs['index'] = for_fs.index.astype('str')
             to_merge = pd.DataFrame(subset_obs[groupby]).reset_index()
             to_merge['index'] = to_merge['index'].astype('str')
@@ -1974,9 +2164,10 @@ class Analysis:
             manipul_df = for_fs.copy().drop(["index", groupby], axis = 1)
             manipul_df['metacluster'] = for_fs[groupby]
             main_df = pd.DataFrame()
-            for ii,i in enumerate(manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)):
-                slice = pd.DataFrame(i, index = antigens, columns = [ii])
-                main_df = pd.concat([main_df,slice], axis = 1)
+            grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
+            for ii,i in zip(grouped.index, grouped):
+                slicer = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
+                main_df = pd.concat([main_df,slicer], axis = 1)
             cluster_centers = main_df.T
         else:
             for_fs = self.data.copy()
@@ -1986,9 +2177,10 @@ class Analysis:
             manipul_df = pd.DataFrame(for_fs.X)
             manipul_df["metacluster"] = list(for_fs.obs[groupby])
             main_df = pd.DataFrame()
-            for ii,i in enumerate(manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)):
-                slice = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
-                main_df = pd.concat([main_df,slice], axis = 1)
+            grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
+            for ii,i in zip(grouped.index, grouped):
+                slicer = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
+                main_df = pd.concat([main_df,slicer], axis = 1)
             cluster_centers = main_df.T
 
         #### different way to quantile after taking medians (along axis of clusters, instead of quantiling the global numbers as above):
@@ -2022,11 +2214,13 @@ class Analysis:
                 percentiles = percentiles.sort_values('index')
                 cluster_centers.index = list(percentiles['percents'])   
         else:
-            cluster_centers['sample_id'] = cluster_centers.reset_index()['index']
+            cluster_centers['sample_id'] = list(cluster_centers.reset_index()['index'])
             cluster_centers.index = cluster_centers['sample_id']
             cluster_centers = cluster_centers.drop('sample_id', axis = 1)
+        transform = _quant(cluster_centers, axis = scale_axis)
+        cluster_centers = pd.DataFrame(transform, index = cluster_centers.index, columns = cluster_centers.columns)
         plot = sns.clustermap(cluster_centers, 
-                             cmap = "coolwarm", 
+                             cmap = colormap, 
                              linewidths = 0.01, 
                              xticklabels = True, 
                              yticklabels = True, 
@@ -2262,7 +2456,7 @@ class Analysis:
         Returns:
             a matplotlib figure
         '''
-        flowsom_clustering = self.data.copy()
+        data = self.data.copy()
         scale = self._scaling
         if scale == "unscale":
             scale = ""
@@ -2270,10 +2464,10 @@ class Analysis:
             scale = "Scaled"
 
         if marker_class != "All":
-            manipul_df = pd.DataFrame((flowsom_clustering.X.T[self.panel['marker_class'] == marker_class]).T)
+            manipul_df = pd.DataFrame((data.X.T[self.panel['marker_class'] == marker_class]).T)
             manipul_df.columns = self.panel[self.panel['marker_class'] == marker_class]['antigen']
         else:
-            manipul_df = pd.DataFrame(flowsom_clustering.X)
+            manipul_df = pd.DataFrame(data.X)
             manipul_df.columns = self.panel['antigen']
 
         manipul_df[groupby_column] =  list(self.data.obs[groupby_column].astype('str'))
@@ -2329,7 +2523,7 @@ class Analysis:
             plt.close()
             return griddy.figure
             
-        elif plot_type == "bar":
+        elif (plot_type == "bar") or (plot_type == "box"):
             griddy = sns.catplot(data_long_form, y = facet_title, 
                             hue = "antigen", 
                             palette = 'tab20',
@@ -2347,7 +2541,7 @@ class Analysis:
             return griddy.figure
         
     def plot_cluster_histograms(self,  
-                                antigen,
+                                antigen: str,
                                 groupby_column: str = 'metaclustering', 
                                 filename: Union[str, None] = None,
                                 **kwargs) -> plt.figure:                                             # *** deriv_CATALYST (ish, plot output)
@@ -2464,6 +2658,7 @@ class Analysis:
         
     def plot_cluster_abundance_1(self, 
                                  groupby_column: str = "metaclustering", 
+                                 bars_by: str = 'sample_id',
                                  number_of_columns: int = 3,
                                  filename: Union[str, None] = None,
                                  **kwargs) -> plt.figure:                                # *** deriv_CATALYST (plot appearance / output)
@@ -2492,14 +2687,15 @@ class Analysis:
             a matplotlib figure
         '''
         to_abundance_plots = self.data.obs.copy()
-        abundance_plot_prep = to_abundance_plots.groupby(['sample_id', groupby_column, 'condition'], observed = False).count().reset_index()
-        abundance_plot_prep['patient_id'] = abundance_plot_prep['patient_id'].astype('int')
-        divisor = abundance_plot_prep[["sample_id","patient_id"]].groupby("sample_id", observed = False).sum().reset_index()
+        to_abundance_plots['count'] = 0
+        abundance_plot_prep = to_abundance_plots.groupby([bars_by, groupby_column, 'condition'], observed = False).count().reset_index()
+        abundance_plot_prep['count'] = abundance_plot_prep['count'].astype('int')
+        divisor = abundance_plot_prep[[bars_by,"count"]].groupby(bars_by, observed = False).sum().reset_index()
         div_dict = {}
         for i in divisor.index:
-            div_dict[int(divisor["sample_id"][i])] = divisor["patient_id"][i]
-        abundance_plot_prep["total"] =  (abundance_plot_prep["patient_id"].astype('int') 
-                                             / abundance_plot_prep["sample_id"].astype('int').replace(div_dict))
+            div_dict[int(divisor[bars_by][i])] = divisor["count"][i]
+        abundance_plot_prep["total"] =  (abundance_plot_prep["count"].astype('int') 
+                                             / abundance_plot_prep[bars_by].astype('int').replace(div_dict))
         abundance_plot_prep[groupby_column] = abundance_plot_prep[groupby_column].astype('category')
         abundance_plot_prep = abundance_plot_prep[abundance_plot_prep['file_name'] != 0]
         number_of_panels = len(abundance_plot_prep['condition'].unique())
@@ -2517,8 +2713,8 @@ class Analysis:
 
         for i,ii in enumerate(abundance_plot_prep['condition'].unique()):
             for_facet = abundance_plot_prep[abundance_plot_prep['condition'] == ii].copy()
-            for_facet['sample_id'] = for_facet['sample_id'].astype('str')
-            plot = so.Plot(for_facet, x = "sample_id", y = "total", color = groupby_column).add(so.Bar(), so.Stack(), **kwargs)
+            for_facet[bars_by] = for_facet[bars_by].astype('str')
+            plot = so.Plot(for_facet, x = bars_by, y = "total", color = groupby_column).add(so.Bar(), so.Stack(), **kwargs)
             plot = plot.on(axs[i]).plot()
             axs[i].set_title(f"{ii}")
             if ((i + 1) % number_of_columns) != 1:
@@ -2807,7 +3003,7 @@ class Analysis:
                   conditions: list[str], 
                   variable: str = "condition", 
                   groupby_column: str = "merging",  
-                  family = "Poisson", 
+                  family: str = "Poisson", 
                   filename: Union[str, None] = None,
                   ) -> pd.DataFrame:
         '''
@@ -2827,7 +3023,7 @@ class Analysis:
 
             family (string -- "Poisson", "NegativeBinomial"): 
                 The distribution to use in the GLM. Can be "Poisson" or "NegativeBinomial". Other distributions, such as "Gaussian" and "Binomial" are 
-                no recommended or not currently configured properly. 
+                not recommended or not currently configured properly. 
 
             filename (string or None):  
                 the filename for the csv exported into self.data_table_dir. If None, no such file is exported
@@ -2839,6 +3035,10 @@ class Analysis:
             Outputs: 
                 If filename is provided (is not None), then exports the summary statistic table to self.data_table_dir/filename.csv
         '''
+        conditions = [i for i in list(self.data.obs[variable].dtype.categories) if i in conditions]  ## preserve order!
+        if len(conditions) < 2:
+            print("Error! Only 1 or 0 of the provided conditions are in the variable. Cannot make a statistical comparison!")
+            return
         GLM_dict = {"Poisson" : sm.families.Poisson,
                     "Binomial" : sm.families.Binomial, 
                     "NegativeBinomial" : sm.families.NegativeBinomial, 
@@ -2853,10 +3053,6 @@ class Analysis:
         slicer = np.array([(str(i) in conditions) for i in data[variable].astype('str')])
         data = data[slicer]
         data['sample_id'] = data['sample_id'].astype('str').astype('category')
-
-        special_category = pd.CategoricalDtype(list(data[variable].astype('str').unique()), ordered = True)
-        data[variable] = data[variable].astype('str')
-        data[variable] = data[variable].astype(special_category)
 
         data[groupby_column] = data[groupby_column].astype('str').str.replace(" ","_").str.replace("+","")
         try:
@@ -2929,7 +3125,7 @@ class Analysis:
                         to_drop_list.append(i)
                         
             grouped = grouped.reset_index()
-            grouped[variable] = grouped['sample_id'].astype('str').replace(zip_dict)
+            grouped[variable] = grouped['sample_id'].astype('str').replace(zip_dict).astype(self.data.obs[variable].dtype)
             for i in to_drop_list:
                 slicer = (np.array(grouped[groupby_column] != i[0]).astype('int') + np.array(grouped[variable] != i[1]).astype('int')) != 0
                 grouped = grouped[slicer]
@@ -2956,6 +3152,7 @@ class Analysis:
                 to_do_stats = ready_for_GLM[ready_for_GLM[i].notna()].reset_index()
                 to_do_stats[i] = to_do_stats[i].astype('int')
                 remaining_conditions = to_do_stats[variable].astype('str').unique()
+                remaining_conditions = [i for i in list(self.data.obs[variable].dtype.categories) if i in remaining_conditions]  ## preserve order
                 special_category = pd.CategoricalDtype(remaining_conditions, ordered = True)
                 to_do_stats[variable] = to_do_stats[variable].astype('str')
                 to_do_stats[variable] = to_do_stats[variable].astype(special_category)
@@ -3045,7 +3242,7 @@ class Analysis:
                         to_drop_list.append(i)
                         
             grouped = grouped.reset_index()
-            grouped[variable] = grouped['sample_id'].astype('str').replace(zip_dict)
+            grouped[variable] = grouped['sample_id'].astype('str').replace(zip_dict).astype(self.data.obs[variable].dtype)
             for i in to_drop_list:
                 slicer = (np.array(grouped[groupby_column] != i[0]).astype('int') + np.array(grouped[variable] != i[1]).astype('int')) != 0
                 grouped = grouped[slicer]
@@ -3071,6 +3268,7 @@ class Analysis:
 
                 to_do_stats = ready_for_GLM[ready_for_GLM[i].notna()].reset_index()
                 remaining_conditions = to_do_stats[variable].astype('str').unique()
+                remaining_conditions = [i for i in list(self.data.obs[variable].dtype.categories) if i in remaining_conditions]  ## preserve order
                 special_category = pd.CategoricalDtype(remaining_conditions, ordered = True)
                 to_do_stats[variable] = to_do_stats[variable].astype('str')
                 to_do_stats[variable] = to_do_stats[variable].astype(special_category)
@@ -3140,6 +3338,253 @@ class Analysis:
         if filename is not None:
             to_return.to_csv(self.data_table_dir + f"/{filename}.csv", index = False)
         return to_return
+
+    def plot_state_distributions(self, marker_class: str = 'state', 
+                                 subset_column: str = 'merging', 
+                                 colorby: str = 'condition', 
+                                 grouping: str = 'sample_id', 
+                                 grouping_stat: str = 'median',
+                                 wrap_col: int = 3, 
+                                 suptitle: bool = False,
+                                 figsize: tuple[Union[int,float], Union[int,float]] = None,
+                                 filename: Union[None, str] = None) -> plt.figure:             # *** deriv_CATALYST(ish, only by imitation of the CATALYST paper's figures)
+        '''
+        Plots a facetted boxplot of the expression of a specified marker_class (usually 'state'), split into various cell groupings 
+        (subset_column, usually 'merging') per panel, comparing on colorby (usually 'condition'). 
+        Aggregates within each sub-group first by grouping (usually 'sample_id') using the aggregation statistic specified in grouping_stat, 
+        so that the boxplots aren't overwhelmed trying to plot thousands of individual cells. 
+        
+        Args:
+            marker_class (string):
+                What marker_class of antigens to use in the plot. Either 'type','state' (default), 'None', or 'All'. 
+
+            subset_column (string):
+                The name of a categorical column in self.data.obs to group the cells by. These groupings will constitute the panels of the final
+                plot. 
+
+            colorby (string):
+                The name of a categorical column in self.data.obs to group the cells by, typically 'condition'. These groups will define how the 
+                boxplots in each panel are colored. 
+
+            grouping (string):
+                 The name of a categorical column in self.data.obs to group the cells by, typically 'sample_id'. It is recommended to not change this
+                 as errors / strange looking plots are likely with any other value. It specifies how the data is aggregated before plotting,
+                 as plotting every cell for a large dataset is likely to make the boxplot too confusing, as there can be far too many outlier
+                 points on the plot.
+
+            grouping_stat (string):
+                How to aggregate the data using the grouping parameter -- as in, take the 'mean' of the sample_id's or the 'median' before plotting?
+
+            wrap_col (integer):
+                how many panels per column of the facetted plot before wrapping and starting a new row of boxplots
+
+            suptitle (boolean):
+                whether to include an automatically generated title at the top of the boxplot or not
+
+            figsize (tuple of two numerics):
+                The size, in inches, of the final plot's dimensions. Used in the matplotlib.pyplot.subplots() function
+
+            filename (None, or string):
+                If not None, then this method will write the plot as a .png file to the folder specificed by self.save_dir using the provided
+                filename. This filename should not include the file extension (the extension is always .png, and is automatically supplied by this
+                method). If None, then the figure is not written to the hard drive.
+
+        Returns:
+            matplotlib.pyplot figure
+
+        Inputs/Outputs:
+            Outputs: 
+                If filename is provided (is not None), then exports the figure as a .png file
+        '''
+        text_size = 10
+        data = self.data.copy()
+        scale = self._scaling
+        if scale == 'unscale':
+            scale = ''
+        else:
+            scale = 'Scaled '
+        if marker_class != "All":
+            data_state = pd.DataFrame((data.X.T[self.data.var['marker_class'] == marker_class]).T, 
+                                      columns = self.data.var[self.data.var['marker_class'] == marker_class]['antigen'])
+        else:
+            data_state = pd.DataFrame(data.X, columns = self.data.var['antigen'])
+        if subset_column == 'All':
+            data_state[subset_column] = ""
+        else:
+            data_state[subset_column] = list(self.data.obs[subset_column])
+            data_state[subset_column] = data_state[subset_column].astype(self.data.obs[subset_column].dtype)
+        data_state[colorby] = list(self.data.obs[colorby])
+        data_state[colorby] = data_state[colorby].astype(self.data.obs[colorby].dtype)
+        data_state[grouping] = list(self.data.obs[grouping])
+        data_state[grouping] = data_state[grouping].astype(self.data.obs[grouping].dtype)
+        data_state = list(data_state.groupby([subset_column], observed = False))
+        panels = len(data_state)
+        if (panels % wrap_col) == 0:
+            rows = panels // wrap_col
+        else:
+            rows = (panels // wrap_col) + 1
+        grid_specifications = {'wspace':0.05, 'hspace':0.1}
+        if figsize is None:
+            figsize = (rows*3.75, wrap_col*3.0)
+        if subset_column == "All":
+            rows = 1
+            wrap_col = 1
+            figsize = (figsize[0]*1.5, figsize[1] / 1.5)
+        figure, axs = plt.subplots(rows, wrap_col, figsize = figsize, sharey = True, sharex = True, gridspec_kw = grid_specifications)
+        if isinstance(axs, np.ndarray):
+            axs = axs.ravel()
+        else:
+            axs = np.array([axs])
+        for i,ii in enumerate(data_state):
+            ax = axs[i]
+            temp_data = ii[1].drop([subset_column], axis = 1).melt([colorby,grouping])
+            if grouping_stat == 'mean':
+                temp_data = temp_data.groupby([colorby,grouping,'antigen'], observed = False).mean(numeric_only = True).reset_index()
+            elif grouping_stat == 'median':
+                temp_data = temp_data.groupby([colorby,grouping,'antigen'], observed = False).median(numeric_only = True).reset_index()
+            if i != (panels - 1):
+                sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', legend = None, ax = ax)
+                ax.set_title(ii[0][0], size = text_size, y = 0.95)
+            else:    ## only put the legend on the last panel
+                sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', ax = ax)
+                ax.set_title(ii[0][0], size = text_size, y = 0.975)
+            ax.set_ylabel(f'{scale}Expression', size = text_size)
+            ax.set_xlabel(ax.get_xlabel(), size = text_size)
+            ax.set_xmargin(0.05)
+            ax.set_ymargin(0.05)
+            #ax.set_yticks([0,0.5,1], labels = ["0","0.5","1"], size = text_size)
+            ax.set_xticks(ax.get_xticks(), labels = temp_data['antigen'].unique(), size = text_size, rotation = 'vertical')
+    
+        for k in range(i+1, wrap_col*rows, 1):
+            axs[k].set_axis_off()
+    
+        if suptitle:
+            sup_Y = 1.03 + (rows * -0.01)
+            figure.suptitle(f"{scale}Expression of {marker_class} markers, in the '{subset_column}' cell groups, colored by {colorby}", y = sup_Y)
+            
+        if filename is not None:
+            figure.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
+        plt.close()
+        return figure
+
+
+    def plot_state_p_value_heatmap(self, stats_df: Union[None, pd.DataFrame] = None, 
+                                   top_n: int = 50, 
+                                   heatmap_x: list[str] = ['condition','sample_id'], 
+                                   ANOVA_kwargs: dict = {}, 
+                                   include_p: bool = True, 
+                                   figsize: tuple[Union[int,float], Union[int,float]] = (10,10), 
+                                   filename = None) -> plt.figure:                  # *** deriv_CATALYST(ish, only by imitation of the CATALYST paper's figures)
+        '''
+        Plots a heatmap of the top most significantly differences found with the self.do_state_exprs_ANOVAs() method
+        
+        Presumes the supplied stats_df matches the format exported by self.do_state_exprs_ANOVAs() method! 
+        Including structure, columns, rank ordering by F-statistic top-to-bottom, etc.
+
+        Args:
+            stats_df (None, or a pandas dataframe):
+                A pandas dataframe with marker expression statistics -- the returned output of the self.do_state_exprs_ANOVAs() method.
+                If None, then stats_df = self.do_state_exprs_ANOVAs(**ANOVA_kwargs) will be run to generate the statistics dataframe.
+        
+            top_n (integer):
+                How many of the top (order by F-statistic) antigen expression changes to plot on the heatmap. Default = 50
+
+            ANOVA_kwargs (dictionary):
+                Only used if stats_df is None. Provides the parameters of self.do_state_exprs_ANOVAs method, as in
+                stats_df = self.do_state_exprs_ANOVAs(**ANOVA_kwargs) will be run first before the heatmap is generated from the
+                stats_df.
+
+            heatmap_x (list of strings):
+                A list of column names in self.data.obs that determine how the data will be grouped for the x-axis of the heatmap.
+                The values of the heatmap tiles are the median expression of the antigen of interest in these groups.
+                NOTE: The y-axis of the heatmap is already determined by antigen/cellgrouping pairs in stats_df, and if the cell grouping
+                used to calculate statistics was not the entire dataset, then it will also be used in grouping the data to calculate medians
+                for the heatmap, along with the columns specified by this parameter. 
+                    As in, let's say state marker statistics were calculated between cell types defined in a 'merging' column, while heatmap_x
+                    was set to be ['condition','sample_id'] (the default) to group the data by each ROI, along with its treatment label -->
+                    Then, on the heatmap, the data will be grouped by sample_id, condition, and merging -- then the median taken of those groups
+                    and plotted on the heatmap.
+
+            include_p (boolean):
+                whether to include an additional column of the heatmap for the p-values associated with each row of the statistics calculated
+                in the stats_df. This column's values do not come ffrom the groupings explained above, but directly from the adjusted p-values
+                of the statistics table, transformed as follows:
+
+                    heatmap_value = -Log(adj_p_value)
+
+                NOTE that the negative log of 0.05 is ~1.3.
+
+            figsize (tuple of 2 numerics):
+                The dimensions of the final plot, in inches. Used in the matplotlib.pyplot.subplots call
+
+            filename (None, or string):
+                If not None, then this method will write the plot as a .png file to the folder specificed by self.save_dir using the provided
+                filename. This filename should not include the file extension (the extension is always .png, and is automatically supplied by this
+                method). If None, then the figure is not written to the hard drive.
+
+        Returns:
+            matplotlib.pyplot figure
+
+        Inputs/Outputs:
+            Outputs: 
+                If filename is provided (is not None), then exports the figure as a .png file
+        '''
+        if stats_df is None:
+            if ANOVA_kwargs != {}:
+                stats_df = self.do_state_exprs_ANOVAs(**ANOVA_kwargs)
+            else:
+                print("Error! Neither a precalculated dataframe of statistics from self.do_state_exprs_ANOVAs," 
+                    "nor keyword arguments for calling self.do_state_exprs_ANOVAs were provided!")
+                return
+    
+        stats_df = stats_df.head(top_n).copy()
+    
+        label_column_names = list(stats_df.columns[:2].values)  ## the way self.do_state_exprs_ANOVAs works, there should always be two label columns: 'antigen', and the groupby column
+        label_columns = stats_df[label_column_names]
+
+        cell_type_column = stats_df.columns[1]
+
+        if cell_type_column != 'whole dataset':
+            grouping_columns = heatmap_x + [cell_type_column]
+            cluster_grouping = label_columns.iloc[:,1]
+        else:
+            grouping_columns = heatmap_x
+            cluster_grouping = ['All'] * len(label_columns.iloc[:,0])
+    
+        stats_df['labels_merged'] = [f'{i}({ii})' for i,ii in zip(label_columns.iloc[:,0], cluster_grouping)]
+        stats_df['labels_merged'] = stats_df['labels_merged'].astype('str')
+    
+        raw_data = pd.DataFrame(self.data.X.copy(), index = self.data.obs.index, columns = self.data.var.index)
+        raw_data[grouping_columns] = self.data.obs[grouping_columns]
+        raw_data = raw_data.groupby(grouping_columns, observed = False).median(numeric_only = True).dropna(how = 'all').reset_index()
+        raw_data = raw_data.melt(grouping_columns)
+        antigen_group = raw_data[label_column_names[0]]
+        if cell_type_column != 'whole dataset':
+            cluster_group = raw_data[label_column_names[1]]
+        else:                               
+            cluster_group = ['All'] * len(raw_data[label_column_names[0]])
+        raw_data['labels_merged'] = [f'{i}({ii})' for i,ii in zip(antigen_group, cluster_group)]
+        raw_data['labels_merged'] = raw_data['labels_merged'].astype('str')
+        p_values = []
+        output_df = pd.DataFrame()
+        for ii,i in enumerate(stats_df['labels_merged'].unique()):
+            stats_df_slice = stats_df[stats_df['labels_merged'] == i]
+            p_values.append(stats_df_slice['p_adj'].values[0])
+            raw_data_slice = raw_data[raw_data['labels_merged'] == i]
+            raw_data_slice.index = [f'{j}({jj})' for j,jj in zip(raw_data_slice[heatmap_x[0]], raw_data_slice[heatmap_x[1]])]
+            output_df[f'{i}'] = raw_data_slice['value']
+        output_data = np.nan_to_num(np.array(output_df))
+        output_data = np.nan_to_num((output_data - output_data.mean(axis = 0)) / output_data.std(axis = 0))
+        output_df = pd.DataFrame(output_data, output_df.index, output_df.columns)
+        if include_p:
+            output_df.loc['-Log(P-value)',:] = (- np.log(np.array(p_values))).astype('float32')
+        figure, ax = plt.subplots(1,1, figsize = figsize)
+        sns.heatmap(output_df.T, cmap = 'coolwarm', square = True, vmin = -3, vmax = 3, center = 0.0, ax = ax)
+        if filename is not None:
+            figure.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
+        plt.close()
+        return figure
+
     
     def do_state_exprs_ANOVAs(self,                     
                             marker_class: str = "state", 
@@ -3330,6 +3775,7 @@ class Analysis:
                     subset_types: Union[list[list[str]], None] = None, 
                     groupby_columns: Union[list[str], None] = None, 
                     statistic: str = 'mean',
+                    groupby_nan_handling: str = 'zero',
                     include_marker_class_row: bool = False,
                     untransformed: bool = False,
                     filename: Union[str, None] = None, 
@@ -3365,6 +3811,16 @@ class Analysis:
                 Possible values: 'mean','median','sum','std','count'. Denotes the pandas groupby method to be used after grouping (ignored if groupby_columns is None).
                 Numeric methods (mean, median, sum, std) are only applied to numeric columns, so only those columns + the groupby columns 
                 will be in the final dataframe / csv
+            
+            groupby_nan_handling(str):
+                'zero' or 'drop' -- when grouping the data whether to drop (nans), which usually represent non-existent category combinations or to 
+                convert nans to zeros. Any other values of this parameter will cause NaNs to be left as-is in the data export
+                Note that the default (and only option available in GUI) is 'zero', which converts ALL NaN values to 0, while the 'drop' option only drops
+                rows where EVERY numerical value is NaN.
+                By default, all possible groupby_columns combinations are included in the export (even if they are not present in the data, such cell types 
+                not present in every ROI), This is the source of most NaN values. Notably, columnns in the metadata (not data.obs!) of the Analysis are given special 
+                treatment to try to prevent non-existent experimental categories from having data exported (for example, each ROI / sample_id should have been 
+                with a single condition, not every possible condition in the dataset). 
 
             include_marker_class_row (bool): 
                 Whether to include the marker_class information as a row at the bottom of the table --> True to 
@@ -3403,7 +3859,7 @@ class Analysis:
         ## anndata to pd.DataFrame:
         data_points = pd.DataFrame(data.X)
         data_points.columns = data.var.index.astype('str')
-
+    
         to_add = []
         if (include_marker_class_row is True) & (groupby_columns is None):
             data_points = data_points.T
@@ -3412,7 +3868,7 @@ class Analysis:
             data_points['marker_class'] = data_points['marker_class'].replace(marker_class_dict)
             data_points = data_points.T
             to_add = [4]
-
+    
         if groupby_columns is None:
             try:
                 data_points["centroid_X"] = list(self.data.obsm['spatial'].T[0]) + to_add
@@ -3420,7 +3876,7 @@ class Analysis:
                 data_points["areas"] = list(self.data.uns['areas']) + to_add
             except Exception:
                 pass
-
+    
         data.obs.columns = data.obs.columns.astype('str')
         data_col_list = [i for i in data.obs.columns]
         for i in data_col_list:
@@ -3428,15 +3884,15 @@ class Analysis:
                 data_points[str(i)] = list(data.obs[str(i)]) + ["na"]
             else:
                 data_points[str(i)] = list(data.obs[str(i)])
-            data.obs[i] = data.obs[i].astype('str')
+                data_points[str(i)] = data_points[str(i)].astype(data.obs[str(i)].dtype)
                 
         if self._scaling == "%quantile":
             data_points['scaling'] = str(self._scaling) + str(self._quantile_choice)
         else:
             data_points['scaling'] = self._scaling
-
+    
         data_points['masks_folder'] = self.input_mask_folder
-
+    
         if (include_marker_class_row is True) & (groupby_columns is None):
             data_points.loc[data_points.index[-1],'scaling'] = "na"
             data_points.loc[data_points.index[-1],'masks_folder'] = "na"
@@ -3459,7 +3915,6 @@ class Analysis:
                 else:
                     output_df = output_df.merge(new_data, how = 'inner')
             data_points = output_df
-                    
         if groupby_columns is None:
             if output_path is not None:
                 if self._in_gui:
@@ -3469,12 +3924,23 @@ class Analysis:
                         tk.messagebox.showwarning("Error writing to csv!")
                 else:
                     data_points.to_csv(str(output_path), index = False)
-
+    
             return data_points
-
         else:
+            extra_columns = None
+            if len(groupby_columns) > 1:
+                extra_columns = [i for i in groupby_columns if i in self.metadata.columns]
+                if len(extra_columns) > 1:
+                    extra_data_points = data_points[extra_columns]
+                    def concat(*args):
+                        return "_|_|_".join(*args)
+                    data_points['use'] = extra_data_points.T.apply(concat)
+                    groupby_columns = ['use'] + [i for i in groupby_columns if i not in self.metadata.columns]
+                else:
+                    extra_columns = None
+      
             groupby_object = data_points.groupby(groupby_columns, observed = False)
-
+    
             if statistic == 'mean':
                 groupby_object = groupby_object.mean(numeric_only = True)
             if statistic =='median':
@@ -3487,14 +3953,32 @@ class Analysis:
                 groupby_object = groupby_object.count()
                 groupby_object = pd.DataFrame(groupby_object[groupby_object.columns[0]])
                 groupby_object.columns = ['count']
-
+    
             groupby_object = groupby_object.reset_index()
+            if statistic == 'count':
+                pass
+            else:
+                backup_groupby = pd.DataFrame(groupby_object[groupby_columns], index = groupby_object.index)
+                if groupby_nan_handling == 'drop':
+                    groupby_object = groupby_object.drop(groupby_columns, axis = 1).dropna(how = 'all')
+                elif groupby_nan_handling == 'zero':
+                    groupby_object = groupby_object.drop(groupby_columns, axis = 1).fillna(0)
 
+                groupby_object = pd.concat([backup_groupby, groupby_object], axis = 1)            
+    
             for i in data_col_list:
                 if (i in groupby_object.columns.astype('str')) and (i not in groupby_columns):
                     groupby_object = groupby_object.drop(i, axis = 1)
-
-
+            if extra_columns:
+                def split(value, part = 0):
+                    return value.split("_|_|_")[part]
+                interim = pd.DataFrame()
+                for i,ii in enumerate(extra_columns):
+                    interim[ii] = groupby_object['use'].apply(split, part = i)
+                groupby_object = pd.concat([interim, groupby_object], axis = 1)
+                groupby_object = groupby_object.drop('use', axis = 1)
+    
+    
             if output_path is not None:
                 if self._in_gui:
                     try:
@@ -3503,7 +3987,7 @@ class Analysis:
                         tk.messagebox.showwarning("Error writing to csv!")
                 else:
                     groupby_object.to_csv(str(output_path), index = False)
-
+    
             return groupby_object
         
     def export_DR(self, 

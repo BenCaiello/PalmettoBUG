@@ -496,9 +496,9 @@ def _find_region_probabilities(mask: np.ndarray[float],
     classifier_map = classifier_map.copy()
     if number_of_classes is None:
         number_of_classes = np.max(classifier_map)    ### this depends on the assumption that the image contains the maximum class....
+    
     if number_of_classes < np.max(classifier_map):
         number_of_classes = np.max(classifier_map)       ## for supervised classifiers (where background is an extra class)
-    
     regionprops = skimage.measure.regionprops(mask)
     output_array = np.zeros([len(regionprops),number_of_classes])   ## for every mask region, list a probability for each class
     

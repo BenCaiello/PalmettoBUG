@@ -80,6 +80,7 @@ class SpatialANOVA():
         self.condition1 = None
         self.condition2 = None
         self.threshold = 10
+        self.data_table = None
 
     def init_data(self, 
                   space_anova_table: pd.DataFrame, 
@@ -158,7 +159,7 @@ class SpatialANOVA():
         if not os.path.exists(output_directory + "/Functional_plots"):
             os.mkdir(output_directory + "/Functional_plots")
 
-    def _retrieve_data_table(self, for_cell_maps = False):
+    def _retrieve_data_table(self):
         ''''''
         if self.exp is None:     ### we've loaded from a pandas dataframe, not from an anndata object
             pass
@@ -270,6 +271,7 @@ class SpatialANOVA():
                             seed: int = 42, 
                             center_on_zero: bool = False, 
                             silence_zero_warnings: bool = True,
+                            suppress_threshold_warnings: bool = False,
                             ) -> tuple[list[str], list[str], dict[str,pd.DataFrame]]:
         '''
         This function takes does all of the key analysis steps from the Data table, two conditions, & radii range object.
@@ -309,6 +311,8 @@ class SpatialANOVA():
 
             silence_zero_warnings (boolean): if True, silences a pair of particularly common division-by-zero warnings (recommended), if False
                     those warnings will be shown
+
+            suppress_threshold_warnings (boolean): If True, do not warn about image failing to meet the minimum cell number thresholds
 
         Returns:
             self._comparison_list:  a list of strings. It contains every pairwise comparison between cellTypes, in the format 
@@ -359,7 +363,9 @@ class SpatialANOVA():
             type2 = conditions[1]
             if (type1 != "dropped") and (type2 != "dropped"):
                 all_g, all_K, all_L = self._do_all_K_L_g(type1 = type1, type2 = type2, permutations = permutations, 
-                                                        perm_state = seed, center_on_zero = center_on_zero)
+                                                        perm_state = seed, center_on_zero = center_on_zero, 
+                                                        suppress_threshold_warnings = suppress_threshold_warnings)
+
                 self._comparison_dictionary[i] = {"K":all_K, "L":all_L, "g":all_g}
         if silence_zero_warnings is True:
             warnings.filterwarnings("default", message = "divide by zero encountered in divide")  ## undo prior warnings modifications
@@ -381,8 +387,11 @@ class SpatialANOVA():
             cell_type_copy = obs[obs[cellType_key] == i]
             compare_to_threshold = cell_type_copy.groupby(['condition','sample_id'], observed = True).count()[cellType_key].reset_index()
             for k in compare_to_threshold['condition'].unique():
+                counter = 0
                 compare_to_threshold_copy = compare_to_threshold[compare_to_threshold['condition'] == k]
                 if compare_to_threshold_copy[cellType_key].max() < self.threshold:
+                    counter += 1
+                if (len(compare_to_threshold['condition'].unique()) - counter) <= 1:
                     bad_cell_types.append(str(i))
                     print(f"The celltype {str(i)} is only present in one condition -- ANOVAs and F-statistics will not be available for that celltype!")
                     break   
@@ -413,6 +422,7 @@ class SpatialANOVA():
                       permutations: int = 0, 
                       perm_state: int = None, 
                       center_on_zero: bool = False,
+                      suppress_threshold_warnings = False,
                       ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:
         '''
         This may end being more of a helper function for do_spatial_analysis(), but it can remain in the class.
@@ -450,7 +460,9 @@ class SpatialANOVA():
                                         image_name = ii, 
                                         permutations = permutations, 
                                         perm_state = perm_state, 
-                                        center_on_zero = center_on_zero) 
+                                        center_on_zero = center_on_zero,
+                                        suppress_threshold_warnings = suppress_threshold_warnings) 
+            
             if K_df['K'].sum() != 0: ### if sum() == 0, this means a failure of the algorithm / insufficient cells in the image:
                 g_df["condition"] = group_img_dict[ii]
                 g_df['image'] = i
@@ -857,6 +869,96 @@ class SpatialANOVA():
 
         return fig_list
 
+    def do_salamification(self, stat: str = 'g') -> np.ndarray[float]:
+        '''
+        This is a salamifying method -- it creates a heatmap salami!
+
+        AKA: it creates 3-dimensinal arrays of the Ripley statistic / g values from the SpaceANOVA calculations
+        Two of the arrays's dimensions are celltype vs. celltype (like the main statistics heatmap), while the third
+        represents the many radii that the statistics were calculated at. These 3-D arrays (the salamis!) are part of a larger
+        4-D array, as each condition in the experiment will have a separate set of calculations.
+
+        This returned array can be used to plot the ripley's stat (with the aid of the plot_salami method following this one)
+        at a selected radius in a selected condition.
+
+        Args:
+            stat (string): 'K', 'L', or 'g' -- which Ripley's statistic to use
+
+        Returns:
+            a 4-dimensional numpy array of floats (also saves this as self.heatmap_salami)
+        '''
+        num_radii = int((self.max - self.min) / self.step) + 1
+        num_conditions = len(self.data_table['condition'].unique())
+        num_comparisons = int(np.sqrt(len(self._all_comparison_list)))
+        output = np.zeros([num_comparisons, num_comparisons, num_radii, num_conditions])
+        for i,ii in enumerate(self.data_table['condition'].unique()):
+            counter = 0
+            row = 0
+            for j,jj in enumerate(self._all_comparison_list):
+                data = self._comparison_dictionary[jj][stat]
+                data = data[data['condition'] == ii][[stat,'radii']]
+                data = np.array(data.groupby('radii', observed = False).mean()['g'])
+                
+                if len(data) != num_radii:
+                    data = np.full(num_radii, np.nan)
+                if counter == num_comparisons:
+                    row += 1
+                    counter = 0
+                output[row,counter,:,i] = data
+                counter += 1
+        self.heatmap_salami = output     
+        return output
+
+    def plot_salami(self, condition: str, 
+                    radii: int, 
+                    heatmap_salami: Union[None,np.ndarray[float]] = None, 
+                    stat_label: str = 'g',
+                    filename: Union[None, str] = None) -> plt.figure:
+        '''
+        Slices that sweet, sweet heatmap salami to expose the gorgeous internal structure as individual heatmaps.
+
+        AKA: will show the Ripley's statistics / g values for a selected condition in the experiment at a selected radii
+        as a heatmap, where the rows and columns of the heatmap as the unique cell types in the SpaceANOVA calculation
+
+        Args:
+            condition (string): which condition in the data to plot for
+
+            radii (integer): which radius to plot (must be a valid, present radius in the data!)
+
+            heatmap_salami (None, or 4D numpy array): the salami to slice! It is the product of the do_salamification method
+                if None, defaults to self.heatmap_salami (which IS the output of do_salamification, at least the last time it was run)
+
+            stat_label (string): which Ripley's stat to plot. Only for the title of the heatmap, not used in any calculations. For accuracy,
+                must match the stat used in the calculation of the heatmap salami (in do_salamification method). By default is 'g'.
+                Personally, 'g' is likely the only statistic to be commonly used for these methods, as it is the easiest to interpret 
+                (>1 or <1 meaning spatial association or dissocation).
+
+            filename(None, or string): if not None, the plot will be written to the location: {self.output_dir}/{filename}.png
+
+        Returns:
+            a matplotlib.pylot figure (the heatmap plot)        
+        '''
+        if heatmap_salami is None:
+            if not hasattr(self, "heatmap_salami"):
+                print("Salamification not performed! No heatmap salami was provided or is available!")
+                return
+            else:
+                heatmap_salami = self.heatmap_salami
+        conditions = [i for i in self.data_table['condition'].unique()]
+        condition_number = int([i for i,ii in enumerate(conditions) if ii == condition][0])
+        radii_num = int([i for i,ii in enumerate(self.fixed_r) if ii == radii][0])
+        title_string = f'{condition}: {str(radii)} micron, stat = {stat_label}'
+        index = [i for i in self.data_table['cellType'].unique() if i != 'dropped']
+        salami_slice = heatmap_salami[:,:,radii_num,condition_number]
+        for_heatmap = pd.DataFrame(salami_slice, columns = index, index = index)
+        figure = plt.figure()
+        ax = plt.gca()
+        sns.heatmap(for_heatmap, annot = True, ax = ax)
+        figure.suptitle(title_string)
+        if filename:
+            figure.savefig(self.output_dir + f"/{filename}.png", bbox_inches = "tight")
+        return figure
+
     def plot_cell_maps(self, 
                        multi_or_single: str, 
                        cellType_key: Union[str, None] = None,
@@ -891,7 +993,7 @@ class SpatialANOVA():
             return
         elif cellType_key is not None:
             self.cellType_key = cellType_key
-        space_anova = self._retrieve_data_table(for_cell_maps = True)
+        space_anova = self._retrieve_data_table()
 
         if output_directory is None:
             output_directory = self.output_dir + "/cell_maps"
@@ -1071,6 +1173,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
           permutations: int = 0, 
           perm_state: int = 42, 
           center_on_zero: bool = True,
+          suppress_threshold_warnings = False,
           ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:       # *** deriv_spatstat (largely a direct translation, but some divergences)
     '''
     This function calculates K, L, and g for a given image and pair of cell types at a range of distances (fixed_r).
@@ -1117,7 +1220,9 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                                             type1 = type1, 
                                             type2 = type2, 
                                             threshold = threshold,
-                                            image_name = image_name)
+                                            image_name = image_name,
+                                            suppress_threshold_warnings = suppress_threshold_warnings)
+    
     if (result_array.sum() == 0):
         '''This means that there are no cells / the number of cells is below the threshold '''
         K_df = pd.DataFrame(result_array, columns = ["K"])
@@ -1127,6 +1232,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     
     centerer = 1
     if permutations > 0 :
+        perm_state = np.random.default_rng(perm_state)
         avg_K = np.zeros(len(result_array))
         perm = pointpattern.copy()
         for i in range(0, permutations, 1):
@@ -1138,7 +1244,9 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                                 type1 = type1, 
                                 type2 = type2, 
                                 threshold = threshold,
-                                image_name = image_name)
+                                image_name = image_name,
+                                suppress_threshold_warnings = suppress_threshold_warnings)
+
             avg_K = avg_K + new_K
         avg_K = avg_K / permutations
         if center_on_zero is True:
@@ -1193,6 +1301,7 @@ def _K_cross_homogeneous(df: pd.DataFrame,
                          type2: str, 
                          threshold: int = 10,
                          image_name: str = '',
+                         suppress_threshold_warnings: bool = False,
                          ) -> tuple[np.ndarray[float],np.ndarray[float]]:                       
                                                  # *** deriv_spatstat (largely a direct translation, but some divergences)
     '''
@@ -1260,8 +1369,9 @@ def _K_cross_homogeneous(df: pd.DataFrame,
         append_array = np.zeros(diff_length)
     #    K_theo = np.concatenate([K_theo, append_array])
 
-    if (N_points_1 < threshold) or (N_points_2 < threshold):
-        print(f'One or both of {mark_type}s {type1} or {type2} has less than {threshold} cells in the image {image_name}!')
+    if ((N_points_1 < threshold) or (N_points_2 < threshold)):
+        if not suppress_threshold_warnings:
+            print(f'One or both of {mark_type}s {type1} or {type2} has less than {threshold} cells in the image {image_name}!')
         return np.zeros(len(K_theo)), K_theo
     
     lambda1 = N_points_1  ### technically divided by window 1 area, but that gets canceled out by later multiplication when K is calculated

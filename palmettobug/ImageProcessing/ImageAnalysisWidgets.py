@@ -8,6 +8,7 @@ This file is licensed under the GPL3 license. No significant portion of the code
 
 import os
 import tkinter as tk
+
 import customtkinter as ctk
 
 from ..Utils.sharedClasses import (CtkSingletonWindow, 
@@ -15,7 +16,7 @@ from ..Utils.sharedClasses import (CtkSingletonWindow,
                                    TableWidget, 
                                    Project_logger, 
                                    Analysis_logger, 
-                                   #warning_window, 
+                                   warning_window, 
                                    folder_checker,
                                    overwrite_approval)
 from .ImageAnalysisClass import mask_expand, launch_denoise_seg_program, toggle_in_gui
@@ -87,7 +88,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             self.MCD_ome.grid(column = 1, row = 1, padx= 5, pady = 5)
             self.MCD_ome.configure(state = "disabled")
 
-            spacer1 = ctk.CTkLabel(self, text = "Denoising:")
+            spacer1 = ctk.CTkLabel(self, text = "Segmentation & Denoising:")
             spacer1.grid(column = 1, row = 2)
 
             ## now these denoising and segmentation tasks are handled by a separate program 
@@ -96,28 +97,24 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             self.simple_denoise = ctk.CTkButton(self, text = "Simple Denoising")
             self.simple_denoise.grid(column = 1, row = 3)
             self.simple_denoise.configure(state = "disabled")
-
-            self.cellposer = ctk.CTkButton(self, text = "Cellpose Denoiser")
-            self.cellposer.grid(column = 1, row = 4, padx= 5, pady = 5)
-            self.cellposer.configure(state = "disabled")
-
-            label2 = ctk.CTkLabel(self, text = "Segmentation Options")
-            label2.grid(row = 5, column = 1, padx = 5, pady = 5)
-
-            self.DeepCell = ctk.CTkButton(self, text = "Run DeepCell")
-            self.DeepCell.grid(column = 1, row = 6, padx= 5, pady = 5)
-            self.DeepCell.configure(state = "disabled")
-
-            self.cellpose_seg = ctk.CTkButton(self, text = "Run Cellpose")
-            self.cellpose_seg.grid(column = 1, row = 7, padx= 5, pady = 5)
-            self.cellpose_seg.configure(state = "disabled")
-
-            self.expander = ctk.CTkButton(self, text = "Expand Masks")
-            self.expander.grid(column = 1, row = 9, padx= 5, pady = 5)
-            self.expander.configure(state = "disabled")
             '''
-            self.seg_denoise_button = ctk.CTkButton(master = self, text = "Launch \n Segmentation \n & Denoising")
-            self.seg_denoise_button.grid(column = 1, row = 3, rowspan = 6, padx = 5, pady = 5)
+            
+            self.Instanseg = ctk.CTkButton(self, text = "Run InstanSeg")
+            self.intersection = ctk.CTkButton(self, text = "Mask Transform by Intersection/Difference")
+            self.expander = ctk.CTkButton(self, text = "Expand Masks")
+            self.Instanseg.grid(column = 1, row = 4, padx= 5, pady = 5)
+            self.intersection.grid(column = 1, row = 5, padx= 5, pady = 5)
+            self.expander.grid(column = 1, row = 6, padx= 5, pady = 5)
+            try:
+                from instanseg import InstanSeg  # noqa: F401
+                self.master.instanseg_available = True
+            except Exception:
+                self.master.instanseg_available = False
+            self.Instanseg.configure(state = "disabled")
+            self.expander.configure(state = "disabled")
+
+            self.seg_denoise_button = ctk.CTkButton(master = self, text = "Launch separate \n Segmentation \n & Denoising program")
+            self.seg_denoise_button.grid(column = 1, row = 3, padx = 5, pady = 5)
             self.seg_denoise_button.configure(state = "disabled")
 
             label3 = ctk.CTkLabel(self, text = "Measuring Segmented Objects & starting Analysis")
@@ -147,13 +144,12 @@ class ImageProcessingWidgets(ctk.CTkFrame):
                 image_dir_list = [i for i in os.listdir(self.master.Experiment_object.directory_object.img_dir) if i.find(".") == -1] ## only want to list directories
                 if len(image_dir_list) > 0: 
                     self.seg_denoise_button.configure(command = self.master.call_segmentation_denoise_program, state = "normal")
-                    #self.DeepCell.configure(command = self.master.call_deepcell_mesmer_segmentor, state = "normal")
-                    #self.cellpose_seg.configure(state = "normal", command = self.master.call_cellpose_seg)
-                    #self.cellposer.configure(command = self.master.call_cellposer, state = "normal")
+                    self.Instanseg.configure(command = self.master.call_instanseg_segmentor, state = "normal")
+                    self.intersection.configure(command = self.master.call_intersection_difference, state = "normal")
                     #self.simple_denoise.configure(command = self.master.call_simple_denoise, state = "normal")
                 masks_dir_list = [i for i in os.listdir(self.master.Experiment_object.directory_object.masks_dir) if i.find(".") == -1]
                 if len(masks_dir_list) > 0:    
-                    # self.expander.configure(state = "normal", command = self.master.call_mask_expand)
+                    self.expander.configure(state = "normal", command = self.master.call_mask_expand)
                     self.Region_Measurements.configure(state = "normal", command = self.master.call_region_measurement)
 
                 self.Convert_towards_analysis.configure(state = "normal", command = self.master.call_to_Analysis)
@@ -179,18 +175,25 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             ### if there are images in the image directory, toggles off the keep column (creates errors if keep column is changed mid-experiment!)
             self.TableWidget.toggle_keep_column("normal")                        
 
-    """
-    def call_deepcell_mesmer_segmentor(self):
+    def call_instanseg_segmentor(self):
         '''
-        Runs the deepcell segmentation. Also writes the 
+        Runs the instanseg segmentation. Also writes the panel file
         '''
-        ## the panel write / setup block is too ensure the panel settings are saved while running, and also to avoid a bizarre bug where
-        ## deep cell was using np.nan's as a third group for the channels (I have no idea why...). 
-                            # Reading from a file solves that problem somehow
+        if not self.instanseg_available:
+            tk.messagebox.showwarning("Warning!", message = "Instanseg is not installed! To fix this warning, \ninstall instanseg-torch package using pip")
+            return
+        ## the panel write / setup block is too ensure the panel settings are saved while running
         self.call_write_panel()
         self.Experiment_object._panel_setup()
-        DeepCell_window(self)
-    """
+        Instanseg_window(self)
+
+    def call_intersection_difference(self):
+        '''
+        Runs the intersection / difference mask transform. Also writes the panel file
+        '''
+        self.call_write_panel()
+        self.Experiment_object._panel_setup()
+        intersection_difference_window(self)
 
     def call_segmentation_denoise_program(self):
         self.call_write_panel()
@@ -201,34 +204,8 @@ class ImageProcessingWidgets(ctk.CTkFrame):
         p.start()  
 
     """
-    def run_deepcell(self, 
-                     image_list, 
-                     re_do, 
-                     image_folder = None, 
-                     output_folder = None):   
-        '''
-        '''
-        warning_window("Don't worry if this step takes a while to complete or the window appears to freeze!\n"
-                    "This behavior during Deepcell / Mesmer segmentation is normal.")
-        self.after(200, 
-                   lambda: self.Experiment_object.deepcell_segmentation(image_list, 
-                                                                        re_do = re_do, 
-                                                                        image_folder = image_folder, 
-                                                                        output_folder = output_folder))
-        self.buttonframe.initialize_buttons()
-
-    def call_cellposer(self):
-        CellPoseDenoiseWindow(self) 
-
     def call_simple_denoise(self):
         SimpleDenoiseWindow(self)
-
-    
-    def call_cellpose_seg(self):
-        ## the panel write / setup block is too ensure the panel settings are saved before running segmentation
-        self.call_write_panel()
-        self.Experiment_object._panel_setup()
-        CellPoseSegmentationWindow(self) 
     """ 
 
     def call_mask_expand(self):
@@ -263,6 +240,192 @@ class ImageProcessingWidgets(ctk.CTkFrame):
         self.Experiment_object.TableWidget.recover_input()
         self.Experiment_object.panel = self.Experiment_object.TableWidget.table_dataframe
         self.Experiment_object.panel_write()
+
+
+class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
+    ''''''
+    def __init__(self, master): 
+        #### Set up the buttons / options / entry fields in the window      
+        super().__init__(master)
+        self.master = master
+        self.title('InstanSeg Segmentation')
+        label1 = ctk.CTkLabel(master = self, text = "Choose segmentation target:")
+        label1.grid(column = 0, row = 0, padx = 10, pady = 10)
+        self.seg_options = ctk.CTkOptionMenu(master = self, values = ["nuclei","cells"], variable = ctk.StringVar(value = "cells"))
+        self.seg_options.grid(column = 1, row = 0, padx = 5, pady = 5)
+
+        label2 = ctk.CTkLabel(master = self, text = "Choose model (only 1 available at the moment):")
+        label2.grid(column = 0, row = 1, padx = 10, pady = 10)
+        self.model = ctk.CTkOptionMenu(master = self, values = ["fluorescence_nuclei_and_cells"], variable = ctk.StringVar(value = "fluorescence_nuclei_and_cells"))
+        self.model.grid(column = 1, row = 1, padx = 5, pady = 5)
+
+        label3 = ctk.CTkLabel(master = self, text = "Threshold (higher numbers excludes more cells):")
+        label3.grid(column = 0, row = 2, padx = 10, pady = 10)
+        self.threshold = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "0.0"))
+        self.threshold.grid(column = 1, row = 2, padx = 5, pady = 5)
+
+        label_8 = ctk.CTkLabel(self, text = "Select an image folder to segment:")
+        label_8.grid(column = 0, row = 3, padx = 5, pady = 5)
+
+        self.img_dir = self.master.Experiment_object.directory_object.img_dir
+        def refresh1(enter = ""):
+            self.image_folders = [i for i in sorted(os.listdir(self.img_dir)) if i.find(".") == -1]
+            self.image_folder.configure(values = self.image_folders)
+
+        self.image_folder = ctk.CTkOptionMenu(self, values = ["img"], variable = ctk.StringVar(value = "img"))
+        self.image_folder.grid(column = 1, row = 3, padx = 5, pady = 5)
+        self.image_folder.bind("<Enter>", refresh1)
+
+        def refresh2(enter = ""):
+            self.filenames = [i for i in sorted(os.listdir(self.image_folder.get())) if i.find(".tif") != -1]
+            self.single_image.configure(values = [""] + self.filenames)
+
+        self.single_image = ctk.CTkOptionMenu(self, values = [""], variable = ctk.StringVar(value = ""))
+        self.single_image.grid(column = 1, row = 3, padx = 5, pady = 5)
+        self.single_image.bind("<Enter>", refresh2)
+
+        self.re_do = ctk.CTkCheckBox(master = self, 
+                    text = "Check to redo previous segmentations." 
+                            "\n Un-check to only do if they do not alreayd exist for a given image.", 
+                    onvalue = True, offvalue = False)
+        self.re_do.grid(column = 0, row = 5, padx = 5, pady = 5)
+
+        accept_values = ctk.CTkButton(master = self, text = "Accept choices and proceed", command = self.read_values)
+        accept_values.grid(padx = 10, pady = 10)
+
+    def read_values(self):
+        ''''''
+        threshold = self.threshold.get()
+        try:
+            threshold = float(threshold)
+        except Exception:
+            tk.messagebox.showwarning("Warning!", message = "Error: Threshold must be numerical!")
+            return
+        re_do = self.re_do.get()
+        input_folder = self.image_folder.get()
+        target = self.seg_options.get()
+        model = self.model.get()
+        single_image = self.single_image.get()
+        if single_image == "":
+            single_image = None
+        
+        warning_window("Don't worry if this step takes a while to complete or the window appears to freeze!\n"
+                    "This behavior during Instanseg segmentation is normal.")
+        self.master.Experiment_object.instanseg_segmentation(re_do = re_do, 
+                                                             input_img_folder = f"{self.master.Experiment_object.directory_object.img_dir}/{input_folder}",
+                                                             single_image = single_image,
+                                                             mean_threshold = threshold,
+                                                             target = target,
+                                                             model = model)
+        self.master.ImageAnalysisPortionLogger.info(f"Performed Instanseg segmentation with re_do = {str(re_do)},"
+                                                            f"input_img_folder = {input_folder}, single_image = {str(single_image)},"
+                                                            f"mean_threshold = {str(threshold)}, target = {str(target)},"
+                                                            f"model = {model}")
+        self.master.buttonframe.initialize_buttons()
+
+
+class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
+    ''''''
+    def __init__(self, master): 
+        super().__init__(master)
+        self.master = master
+        self.title('Mask transformation by Intersection / Difference')
+
+        label1 = ctk.CTkLabel(master = self, text = "Choose First folder of Masks \n (or pixel classifier merged output):")
+        label1.grid(column = 0, row = 0, padx = 10, pady = 10)
+        def refresh1(enter = ""):
+            created_mask_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.masks_dir)) if i.find(".") == -1]
+            created_px_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir)) if i.find(".") == -1]
+            self.folders1 = created_mask_classifiers + created_px_classifiers
+            self.masks_folder1.configure(values = self.folders1)
+            self.masks_folder2.configure(values = self.folders1)
+
+        self.masks_folder1 = ctk.CTkOptionMenu(master = self, 
+                                            values = [""], 
+                                            variable = ctk.StringVar(value = ""))
+        self.masks_folder1.grid(column = 1, row = 0, padx = 5, pady = 5)
+        self.masks_folder1.bind("<Enter>", refresh1)
+
+        label2 = ctk.CTkLabel(master = self, text = "Choose Second folder of Masks  \n (or pixel classifier merged output):")
+        label2.grid(column = 0, row = 1, padx = 10, pady = 10)
+        self.masks_folder2 = ctk.CTkOptionMenu(master = self, 
+                                            values = os.listdir(self.master.Experiment_object.directory_object.masks_dir), 
+                                            variable = ctk.StringVar(value = ""))
+        self.masks_folder2.grid(column = 1, row = 1, padx = 5, pady = 5)
+        self.masks_folder2.bind("<Enter>", refresh1)
+
+        label3 = ctk.CTkLabel(master = self, text = "Pixel Threshold (integer > 1):")
+        label3.grid(column = 0, row = 2, padx = 10, pady = 10)
+        self.pixel_threshold = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "1"))
+        self.pixel_threshold.grid(column = 1, row = 2, padx = 5, pady = 5)
+
+        label4 = ctk.CTkLabel(master = self, text = "Object Threshold (integer > 1):")
+        label4.grid(column = 0, row = 3, padx = 10, pady = 10)
+        self.object_threshold = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "1"))
+        self.object_threshold.grid(column = 1, row = 3, padx = 5, pady = 5)
+
+        label5 = ctk.CTkLabel(master = self, text = "Intersection or Difference:")
+        label5.grid(column = 0, row = 4, padx = 10, pady = 10)
+        self.kind1 = ctk.CTkOptionMenu(self, values = ["intersection","difference"], variable = ctk.StringVar(value = "intersection"))
+        self.kind1.grid(column = 1, row = 4, padx = 5, pady = 5)
+
+        label6 = ctk.CTkLabel(master = self, text = "One way or Two way:")
+        label6.grid(column = 0, row = 5, padx = 10, pady = 10)
+        self.kind2 = ctk.CTkOptionMenu(self, values = ["one-way","two-way"], variable = ctk.StringVar(value = "one-way"))
+        self.kind2.grid(column = 1, row = 5, padx = 5, pady = 5)
+
+        accept_values = ctk.CTkButton(master = self, text = "Transform!", command = self.read_values)
+        accept_values.grid(padx = 10, pady = 10)
+
+    def read_values(self):
+        ''''''
+        object_threshold = self.object_threshold.get()
+        pixel_threshold = self.pixel_threshold.get()
+        try:
+            object_threshold = float(object_threshold)
+            pixel_threshold = float(pixel_threshold)
+        except Exception:
+            tk.messagebox.showwarning("Warning!", message = "Error: both pixel and object thresholds must be numerical!")
+            return
+
+        masks_folder1 = self.masks_folder1.get()
+        masks_folder2 = self.masks_folder2.get()
+        output_folder = f'{masks_folder1}_{masks_folder2}'
+        def check_masks_or_px(path):
+            if path in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir):
+                if "merged_classification_maps" in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir + "/" + path):
+                    return self.master.Experiment_object.directory_object.px_classifiers_dir +"/" + path + "/merged_classification_maps"     
+                    ## only used merged pixel class maps, so that background is 0 and outside the masks (otherwise every pixel will be 'inside' a mask)
+                else:
+                    return None
+            else:
+                return self.master.Experiment_object.directory_object.masks_dir + "/" + path
+        masks_folder1 = check_masks_or_px(masks_folder1)
+        masks_folder2 = check_masks_or_px(masks_folder2)
+        if (masks_folder1 is None) or (masks_folder2 is None):
+            tk.messagebox.showwarning("Warning!", 
+                     message = "One of the pixel classifiers provided does not have a merged folder. \nOnly merged pixel classification maps can be used by this function! Cancelling")
+            return
+
+        kind1 = self.kind1.get()
+        kind2 = self.kind2.get()
+        if kind2 == "one-way":
+            kind = f'{kind1}1'
+        else:
+            kind = f'{kind1}2'
+        self.master.Experiment_object.mask_intersection_difference(masks_folder1 = masks_folder1, 
+                                                                    masks_folder2 = masks_folder2, 
+                                                                    kind = kind, 
+                                                                    object_threshold = object_threshold, 
+                                                                    pixel_threshold = pixel_threshold, 
+                                                                    re_order = True,    #leave re-order & output folder as defaults for now
+                                                                    output_folder = output_folder)
+        self.master.ImageAnalysisPortionLogger.info(f"Performed Mask Intersection Transform with:"
+                                                            f"masks_folder1 = {masks_folder1}, masks_folder2 = {str(masks_folder2)},"
+                                                            f"kind = {str(kind)}, object_threshold = {str(object_threshold)},"
+                                                            f"pixel_threshold = {pixel_threshold}, output_folder = {output_folder}")
+        self.master.buttonframe.initialize_buttons()
+
 
 class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     '''
@@ -424,6 +587,7 @@ class HPF_readin(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 raise ValueError
         except ValueError:
             tk.messagebox.showwarning("Warning!", message = "hpf must be numerical and great than 0!")
+            return
         self.master.call_raw_to_img_part_2_run(hpf = hpf)
         self.master.dir_disp.list_dir()
         self.master.ImageAnalysisPortionLogger.info(f"Converted MCD files to OME.TIFFs using a hot pixel threshold of {self.value.get()}")
