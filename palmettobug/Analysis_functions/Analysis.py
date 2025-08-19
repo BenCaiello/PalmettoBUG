@@ -2677,9 +2677,9 @@ class Analysis:
         divisor = abundance_plot_prep[[bars_by,"count"]].groupby(bars_by, observed = False).sum().reset_index()
         div_dict = {}
         for i in divisor.index:
-            div_dict[int(divisor[bars_by][i])] = divisor["count"][i]
+            div_dict[str(divisor[bars_by][i])] = divisor["count"][i]
         abundance_plot_prep["total"] =  (abundance_plot_prep["count"].astype('int') 
-                                             / abundance_plot_prep[bars_by].astype('int').replace(div_dict))
+                                             / abundance_plot_prep[bars_by].astype('str').replace(div_dict))
         abundance_plot_prep[groupby_column] = abundance_plot_prep[groupby_column].astype('category')
         abundance_plot_prep = abundance_plot_prep[abundance_plot_prep['file_name'] != 0]
         number_of_panels = len(abundance_plot_prep['condition'].unique())
@@ -2752,13 +2752,15 @@ class Analysis:
         flowsom_clustering = self.data.copy()
         cluster_data = pd.DataFrame(flowsom_clustering.X) 
         obs = flowsom_clustering.obs.copy()
-        cluster_data[groupby_column] = list(obs[groupby_column])  
-        cluster_data[N_column] = list(obs[N_column].astype('int')) 
+        cluster_data[groupby_column] = list(obs[groupby_column]) 
+         
+        cluster_data[N_column] = list(obs[N_column]) 
         cluster_data[hue] = list(obs[hue])
-        try:
-            cluster_data[hue] = cluster_data[hue].astype('int') ## for ordering items properly
-        except ValueError:
-            cluster_data[hue] = cluster_data[hue].astype('str')
+        for k in [hue, N_column]
+            try:
+                cluster_data[k] = cluster_data[k].astype('int') ## for ordering items properly
+            except ValueError:
+                cluster_data[k] = cluster_data[k].astype('str')
 
         hue_cat = pd.CategoricalDtype(categories = cluster_data[hue].unique(), ordered = True)
         #cluster_data[hue]  = cluster_data[hue].astype(hue_cat)
