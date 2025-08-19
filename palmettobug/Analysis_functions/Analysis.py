@@ -3680,7 +3680,7 @@ class Analysis:
         data_df[ind_var_column] = data.obs[ind_var_column].values
 
         ind_var_to_sample_id = {}
-        for i,ii in zip(data_df[N_column, data_df[ind_var_column]):
+        for i,ii in zip(data_df[N_column], data_df[ind_var_column]):
             ind_var_to_sample_id[i] = ii 
         
         if split_by_sample_id is True:
