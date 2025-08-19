@@ -421,7 +421,7 @@ class WholeClassAnalysis:
     def whole_marker_exprs_ANOVA(self, 
                                  marker_class: str = 'All', 
                                  groupby_column: str = 'class', 
-                                 N_column; str = 'sample_id',
+                                 N_column: str = 'sample_id',
                                  variable: str = 'condition', 
                                  statistic: str = 'mean',
                                  area: bool = True,
