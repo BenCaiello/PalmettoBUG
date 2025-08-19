@@ -1010,7 +1010,7 @@ class SpatialEDT:
                                   N_column: str = 'sample_id', 
                                   statistic: str = "mean", 
                                   test: str = "anova", 
-                                  filename: Unione[None, str] = None):
+                                  filename: Union[None, str] = None):
         '''
         This is just a wrapper on pbug.Analysis.do_state_exprs_ANOVAs, where the default marker_class is "spatial_edt"
         '''
