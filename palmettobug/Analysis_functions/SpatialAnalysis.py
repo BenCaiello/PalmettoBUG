@@ -218,8 +218,8 @@ class SpatialAnalysis:
                                                            facet_by = facet_by, 
                                                            N_column = N_column,
                                                            col_num = col_num, 
-                                                           seed = seed, n
-                                                           _perms = n_perms, 
+                                                           seed = seed,
+                                                           n_perms = n_perms, 
                                                            filename = filename)
         return plot
 
