@@ -180,6 +180,7 @@ class SpatialAnalysis:
 
     def plot_neighbor_enrichment(self, clustering: str = "merging", 
                                        facet_by: str = "None", 
+                                       N_column: str = "sample_id",
                                        col_num: int = 1, 
                                        seed: int = 42, 
                                        n_perms: int = 1000, 
@@ -213,7 +214,13 @@ class SpatialAnalysis:
         Returns:
             matplotlib.figure 
         '''
-        plot = self.neighbors.plot_neighborhood_enrichment(clustering = clustering, facet_by = facet_by, col_num = col_num, seed = seed, n_perms = n_perms, filename = filename)
+        plot = self.neighbors.plot_neighborhood_enrichment(clustering = clustering, 
+                                                           facet_by = facet_by, 
+                                                           N_column = N_column,
+                                                           col_num = col_num, 
+                                                           seed = seed, n
+                                                           _perms = n_perms, 
+                                                           filename = filename)
         return plot
 
     def plot_neighbor_centrality(self, clustering: str = "merging", 
