@@ -71,7 +71,7 @@ class SpatialAnalysis:
         self.SpaceANOVA = SpatialANOVA()
         self.neighbors = SpatialNeighbors()
 
-    def add_Analysis(self, Analysis):
+    def add_Analysis(self, Analysis) -> None:
         '''
         Connects the Spatial methods here to a palmettobug.Anlysis object. Edits to the Analysis object will affect the Spatial methods here
         '''
@@ -129,7 +129,7 @@ class SpatialAnalysis:
         else:
             print(f"plot_type must be either 'masks' or 'points', but instead {plot_type} was provided") 
 
-    def do_neighbors(self, radius_or_neighbors: str, number: int):
+    def do_neighbors(self, radius_or_neighbors: str, number: int) -> None:
         '''
         Creates the neighbor-graph between cells in the dataset (using their centroids). This step is necessary before performing any of the other neighbor-based methods.
         It uses the squidpy.gr.spatial_neighbors function to generate the neighborhood graph.
@@ -147,7 +147,10 @@ class SpatialAnalysis:
         '''
         self.neighbors.do_neighbors(radius_or_neighbors = radius_or_neighbors, number = number)
 
-    def plot_neighbor_interactions(self, clustering: str = "merging", facet_by: str = "None", col_num: int = 1, filename: Union[str, None] = None):
+    def plot_neighbor_interactions(self, clustering: str = "merging", 
+                                         facet_by: str = "None", 
+                                         col_num: int = 1, 
+                                         filename: Union[str, None] = None) -> plt.figure:
         '''
         This method wraps squidpy's gr/pl.interaction_matrix functions. It plots a heatmap representing the number of interactions between
         cell types in the dataset. Note that this is an absolute number, and is effected by the abundance of celltypes (more abundant celltypes will 
@@ -175,7 +178,12 @@ class SpatialAnalysis:
         plot = self.neighbors.plot_interaction_matrix(clustering = clustering, facet_by = facet_by, col_num = col_num, filename = filename)
         return plot
 
-    def plot_neighbor_enrichment(self, clustering = "merging", facet_by = "None", col_num = 1, seed = 42, n_perms = 1000, filename = None):
+    def plot_neighbor_enrichment(self, clustering: str = "merging", 
+                                       facet_by: str = "None", 
+                                       col_num: int = 1, 
+                                       seed: int = 42, 
+                                       n_perms: int = 1000, 
+                                       filename: Union[None, str] = None) -> plt.figure:
         '''
         This method wraps squidpy's gr/pl.neighborhood_enrichment functions. It plots a heatmap representing the enrichment of interactions over the 
         random expectation between cell types in the dataset. This is calculated by permutation test, and the values of the heatmap are z-scores
@@ -208,7 +216,9 @@ class SpatialAnalysis:
         plot = self.neighbors.plot_neighborhood_enrichment(clustering = clustering, facet_by = facet_by, col_num = col_num, seed = seed, n_perms = n_perms, filename = filename)
         return plot
 
-    def plot_neighbor_centrality(self, clustering: str = "merging", score: str = "closeness_centrality", filename: Union[str,None] = None):
+    def plot_neighbor_centrality(self, clustering: str = "merging", 
+                                       score: str = "closeness_centrality", 
+                                       filename: Union[str,None] = None) -> plt.figure:
         '''
         Wraps squidpy's gr/pl.centrality_scores functions. clustering corresponds to "cluster_key" in squidpy's API, and score corresponds to "score". 
         
@@ -232,7 +242,7 @@ class SpatialAnalysis:
                             resolution: float  = 1.0, 
                             min_dist: float  = 0.1, 
                             n_neighbors: int  = 15, 
-                            **kwargs):
+                            **kwargs) -> plt.figure:
         '''
         This method uses a previously constructed neighbor graph and a cell clustering to identify the proportions of each cell type among the neighbors of 
         every cell, then runs an unsupervised clustering algorithm (FlowSOM or Leiden) to group the cells in "cellular neighborhoods" (CNs). This neighborhood 
@@ -279,28 +289,28 @@ class SpatialAnalysis:
                                   **kwargs)
         return figure
 
-    def plot_CN_graph(self, filename: Union[str, None] = None):
+    def plot_CN_graph(self, filename: Union[str, None] = None) -> plt.figure:
         ''' 
         UMAP or star-plot -- note that this figure is already returned by the method above
         '''
         plot = self.neighbors._plot_stars_CNs(filename = filename)
         return plot
 
-    def plot_CN_heatmap(self, clustering: str = "merging", **kwargs):
+    def plot_CN_heatmap(self, clustering: str = "merging", **kwargs) -> plt.figure:
         '''
         Plots a heatmap of the proportions of the cell types in each of the CN clusters
         '''
         plot = self.neighbors.plot_CN_heatmap(clustering_col = clustering, **kwargs)
         return plot
 
-    def plot_CN_abundance(self, clustering, cols = 3):
+    def plot_CN_abundance(self, clustering: str, cols: int = 3) -> plt.figure:
         '''
         Plots a facetted barplot of the proportion of each cell type in each of the CN clusters
         '''
         plot = self.neighbors.plot_CN_abundance(clustering, cols = cols)
         return plot
 
-    def estimate_SpaceANOVA_min_radii(self, with_empty_space = True):
+    def estimate_SpaceANOVA_min_radii(self, with_empty_space: bool = True) -> int:
         '''
         This uses information about the cell masks & images (such as perimeter, area, cell occupied bounding-box areas, etc.).
 
@@ -348,7 +358,7 @@ class SpatialAnalysis:
                                     seed: int = 42, 
                                     center_on_zero: bool = False, 
                                     silence_zero_warnings: bool = True,
-                                    suppress_threshold_warnings: bool = False):
+                                    suppress_threshold_warnings: bool = False) -> None:
         '''
         Calculates Ripley's spatial statistics for every celltype-celltype pair in clustering in every image. The necessary first step in the SpaceANOVA analysis
         pipeline.
@@ -506,7 +516,7 @@ class SpatialAnalysis:
         self.padj, self.p, self.stat = self.SpaceANOVA.do_all_functional_ANOVAs(stat = stat, seed = seed)
         return self.padj, self.p, self.stat
 
-    def plot_spaceANOVA_heatmap(self, stat: str, filename = None): 
+    def plot_spaceANOVA_heatmap(self, stat: str, filename: Union[None, str] = None) --> plt.figure: 
         '''
         Plots a heatmap from one of the dataframes returned / created by self.run_SpaceANOVA_statistics. If plotting a (adjusted) p-value, as is typical, the 
         statistic is transformed by the negative log first so that high number indicate higher significance.
@@ -635,7 +645,7 @@ class SpatialAnalysis:
                auto_panel = auto_panel, output_edt_folder = output_edt_folder, save_path = save_path)
         return panel, self.edt.results
 
-    def do_reload_edt(self, dataframe, marker_class):
+    def do_reload_edt(self, dataframe: pd.DataFrame, marker_class: str) -> None:
         '''
         Loads a column of data into the anndata of the experiment (meant for saved edt information, but could be used for any type of channel)
 
@@ -648,7 +658,9 @@ class SpatialAnalysis:
             dataframe = pd.read_csv(str(dataframe))
         self.edt.reload_edt(dataframe = dataframe, marker_class = marker_class)
 
-    def plot_edt_heatmap(self, groupby_col, marker_class = "spatial_edt", filename = None):
+    def plot_edt_heatmap(self, groupby_col: str, 
+                               marker_class: str = "spatial_edt", 
+                               filename: Union[None, str] = None) -> plt.figure:
         '''
         Plots a heatmap for spatial edt -- default marker_class is spatial_edt, and export folder (if filename is provided) is in /Spatial_plots
 
@@ -664,7 +676,11 @@ class SpatialAnalysis:
                                          filename = None)
         return plot
 
-    def plot_edt_boxplot(self, var_column, groupby_col = 'merging', facet_col = 'condition', col_num = 3, filename = ''):
+    def plot_edt_boxplot(self, var_column: str, 
+                               groupby_col: str = 'merging', 
+                               facet_col: str = 'condition', 
+                               col_num: int = 3, 
+                               filename: str = '') -> plt.figure:
         '''
         Plots a channel on a horizontal boxplot. Could be used for non-spatial_edt data, but export folder (if a filename is provided)
         is in /Spatial_plots.
@@ -709,9 +725,10 @@ class SpatialAnalysis:
     def run_edt_statistics(self, 
                            groupby_column: str, 
                            marker_class: str = "spatial_edt", 
+                           N_column: str = "sample_id",
                            statistic: str = "mean", 
                            test: str = "anova", 
-                           filename: Union[str, None] = None):
+                           filename: Union[str, None] = None) -> pd.DataFrame:
         '''
         A wrapper on do_state_exprs from the palmettobug.Analysis class, but with the default marker_class of 'spatial_edt', and a output folder
         in /Spatial_plots.
@@ -739,7 +756,8 @@ class SpatialAnalysis:
         if filename is not None:
             filename = self.SpaceANOVA.output_dir + "/" + filename + ".csv"
         df = self.edt.plot_edt_statistics(groupby_column = groupby_column, 
-                                          marker_class = marker_class, 
+                                          marker_class = marker_class,\
+                                          N_column = N_column, 
                                           statistic = statistic, 
                                           test = test, 
                                           filename = filename)
@@ -747,12 +765,13 @@ class SpatialAnalysis:
 
 class SpatialEDT:
     '''
-    
+    This class handles Euclidean Distances Transform (EDT) for calculating distances between cells and particular pixel class of interest
     '''
     def __init__(self):
+        '''Not requiring any inputs to the initialization of a class can be quite helpful for simplifying timing in the GUI'''
         pass
 
-    def add_Analysis(self, Analysis_object):
+    def add_Analysis(self, Analysis_object) -> None:
         '''
         '''
         self.exp = Analysis_object
@@ -768,7 +787,7 @@ class SpatialEDT:
                                 marker_class: Union[str, None] = 'spatial_edt', 
                                 auto_panel: bool = True,
                                 output_edt_folder: Union[None, str, Path] = None,
-                                save_path: Union[None, str, Path] = None):
+                                save_path: Union[None, str, Path] = None) -> pd.DataFrame:
         '''
         Loads a distance transform statistic using a folder of masks (should match self.input_mask_folder, if available) and a folder of pixel classifications.
         The distance transform statistic is added for every cell in the dataset & can be treated like an additional antigen -- if marker_class == "type", then
@@ -840,7 +859,7 @@ class SpatialEDT:
             self.append_distance_transform(distances_panel = distances_panel) ## specifying distances panel in this call overwrites any prior panel
         return distances_panel
     
-    def append_distance_transform(self, distances_panel: Union[str, pd.DataFrame, None] = None):
+    def append_distance_transform(self, distances_panel: Union[str, pd.DataFrame, None] = None) -> None:
         ''' 
         Adds a distance transform statistic loaded by load_distance_transform to self.data so that it can be accessed.
         '''
@@ -888,7 +907,7 @@ class SpatialEDT:
         if self.exp._in_gui: 
             self.exp.logger.info("Appended distance transform edt data") 
 
-    def reload_edt(self, dataframe, marker_class):
+    def reload_edt(self, dataframe: pd.DataFrame, marker_class: str) -> pd.DataFrame:
         '''
         '''
         self.exp._distance_edt_data = dataframe
@@ -917,7 +936,7 @@ class SpatialEDT:
                                 subset_col: str = 'merging', 
                                 facet_col: str = 'condition', 
                                 col_num: int = 3, 
-                                filename: str = ''):
+                                filename: str = '') -> plt.figure:
         '''
         This function is for plotting the dstirubtion of values in a single column in an anndata object.
     
@@ -973,7 +992,9 @@ class SpatialEDT:
         return figure
 
 
-    def plot_edt_heatmap(self, groupby_col, marker_class = "spatial_edt", filename = None):
+    def plot_edt_heatmap(self, groupby_col: str,
+                               marker_class: str = "spatial_edt", 
+                               filename: Union[str, None] = None) -> plt.figure:
         '''
         This is just a wrapper on pbug.Analysis.plot_medians_heatmap, where the default marker_class is "spatial_edt"
         '''
@@ -984,12 +1005,18 @@ class SpatialEDT:
         return figure
 
 
-    def plot_edt_statistics(self, groupby_column, marker_class = "spatial_edt", statistic = "mean", test = "anova", filename = None):
+    def plot_edt_statistics(self, groupby_column: str, 
+                                  marker_class: str = "spatial_edt", 
+                                  N_column: str = 'sample_id', 
+                                  statistic: str = "mean", 
+                                  test: str = "anova", 
+                                  filename: Unione[None, str] = None):
         '''
         This is just a wrapper on pbug.Analysis.do_state_exprs_ANOVAs, where the default marker_class is "spatial_edt"
         '''
         stat_df = self.exp.do_state_exprs_ANOVAs(groupby_column = groupby_column, 
                                                  marker_class = marker_class,
+                                                 N_column = N_column,
                                                  statistic = statistic,
                                                  test = test)
         if filename is not None:
@@ -1359,13 +1386,20 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         plt.close()
         return figure
 
-    def plot_neighborhood_enrichment(self, clustering = "merging", facet_by = "condition", col_num = 1, seed = 42, n_perms = 1000, filename = None):
+    def plot_neighborhood_enrichment(self, clustering: str = "merging", 
+                                    facet_by: str = "condition", 
+                                    N_column: Union[None, str] = "sample_id",
+                                    col_num: int = 1, 
+                                    seed: int = 42, 
+                                    n_perms: int = 1000, 
+                                    filename: Union[None, str] = None):
         '''
-        Plots neighborhood enrichment scores for the chosen [clustering]. Can be facetted using [facet_by] to compare things like condition
+        Plots neighborhood enrichment scores for the chosen [clustering]. Can be facetted using [facet_by] to compare things like condition.
+        Adjust [N_column] to change what groups are treated as the experimental unit (I think - needs testing).
         '''
         data = self.exp.data.copy()
         data.obs[clustering] = data.obs[clustering].astype('category')
-        sq.gr.nhood_enrichment(data, cluster_key = clustering, show_progress_bar = False, seed = seed, n_perms = n_perms)
+        sq.gr.nhood_enrichment(data, cluster_key = clustering, show_progress_bar = False, seed = seed, n_perms = n_perms, library_key = N_column)
         if facet_by != "None":
             conditions = data.obs[facet_by].unique()
             condition_num = len(conditions)
@@ -1406,7 +1440,10 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         plt.close()
         return figure
     
-    def plot_interaction_matrix(self, clustering: str = "merging", facet_by: str = "None", col_num: int = 1, filename: Union[str, None] = None):
+    def plot_interaction_matrix(self, clustering: str = "merging", 
+                                      facet_by: str = "None", 
+                                      col_num: int = 1, 
+                                      filename: Union[str, None] = None):
         '''
         Plots the ineteraction matrix for the chosen [clustering]. Can be facetted using [facet_by] to compare things like condition.
 

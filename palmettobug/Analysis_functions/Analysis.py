@@ -2192,33 +2192,20 @@ class Analysis:
                 cluster_centers.index = percents
             else:
                 percentiles = pd.DataFrame()
-                '''
-                if show_cluster_centers is True:     ### shows mean of metacluster centers
-                    for_fs = self.clustering_data.copy()
-                    obs = for_fs.obs
-                    cluster_data = pd.DataFrame(for_fs.X.T * np.array(for_fs.obs['percentages'])).T  ## This is the data on the values of the centroids of each individual cluster
-                    cluster_data[groupby] = list(obs[groupby])   ## don't know why converting to a list is necessary, but it is.... 
-                                    # Answer: it has to do with indexes:  
-                                    # https://stackoverflow.com/questions/61677569/cannot-set-pandas-column-values-using-series-sets-everything-to-np-nan-instead
-
-                    cluster_centers = cluster_data.groupby(groupby, observed = False).mean()
-                    cluster_centers.columns = for_fs.var.index
-                '''
                 percent_groupby = self.data.obs.groupby(groupby, observed = False).count()['file_name'] / len(self.data.obs)
                 if groupby != "clustering":
                     percentiles['percents'] = [f'''{i} ({np.round(ii * 100, 1)}%)''' for i,ii in zip(percent_groupby.index, list(percent_groupby))]
                     percentiles['index'] = [i for i in percent_groupby.index]
-                #else:
-                #    percentiles['percents'] = [f'''{i} ({np.round(obs["percentages"].loc[i] * 100, 1)}%)''' for i in obs.index]
-                #    percentiles['index'] = [i for i in obs.index]
                 percentiles = percentiles.sort_values('index')
                 cluster_centers.index = list(percentiles['percents'])   
         else:
-            cluster_centers['sample_id'] = list(cluster_centers.reset_index()['index'])
+            cluster_centers['sample_id'] = list(cluster_centers.reset_index()['index'])   ## could replace 'sample_id' in these lines with [groupby]
             cluster_centers.index = cluster_centers['sample_id']
             cluster_centers = cluster_centers.drop('sample_id', axis = 1)
+
         transform = _quant(cluster_centers, axis = scale_axis)
         cluster_centers = pd.DataFrame(transform, index = cluster_centers.index, columns = cluster_centers.columns)
+
         plot = sns.clustermap(cluster_centers, 
                              cmap = colormap, 
                              linewidths = 0.01, 
@@ -2229,18 +2216,15 @@ class Analysis:
         plot.figure.suptitle(f"Scaled/Normalization Expression Medians of each {marker_class} Marker within each {groupby}", y = 1.03)
         warnings.filterwarnings("default", message = "divide by zero encountered in divide")  ## undo prior warnings modifications
         warnings.filterwarnings("default", message = "invalid value encountered in divide") 
+
         if filename is not None:
             plot.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
-            plt.close()  
-            if  subset_df is None:
-                return plot.figure
-            else:
-                return plot
+        plt.close()  
+        if subset_df is None:
+            return plot.figure
         else:
-            if subset_df is None:
-                return plot.figure
-            else:
-                return plot
+            return plot
+
         
     def _plot_facetted_heatmap(self, 
                               filename: str, 

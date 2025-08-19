@@ -253,10 +253,12 @@ class SpatialANOVA():
         for i in space_anova_table['sample_id'].unique():
             self._split_by_image.append(space_anova_table[space_anova_table['sample_id'] == i].drop(['condition','patient_id'], axis = 1))
         
-        for_group_img_dict = space_anova_table.drop(['patient_id','x','y','cellType'], axis = 1).drop_duplicates()
+        for_group_img_dict = space_anova_table.drop(['x','y','cellType'], axis = 1).drop_duplicates()
         self._group_img_dict = {}
-        for i,ii in zip(for_group_img_dict['condition'], for_group_img_dict['sample_id']):
-            self._group_img_dict[ii] = i
+        self._patient_ids = {}
+        for i,ii,iii in zip(for_group_img_dict['sample_id'], for_group_img_dict['condition'], for_group_img_dict['patient_id']):
+            self._group_img_dict[i] = ii
+            self._patient_ids[i] = iii
         return self._split_by_image, self._group_img_dict
 
     def do_spatial_analysis(self, 
@@ -442,6 +444,7 @@ class SpatialANOVA():
             perm_state = self.seed
         split_point_pattern = self._split_by_image
         group_img_dict = self._group_img_dict
+        patient_ids = self._patient_ids
         fixed_r = self.fixed_r
         if fixed_r is None:        
             print("You must provide a range object of the radii to check into this method's fixed_r argument, or first provide that object using the call the set_fixed_r() method!")
@@ -464,13 +467,21 @@ class SpatialANOVA():
                                         suppress_threshold_warnings = suppress_threshold_warnings) 
             
             if K_df['K'].sum() != 0: ### if sum() == 0, this means a failure of the algorithm / insufficient cells in the image:
-                g_df["condition"] = group_img_dict[ii]
+                condition_id = group_img_dict[ii]
+                patient_id = patient_ids[ii]
+
+                g_df["condition"] = condition_id
+                g_df['patient_id'] = patient_id
                 g_df['image'] = i
                 self._all_g = pd.concat([self._all_g, g_df], axis = 0)
-                K_df["condition"] = group_img_dict[ii]
+
+                K_df["condition"] = condition_id
+                K_df['patient_id'] = patient_id
                 K_df['image'] = i
                 self._all_K = pd.concat([self._all_K, K_df], axis = 0)
-                L_df["condition"] = group_img_dict[ii]
+                
+                L_df["condition"] = condition_id
+                L_df['patient_id'] = patient_id
                 L_df['image'] = i
                 self._all_L = pd.concat([self._all_L, L_df], axis = 0)
 
