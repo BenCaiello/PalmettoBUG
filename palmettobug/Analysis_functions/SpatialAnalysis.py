@@ -516,7 +516,7 @@ class SpatialAnalysis:
         self.padj, self.p, self.stat = self.SpaceANOVA.do_all_functional_ANOVAs(stat = stat, seed = seed)
         return self.padj, self.p, self.stat
 
-    def plot_spaceANOVA_heatmap(self, stat: str, filename: Union[None, str] = None) --> plt.figure: 
+    def plot_spaceANOVA_heatmap(self, stat: str, filename: Union[None, str] = None) -> plt.figure: 
         '''
         Plots a heatmap from one of the dataframes returned / created by self.run_SpaceANOVA_statistics. If plotting a (adjusted) p-value, as is typical, the 
         statistic is transformed by the negative log first so that high number indicate higher significance.
