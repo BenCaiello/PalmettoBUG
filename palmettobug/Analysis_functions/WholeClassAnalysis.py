@@ -109,7 +109,7 @@ class WholeClassAnalysis:
         else:
             self._load(csv = csv)
 
-    def _load(self, csv: Union[pd.DataFrame, None] = None, arcsinh_cofactor = 5) -> None:
+    def _load(self, csv: Union[pd.DataFrame, None] = None, arcsinh_cofactor: int = 5) -> None:
         '''Helper to the __init__ method: performs the loading and shaping of data during the initial load.'''
         metadata = self._metadata
         panel = self._panel
@@ -340,8 +340,8 @@ class WholeClassAnalysis:
     
     def plot_distribution_exprs(self, 
                                 unique_class: Union[str, int], 
-                                N_column: str = "sample_id",
                                 plot_type: str,
+                                N_column: str = "sample_id",
                                 marker_class: str = "All",
                                 filename: Union[str, None] = None,
                                 ) -> sns.FacetGrid:
