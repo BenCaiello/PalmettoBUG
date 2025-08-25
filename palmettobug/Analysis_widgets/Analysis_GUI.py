@@ -3136,7 +3136,7 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def plot_scatter(self, 
                     antigen1: str, 
-                    antigen2: str, 
+                    antigen2: str, f
                     hue = None, 
                     size: str = "1", 
                     alpha: str = "0.5", 

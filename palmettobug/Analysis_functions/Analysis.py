@@ -253,8 +253,14 @@ class Analysis:
             Analysis_log = Analysis_logger(log_dir).return_log()
             self.logger = Analysis_log
 
-        ## handle metadata & panel is loading from FCS files, otherwise the requisite information is in the CSV itself
-        if csv is None:
+        ## If 'Analysis_fcs' doesn't exist
+        csv_check1 = csv is None
+        csv_check2 = "Analysis_fcs" in os.listdir(directory)
+        if csv_check2:
+            csv_check3 = len([i for i in os.listdir(directory + "/Analysis_fcs") if i.find('.fcs') != -1]) > 0
+        else:
+            csv_check3 = False
+        if csv_check1 and csv_check2 and csv_check3:    
             self.metadata = pd.read_csv(self.directory + '/metadata.csv')
             self.metadata['condition'] = self.metadata['condition'].astype('str')
             metadata_cat = pd.CategoricalDtype(categories = self.metadata['condition'].unique(), ordered = True)
@@ -263,7 +269,12 @@ class Analysis:
             self.metadata['sample_id'] = self.metadata['sample_id'].astype('str')
             self.panel = pd.read_csv(self.directory + '/Analysis_panel.csv')
             self._load_fcs(arcsinh_cofactor = arcsinh_cofactor)
+        elif csv:
+            self._load_csv(csv, additional_columns = csv_additional_columns, arcsinh_cofactor = arcsinh_cofactor)
         else:
+            print("An /Analysis_fcs folder either doesn't exist or is empty -- and no CSV was provided." 
+                  "\nAssuming this is a reload of a CSV-based analysis, and will attempt to load from a 'source_CSV.csv' file in the analysis directory.")
+            csv = pd.read_csv(directory + "/source_CSV.csv")
             self._load_csv(csv, additional_columns = csv_additional_columns, arcsinh_cofactor = arcsinh_cofactor)
         
         ## Handle spatial experiment information
@@ -549,8 +560,11 @@ class Analysis:
         ## Load spatial information, if available
         try:
             self.data.uns['areas'] = data['areas'] 
+            self.data = self.data[self.data.var['antigen'] != 'areas']  ### drop spatial columns from self.data.X as they are loaded for spatial analysis
             cent_X = np.asarray(data['centroid_X'])
+            self.data = self.data[self.data.var['antigen'] != 'centroid_X']
             cent_Y = np.asarray(data['centroid_Y'])
+            self.data = self.data[self.data.var['antigen'] != 'centroid_Y']
             obsm = np.zeros([2, len(cent_X)])
             obsm[0] = cent_X
             obsm[1] = cent_Y
@@ -2753,7 +2767,7 @@ class Analysis:
         cluster_data = pd.DataFrame(flowsom_clustering.X) 
         obs = flowsom_clustering.obs.copy()
         cluster_data[groupby_column] = list(obs[groupby_column]) 
-         
+
         cluster_data[N_column] = list(obs[N_column]) 
         cluster_data[hue] = list(obs[hue])
         for k in [hue, N_column]

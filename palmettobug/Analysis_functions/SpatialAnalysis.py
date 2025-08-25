@@ -1191,7 +1191,7 @@ class SpatialNeighbors:        ## formerly SquipySpatial
     def add_Analysis(self, Analysis):
         ''''''
         self.exp = Analysis
-        masks_path = self.exp.input_mask_folder
+        self.masks_paths = None
         save_directory = (self.exp.directory + "/Spatial_plots") 
         self.save_dir = str(save_directory)
         if not os.path.exists(self.save_dir):
@@ -1199,7 +1199,6 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         self.save_cell_maps_dir = self.save_dir + "/cell_maps"
         if not os.path.exists(self.save_cell_maps_dir):
             os.mkdir(self.save_cell_maps_dir)
-        self.masks_paths = [masks_path + "/" + i for i in os.listdir(str(masks_path)) if i.lower().find(".tif") != -1]
 
     def do_neighbors(self, radius_or_neighbors: str, number: int):
         '''
@@ -1528,6 +1527,9 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         '''
         Plots a single image (designated by either sample_id or filename) in the style of squidpy.pl.spatial_segment (masks shapes plotted, colored by [clustering])
         '''
+        if self.masks_paths is None:
+            masks_path = self.exp.input_mask_folder
+            self.masks_paths = [masks_path + "/" + i for i in os.listdir(str(masks_path)) if i.lower().find(".tif") != -1]
         if (filename is None) and (sample_id is not None):
             filename = self.exp.data.obs[self.exp.data.obs['sample_id'] == sample_id]['file_name'].values[0]
 
