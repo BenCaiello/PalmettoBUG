@@ -13,7 +13,7 @@ As an additional consequence, the documentation, notebooks, environments, etc. a
 
 Once this branch is completed & released, run: 
 
-    pip install palmettobug==0.1.2.dev310
+    pip install palmettobug==0.1.4.dev310
 
 Future version number for this branch will follow the convention 0.1.x.dev310, unless there is a truly major update to the program that I propagate to this branch.
 
