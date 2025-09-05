@@ -2770,7 +2770,7 @@ class Analysis:
 
         cluster_data[N_column] = list(obs[N_column]) 
         cluster_data[hue] = list(obs[hue])
-        for k in [hue, N_column]
+        for k in [hue, N_column]:
             try:
                 cluster_data[k] = cluster_data[k].astype('int') ## for ordering items properly
             except ValueError:
