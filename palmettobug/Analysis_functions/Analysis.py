@@ -2747,6 +2747,8 @@ class Analysis:
                 The name of the column in self.data.obs that determines what individual units compose the distribution of the boxplot.
                 This function does not do a statistical test, but the groups of this column would correspond to the N used to determine 
                 variance / degrees of freedom in a t-test.
+                NOTE: a key assumption is that the categories in this column are NEVER shared between hue categories. This holds for the defaults 
+                (each unique ROI / sample_id can only have one condition assigned to it) but must also be true for any alternate column used. 
 
             hue (str):
                 The name of a column in self.data.obs to separate & color columns of the plots by
@@ -2763,6 +2765,14 @@ class Analysis:
         Returns:
             a matplotlib figure
         '''
+        ## check N_column groups are not shared between hues
+        for i in self.data.obs[N_column].unique():
+            n_col = self.data.obs[self.data.obs[N_column] == i]
+            unique_hue = n_col[hue].astype('str').unique()
+            if len(unique_hue) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
+                print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
+                return
+        
         flowsom_clustering = self.data.copy()
         cluster_data = pd.DataFrame(flowsom_clustering.X) 
         obs = flowsom_clustering.obs.copy()
@@ -2781,7 +2791,7 @@ class Analysis:
         divisor = cluster_data.groupby(N_column, observed = False).count().iloc[:,0]
         zip_dict = {}
         
-        for i,ii in zip(cluster_data[N_column].astype('str').unique(), divisor):
+        for i,ii in zip(divisor.index, divisor):
             zip_dict[i] = ii
         
         cluster_data[N_column] = cluster_data[N_column].astype('category')
@@ -2830,6 +2840,8 @@ class Analysis:
             N_column (string):
                 The column in self.data.obs that determines the "N" for the statistical test (data is aggregated by this before the test and it
                 helps determine what the degrees of freedom are in the test.)
+                NOTE: unlike other instances of N_column in palmettobug functions, it is possible groups within this column to be shared within the conditions,
+                as the comparison of interest is usually on the cell type level, not between conditions.
 
             marker_class (string == "All", "type", "state", or "none" ): 
                 what markers to include in the comparison. Usually "type", should typically match the markers used to generate the cell clustering / groupby being compared.
@@ -2958,6 +2970,9 @@ class Analysis:
 
             N_column (str):
                 The column in self.data.obs that determines the aggregation (and downstream from this, the degrees of freedom) for the statistical test.
+                NOTE: a key assumption is that the categories in this column are NEVER shared between conditions -- aggregation on this column
+                is done BEFORE comparison of conditions. This holds for the defaults (each unique ROI / sample_id can only have one condition assigned to it)
+                but must also be true for any alternate column used. 
 
             conditions (list of strings or empty list): 
                 list of unique values in self.data.obs[variable] to be compared by ANOVA if None, then wil perform an ANOVA test on all the conditions in the dataset. 
@@ -2976,6 +2991,14 @@ class Analysis:
 
         if conditions == []:
             conditions = list(self.data.obs[variable].unique())
+
+        for i in self.data.obs[N_column].unique():
+            n_col = self.data.obs[self.data.obs[N_column] == i]
+            unique_conditions = n_col[variable].astype('str').unique()
+            relevant_conditions = [j for j in unique_conditions if j in conditions]
+            if len(relevant_conditions) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
+                print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
+                return
         
         condition_list = []
         for i in conditions:
@@ -3062,9 +3085,13 @@ class Analysis:
                     "Binomial" : sm.families.Binomial, 
                     "NegativeBinomial" : sm.families.NegativeBinomial, 
                     "Gaussian" : sm.families.Gaussian}
+
+        ## check N_column groups are not shared between conditions
         for i in self.data.obs[N_column].unique():
             n_col = self.data.obs[self.data.obs[N_column] == i]
-            if len(n_col[variable].astype('str').unique()) != 1:
+            unique_conditions = n_col[variable].astype('str').unique()
+            relevant_conditions = [j for j in unique_conditions if j in conditions]
+            if len(relevant_conditions) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
                 print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
                 return
 
@@ -3396,6 +3423,9 @@ class Analysis:
                  as errors / strange looking plots are likely with any other value. It specifies how the data is aggregated before plotting,
                  as plotting every cell for a large dataset is likely to make the boxplot too confusing, as there can be far too many outlier
                  points on the plot.
+                 NOTE: a key assumption is that the categories in this column are NEVER shared between conditions -- aggregation on this column
+                 is done BEFORE comparison of conditions. This holds for the defaults (each unique ROI / sample_id can only have one condition assigned to it)
+                 but must also be true for any alternate column used. 
 
             grouping_stat (string):
                 How to aggregate the data using the N_column parameter -- as in, take the 'mean' of the sample_id's or the 'median' before plotting?
@@ -3421,6 +3451,12 @@ class Analysis:
             Outputs: 
                 If filename is provided (is not None), then exports the figure as a .png file
         '''
+        for i in self.data.obs[N_column].unique():
+            n_col = self.data.obs[self.data.obs[N_column] == i]
+            unique_conditions = n_col[colorby].astype('str').unique()
+            if len(unique_conditions) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
+                print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition (colorby) and not more than 1. Cancelling")
+                return
         text_size = 10
         data = self.data.copy()
         scale = self._scaling
@@ -3644,6 +3680,9 @@ class Analysis:
                 distributions of the final statistical comparison and the number of degrees of freedom in the test could be described as:
                     degrees_of_freedom = len(self.data.obs[N_column].unique()) - len(self.data.obs[variable].unique()) 
                 As in, N - the number of comparisons.
+                NOTE: a key assumption is that the categories in this column are NEVER shared between conditions -- aggregation on this column
+                is done BEFORE comparison of conditions. This holds for the defaults (each unique ROI / sample_id can only have one condition assigned to it)
+                but must also be true for any alternate column used. 
 
             statistic (str): 
                 one of -- "mean", "median" -- which aggregation statistic to use
@@ -3668,6 +3707,7 @@ class Analysis:
         if (N_column == groupby_column) or (groupby_column == variable) or (variable == N_column):
             print("The comparison column, experimental unit column, and cell type column must all be different! Cancelling stats run.")
             return
+
         ind_var_column = variable
         stat_test_dict = {'anova':scipy.stats.f_oneway, 'kruskal':scipy.stats.kruskal}
         stat_test_labels_dict = {'anova':'F statistic','kruskal':'H statistic'}
@@ -3686,6 +3726,15 @@ class Analysis:
         if groupby_column == "whole dataset":  #########
             groupby_column = "whole dataset"
             data.obs["whole dataset"] = "whole dataset"
+
+        ## check N_column groups unique within the independent variable (conditions)
+        for i in self.data.obs[N_column].unique():
+            n_col = self.data.obs[self.data.obs[N_column] == i]
+            unique_conditions = n_col[variable].astype('str').unique()
+            relevant_conditions = [j for j in unique_conditions if j in conditions]
+            if len(relevant_conditions) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
+                print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
+                return
 
         merging_clusters = data.obs[groupby_column].unique()
         
