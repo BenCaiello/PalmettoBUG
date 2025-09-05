@@ -2767,7 +2767,7 @@ class Analysis:
         '''
         ## check N_column groups are not shared between hues
         for i in self.data.obs[N_column].unique():
-            n_col = self.data.obs[self.data.obs[N_column] == i]
+            n_col = self.data.obs[self.data.obs[N_column] == i].copy()
             unique_hue = n_col[hue].astype('str').unique()
             if len(unique_hue) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
                 print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
@@ -2797,7 +2797,7 @@ class Analysis:
         cluster_data[N_column] = cluster_data[N_column].astype('category')
         numerators = cluster_data.groupby([N_column,groupby_column], observed = False).count().loc[:,0]
         numerators = numerators.reset_index()
-        numerators['divisor'] = numerators[N_column].astype('str').replace(zip_dict)
+        numerators['divisor'] = numerators[N_column].astype('str').replace(zip_dict).astype('int')
         numerators['proportions'] = (numerators[0] / numerators['divisor']) * 100
         zip_dict = {}
         
