@@ -2791,7 +2791,7 @@ class Analysis:
         divisor = cluster_data.groupby(N_column, observed = False).count().iloc[:,0]
         zip_dict = {}
         
-        for i,ii in zip(divisor.index, divisor):
+        for i,ii in zip(divisor.index.astype('str'), divisor):
             zip_dict[i] = ii
         
         cluster_data[N_column] = cluster_data[N_column].astype('category')
