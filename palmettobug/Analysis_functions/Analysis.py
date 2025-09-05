@@ -3036,6 +3036,9 @@ class Analysis:
             N_column (string):
                 the column in self.data.obs that contains the replication N grouping (data is aggregated by this grouping
                 before the statistical test, and relates to the number of degrees of freedom in the test). Usually only sample_id or patient_id. 
+                NOTE: a key assumption is that the categories in this column are NEVER shared between conditions -- aggregation on this column
+                is done BEFORE comparison of conditions. This holds for the defaults (each unique ROI / sample_id can only have one condition assigned to it)
+                but must also be true for any alternate column used. 
 
             family (string -- "Poisson", "NegativeBinomial"): 
                 The distribution to use in the GLM. Can be "Poisson" or "NegativeBinomial". Other distributions, such as "Gaussian" and "Binomial" are 
@@ -3059,6 +3062,12 @@ class Analysis:
                     "Binomial" : sm.families.Binomial, 
                     "NegativeBinomial" : sm.families.NegativeBinomial, 
                     "Gaussian" : sm.families.Gaussian}
+        for i in self.data.obs[N_column].unique():
+            n_col = self.data.obs[self.data.obs[N_column] == i]
+            if len(n_col[variable].astype('str').unique()) != 1:
+                print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
+                return
+
         model = GLM_dict[family]()
 
         to_data = self.data.copy()
