@@ -1415,6 +1415,9 @@ def _K_cross_homogeneous(df: pd.DataFrame,
         K = np.concatenate([K, append_array])
     return K, K_theo
 
+from numba import njit
+
+@njit
 def _spatstat_Edge_Ripley(X: pd.DataFrame, 
                           r: np.array, 
                           window: list[float],
@@ -1467,7 +1470,7 @@ def _spatstat_Edge_Ripley(X: pd.DataFrame,
     total = mini_left + mini_right + mini_down + mini_up
 
     if corner.sum() > 0:
-        print('corners!')
+        #print('corners!')
         total[corner] = total[corner] + (np.pi / 2)
 
     weights = 1 / (1 - (total / (2 * np.pi)))
