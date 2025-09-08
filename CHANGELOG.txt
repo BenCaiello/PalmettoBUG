@@ -49,5 +49,3 @@ Changes to version (update log in development branch while that branch is being 
     Changes to 0.2.7:
         - Add flexibility to the experimental unit for certain statistical tests (idea: allow aggregation by patient_id, not only sample_id)
         - fixes to CSV load / reload methods
-
-
