@@ -323,7 +323,7 @@ def test_edt():
     my_analysis.filter_data(to_drop = "0")
     my_analysis.filter_data(to_drop = "8")
     my_analysis.filter_data(to_drop = "9")
-    print(os.listdir('/home/runner/work/PalmettoBUG/PalmettoBUG/project_folder/Example_IMC/Pixel_Classification/lumen_epithelia_laminapropria'))
+    # print(os.listdir('/home/runner/work/PalmettoBUG/PalmettoBUG/project_folder/Example_IMC/Pixel_Classification/lumen_epithelia_laminapropria'))
     panel, results = my_spatial.do_edt(pixel_classifier_folder = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria", 
                                         masks_folder = proj_directory + "/masks/example_deepcell_masks", 
                                         maps = "/classification_maps",
