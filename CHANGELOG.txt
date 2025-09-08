@@ -46,4 +46,9 @@ Changes to version (update log in development branch while that branch is being 
                     (visualize Ripley's stats at various distances as heatmaps)
         - Minor changes to code comments / docstrings / documentation 
 
+    Changes to 0.2.7:
+        - Add flexibility to the experimental unit for certain statistical tests (idea: allow aggregation by patient_id, not only sample_id)
+            - This is in progress: need to propagate to SpaceANOVA & into GUI so that it is accessible outside of scripting
+        - fixes to CSV load / reload methods
+
 
