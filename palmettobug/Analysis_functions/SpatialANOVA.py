@@ -1503,4 +1503,4 @@ def _spatstat_small(array: np.ndarray[float]) -> np.ndarray[bool]:  # *** deriv_
 
     This function is similarly a direct translation from spatstat, it is a helper function to the _spatstat_Edge_Ripley() function above:
             see: https://github.com/spatstat/spatstat.core/blob/master/R/edgeRipley.R'''
-    return abs(array) < np.finfo('float64').eps
+    return np.absolute(array) < np.finfo('float64').eps
