@@ -428,6 +428,7 @@ class SpatialANOVA():
                       perm_state: int = None, 
                       center_on_zero: bool = False,
                       suppress_threshold_warnings = False,
+                      parallel: bool = True
                       ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:
         '''
         This may end being more of a helper function for do_spatial_analysis(), but it can remain in the class.
@@ -452,23 +453,15 @@ class SpatialANOVA():
         if fixed_r is None:        
             print("You must provide a range object of the radii to check into this method's fixed_r argument, or first provide that object using the call the set_fixed_r() method!")
             return
-            
-        self._all_g = pd.DataFrame()
-        self._all_K = pd.DataFrame()
-        self._all_L = pd.DataFrame()
-        for ii,i in zip(group_img_dict,range(0,len(split_point_pattern))):
-            K_df, L_df, g_df = do_K_L_g(split_point_pattern[i], 
-                                        type_column = 'cellType', 
-                                        type1 = type1, 
-                                        type2 = type2, 
-                                        fixed_r = fixed_r,
-                                        threshold = self.threshold,
-                                        image_name = ii, 
-                                        permutations = permutations, 
-                                        perm_state = perm_state, 
-                                        center_on_zero = center_on_zero,
-                                        suppress_threshold_warnings = suppress_threshold_warnings) 
-            
+
+        def append_K_L_g(output_chunk)
+            '''
+            Created so that the conditional statement can be lazily evaluated by dask in parallel verison of this function
+            '''
+            K_df = output_chunk[0]
+            L_df = output_chunk[1]
+            g_df = output_chunk[2]
+
             if K_df['K'].sum() != 0: ### if sum() == 0, this means a failure of the algorithm / insufficient cells in the image:
                 condition_id = group_img_dict[ii]
                 patient_id = patient_ids[ii]
@@ -487,6 +480,39 @@ class SpatialANOVA():
                 L_df['patient_id'] = patient_id
                 L_df['image'] = i
                 self._all_L = pd.concat([self._all_L, L_df], axis = 0)
+            
+        self._all_g = pd.DataFrame()
+        self._all_K = pd.DataFrame()
+        self._all_L = pd.DataFrame()
+        stored_outputs = []
+        for ii,i in zip(group_img_dict,range(0,len(split_point_pattern))):
+            if parallel:
+                execution_function = delayed(do_K_L_g)
+            else:
+                execution_function = do_K_L_g
+            K_L_g_output_chunk = execution_function(split_point_pattern[i], 
+                                        type_column = 'cellType', 
+                                        type1 = type1, 
+                                        type2 = type2, 
+                                        fixed_r = fixed_r,
+                                        threshold = self.threshold,
+                                        image_name = ii, 
+                                        permutations = permutations, 
+                                        perm_state = perm_state, 
+                                        center_on_zero = center_on_zero,
+                                        suppress_threshold_warnings = suppress_threshold_warnings) 
+            if parallel:
+                stored_outputs.append(K_L_g_output_chunk)
+            else:
+                append_K_L_g(K_L_g_output_chunk)
+
+        if parallel:
+            for i in stored_outputs:
+                delayed_append = delayed(append_K_L_g)
+                delayed_append(i)
+            self._all_g = self._all_g.compute()   
+            self._all_K = self._all_K.compute()  
+            self._all_L = self._all_L.compute()          
 
         self.type1 = type1
         self.type2 = type2
@@ -1251,7 +1277,9 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         perm = pointpattern.copy()
         for i in range(0, permutations, 1):
             perm[type_column] = list(perm[type_column].sample(frac = 1.0, random_state = perm_state))
-            new_K, _ = _K_cross_homogeneous(perm, 
+
+            delayed_K_homogenous = delayed(_K_cross_homogeneous)
+            new_K, _ = delayed_K_homogenous(perm, 
                                 fixed_r = fixed_r, 
                                 window = window, 
                                 mark_type = type_column, 
@@ -1260,8 +1288,9 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                                 threshold = threshold,
                                 image_name = image_name,
                                 suppress_threshold_warnings = suppress_threshold_warnings)
-
             avg_K = avg_K + new_K
+
+        avg_K = avg_K.compute()
         avg_K = avg_K / permutations
         if center_on_zero is True:
             perm_correction = 0 - avg_K 
