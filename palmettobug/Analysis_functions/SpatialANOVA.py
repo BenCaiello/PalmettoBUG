@@ -1497,10 +1497,12 @@ def _spatstat_hang(d: np.ndarray[float],
     final_matrix[hits] = np.arccos(distance[hits] / r[hits])
     return final_matrix
 
+EPS = np.finfo('float64').eps  ## interferes with numba
+
 @njit
 def _spatstat_small(array: np.ndarray[float]) -> np.ndarray[bool]:  # *** deriv_spatstat (direct translation)
     '''This function checks if a float is == 0 (or close enough to 0)
 
     This function is similarly a direct translation from spatstat, it is a helper function to the _spatstat_Edge_Ripley() function above:
             see: https://github.com/spatstat/spatstat.core/blob/master/R/edgeRipley.R'''
-    return np.absolute(array) < np.finfo('float64').eps
+    return np.absolute(array) < EPS
