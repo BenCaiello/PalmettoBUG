@@ -1475,7 +1475,7 @@ def _spatstat_Edge_Ripley(X: pd.DataFrame,
     
     ## total exterior angle (? this is the note from spatstat itself --> I have not really followed the underlying math while copying the code)
     total = mini_left + mini_right + mini_down + mini_up
-    total.compute()
+    total = total.compute()
 
     if corner.sum() > 0:
         #print('corners!')
