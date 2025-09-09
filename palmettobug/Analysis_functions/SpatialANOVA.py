@@ -454,7 +454,7 @@ class SpatialANOVA():
             print("You must provide a range object of the radii to check into this method's fixed_r argument, or first provide that object using the call the set_fixed_r() method!")
             return
 
-        def append_K_L_g(output_chunk)
+        def append_K_L_g(output_chunk):
             '''
             Created so that the conditional statement can be lazily evaluated by dask in parallel verison of this function
             '''
