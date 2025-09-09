@@ -64,6 +64,8 @@ from sklearn.decomposition import PCA
 import skimage
 import tifffile as tf
 
+from numba import njit
+
 from .._vendor import sigfig
 from .._vendor import fcsparser
 from flowsom import FlowSOM
@@ -96,6 +98,7 @@ def _py_catalyst_quantile_norm(pd_groupby) -> np.ndarray[float]:
     #np_groupby = _quant(np_groupby)
     return np_groupby
 
+@njit
 def _quant(array: np.ndarray[float],                       # *** deriv_CATALYST (replicates CATALYST's scaling)
           lower: float = 0.01, 
           upper:float = 0.99, 

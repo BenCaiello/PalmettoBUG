@@ -49,7 +49,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import seaborn.objects as so
 
-from numba import njit
+# from numba import njit
 
 from .._vendor import sigfig
 
@@ -1417,7 +1417,7 @@ def _K_cross_homogeneous(df: pd.DataFrame,
         K = np.concatenate([K, append_array])
     return K, K_theo
 
-@njit
+# @njit
 def _spatstat_Edge_Ripley(X: pd.DataFrame, 
                           r: np.array, 
                           window: list[float],
@@ -1477,7 +1477,7 @@ def _spatstat_Edge_Ripley(X: pd.DataFrame,
     weights = np.maximum(1, np.minimum(100, weights))   ## removes weights <1 and >100
     return weights
 
-@njit
+# @njit
 def _spatstat_hang(d: np.ndarray[float], 
                    r: np.ndarray[float],
                    ) -> np.ndarray[float]: # *** deriv_spatstat (direct translation)
@@ -1492,14 +1492,14 @@ def _spatstat_hang(d: np.ndarray[float],
 
     '''   
     final_matrix = np.zeros(r.shape)
-    distance = np.full(r.T.shape, d).T
+    distance = np.full(r.T.shape, d).T    ## for some reason numba can't handle np.full()
     hits = (r > distance)
     final_matrix[hits] = np.arccos(distance[hits] / r[hits])
     return final_matrix
 
-EPS = np.finfo('float64').eps  ## interferes with numba
+EPS = np.finfo('float64').eps  ## np.finfo interferes with numba's njit decorator
 
-@njit
+# @njit
 def _spatstat_small(array: np.ndarray[float]) -> np.ndarray[bool]:  # *** deriv_spatstat (direct translation)
     '''This function checks if a float is == 0 (or close enough to 0)
 
