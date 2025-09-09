@@ -50,6 +50,7 @@ import seaborn as sns
 import seaborn.objects as so
 
 # from numba import njit
+from dask import delayed
 
 from .._vendor import sigfig
 
@@ -1447,27 +1448,34 @@ def _spatstat_Edge_Ripley(X: pd.DataFrame,
     dDown = windowYmax - X[:,1]
     corner = (_spatstat_small(dLeft) == 0) + (_spatstat_small(dRight) == 0)  + (_spatstat_small(dDown) == 0) + (_spatstat_small(dUp) == 0) >= 2   ### points in the corner will have 0-values for exactly two of the dRight/Left/Up/Down paramters
     
-    angleLeftUp = np.arctan2(dUp, dLeft)
-    angleLeftDown = np.arctan2(dDown, dLeft)
-    angleRightUp = np.arctan2(dUp, dRight)
-    angleRightDown = np.arctan2(dDown, dRight)
-    angleUpLeft = np.arctan2(dLeft, dUp)
-    angleUpRight = np.arctan2(dRight, dUp)
-    angleDownLeft = np.arctan2(dLeft, dDown)
-    angleDownRight = np.arctan2(dRight, dDown)
+    delayed_arctan = delayed(np.arctan2)
 
-    angleLeft = _spatstat_hang(dLeft, r)
-    angleRight = _spatstat_hang(dRight, r)
-    angleDown = _spatstat_hang(dDown, r)
-    angleUp = _spatstat_hang(dUp, r)
+    angleLeftUp = delayed_arctan(dUp, dLeft)
+    angleLeftDown = delayed_arctan(dDown, dLeft)
+    angleRightUp = delayed_arctan(dUp, dRight)
+    angleRightDown = delayed_arctan(dDown, dRight)
+    angleUpLeft = delayed_arctan(dLeft, dUp)
+    angleUpRight = delayed_arctan(dRight, dUp)
+    angleDownLeft = delayed_arctan(dLeft, dDown)
+    angleDownRight = delayed_arctan(dRight, dDown)
 
-    mini_left = np.fmin(angleLeft.T, angleLeftUp).T + np.fmin(angleLeft.T, angleLeftDown).T
-    mini_right = np.fmin(angleRight.T, angleRightUp).T + np.fmin(angleRight.T, angleRightDown).T
-    mini_down = np.fmin(angleDown.T, angleDownLeft).T + np.fmin(angleDown.T, angleDownRight).T
-    mini_up = np.fmin(angleUp.T, angleUpLeft).T + np.fmin(angleUp.T, angleUpRight).T
+    delayed_hang = delayed(_spatstat_hang)
+
+    angleLeft = delayed_hang(dLeft, r)
+    angleRight = delayed_hang(dRight, r)
+    angleDown = delayed_hang(dDown, r)
+    angleUp = delayed_hang(dUp, r)
+
+    delayed_fmin = delayed(np.fmin)
+
+    mini_left = delayed_fmin(angleLeft.T, angleLeftUp).T + delayed_fmin(angleLeft.T, angleLeftDown).T
+    mini_right = delayed_fmin(angleRight.T, angleRightUp).T + delayed_fmin(angleRight.T, angleRightDown).T
+    mini_down = delayed_fmin(angleDown.T, angleDownLeft).T + delayed_fmin(angleDown.T, angleDownRight).T
+    mini_up = delayed_fmin(angleUp.T, angleUpLeft).T + delayed_fmin(angleUp.T, angleUpRight).T
     
     ## total exterior angle (? this is the note from spatstat itself --> I have not really followed the underlying math while copying the code)
     total = mini_left + mini_right + mini_down + mini_up
+    total.compute()
 
     if corner.sum() > 0:
         #print('corners!')
