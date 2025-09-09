@@ -480,10 +480,14 @@ class SpatialANOVA():
                 L_df['patient_id'] = patient_id
                 L_df['image'] = i
                 self._all_L = pd.concat([self._all_L, L_df], axis = 0)
-            
-        self._all_g = pd.DataFrame()
-        self._all_K = pd.DataFrame()
-        self._all_L = pd.DataFrame()
+        if parallel: 
+            self._all_g = delayed(pd.DataFrame)()
+            self._all_K = delayed(pd.DataFrame)()
+            self._all_L = delayed(pd.DataFrame)()
+        else:   
+            self._all_g = pd.DataFrame()
+            self._all_K = pd.DataFrame()
+            self._all_L = pd.DataFrame()
         stored_outputs = []
         for ii,i in zip(group_img_dict,range(0,len(split_point_pattern))):
             if parallel:
