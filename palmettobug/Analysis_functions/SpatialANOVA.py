@@ -50,6 +50,7 @@ import seaborn as sns
 import seaborn.objects as so
 
 # from numba import njit
+import dask
 from dask import delayed
 
 from .._vendor import sigfig
@@ -362,16 +363,15 @@ class SpatialANOVA():
                                             ## The program is meant to properly handle these, so I don't want the console spammed with warnings
             warnings.filterwarnings("ignore", message = "invalid value encountered in divide")
 
-        for i in self._all_comparison_list:
-            conditions = i.split("___")
-            type1 = conditions[0]
-            type2 = conditions[1]
-            if (type1 != "dropped") and (type2 != "dropped"):
-                all_g, all_K, all_L = self._do_all_K_L_g(type1 = type1, type2 = type2, permutations = permutations, 
-                                                        perm_state = seed, center_on_zero = center_on_zero, 
-                                                        suppress_threshold_warnings = suppress_threshold_warnings)
+        conditions_list = [i.split("___") for i in self._all_comparison_list if "dropped" not in i.split("___")]
+        for i in conditions_list:
+            type1 = i[0]
+            type2 = i[1]
+            all_g, all_K, all_L = self._do_all_K_L_g(type1 = type1, type2 = type2, permutations = permutations, 
+                                                    perm_state = seed, center_on_zero = center_on_zero, 
+                                                    suppress_threshold_warnings = suppress_threshold_warnings)
 
-                self._comparison_dictionary[i] = {"K":all_K, "L":all_L, "g":all_g}
+            self._comparison_dictionary["___".join([type1,type2])] = {"K":all_K, "L":all_L, "g":all_g}
         if silence_zero_warnings is True:
             warnings.filterwarnings("default", message = "divide by zero encountered in divide")  ## undo prior warnings modifications
             warnings.filterwarnings("default", message = "invalid value encountered in divide")                    
@@ -427,9 +427,8 @@ class SpatialANOVA():
                       permutations: int = 0, 
                       perm_state: int = None, 
                       center_on_zero: bool = False,
-                      suppress_threshold_warnings = False,
-                      parallel: bool = True
-                      ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:
+                      suppress_threshold_warnings = False
+                    ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:
         '''
         This may end being more of a helper function for do_spatial_analysis(), but it can remain in the class.
         It coordinates / performs the core statistical analysis: calculating Ripley's K, L, and g for a given cellType pair (type1 vs type2). 
@@ -444,6 +443,8 @@ class SpatialANOVA():
                     imagID / Group
 
         '''
+        import time
+        start = time.time()
         if perm_state is None:
             perm_state = self.seed
         split_point_pattern = self._split_by_image
@@ -456,7 +457,6 @@ class SpatialANOVA():
 
         def append_K_L_g(output_chunk):
             '''
-            Created so that the conditional statement can be lazily evaluated by dask in parallel verison of this function
             '''
             K_df = output_chunk[0]
             L_df = output_chunk[1]
@@ -480,21 +480,13 @@ class SpatialANOVA():
                 L_df['patient_id'] = patient_id
                 L_df['image'] = i
                 self._all_L = pd.concat([self._all_L, L_df], axis = 0)
-        if parallel: 
-            self._all_g = delayed(pd.DataFrame)()
-            self._all_K = delayed(pd.DataFrame)()
-            self._all_L = delayed(pd.DataFrame)()
-        else:   
-            self._all_g = pd.DataFrame()
-            self._all_K = pd.DataFrame()
-            self._all_L = pd.DataFrame()
-        stored_outputs = []
+
+        self._all_g = pd.DataFrame()
+        self._all_K = pd.DataFrame()
+        self._all_L = pd.DataFrame()
+        stored_outputs = list()
         for ii,i in zip(group_img_dict,range(0,len(split_point_pattern))):
-            if parallel:
-                execution_function = delayed(do_K_L_g)
-            else:
-                execution_function = do_K_L_g
-            K_L_g_output_chunk = execution_function(split_point_pattern[i], 
+            K_L_g_output_chunk = do_K_L_g(split_point_pattern[i], 
                                         type_column = 'cellType', 
                                         type1 = type1, 
                                         type2 = type2, 
@@ -505,21 +497,11 @@ class SpatialANOVA():
                                         perm_state = perm_state, 
                                         center_on_zero = center_on_zero,
                                         suppress_threshold_warnings = suppress_threshold_warnings) 
-            if parallel:
-                stored_outputs.append(K_L_g_output_chunk)
-            else:
-                append_K_L_g(K_L_g_output_chunk)
-
-        if parallel:
-            for i in stored_outputs:
-                delayed_append = delayed(append_K_L_g)
-                delayed_append(i)
-            self._all_g = self._all_g.compute()   
-            self._all_K = self._all_K.compute()  
-            self._all_L = self._all_L.compute()          
+            append_K_L_g(K_L_g_output_chunk)
 
         self.type1 = type1
         self.type2 = type2
+        print(time.time() - start)
         return self._all_g, self._all_K, self._all_L
 
     def _do_single_radius_ANOVA(self, 
@@ -1277,13 +1259,13 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     centerer = 1
     if permutations > 0 :
         perm_state = np.random.default_rng(perm_state)
-        avg_K = np.zeros(len(result_array))
         perm = pointpattern.copy()
+        avg_K = delayed(np.zeros)(len(result_array))
         for i in range(0, permutations, 1):
             perm[type_column] = list(perm[type_column].sample(frac = 1.0, random_state = perm_state))
 
             delayed_K_homogenous = delayed(_K_cross_homogeneous)
-            new_K, _ = delayed_K_homogenous(perm, 
+            new_K = delayed_K_homogenous(perm, 
                                 fixed_r = fixed_r, 
                                 window = window, 
                                 mark_type = type_column, 
@@ -1291,7 +1273,8 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                                 type2 = type2, 
                                 threshold = threshold,
                                 image_name = image_name,
-                                suppress_threshold_warnings = suppress_threshold_warnings)
+                                suppress_threshold_warnings = suppress_threshold_warnings,
+                                theo = False)
             avg_K = avg_K + new_K
 
         avg_K = avg_K.compute()
@@ -1349,6 +1332,7 @@ def _K_cross_homogeneous(df: pd.DataFrame,
                          threshold: int = 10,
                          image_name: str = '',
                          suppress_threshold_warnings: bool = False,
+                         theo = True
                          ) -> tuple[np.ndarray[float],np.ndarray[float]]:                       
                                                  # *** deriv_spatstat (largely a direct translation, but some divergences)
     '''
@@ -1449,7 +1433,10 @@ def _K_cross_homogeneous(df: pd.DataFrame,
     K = K / (lambda1 * lambda2)
     if truncated is True:
         K = np.concatenate([K, append_array])
-    return K, K_theo
+    if theo == True:
+        return K, K_theo
+    else:
+        return K
 
 # @njit
 def _spatstat_Edge_Ripley(X: pd.DataFrame, 
@@ -1481,7 +1468,7 @@ def _spatstat_Edge_Ripley(X: pd.DataFrame,
     dDown = windowYmax - X[:,1]
     corner = (_spatstat_small(dLeft) == 0) + (_spatstat_small(dRight) == 0)  + (_spatstat_small(dDown) == 0) + (_spatstat_small(dUp) == 0) >= 2   ### points in the corner will have 0-values for exactly two of the dRight/Left/Up/Down paramters
     
-    delayed_arctan = delayed(np.arctan2)
+    delayed_arctan = np.arctan2
 
     angleLeftUp = delayed_arctan(dUp, dLeft)
     angleLeftDown = delayed_arctan(dDown, dLeft)
@@ -1492,14 +1479,14 @@ def _spatstat_Edge_Ripley(X: pd.DataFrame,
     angleDownLeft = delayed_arctan(dLeft, dDown)
     angleDownRight = delayed_arctan(dRight, dDown)
 
-    delayed_hang = delayed(_spatstat_hang)
+    delayed_hang = _spatstat_hang
 
     angleLeft = delayed_hang(dLeft, r)
     angleRight = delayed_hang(dRight, r)
     angleDown = delayed_hang(dDown, r)
     angleUp = delayed_hang(dUp, r)
 
-    delayed_fmin = delayed(np.fmin)
+    delayed_fmin = np.fmin
 
     mini_left = delayed_fmin(angleLeft.T, angleLeftUp).T + delayed_fmin(angleLeft.T, angleLeftDown).T
     mini_right = delayed_fmin(angleRight.T, angleRightUp).T + delayed_fmin(angleRight.T, angleRightDown).T
@@ -1508,7 +1495,6 @@ def _spatstat_Edge_Ripley(X: pd.DataFrame,
     
     ## total exterior angle (? this is the note from spatstat itself --> I have not really followed the underlying math while copying the code)
     total = mini_left + mini_right + mini_down + mini_up
-    total = total.compute()
 
     if corner.sum() > 0:
         #print('corners!')
