@@ -546,6 +546,10 @@ class SpatialANOVA():
                   "It might be that these two cells types are never present together in the same image above the threshold!"
                   "\n Exiting")
             return None, None
+
+        if _use_alt:
+            g_df = g_df.drop('image', axis = 1).groupby(['radii','condition',alt_N]).mean().reset_index()
+
         only_at_dist = g_df[g_df['radii'] == distance_of_interest]
         if (condition1 is None) and (condition2 is None):
             condition_list = []
@@ -739,6 +743,8 @@ class SpatialANOVA():
                     "It might be that these two cells types are never present together in the same image above the threshold!"
                     "\n Skipping this plot")
             return None
+        if _use_alt:
+            all_stat = all_stat.drop('image', axis = 1).groupby(['radii','condition',alt_N]).mean().reset_index()
         if seed is None:
             seed = self.seed
         fixed_r = self.fixed_r
@@ -1181,6 +1187,8 @@ def do_functional_ANOVA(all_stat: pd.DataFrame,
               "but NOTE THAT THIS IS AN INVALID COMPARISON!")
         return (0, 1)
     condition_list = []
+    if _use_alt:
+        all_stat = all_stat.drop('image', axis = 1).groupby(['radii','condition',alt_N]).mean().reset_index()
     if (condition1 is None) and (condition2 is None):
         for i in all_stat['condition'].unique():
             condition_list.append(all_stat[all_stat['condition'] == i][[stat,'radii']])
