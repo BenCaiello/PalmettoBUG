@@ -77,7 +77,7 @@ class SpatialANOVA():
                 contain information used for cell map plotting (areas used for size of dots, filenames for subsetting data & plot titles.). 
 
     '''
-    def __init__(self):
+    def __init__(self, alt_N: str = 'patient_id'):
         self.max = None
         self.step = 1
         self.fixed_r = None
@@ -85,11 +85,13 @@ class SpatialANOVA():
         self.condition2 = None
         self.threshold = 10
         self.data_table = None
+        self.alt_N = alt_N
+        self._use_alt = False
 
     def init_data(self, 
                   space_anova_table: pd.DataFrame, 
                   output_directory: str, 
-                  plot_cell_maps: bool = True,
+                  plot_cell_maps: bool = True
                   ) -> None:
         '''
         Args:
@@ -125,7 +127,7 @@ class SpatialANOVA():
         self.data_table['condition'] = self.data_table['condition'].astype('str')
         self.data_table['cellType'] = self.data_table['cellType'].astype('str')
         self.data_table['sample_id'] = self.data_table['sample_id'].astype('str')
-        self.data_table['patient_id'] = self.data_table['patient_id'].astype('str')
+        self.data_table[self.alt_N] = self.data_table[self.alt_N].astype('str')
         output_directory = str(output_directory)
         self.output_dir = output_directory
         if not os.path.exists(output_directory):
@@ -175,7 +177,7 @@ class SpatialANOVA():
                 self.data_table['y'] = self.exp.back_up_data.obsm['spatial'][:,1]
                 self.data_table['condition'] = list(self.exp.back_up_data.obs['condition'].astype('str'))
                 self.data_table['sample_id']  = list(self.exp.back_up_data.obs['sample_id'].astype('str'))
-                self.data_table['patient_id'] = list(self.exp.back_up_data.obs['patient_id'].astype('str'))
+                self.data_table[self.alt_N] = list(self.exp.back_up_data.obs[self.alt_N].astype('str'))
                 self.data_table['cellType'] = 'dropped'
                 self.data_table.index = self.data_table.index.astype('str')
                 self.data_table.loc[self.exp.data.obs.index,['cellType']] = list(self.exp.data.obs[self.cellType_key].astype('str'))
@@ -186,7 +188,7 @@ class SpatialANOVA():
                 self.data_table['condition'] = list(self.exp.data.obs['condition'].astype('str'))
                 self.data_table['cellType'] = list(self.exp.data.obs[self.cellType_key].astype('str'))
                 self.data_table['sample_id']  = list(self.exp.data.obs['sample_id'].astype('str'))
-                self.data_table['patient_id'] = list(self.exp.data.obs['patient_id'].astype('str'))
+                self.data_table[self.alt_N] = list(self.exp.data.obs[self.alt_N].astype('str'))
         return self.data_table
 
     def set_conditions(self, 
@@ -255,12 +257,12 @@ class SpatialANOVA():
         
         self._split_by_image = []
         for i in space_anova_table['sample_id'].unique():
-            self._split_by_image.append(space_anova_table[space_anova_table['sample_id'] == i].drop(['condition','patient_id'], axis = 1))
+            self._split_by_image.append(space_anova_table[space_anova_table['sample_id'] == i].drop(['condition', self.alt_N], axis = 1))
         
         for_group_img_dict = space_anova_table.drop(['x','y','cellType'], axis = 1).drop_duplicates()
         self._group_img_dict = {}
         self._patient_ids = {}
-        for i,ii,iii in zip(for_group_img_dict['sample_id'], for_group_img_dict['condition'], for_group_img_dict['patient_id']):
+        for i,ii,iii in zip(for_group_img_dict['sample_id'], for_group_img_dict['condition'], for_group_img_dict[self.alt_N]):
             self._group_img_dict[i] = ii
             self._patient_ids[i] = iii
         return self._split_by_image, self._group_img_dict
@@ -269,6 +271,7 @@ class SpatialANOVA():
                             condition1: Union[str, None] = None, 
                             condition2: Union[str, None] = None,
                             cellType_key: Union[str, None] = None,
+                            alt_N: Union[str, None] = None,
                             max: int = None, 
                             min: int = None,
                             step: int = None, 
@@ -285,6 +288,13 @@ class SpatialANOVA():
         Args:
             condition1, condition2 (string or None, default = None): if None, use the conditions inputted by self.set_conditions, 
                     otherwise these should be the labels of the two experimental conditions you intend to compare in the data. 
+
+            alt_N (string or None): if provided, this will set the analysis to use an alternate experimental 'N' using the column in obs
+                specified by this string. This means that the per-image data will be aggregated (by mean) within each group in the alt_N column
+                before statistics are performed.
+                If None, then 'sample_id' will be used as the experimental 'N', meaning no aggregate of the per-image data will occur.
+                Note that the unique groups in alt_N CAN NEVER BE SHARED BETWEEN CONDITIONS -- each unique group MUST be a sub-set of 
+                one particular condition's images and CANNOT be present in more than one condition!
 
             min, max, step (integer or None): If one or both are None (default), will use the radii selected by self.set_fixed_r. 
                     Otherwise, if both are not None, then the min / max / step will be used as in the self.set_fixed_r 
@@ -348,7 +358,20 @@ class SpatialANOVA():
         elif self.fixed_r is None:
             self.set_fixed_r()
 
+        if alt_N is not None:
+            self.alt_N = alt_N
+            self._use_alt = True
         space_anova_table = self._retrieve_data_table()
+        if alt_N is not None:
+            for i in self.data_table[alt_N].unique():
+                piece = self.data_table[self.data_table[alt_N] == i]
+                conditions = piece['condition'].astype('str').unique()
+                if len(conditions) > 1:
+                    self.alt_N = 'patient_id'
+                    self._use_alt = True
+                    print("Provided alternate experimental 'N' contains unique groups shared across more than one condition in the"
+                            "data! This is not allowed, reverting alternate N to 'patient_id'.")
+                    return
 
         self.threshold = threshold
         self.seed = seed
@@ -443,8 +466,6 @@ class SpatialANOVA():
                     imagID / Group
 
         '''
-        import time
-        start = time.time()
         if perm_state is None:
             perm_state = self.seed
         split_point_pattern = self._split_by_image
@@ -467,17 +488,17 @@ class SpatialANOVA():
                 patient_id = patient_ids[ii]
 
                 g_df["condition"] = condition_id
-                g_df['patient_id'] = patient_id
+                g_df[self.alt_N] = patient_id
                 g_df['image'] = i
                 self._all_g = pd.concat([self._all_g, g_df], axis = 0)
 
                 K_df["condition"] = condition_id
-                K_df['patient_id'] = patient_id
+                K_df[self.alt_N] = patient_id
                 K_df['image'] = i
                 self._all_K = pd.concat([self._all_K, K_df], axis = 0)
                 
                 L_df["condition"] = condition_id
-                L_df['patient_id'] = patient_id
+                L_df[self.alt_N] = patient_id
                 L_df['image'] = i
                 self._all_L = pd.concat([self._all_L, L_df], axis = 0)
 
@@ -501,7 +522,6 @@ class SpatialANOVA():
 
         self.type1 = type1
         self.type2 = type2
-        print(time.time() - start)
         return self._all_g, self._all_K, self._all_L
 
     def _do_single_radius_ANOVA(self, 
