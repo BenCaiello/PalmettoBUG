@@ -3116,47 +3116,6 @@ class Analysis:
         if family == "Binomial":
             print("Binomial models not configured properly at the moment. Exiting")
             return None
-            for ii,i in enumerate(uniques):
-                try:
-                    int(i)
-                    use_i = f'{groupby_column}{i}'
-                except ValueError:
-                    use_i = i
-                data.loc[:,use_i] = data[groupby_column] == i
-                results = sm.GLM.from_formula(f"{use_i} ~ {variable}", data = data, family = model).fit()
-                consistent_columns = ['comparison', f"{groupby_column}", "pvalue",
-                                    f"{conditions[0]} avg", f"{conditions[0]} 95% CI +/-",
-                                    f"{conditions[1]} avg", f"{conditions[1]} 95% CI +/-"]
-                
-                pvalue = sigfig.round(results.pvalues.iloc[1], 3, warn = False)
-                condition1 = sigfig.round(results.params.iloc[0], 3, warn = False)     
-                condition1_CI_plus_minus = sigfig.round((results.bse.iloc[0] * 1.96), 3, warn = False)       
-                
-                condition2 = sigfig.round(condition1 + results.params.iloc[1], 3, warn = False)         
-                condition2_CI_plus_minus = sigfig.round((results.bse.iloc[1] * 1.96), 3, warn = False)      
-                temp_row_array = np.array([f"{conditions[0]} vs. {conditions[1]}", i, pvalue, 
-                                    condition1, condition1_CI_plus_minus,
-                                    condition2, condition2_CI_plus_minus])
-        
-                temp_row = pd.DataFrame(temp_row_array[:, np.newaxis].T, columns = consistent_columns, index = [ii])
-                if ii == 0:
-                    output_df = temp_row
-                else:
-                    output_df = pd.concat([output_df, temp_row], axis = 0)
-        
-            output_df['p_adj'] = [sigfig.round(i, 
-                                               3, 
-                                               warn = False) for i in scipy.stats.false_discovery_control(output_df['pvalue'].astype('float') + 1e-25, 
-                                                                                                          method = 'bh')]
-            new_column_order = ['comparison', groupby_column, "pvalue", "p_adj",
-                                    f"{conditions[0]} avg", f"{conditions[0]} 95% CI +/-",
-                                    f"{conditions[1]} avg", f"{conditions[1]} 95% CI +/-"]
-            to_return = pd.DataFrame()
-            for i in new_column_order:
-                to_return[i] = output_df[i]
-            to_return['to_sort'] = to_return.loc[:, 'pvalue'].astype('float64')
-            to_return = to_return.sort_values('to_sort')
-            to_return = to_return.drop("to_sort", axis = 1)
         
         elif family != "Gaussian":
             new_obs_df = data.drop(["file_name"],axis = 1)

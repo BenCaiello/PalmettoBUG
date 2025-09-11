@@ -105,6 +105,14 @@ def test_scaling():
         else:
             assert (my_analysis.data.X != original_X).sum().sum() == 0, "Unscaling did not restore the original data!"
 
+def test_do_regions():
+    my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
+    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
+
+def test_spatial_leiden():
+    my_analysis._do_spatial_leiden()
+    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
+
 def test_comBat():
     original_X = my_analysis.data.X.copy()
     greater_than_zero = (original_X > 0)
@@ -228,14 +236,23 @@ def test_do_abundance_ANOVAs():
     assert len(df) == len(my_analysis.data.obs['merging'].unique()), "abundance ANOVA dataframe did not have the expected length"
 
 def test_do_count_GLM():
-    df = my_analysis.do_count_GLM(list(my_analysis.data.obs['condition'].unique()))
+    for i in ["Gaussian","Poisson"]:
+        df = my_analysis.do_count_GLM(list(my_analysis.data.obs['condition'].unique()), family = i)
     assert isinstance(df, pd.DataFrame), "count_GLM method did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.data.obs['merging'].unique()), "GLM statistics dataframe did not have the expected length"
+
+def test_plot_state_distributions():
+    figure = my_analysis.plot_state_distributions(marker_class = 'type')
+    assert isinstance(figure, matplotlib.figure.Figure), "plot_state_distributions did not return a matplotlib figure"
 
 def test_do_state_exprs_ANOVAs():
     df = my_analysis.do_state_exprs_ANOVAs(marker_class = "type")
     assert isinstance(df, pd.DataFrame), "state expression statistics did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.data.obs['merging'].unique()) * (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
+
+def test_plot_state_p_value_heatmap():
+    figure =  my_analysis.plot_state_p_value_heatmap()
+    assert isinstance(figure, matplotlib.figure.Figure), "plot_state_p_value_heatmap did not return a matplotlib figure"
 
 def test_export_data():
     df = my_analysis.export_data()
