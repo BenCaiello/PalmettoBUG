@@ -1124,7 +1124,7 @@ class TableWidget(ctk.CTkScrollableFrame):
         has_delete_column = int((self.type == "Analysis_panel") or (self.type == "Regionprops_panel") or (self.type == "metadata"))
         print(has_delete_column)
         length_wigdetframe = (len(self.widgetframe.columns))
-        length_df = len(self.table_dataframe.columns))
+        length_df = len(self.table_dataframe.columns)
         if (length_wigdetframe - has_delete_column) < (length_df:
             proceed = tk.messagebox.askokcancel(title = "Proceed?", 
                             message = f"\nThe file that this {self.type} table was read from has more columns than what is displayed."
