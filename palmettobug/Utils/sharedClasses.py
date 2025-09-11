@@ -1125,7 +1125,7 @@ class TableWidget(ctk.CTkScrollableFrame):
         print(has_delete_column)
         length_wigdetframe = (len(self.widgetframe.columns))
         length_df = len(self.table_dataframe.columns)
-        if (length_wigdetframe - has_delete_column) < (length_df:
+        if (length_wigdetframe - has_delete_column) < (length_df):
             proceed = tk.messagebox.askokcancel(title = "Proceed?", 
                             message = f"\nThe file that this {self.type} table was read from has more columns than what is displayed."
                             "\n\nDo you want to proceed? Any extra columns of the data will have their data deleted - only what"
