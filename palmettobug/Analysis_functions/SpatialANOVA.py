@@ -50,8 +50,8 @@ import seaborn as sns
 import seaborn.objects as so
 
 # from numba import njit
-import dask
-from dask import delayed
+#import dask
+#from dask import delayed
 
 from .._vendor import sigfig
 
@@ -1289,11 +1289,11 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     if permutations > 0 :
         perm_state = np.random.default_rng(perm_state)
         perm = pointpattern.copy()
-        avg_K = delayed(np.zeros)(len(result_array))
+        avg_K = np.zeros(len(result_array))
         for i in range(0, permutations, 1):
             perm[type_column] = list(perm[type_column].sample(frac = 1.0, random_state = perm_state))
 
-            delayed_K_homogenous = delayed(_K_cross_homogeneous)
+            delayed_K_homogenous = _K_cross_homogeneous
             new_K = delayed_K_homogenous(perm, 
                                 fixed_r = fixed_r, 
                                 window = window, 
@@ -1306,7 +1306,6 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                                 theo = False)
             avg_K = avg_K + new_K
 
-        avg_K = avg_K.compute()
         avg_K = avg_K / permutations
         if center_on_zero is True:
             perm_correction = 0 - avg_K 
