@@ -634,7 +634,7 @@ class SpatialANOVA():
                       "\n setting pvalue = 1, and statistic = 0")
                 statistic, p_value = (0,1)
             else:
-                statistic, p_value = do_functional_ANOVA(all_g, condition1, condition2, 
+                statistic, p_value = do_functional_ANOVA(all_g, condition1, condition2, alt_N = self.alt_N,
                                                         random_state = seed, min = min, 
                                                         max = max, step = step, stat = stat, comparison = i) 
                         # The underlying functional ANOVA implementation uses permutations, 
@@ -1142,6 +1142,7 @@ def plot_spatial_stat_heatmap(p_table: Union[np.ndarray[float], pd.DataFrame],
 def do_functional_ANOVA(all_stat: pd.DataFrame, 
                         condition1: str, 
                         condition2: str,
+                        alt_N: str = 'sample_id',
                         min: int = 0, 
                         max: int = 101, 
                         step: int = 1, 
@@ -1187,7 +1188,7 @@ def do_functional_ANOVA(all_stat: pd.DataFrame,
               "but NOTE THAT THIS IS AN INVALID COMPARISON!")
         return (0, 1)
     condition_list = []
-    if self._use_alt:
+    if alt_N != 'sample_id':
         all_stat = all_stat.drop('image', axis = 1).groupby(['radii','condition',alt_N]).mean().reset_index()
     if (condition1 is None) and (condition2 is None):
         for i in all_stat['condition'].unique():
