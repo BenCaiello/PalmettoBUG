@@ -548,7 +548,7 @@ class SpatialANOVA():
             return None, None
 
         if self._use_alt:
-            g_df = g_df.drop('image', axis = 1).groupby(['radii','condition',alt_N]).mean().reset_index()
+            g_df = g_df.drop('image', axis = 1).groupby(['radii','condition',self.alt_N]).mean().reset_index()
 
         only_at_dist = g_df[g_df['radii'] == distance_of_interest]
         if (condition1 is None) and (condition2 is None):
@@ -744,7 +744,7 @@ class SpatialANOVA():
                     "\n Skipping this plot")
             return None
         if self._use_alt:
-            all_stat = all_stat.drop('image', axis = 1).groupby(['radii','condition',alt_N]).mean().reset_index()
+            all_stat = all_stat.drop('image', axis = 1).groupby(['radii','condition',self.alt_N]).mean().reset_index()
         if seed is None:
             seed = self.seed
         fixed_r = self.fixed_r
