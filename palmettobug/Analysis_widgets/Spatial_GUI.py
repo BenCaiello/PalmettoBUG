@@ -378,11 +378,12 @@ class Spatial_py(ctk.CTkFrame):
                 grand_master.master_exp.space_analysis.set_fixed_r(min = min_rad, max = max_radii, step = step)
                 grand_master.master_exp.space_analysis.set_conditions(condition1 = condition1, condition2 = condition2)
                 
+                alt_N = grand_master.master_exp.N if grand_master.master_exp.N != 'sample_id' else None
                 (grand_master.comparison_list, 
                  grand_master._all_comparison_list, 
                  grand_master.comparison_dictionary) = grand_master.master_exp.space_analysis.do_spatial_analysis(permutations = permutations, 
                                                                                                                   seed = seed, 
-                                                                                                                  alt_N = grand_master.master_exp.N,
+                                                                                                                  alt_N = alt_N,
                                                                                                                   center_on_zero = False,
                                                                                                                   threshold = threshold)
                 self.master.plot_button.configure(state = "normal")
