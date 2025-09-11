@@ -278,7 +278,7 @@ class Spatial_py(ctk.CTkFrame):
                 self.threshold.grid(column = 1, row = 7, padx = 5, pady = 5)
 
                 label_N = ctk.CTkLabel(self, text = "Select experimental 'N'") 
-                label_N.grid(column = 1, row = 6)
+                label_N.grid(column = 0, row = 5)
 
                 def filter_N(enter = ""):
                     output = []
