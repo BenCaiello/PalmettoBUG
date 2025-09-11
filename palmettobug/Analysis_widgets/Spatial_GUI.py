@@ -2008,7 +2008,7 @@ class edt_stat_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         test = self.test.get().lower()
         output = self.master.edt_object.plot_edt_statistics(groupby_column = groupby_column, 
                                                      marker_class = 'spatial_edt',
-                                                     N_column = self.spatial.exp.N,
+                                                     N_column = self.master.edt_object.exp.N,
                                                      statistic = stat,
                                                      test = test,
                                                      filename = self.master.edt_object.exp.directory + f"/Spatial_plots/{filename}.csv")

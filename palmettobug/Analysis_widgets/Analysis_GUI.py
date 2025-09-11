@@ -1877,7 +1877,7 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.Grand_Label.grid(column = 0, row = 0, columnspan = 2, padx = 5, pady = 5)
         self.Grand_Label.configure(width = 300)
 
-        self.N_label = ctk.CTkLabel(master = self, text = "Select Experimental 'N' \n(for spatial as well)")
+        self.N_label = ctk.CTkLabel(master = self, text = "Select Experimental 'N' \n(effects spatial EDT & SpaceANOVA as well):")
         self.N_label.grid(column = 2, row = 0, columnspan = 2, padx = 5, pady = 5)
 
         def filter_N(enter = ""):
