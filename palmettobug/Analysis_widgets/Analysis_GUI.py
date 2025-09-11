@@ -3281,7 +3281,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.marker_class.grid(column= 1, row = 0, padx = 5, pady = 5)
 
         label_1 = ctk.CTkLabel(self, text = "Subsetting Cluster:")
-        label_1.grid(column = 0, row = 0)
+        label_1.grid(column = 0, row = 1)
 
         self.clustering = ctk.CTkOptionMenu(master = self, 
                                             values = [""] + [i for i in CLUSTER_NAMES if i in self.master.master.cat_exp.data.obs.columns],
@@ -3293,7 +3293,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.clustering.bind("<Enter>", refresher1)
 
         label_1 = ctk.CTkLabel(self, text = "Color By:")
-        label_1.grid(column = 0, row = 1)
+        label_1.grid(column = 0, row = 2)
 
         self.colorby = ctk.CTkOptionMenu(master = self, 
                                             values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns],

@@ -180,7 +180,6 @@ class SpatialAnalysis:
 
     def plot_neighbor_enrichment(self, clustering: str = "merging", 
                                        facet_by: str = "None", 
-                                       N_column: str = "sample_id",
                                        col_num: int = 1, 
                                        seed: int = 42, 
                                        n_perms: int = 1000, 
@@ -216,7 +215,6 @@ class SpatialAnalysis:
         '''
         plot = self.neighbors.plot_neighborhood_enrichment(clustering = clustering, 
                                                            facet_by = facet_by, 
-                                                           N_column = N_column,
                                                            col_num = col_num, 
                                                            seed = seed,
                                                            n_perms = n_perms, 
@@ -1394,18 +1392,16 @@ class SpatialNeighbors:        ## formerly SquipySpatial
 
     def plot_neighborhood_enrichment(self, clustering: str = "merging", 
                                     facet_by: str = "condition", 
-                                    N_column: Union[None, str] = "sample_id",
                                     col_num: int = 1, 
                                     seed: int = 42, 
                                     n_perms: int = 1000, 
                                     filename: Union[None, str] = None):
         '''
         Plots neighborhood enrichment scores for the chosen [clustering]. Can be facetted using [facet_by] to compare things like condition.
-        Adjust [N_column] to change what groups are treated as the experimental unit (I think - needs testing).
         '''
         data = self.exp.data.copy()
         data.obs[clustering] = data.obs[clustering].astype('category')
-        sq.gr.nhood_enrichment(data, cluster_key = clustering, show_progress_bar = False, seed = seed, n_perms = n_perms, library_key = N_column)
+        sq.gr.nhood_enrichment(data, cluster_key = clustering, show_progress_bar = False, seed = seed, n_perms = n_perms)
         if facet_by != "None":
             conditions = data.obs[facet_by].unique()
             condition_num = len(conditions)

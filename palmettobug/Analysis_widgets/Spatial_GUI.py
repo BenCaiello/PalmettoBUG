@@ -806,7 +806,6 @@ class SquidpySpatialWidgets(ctk.CTkFrame):
         ''''''
         figure = self.spatial.plot_neighborhood_enrichment(clustering = clustering, 
                                                            facet_by = facet_by, 
-                                                           N_column = self.spatial.exp.N,
                                                            seed = seed, 
                                                            n_perms = n_perms, 
                                                            filename = filename)
