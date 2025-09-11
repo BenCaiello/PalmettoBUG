@@ -303,7 +303,7 @@ class Spatial_py(ctk.CTkFrame):
                     self.N.configure(values = output)
 
                 self.N = ctk.CTkOptionMenu(master = self, values = ["sample_id"], variable = ctk.StringVar(value = "sample_id"))
-                self.N.grid(column = 1, row = 7, padx = 5, pady = 5)
+                self.N.grid(column = 0, row = 6, padx = 5, pady = 5)
                 self.N.bind("<Enter>", filter_N)  
 
                 label_permutation = ctk.CTkLabel(self, 

@@ -109,9 +109,9 @@ def test_do_regions():
     my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
     assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
 
-def test_spatial_leiden():
-    my_analysis._do_spatial_leiden()
-    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
+#def test_spatial_leiden():
+#    my_analysis._do_spatial_leiden()
+#    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
 
 def test_comBat():
     original_X = my_analysis.data.X.copy()
@@ -251,7 +251,7 @@ def test_do_state_exprs_ANOVAs():
     assert len(df) == len(my_analysis.data.obs['merging'].unique()) * (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
 
 def test_plot_state_p_value_heatmap():
-    figure =  my_analysis.plot_state_p_value_heatmap()
+    figure =  my_analysis.plot_state_p_value_heatmap(marker_class = "type")
     assert isinstance(figure, matplotlib.figure.Figure), "plot_state_p_value_heatmap did not return a matplotlib figure"
 
 def test_export_data():

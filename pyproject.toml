@@ -36,6 +36,12 @@ dependencies = [
             "defusedxml>=0.7.1",
             "flowsom>=0.2.1",
             "dask<2025.1.0",              ## needed until scverse's spatialdata package (and so squidpy) upgrades to no longer use the unsupported legacy dask api
+
+            ## following added to help reduce "resolution too deep" errors from pip (transferred from strict dependency version):
+            "fsspec>=2025.3.2",
+            "pyogrio>=0.10.0",
+            "distributed>=2024.11.2",
+            "ome-zarr==0.10.3",
         ]
 
 [project.optional-dependencies]
