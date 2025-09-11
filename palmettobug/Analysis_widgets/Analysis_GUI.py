@@ -1930,6 +1930,7 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.plot_state.configure(state = "disabled")
 
     def set_N(self, choice):
+        global EXPERIMENTAL_N
         EXPERIMENTAL_N = choice   ## risky with global variables, consider a different method....
 
     def initialize_buttons(self) -> None:
