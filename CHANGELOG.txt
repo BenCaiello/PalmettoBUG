@@ -41,7 +41,7 @@ Changes to version (update log in development branch while that branch is being 
 
     Changes to 0.2.6:
         - Bugfixes (including panel / table widget handling)
-        - Add boolean_mask_transform to GUI
+        - Add boolean_mask_transform to GUI  (now "mask_intersection_difference" in ImageAnalysis object)
         - Add "cryptic" (non-GUI) functions to SpaceANOVA -- estimate minimum radius, "salami slicer" methods 
                     (visualize Ripley's stats at various distances as heatmaps)
         - Minor changes to code comments / docstrings / documentation 
@@ -49,3 +49,5 @@ Changes to version (update log in development branch while that branch is being 
     Changes to 0.2.7:
         - Add flexibility to the experimental unit for certain statistical tests (idea: allow aggregation by patient_id, not only sample_id)
         - fixes to CSV load / reload methods
+        - expand test suite to many of the recently added functions listed previously in this CHANGELOG
+        - deleted alternate classifiers, and placed them in a separate branch for later use (maybe)

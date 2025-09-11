@@ -705,7 +705,7 @@ class ImageAnalysis:
 
         Args:
             input_img_folder (str, Path, or None):
-                The path to a folder contianing the images to segment. If None, defaults to f"{self.directory_object.img_dir}/img"
+                The path to a folder containing the images to segment. If None, defaults to f"{self.directory_object.img_dir}/img"
             
             output_mask_folder (str, Path, or None):
                 The path to a folder where you want the segmentation masks to be written to. If None, defaults to f"{self.directory_object.masks_dir}/instanseg_masks"
