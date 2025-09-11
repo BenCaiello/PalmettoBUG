@@ -3219,7 +3219,7 @@ class Analysis:
                 temp_row_array = np.array([comparison, i, pvalue] + condition_avg_and_CI_list)
                 temp_row = pd.DataFrame(temp_row_array[:, np.newaxis].T, columns = consistent_columns, index = [ii])
                 if ii > 0:
-                    output_df = pd.concat([output_df, temp_row], axis = 0)
+                    output_df = pd.concat([output_df, temp_row], axis = 0)  # noqa    ## raises error for undefined variable (it is defined in the 'else' during the first pass of the loop)
                 else:
                     output_df = temp_row
 

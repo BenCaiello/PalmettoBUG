@@ -505,7 +505,6 @@ class SpatialANOVA():
         self._all_g = pd.DataFrame()
         self._all_K = pd.DataFrame()
         self._all_L = pd.DataFrame()
-        stored_outputs = list()
         for ii,i in zip(group_img_dict,range(0,len(split_point_pattern))):
             K_L_g_output_chunk = do_K_L_g(split_point_pattern[i], 
                                         type_column = 'cellType', 
@@ -1461,7 +1460,7 @@ def _K_cross_homogeneous(df: pd.DataFrame,
     K = K / (lambda1 * lambda2)
     if truncated is True:
         K = np.concatenate([K, append_array])
-    if theo == True:
+    if theo is True:
         return K, K_theo
     else:
         return K

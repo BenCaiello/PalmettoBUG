@@ -1882,19 +1882,10 @@ class Hypothesis_widget(ctk.CTkFrame):
 
         def filter_N(enter = ""):
             output = []
-            magic_names = ["index",
-                        "metaclustering", 
-                        "clustering", 
-                        "merging", 
-                        "classification", 
+            magic_names = ["index", "metaclustering", "clustering", "merging", "classification", 
                         # "sample_id",     ## these are expected as possible experimental N's
                         # "patient_id", 
-                        "condition",
-                        "file_name", 
-                        "leiden", 
-                        "spatial_leiden",
-                        "scaling",
-                        "masks_folder"]
+                        "condition", "file_name", "leiden", "spatial_leiden", "scaling", "masks_folder"]
             data_obs = self.master.cat_exp.data.obs
             columns_of_interest = [i for i in data_obs.columns if i not in magic_names]
             for i in columns_of_interest:

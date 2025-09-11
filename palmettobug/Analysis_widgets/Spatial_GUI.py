@@ -277,6 +277,35 @@ class Spatial_py(ctk.CTkFrame):
                 self.threshold = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = "5"))
                 self.threshold.grid(column = 1, row = 7, padx = 5, pady = 5)
 
+                label_N = ctk.CTkLabel(self, text = "Select experimental 'N'") 
+                label_N.grid(column = 1, row = 6)
+
+                def filter_N(enter = ""):
+                    output = []
+                    magic_names = ["index", "metaclustering", "clustering", "merging", "classification", 
+                                # "sample_id",     ## these are expected as possible experimental N's
+                                # "patient_id", 
+                                "condition", "file_name", "leiden", "spatial_leiden", "scaling", "masks_folder"]
+                    data_obs = self.master.master.master_exp.data.obs
+                    columns_of_interest = [i for i in data_obs.columns if i not in magic_names]
+                    for i in columns_of_interest:
+                        categories = data_obs[i].unique()
+                        sample_ids = data_obs['sample_id'].unique()
+                        if len(categories) > len(sample_ids):
+                            pass    #### don't want to offer columns with more divisions to the data than the sample_id's
+                        else:       ## block columns shared between conditions
+                            for j in categories:
+                                num_conditions = len(data_obs[data_obs[i] == j]['condition'].unique())
+                                if num_conditions > 1:
+                                    break
+                            else:
+                                output.append(i)
+                    self.N.configure(values = output)
+
+                self.N = ctk.CTkOptionMenu(master = self, values = ["sample_id"], variable = ctk.StringVar(value = "sample_id"))
+                self.N.grid(column = 1, row = 7, padx = 5, pady = 5)
+                self.N.bind("<Enter>", filter_N)  
+
                 label_permutation = ctk.CTkLabel(self, 
                             text = "Number of Permutations \n for permutation correction: \n (0 means no permutation correction)") 
                 label_permutation.grid(column = 1, row = 2)
@@ -378,7 +407,7 @@ class Spatial_py(ctk.CTkFrame):
                 grand_master.master_exp.space_analysis.set_fixed_r(min = min_rad, max = max_radii, step = step)
                 grand_master.master_exp.space_analysis.set_conditions(condition1 = condition1, condition2 = condition2)
                 
-                alt_N = grand_master.master_exp.N if grand_master.master_exp.N != 'sample_id' else None
+                alt_N = self.N.get() if self.N.get() != 'sample_id' else None
                 (grand_master.comparison_list, 
                  grand_master._all_comparison_list, 
                  grand_master.comparison_dictionary) = grand_master.master_exp.space_analysis.do_spatial_analysis(permutations = permutations, 
