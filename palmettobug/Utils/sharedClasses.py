@@ -1122,7 +1122,6 @@ class TableWidget(ctk.CTkScrollableFrame):
         except KeyError:
             pass
         has_delete_column = int((self.type == "Analysis_panel") or (self.type == "Regionprops_panel") or (self.type == "metadata"))
-        print(has_delete_column)
         length_wigdetframe = (len(self.widgetframe.columns))
         length_df = len(self.table_dataframe.columns)
         if (length_wigdetframe - has_delete_column) < (length_df):
@@ -1133,18 +1132,21 @@ class TableWidget(ctk.CTkScrollableFrame):
             if not proceed:
                 raise Exception
         for i,ii in zip(self.widgetframe.columns, self.table_dataframe.columns):
-            column_of_interest = self.widgetframe[i]
-            retrieval_list = []
-            for i in column_of_interest:
-                try:
-                    out = i.get()
-                except Exception:
-                    out = i.real_text
-                out = out.strip()
-                retrieval_list.append(out)
-            new_table_dataframe[ii] = retrieval_list
-            if (self.type == "panel") and (ii == 'segmentation'):
-                new_table_dataframe[ii] = new_table_dataframe[ii].replace({"Nuclei (1)":1,"Cytoplasmic / Membrane (2)":2})
+            if (has_delete_column == 1) and (i == self.widgetframe.columns[-1]):
+                pass 
+            else:
+                column_of_interest = self.widgetframe[i]
+                retrieval_list = []
+                for i in column_of_interest:
+                    try:
+                        out = i.get()
+                    except Exception:
+                        out = i.real_text
+                    out = out.strip()
+                    retrieval_list.append(out)
+                new_table_dataframe[ii] = retrieval_list
+                if (self.type == "panel") and (ii == 'segmentation'):
+                    new_table_dataframe[ii] = new_table_dataframe[ii].replace({"Nuclei (1)":1,"Cytoplasmic / Membrane (2)":2})
         self.table_dataframe = new_table_dataframe
 
 class text_window(ctk.CTkToplevel):
