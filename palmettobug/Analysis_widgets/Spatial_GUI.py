@@ -382,6 +382,7 @@ class Spatial_py(ctk.CTkFrame):
                  grand_master._all_comparison_list, 
                  grand_master.comparison_dictionary) = grand_master.master_exp.space_analysis.do_spatial_analysis(permutations = permutations, 
                                                                                                                   seed = seed, 
+                                                                                                                  alt_N = grand_master.master_exp.N,
                                                                                                                   center_on_zero = False,
                                                                                                                   threshold = threshold)
                 self.master.plot_button.configure(state = "normal")
