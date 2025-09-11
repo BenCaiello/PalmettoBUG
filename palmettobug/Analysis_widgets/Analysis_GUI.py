@@ -1882,6 +1882,7 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.N_label.grid(column = 2, row = 0, columnspan = 2, padx = 5, pady = 5)
 
         def filter_N(enter = ""):
+            output = []
             magic_names = ["index",
                         "metaclustering", 
                         "clustering", 
