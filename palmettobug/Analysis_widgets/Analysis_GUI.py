@@ -45,8 +45,6 @@ CLUSTER_NAMES = ["metaclustering", "merging", "classification", "leiden"]
 MARKER_CLASSES = ["type","state","none"]
 COLNAMES = ['patient_id', 'sample_id', 'condition']
 
-EXPERIMENTAL_N = 'sample_id'
-
 def CLUSTER_NAMES_append_CN():
     global CLUSTER_NAMES
     if "CN" not in CLUSTER_NAMES:
@@ -64,6 +62,7 @@ class Analysis_py_widgets(ctk.CTkFrame):
         super().__init__(master)
         self.master = master
         self.cat_exp = Analysis(in_gui = True)
+        self.cat_exp.N = 'sample_id'
         
         self.display2 = MatPlotLib_Display(self)
         self.display2.grid(column = 0, row = 0, padx = 5, pady = 5, rowspan = 2)
@@ -1500,13 +1499,13 @@ class plot_cluster_abundances_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
             if plot_type =="boxplot":
                 figure = self.master.cat_exp.plot_cluster_abundance_2(filename = filename, 
                                                                       groupby_column = k, 
-                                                                      N_column = EXPERIMENTAL_N,
+                                                                      N_column = self.master.cat_exp.N,
                                                                       plot_type = plot_type, 
                                                                       hue = self.color.get())
             else:
                 figure = self.master.cat_exp.plot_cluster_abundance_2(filename = filename, 
                                                                       groupby_column = k, 
-                                                                      N_column = EXPERIMENTAL_N,
+                                                                      N_column = self.master.cat_exp.N,
                                                                       plot_type = plot_type, 
                                                                       hue = self.color.get())
             Analysis_widget_logger.info(f"""Plotted Cluster Abundance with: 
@@ -1930,8 +1929,7 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.plot_state.configure(state = "disabled")
 
     def set_N(self, choice):
-        global EXPERIMENTAL_N
-        EXPERIMENTAL_N = choice   ## risky with global variables, consider a different method....
+        self.master.cat_exp.N = choice
 
     def initialize_buttons(self) -> None:
         ### goal: decouple widget placement & initialization from data loading & button activation
@@ -2039,7 +2037,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             else:
                 conditions = self.condition1.get().split(" %vs.% ")
             output_df = self.master.cat_exp.do_abundance_ANOVAs(groupby_column = column, 
-                                                                N_column = EXPERIMENTAL_N,
+                                                                N_column = self.master.cat_exp.N,
                                                                 conditions = conditions)
             output_df.to_csv(self.master.cat_exp.data_table_dir + f"/{filename}.csv", index_label = column)
         else:
@@ -2050,7 +2048,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
                 conditions = self.condition1.get().split(" %vs.% ")
             self.master.cat_exp.do_count_GLM(variable = "condition", groupby_column = column, 
                                           conditions = conditions, 
-                                          N_column = EXPERIMENTAL_N,
+                                          N_column = self.master.cat_exp.N,
                                           family = family_type, filename = filename)
         Analysis_widget_logger.info(f"""Ran Abundance statistical test: 
                                     conditions = {str(conditions)},
@@ -2146,7 +2144,7 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         
         success = self.master.cat_exp.do_state_exprs_ANOVAs(filename = filename, marker_class = self.marker_class.get(), 
                                                     groupby_column = clustering, # ind_var_column = 'condition', 
-                                                    N_column = EXPERIMENTAL_N,
+                                                    N_column = self.master.cat_exp.N,
                                                     statistic = self.stat.get(), 
                                                     test = self.test.get())
         if success is None:
@@ -3334,7 +3332,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         figure = self.master.master.cat_exp.plot_state_distributions(marker_class = marker_class, 
                                                     subset_column = subset_column, 
                                                     colorby = colorby, 
-                                                    N_column = EXPERIMENTAL_N,
+                                                    N_column = self.master.master.cat_exp.N,
                                                     grouping_stat = 'median',
                                                     wrap_col = 3, 
                                                     suptitle = True,
