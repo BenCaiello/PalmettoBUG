@@ -1896,7 +1896,7 @@ class Hypothesis_widget(ctk.CTkFrame):
                         "scaling",
                         "masks_folder"]
             data_obs = self.master.cat_exp.data.obs
-            columns_of_interest = [i for i in data_obs.columns if i is not in magic_names]
+            columns_of_interest = [i for i in data_obs.columns if i not in magic_names]
             for i in columns_of_interest:
                 categories = data_obs[i].unique()
                 sample_ids = data_obs['sample_id'].unique()
