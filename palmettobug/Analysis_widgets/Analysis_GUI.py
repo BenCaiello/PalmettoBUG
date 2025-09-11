@@ -3295,7 +3295,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.clustering.bind("<Enter>", refresher1)
 
         label_1 = ctk.CTkLabel(self, text = "Color By:")
-        label_1.grid(column = 0, row = 0)
+        label_1.grid(column = 0, row = 1)
 
         self.colorby = ctk.CTkOptionMenu(master = self, 
                                             values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns],

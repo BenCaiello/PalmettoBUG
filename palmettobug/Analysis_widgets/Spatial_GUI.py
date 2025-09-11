@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from ..Utils.sharedClasses import DirectoryDisplay, CtkSingletonWindow, filename_checker, TableLaunch, Analysis_logger, warning_window, overwrite_approval
 from ..Analysis_functions.SpatialANOVA import SpatialANOVA, plot_spatial_stat_heatmap
 from ..Analysis_functions.SpatialAnalysis import SpatialNeighbors, SpatialEDT
-from .Analysis_GUI import Plot_window_display, MatPlotLib_Display, CLUSTER_NAMES_append_CN, MARKER_CLASSES_append_spatial_edt
+from .Analysis_GUI import Plot_window_display, MatPlotLib_Display, CLUSTER_NAMES_append_CN, MARKER_CLASSES_append_spatial_edt, EXPERIMENTAL_N
 
 homedir = __file__.replace("\\","/")
 homedir = homedir[:(homedir.rfind("/"))]
@@ -804,7 +804,12 @@ class SquidpySpatialWidgets(ctk.CTkFrame):
             
     def plot_neighborhood_enrichment(self, clustering = "merging", facet_by = "None", seed = 42, n_perms = 1000, filename = None):
         ''''''
-        figure = self.spatial.plot_neighborhood_enrichment(clustering = clustering, facet_by = facet_by, seed = seed, n_perms = n_perms, filename = filename)
+        figure = self.spatial.plot_neighborhood_enrichment(clustering = clustering, 
+                                                           facet_by = facet_by, 
+                                                           N_column = EXPERIMENTAL_N,
+                                                           seed = seed, 
+                                                           n_perms = n_perms, 
+                                                           filename = filename)
         self.master.save_and_display(filename = filename, parent_folder = self.spatial.save_dir)
         return figure
 
@@ -918,6 +923,7 @@ class NeigborhoodEnrichmentWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             return
         figure = self.master.plot_neighborhood_enrichment(clustering = clustering, 
                                                           facet_by = facet, 
+                                                          N_column = EXPERIMENTAL_N,
                                                           filename = filename, 
                                                           seed = seed, 
                                                           n_perms = n_perms)
@@ -2004,6 +2010,7 @@ class edt_stat_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         test = self.test.get().lower()
         output = self.master.edt_object.plot_edt_statistics(groupby_column = groupby_column, 
                                                      marker_class = 'spatial_edt',
+                                                     N_column = EXPERIMENTAL_N,
                                                      statistic = stat,
                                                      test = test,
                                                      filename = self.master.edt_object.exp.directory + f"/Spatial_plots/{filename}.csv")
