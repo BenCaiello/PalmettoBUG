@@ -52,12 +52,24 @@ def test_call_raw_to_img_part_1_hpf():
     app.Tabs.image_proc_widg.call_raw_to_img_part_1_hpf()
     assert True   
 
-def test_call_raw_to_img_part_2_run():
-    app.Tabs.image_proc_widg.call_raw_to_img_part_2_run(0.85)
+def test_call_mask_expand():
+    app.Tabs.image_proc_widg.call_mask_expand(0.85)
     assert True 
 
-def test_call_instanseg_segmentor():
-    app.Tabs.image_proc_widg.call_instanseg_segmentor(0.85)
+def test_call_region_measurement():
+    app.Tabs.image_proc_widg.call_region_measurement()
+    assert True 
+
+def test_call_to_Analysis():
+    app.Tabs.image_proc_widg.call_to_Analysis()
+    assert True 
+
+def test_call_region_measurement():
+    app.Tabs.image_proc_widg.call_region_measurement()
+    assert True 
+
+def test_go_to_Analysis_window():
+    app.Tabs.image_proc_widg.go_to_Analysis_window(fetch_dir + "/Example_CyTOF")
     assert True 
 
 def test_toggle_in_gui():
