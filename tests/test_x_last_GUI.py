@@ -74,48 +74,54 @@ def test_toggle_in_gui():
 
 
 ##>>## GUI Pixel classification tests (px class creation)
-#def test_launch_loading_window():
-    #global loading_window
-#    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()   ## need access to loading window functions
- #   assert True 
+def test_launch_loading_window():
+    global loading_window
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()   ## need access to loading window functions
+    assert True 
 
-#def test_unsupervised():
-#    loading_window.unsupervised("unsupervised1")
-#    assert True 
+def test_unsupervised():
+    loading_window.unsupervised("unsupervised1")
+    assert True 
 
-#def test_accept_classifier_name():   ## supervised window
-#    loading_window.accept_classifier_name("supervised1")
- #   assert True 
+def test_accept_classifier_name():   ## supervised window
+    loading_window.accept_classifier_name("supervised1")
+    assert True 
 
-#def test_detail_display():
-#    app.Tabs.px_classification.create.px_widg.detail_display()
-#    assert True 
+def test_detail_display():
+    app.Tabs.px_classification.create.px_widg.detail_display()
+    assert True 
 
-#def test_bio_label_launch():
-#    app.Tabs.px_classification.create.px_widg.bio_label_launch()
-#    assert True 
+def test_bio_label_launch():
+    app.Tabs.px_classification.create.px_widg.bio_label_launch()
+    assert True 
 
-#def test_save_classifier():
-#    app.Tabs.px_classification.create.px_widg.save_classifier()
-#    assert True 
+def test_save_classifier():
+    app.Tabs.px_classification.create.px_widg.save_classifier()
+    assert True 
 
 
 ##>>## GUI Pixel classification tests (px class use)
-#def test_launch_classes_as_png():
-#    app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_classes_as_png()
-#    assert True 
+def test_launch_classes_as_png():
+    app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_classes_as_png()
+    assert True 
 
-#def test_load_classifier():
- #   app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
-#    assert True 
+def test_load_classifier():
+    app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
+    assert True 
+
+
 
 ##>>## GUI Analysis tests
 
-def test_launch_scatterplot():
-    app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
 
-def test_launch_classy_masker():
-    app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
+
+############################################ Some test require that an Analysis is loaded, these are currently commented out ############################
+
+#def test_launch_scatterplot():
+#    app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
+
+#def test_launch_classy_masker():
+#    app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
 
 def test_launch_leiden():
     app.Tabs.py_exploratory.analysiswidg.launch_leiden()
@@ -123,8 +129,8 @@ def test_launch_leiden():
 def test_launch_UMAP_window():
     app.Tabs.py_exploratory.analysiswidg.launch_UMAP_window()
 
-def test_launch_ClusterVGroup():
-    app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
+#def test_launch_ClusterVGroup():
+#    app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
 
 def test_launch_distrib_window():
     app.Tabs.py_exploratory.analysiswidg.launch_distrib_window()
@@ -150,23 +156,23 @@ def test_launch_MDS_window():
 def test_launch_NRS_window():
     app.Tabs.py_exploratory.analysiswidg.launch_NRS_window()
 
-def test_launch_abundance_window():
-    app.Tabs.py_exploratory.analysiswidg.launch_abundance_window()
+#def test_launch_abundance_window():
+#    app.Tabs.py_exploratory.analysiswidg.launch_abundance_window()
 
-def test_launch_cluster_heatmap_window():
-    app.Tabs.py_exploratory.analysiswidg.launch_cluster_heatmap_window()
+#def test_launch_cluster_heatmap_window():
+#    app.Tabs.py_exploratory.analysiswidg.launch_cluster_heatmap_window()
 
-def test_launch_plot_cluster_expression_window():
-    app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
+#def test_launch_plot_cluster_expression_window():
+#    app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
 
-def test_launch_cluster_stats_window():
-    app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
+#def test_launch_cluster_stats_window():
+#    app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
 
-def test_launch_regionprop():
-    app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
+#def test_launch_regionprop():
+#    app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
 
-def test_launch_cluster_merging():
-    app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
+#def test_launch_cluster_merging():
+#    app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
 
 def test_launch_drop_restore():
     app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
@@ -174,15 +180,17 @@ def test_launch_drop_restore():
 def test_launch_scaling():
     app.Tabs.py_exploratory.analysiswidg.launch_scaling()
 
-def test_launch_cluster_save_load():
-    app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()
+#def test_launch_cluster_save_load():
+#    app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()
 
-def test_launch_data_table_exportation_window():
-    app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window(app.Tabs.py_exploratory.analysiswidg.cat_exp.data)
+#def test_launch_data_table_exportation_window():
+#    app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window(app.Tabs.py_exploratory.analysiswidg.cat_exp.data)
 
 
 def test_launch_combat_window():
     app.Tabs.py_exploratory.analysiswidg.launch_combat_window()
+
+
 
 
 ##>>## GUI Spatial tests
@@ -190,9 +198,9 @@ def test_launch_edt():
     app.Tabs.Spatial.widgets.launch_edt()
     assert True 
 
-def test_plot_cell_maps_window():
-    app.Tabs.Spatial.widgets.plot_cell_maps_window()
-    assert True 
+#def test_plot_cell_maps_window():
+#    app.Tabs.Spatial.widgets.plot_cell_maps_window()
+ #   assert True 
 
 # spatial windows to test:    launch_heat_plot_window, launch_function_plot_window, launch_window, NeigborhoodEnrichmentWindow, CentralityWindow, InteractionMatrixWindow
                 # CNUMAPMSTwindow, CNabundanceWindow, CNheatmapWindow, CNannotationWindow, CNwindowSaveLoad, CellularNeighborhoodWindow, edt_heatmap_window
