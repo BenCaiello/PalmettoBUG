@@ -1,9 +1,7 @@
 import os
 
-import numpy as np
-
 import palmettobug
-from palmettobug.Entrypoint.app_and_entry import App
+from palmettobug.Entrypoint.app_and_entry import App, fetch_IMC_example, fetch_CyTOF_example
 
 homedir = __file__.replace("\\","/")
 homedir = homedir[:(homedir.rfind("/"))]
@@ -12,7 +10,6 @@ fetch_dir = homedir + "/project_folder"
 if not os.path.exists(fetch_dir):
     os.mkdir(fetch_dir)
 proj_directory = fetch_dir + "/Example_IMC"
-np.random.default_rng(42)
 
 ##>>## GUI App & entrypoint tests
 def test_fetch_IMC():
@@ -51,7 +48,7 @@ def test_FCS_choice():
 def test_call_raw_to_img_part_1_hpf():
     app.Tabs.image_proc_widg.call_raw_to_img_part_1_hpf()
     assert True   
-    
+
 '''
 def test_call_mask_expand():
     app.Tabs.image_proc_widg.call_mask_expand()
@@ -72,5 +69,14 @@ def test_go_to_Analysis_window():
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
 
+
+
+##>>## GUI Pixel classification tests
+
+def test_px_widg_connection():
+    app.Tabs.px_classification.create.px_widg
+    assert True 
+
+
+
 '''
-    ##>>## GUI Image Analysis tests
