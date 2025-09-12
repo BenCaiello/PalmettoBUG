@@ -18,7 +18,7 @@ dependencies = [
             "napari>=0.5.6" ,
             "PySide6<6.5",             ## <6.5 matches Napari's experimental pyside6 requirement -- test change for MacOS / Apple Silicon users
             "lxml>=5.3.2",
-            "tifffile>=2025.3.30", 
+            "tifffile>=2024.2.12", 
             "opencv-python-headless>=4.9.0.80",
             "scikit-image>=0.25.2",
             "scikit-learn>=1.5.2",
