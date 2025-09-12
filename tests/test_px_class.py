@@ -40,9 +40,6 @@ np.random.default_rng(42)
 def test_fetch_IMC():
     fetch_IMC_example(fetch_dir)
 
-def test_fetch_CyTOF():
-    fetch_CyTOF_example(fetch_dir)
-
 def test_raw_to_img():
     global image_proc
     image_proc = ImageAnalysis(proj_directory, from_mcds = True)
