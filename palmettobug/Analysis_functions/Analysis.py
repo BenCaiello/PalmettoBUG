@@ -253,8 +253,14 @@ class Analysis:
             Analysis_log = Analysis_logger(log_dir).return_log()
             self.logger = Analysis_log
 
-        ## handle metadata & panel is loading from FCS files, otherwise the requisite information is in the CSV itself
-        if csv is None:
+        ## If 'Analysis_fcs' doesn't exist
+        csv_check1 = csv is None
+        csv_check2 = "Analysis_fcs" in os.listdir(directory)
+        if csv_check2:
+            csv_check3 = len([i for i in os.listdir(directory + "/Analysis_fcs") if i.find('.fcs') != -1]) > 0
+        else:
+            csv_check3 = False
+        if csv_check1 and csv_check2 and csv_check3:    
             self.metadata = pd.read_csv(self.directory + '/metadata.csv')
             self.metadata['condition'] = self.metadata['condition'].astype('str')
             metadata_cat = pd.CategoricalDtype(categories = self.metadata['condition'].unique(), ordered = True)
@@ -263,7 +269,12 @@ class Analysis:
             self.metadata['sample_id'] = self.metadata['sample_id'].astype('str')
             self.panel = pd.read_csv(self.directory + '/Analysis_panel.csv')
             self._load_fcs(arcsinh_cofactor = arcsinh_cofactor)
+        elif csv:
+            self._load_csv(csv, additional_columns = csv_additional_columns, arcsinh_cofactor = arcsinh_cofactor)
         else:
+            print("An /Analysis_fcs folder either doesn't exist or is empty -- and no CSV was provided." 
+                  "\nAssuming this is a reload of a CSV-based analysis, and will attempt to load from a 'source_CSV.csv' file in the analysis directory.")
+            csv = pd.read_csv(directory + "/source_CSV.csv")
             self._load_csv(csv, additional_columns = csv_additional_columns, arcsinh_cofactor = arcsinh_cofactor)
         
         ## Handle spatial experiment information
@@ -549,8 +560,11 @@ class Analysis:
         ## Load spatial information, if available
         try:
             self.data.uns['areas'] = data['areas'] 
+            self.data = self.data[self.data.var['antigen'] != 'areas']  ### drop spatial columns from self.data.X as they are loaded for spatial analysis
             cent_X = np.asarray(data['centroid_X'])
+            self.data = self.data[self.data.var['antigen'] != 'centroid_X']
             cent_Y = np.asarray(data['centroid_Y'])
+            self.data = self.data[self.data.var['antigen'] != 'centroid_Y']
             obsm = np.zeros([2, len(cent_X)])
             obsm[0] = cent_X
             obsm[1] = cent_Y
@@ -2192,33 +2206,20 @@ class Analysis:
                 cluster_centers.index = percents
             else:
                 percentiles = pd.DataFrame()
-                '''
-                if show_cluster_centers is True:     ### shows mean of metacluster centers
-                    for_fs = self.clustering_data.copy()
-                    obs = for_fs.obs
-                    cluster_data = pd.DataFrame(for_fs.X.T * np.array(for_fs.obs['percentages'])).T  ## This is the data on the values of the centroids of each individual cluster
-                    cluster_data[groupby] = list(obs[groupby])   ## don't know why converting to a list is necessary, but it is.... 
-                                    # Answer: it has to do with indexes:  
-                                    # https://stackoverflow.com/questions/61677569/cannot-set-pandas-column-values-using-series-sets-everything-to-np-nan-instead
-
-                    cluster_centers = cluster_data.groupby(groupby, observed = False).mean()
-                    cluster_centers.columns = for_fs.var.index
-                '''
                 percent_groupby = self.data.obs.groupby(groupby, observed = False).count()['file_name'] / len(self.data.obs)
                 if groupby != "clustering":
                     percentiles['percents'] = [f'''{i} ({np.round(ii * 100, 1)}%)''' for i,ii in zip(percent_groupby.index, list(percent_groupby))]
                     percentiles['index'] = [i for i in percent_groupby.index]
-                #else:
-                #    percentiles['percents'] = [f'''{i} ({np.round(obs["percentages"].loc[i] * 100, 1)}%)''' for i in obs.index]
-                #    percentiles['index'] = [i for i in obs.index]
                 percentiles = percentiles.sort_values('index')
                 cluster_centers.index = list(percentiles['percents'])   
         else:
-            cluster_centers['sample_id'] = list(cluster_centers.reset_index()['index'])
+            cluster_centers['sample_id'] = list(cluster_centers.reset_index()['index'])   ## could replace 'sample_id' in these lines with [groupby]
             cluster_centers.index = cluster_centers['sample_id']
             cluster_centers = cluster_centers.drop('sample_id', axis = 1)
+
         transform = _quant(cluster_centers, axis = scale_axis)
         cluster_centers = pd.DataFrame(transform, index = cluster_centers.index, columns = cluster_centers.columns)
+
         plot = sns.clustermap(cluster_centers, 
                              cmap = colormap, 
                              linewidths = 0.01, 
@@ -2229,18 +2230,15 @@ class Analysis:
         plot.figure.suptitle(f"Scaled/Normalization Expression Medians of each {marker_class} Marker within each {groupby}", y = 1.03)
         warnings.filterwarnings("default", message = "divide by zero encountered in divide")  ## undo prior warnings modifications
         warnings.filterwarnings("default", message = "invalid value encountered in divide") 
+
         if filename is not None:
             plot.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
-            plt.close()  
-            if  subset_df is None:
-                return plot.figure
-            else:
-                return plot
+        plt.close()  
+        if subset_df is None:
+            return plot.figure
         else:
-            if subset_df is None:
-                return plot.figure
-            else:
-                return plot
+            return plot
+
         
     def _plot_facetted_heatmap(self, 
                               filename: str, 
@@ -2693,9 +2691,9 @@ class Analysis:
         divisor = abundance_plot_prep[[bars_by,"count"]].groupby(bars_by, observed = False).sum().reset_index()
         div_dict = {}
         for i in divisor.index:
-            div_dict[int(divisor[bars_by][i])] = divisor["count"][i]
+            div_dict[str(divisor[bars_by][i])] = divisor["count"][i]
         abundance_plot_prep["total"] =  (abundance_plot_prep["count"].astype('int') 
-                                             / abundance_plot_prep[bars_by].astype('int').replace(div_dict))
+                                             / abundance_plot_prep[bars_by].astype('str').replace(div_dict))
         abundance_plot_prep[groupby_column] = abundance_plot_prep[groupby_column].astype('category')
         abundance_plot_prep = abundance_plot_prep[abundance_plot_prep['file_name'] != 0]
         number_of_panels = len(abundance_plot_prep['condition'].unique())
@@ -2730,6 +2728,7 @@ class Analysis:
 
     def plot_cluster_abundance_2(self, 
                                  groupby_column: str = "metaclustering", 
+                                 N_column: str = "sample_id",
                                  hue: str = "condition", 
                                  plot_type: str = "barplot",
                                  filename: Union[str, None] = None,
@@ -2743,6 +2742,13 @@ class Analysis:
         Args:
             groupby_column (str):
                 The name of a column in self.data.obs to facet the bar / box / strip plot into multiple panels
+
+            N_column (str):
+                The name of the column in self.data.obs that determines what individual units compose the distribution of the boxplot.
+                This function does not do a statistical test, but the groups of this column would correspond to the N used to determine 
+                variance / degrees of freedom in a t-test.
+                NOTE: a key assumption is that the categories in this column are NEVER shared between hue categories. This holds for the defaults 
+                (each unique ROI / sample_id can only have one condition assigned to it) but must also be true for any alternate column used. 
 
             hue (str):
                 The name of a column in self.data.obs to separate & color columns of the plots by
@@ -2759,42 +2765,48 @@ class Analysis:
         Returns:
             a matplotlib figure
         '''
+        ## check N_column groups are not shared between hues
+        for i in self.data.obs[N_column].unique():
+            n_col = self.data.obs[self.data.obs[N_column] == i].copy()
+            unique_hue = n_col[hue].astype('str').unique()
+            if len(unique_hue) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
+                print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
+                return
+        
         flowsom_clustering = self.data.copy()
         cluster_data = pd.DataFrame(flowsom_clustering.X) 
         obs = flowsom_clustering.obs.copy()
-        cluster_data[groupby_column] = list(obs[groupby_column])  
-        cluster_data["sample_id"] = list(obs["sample_id"].astype('int')) 
+        cluster_data[groupby_column] = list(obs[groupby_column]) 
+
+        cluster_data[N_column] = list(obs[N_column]) 
         cluster_data[hue] = list(obs[hue])
-        try:
-            cluster_data[hue] = cluster_data[hue].astype('int') ## for ordering items properly
-        except ValueError:
-            cluster_data[hue] = cluster_data[hue].astype('str')
+        for k in [hue, N_column]:
+            try:
+                cluster_data[k] = cluster_data[k].astype('int') ## for ordering items properly
+            except ValueError:
+                cluster_data[k] = cluster_data[k].astype('str')
 
         hue_cat = pd.CategoricalDtype(categories = cluster_data[hue].unique(), ordered = True)
         #cluster_data[hue]  = cluster_data[hue].astype(hue_cat)
-        divisor = cluster_data.groupby("sample_id", observed = False).count().iloc[:,0]
+        divisor = cluster_data.groupby(N_column, observed = False).count().iloc[:,0]
         zip_dict = {}
         
-        for i,ii in zip(cluster_data['sample_id'].astype('str').unique(), divisor):
+        for i,ii in zip(divisor.index.astype('str'), divisor):
             zip_dict[i] = ii
         
-        cluster_data["sample_id"] = cluster_data["sample_id"].astype('category')
-        #print(cluster_data)
-        numerators = cluster_data.groupby(["sample_id",groupby_column], observed = False).count().loc[:,0]
+        cluster_data[N_column] = cluster_data[N_column].astype('category')
+        numerators = cluster_data.groupby([N_column,groupby_column], observed = False).count().loc[:,0]
         numerators = numerators.reset_index()
-        numerators['divisor'] = numerators['sample_id'].astype('str').replace(zip_dict)
+        numerators['divisor'] = numerators[N_column].astype('str').replace(zip_dict).astype('int')
         numerators['proportions'] = (numerators[0] / numerators['divisor']) * 100
         zip_dict = {}
         
-        for i,ii in zip(cluster_data['sample_id'].astype('str'), cluster_data[hue]):
+        for i,ii in zip(cluster_data[N_column].astype('str'), cluster_data[hue]):
             zip_dict[i] = ii
         
-        numerators[hue] = numerators['sample_id'].astype('str').replace(zip_dict).astype(hue_cat)
+        numerators[hue] = numerators[N_column].astype('str').replace(zip_dict).astype(hue_cat)
 
-        #print(numerators)
-        #print(numerators[groupby_column].unique())
-        #print(numerators[hue].unique())
-        # print(numerators['proportions'].sum()  / len(numerators['sample_id'].unique()))    ## should add up to 100...
+        # print(numerators['proportions'].sum()  / len(numerators[N_column].unique()))    ## should add up to 100...
         griddy = sns.FacetGrid(numerators, col = groupby_column, col_wrap = 4, sharey = False)
         if plot_type == "boxplot":
             griddy.map_dataframe(sns.boxplot, x = hue, y = "proportions", hue = hue, palette='viridis', **kwargs)
@@ -2813,6 +2825,7 @@ class Analysis:
 
     def do_cluster_stats(self, 
                          groupby_column: str = "metaclustering", 
+                         N_column: str = "sample_id",
                          marker_class: str = 'type',
                          ) -> dict[Union[str, int], pd.DataFrame]:
         '''
@@ -2823,6 +2836,12 @@ class Analysis:
             groupby_column (string): 
                 The column in the self.data.obs dataframe to group the cells for making comparison between unique value in 
                 this column (usually a celltype column, like "metaclustering", but could be something else, like condition or sample_id)
+
+            N_column (string):
+                The column in self.data.obs that determines the "N" for the statistical test (data is aggregated by this before the test and it
+                helps determine what the degrees of freedom are in the test.)
+                NOTE: unlike other instances of N_column in palmettobug functions, it is possible groups within this column to be shared within the conditions,
+                as the comparison of interest is usually on the cell type level, not between conditions.
 
             marker_class (string == "All", "type", "state", or "none" ): 
                 what markers to include in the comparison. Usually "type", should typically match the markers used to generate the cell clustering / groupby being compared.
@@ -2842,13 +2861,13 @@ class Analysis:
 
         list_of_antigens = np.array((manipul_df.columns))        
         manipul_df[groupby_column] = list(data.obs[groupby_column])
-        manipul_df["sample_id"] = list(data.obs["sample_id"])
-        manipul_df = manipul_df.groupby(["sample_id", groupby_column], observed = False).mean(numeric_only = True).reset_index()
+        manipul_df[N_column] = list(data.obs[N_column])
+        manipul_df = manipul_df.groupby([N_column, groupby_column], observed = False).mean(numeric_only = True).reset_index()
         cluster_dict = {}
         anti_cluster_dict = {}
         for i in manipul_df[groupby_column].unique():
-            cluster_dict[i] = manipul_df[manipul_df[groupby_column] == i].drop(["sample_id", groupby_column], axis = 1)
-            anti_cluster_dict[f"-{i}"] = manipul_df[manipul_df[groupby_column] != i].drop(["sample_id", groupby_column], axis = 1)
+            cluster_dict[i] = manipul_df[manipul_df[groupby_column] == i].drop([N_column, groupby_column], axis = 1)
+            anti_cluster_dict[f"-{i}"] = manipul_df[manipul_df[groupby_column] != i].drop([N_column, groupby_column], axis = 1)
 
         df_out_dict = {}
         for i in cluster_dict:
@@ -2933,6 +2952,7 @@ class Analysis:
     def do_abundance_ANOVAs(self, 
                             groupby_column: str = 'merging', 
                             variable: str = 'condition',
+                            N_column: str = "sample_id",
                             conditions: list[str] = [],
                             filename: Union[str, None] = None,
                             ) -> pd.DataFrame:                                      # *** deriv_CATALYST / diffcyt (ish, PalmettoBUG's version of 
@@ -2947,6 +2967,12 @@ class Analysis:
 
             variable (str): 
                 The column in self.data.obs where the independent variable information is found (default = 'condition')
+
+            N_column (str):
+                The column in self.data.obs that determines the aggregation (and downstream from this, the degrees of freedom) for the statistical test.
+                NOTE: a key assumption is that the categories in this column are NEVER shared between conditions -- aggregation on this column
+                is done BEFORE comparison of conditions. This holds for the defaults (each unique ROI / sample_id can only have one condition assigned to it)
+                but must also be true for any alternate column used. 
 
             conditions (list of strings or empty list): 
                 list of unique values in self.data.obs[variable] to be compared by ANOVA if None, then wil perform an ANOVA test on all the conditions in the dataset. 
@@ -2965,15 +2991,23 @@ class Analysis:
 
         if conditions == []:
             conditions = list(self.data.obs[variable].unique())
+
+        for i in self.data.obs[N_column].unique():
+            n_col = self.data.obs[self.data.obs[N_column] == i]
+            unique_conditions = n_col[variable].astype('str').unique()
+            relevant_conditions = [j for j in unique_conditions if j in conditions]
+            if len(relevant_conditions) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
+                print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
+                return
         
         condition_list = []
         for i in conditions:
             condition_data = obs[obs[variable] == i]
             
-            sample_ids = condition_data['sample_id'].unique()
+            sample_ids = condition_data[N_column].unique()
             sample_holder = np.zeros([len(sample_ids),len(merging_clusters)])
             for jj,j in enumerate(sample_ids):
-                sample_data = condition_data[condition_data['sample_id'] == j]
+                sample_data = condition_data[condition_data[N_column] == j]
                 sample_data.loc[:,groupby_column] = sample_data[groupby_column].cat.set_categories(obs[groupby_column].cat.categories)
                 cluster_counts = sample_data.groupby(groupby_column, observed = False).count()['file_name']   
                                                     ## column used to subset on is irrelevant (it just needs to exist...)
@@ -3003,6 +3037,7 @@ class Analysis:
                   conditions: list[str], 
                   variable: str = "condition", 
                   groupby_column: str = "merging",  
+                  N_column: str = "sample_id",
                   family: str = "Poisson", 
                   filename: Union[str, None] = None,
                   ) -> pd.DataFrame:
@@ -3020,6 +3055,13 @@ class Analysis:
 
             groupby_column (string): 
                 the column in self.data.obs that contains the cell type information from which counts / abundance will be calculated
+
+            N_column (string):
+                the column in self.data.obs that contains the replication N grouping (data is aggregated by this grouping
+                before the statistical test, and relates to the number of degrees of freedom in the test). Usually only sample_id or patient_id. 
+                NOTE: a key assumption is that the categories in this column are NEVER shared between conditions -- aggregation on this column
+                is done BEFORE comparison of conditions. This holds for the defaults (each unique ROI / sample_id can only have one condition assigned to it)
+                but must also be true for any alternate column used. 
 
             family (string -- "Poisson", "NegativeBinomial"): 
                 The distribution to use in the GLM. Can be "Poisson" or "NegativeBinomial". Other distributions, such as "Gaussian" and "Binomial" are 
@@ -3043,6 +3085,16 @@ class Analysis:
                     "Binomial" : sm.families.Binomial, 
                     "NegativeBinomial" : sm.families.NegativeBinomial, 
                     "Gaussian" : sm.families.Gaussian}
+
+        ## check N_column groups are not shared between conditions
+        for i in self.data.obs[N_column].unique():
+            n_col = self.data.obs[self.data.obs[N_column] == i]
+            unique_conditions = n_col[variable].astype('str').unique()
+            relevant_conditions = [j for j in unique_conditions if j in conditions]
+            if len(relevant_conditions) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
+                print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
+                return
+
         model = GLM_dict[family]()
 
         to_data = self.data.copy()
@@ -3052,7 +3104,7 @@ class Analysis:
 
         slicer = np.array([(str(i) in conditions) for i in data[variable].astype('str')])
         data = data[slicer]
-        data['sample_id'] = data['sample_id'].astype('str').astype('category')
+        data[N_column] = data[N_column].astype('str').astype('category')
 
         data[groupby_column] = data[groupby_column].astype('str').str.replace(" ","_").str.replace("+","")
         try:
@@ -3064,57 +3116,16 @@ class Analysis:
         if family == "Binomial":
             print("Binomial models not configured properly at the moment. Exiting")
             return None
-            for ii,i in enumerate(uniques):
-                try:
-                    int(i)
-                    use_i = f'{groupby_column}{i}'
-                except ValueError:
-                    use_i = i
-                data.loc[:,use_i] = data[groupby_column] == i
-                results = sm.GLM.from_formula(f"{use_i} ~ {variable}", data = data, family = model).fit()
-                consistent_columns = ['comparison', f"{groupby_column}", "pvalue",
-                                    f"{conditions[0]} avg", f"{conditions[0]} 95% CI +/-",
-                                    f"{conditions[1]} avg", f"{conditions[1]} 95% CI +/-"]
-                
-                pvalue = sigfig.round(results.pvalues.iloc[1], 3, warn = False)
-                condition1 = sigfig.round(results.params.iloc[0], 3, warn = False)     
-                condition1_CI_plus_minus = sigfig.round((results.bse.iloc[0] * 1.96), 3, warn = False)       
-                
-                condition2 = sigfig.round(condition1 + results.params.iloc[1], 3, warn = False)         
-                condition2_CI_plus_minus = sigfig.round((results.bse.iloc[1] * 1.96), 3, warn = False)      
-                temp_row_array = np.array([f"{conditions[0]} vs. {conditions[1]}", i, pvalue, 
-                                    condition1, condition1_CI_plus_minus,
-                                    condition2, condition2_CI_plus_minus])
-        
-                temp_row = pd.DataFrame(temp_row_array[:, np.newaxis].T, columns = consistent_columns, index = [ii])
-                if ii == 0:
-                    output_df = temp_row
-                else:
-                    output_df = pd.concat([output_df, temp_row], axis = 0)
-        
-            output_df['p_adj'] = [sigfig.round(i, 
-                                               3, 
-                                               warn = False) for i in scipy.stats.false_discovery_control(output_df['pvalue'].astype('float') + 1e-25, 
-                                                                                                          method = 'bh')]
-            new_column_order = ['comparison', groupby_column, "pvalue", "p_adj",
-                                    f"{conditions[0]} avg", f"{conditions[0]} 95% CI +/-",
-                                    f"{conditions[1]} avg", f"{conditions[1]} 95% CI +/-"]
-            to_return = pd.DataFrame()
-            for i in new_column_order:
-                to_return[i] = output_df[i]
-            to_return['to_sort'] = to_return.loc[:, 'pvalue'].astype('float64')
-            to_return = to_return.sort_values('to_sort')
-            to_return = to_return.drop("to_sort", axis = 1)
         
         elif family != "Gaussian":
             new_obs_df = data.drop(["file_name"],axis = 1)
             new_obs_df['random_column_name'] = 0
 
             zip_dict = {}
-            for m,mm in zip(new_obs_df['sample_id'], new_obs_df[variable]):
+            for m,mm in zip(new_obs_df[N_column], new_obs_df[variable]):
                 zip_dict[m] = mm
         
-            grouped = new_obs_df.groupby([groupby_column,'sample_id'], observed = False).count()
+            grouped = new_obs_df.groupby([groupby_column, N_column], observed = False).count()
             to_drop_list = []
             if (len(new_obs_df.groupby([groupby_column,variable], observed = True).count()) != 
                 len(new_obs_df.groupby([groupby_column,variable], observed = False).count())):
@@ -3125,13 +3136,13 @@ class Analysis:
                         to_drop_list.append(i)
                         
             grouped = grouped.reset_index()
-            grouped[variable] = grouped['sample_id'].astype('str').replace(zip_dict).astype(self.data.obs[variable].dtype)
+            grouped[variable] = grouped[N_column].astype('str').replace(zip_dict).astype(self.data.obs[variable].dtype)
             for i in to_drop_list:
                 slicer = (np.array(grouped[groupby_column] != i[0]).astype('int') + np.array(grouped[variable] != i[1]).astype('int')) != 0
                 grouped = grouped[slicer]
 
-            ready_for_GLM = grouped.pivot(columns = groupby_column, index = [variable, 'sample_id'], values = 'random_column_name').reset_index()
-            ready_for_GLM['divisor'] = ready_for_GLM.drop(['sample_id', variable], axis = 1).sum(axis = 1, numeric_only = True).astype('int')
+            ready_for_GLM = grouped.pivot(columns = groupby_column, index = [variable, N_column], values = 'random_column_name').reset_index()
+            ready_for_GLM['divisor'] = ready_for_GLM.drop([N_column, variable], axis = 1).sum(axis = 1, numeric_only = True).astype('int')
             
             if family == "Poisson":
                 scale = None
@@ -3208,7 +3219,7 @@ class Analysis:
                 temp_row_array = np.array([comparison, i, pvalue] + condition_avg_and_CI_list)
                 temp_row = pd.DataFrame(temp_row_array[:, np.newaxis].T, columns = consistent_columns, index = [ii])
                 if ii > 0:
-                    output_df = pd.concat([output_df, temp_row], axis = 0)
+                    output_df = pd.concat([output_df, temp_row], axis = 0)  # noqa    ## raises error for undefined variable (it is defined in the 'else' during the first pass of the loop)
                 else:
                     output_df = temp_row
 
@@ -3228,10 +3239,10 @@ class Analysis:
             new_obs_df['random_column_name'] = 0
 
             zip_dict = {}
-            for m,mm in zip(new_obs_df['sample_id'], new_obs_df[variable]):
+            for m,mm in zip(new_obs_df[N_column], new_obs_df[variable]):
                 zip_dict[m] = mm
         
-            grouped = new_obs_df.groupby([groupby_column,'sample_id'], observed = False).count()
+            grouped = new_obs_df.groupby([groupby_column,N_column], observed = False).count()
             to_drop_list = []
             if (len(new_obs_df.groupby([groupby_column,variable], observed = True).count()) != 
                 len(new_obs_df.groupby([groupby_column,variable], observed = False).count())):
@@ -3242,13 +3253,13 @@ class Analysis:
                         to_drop_list.append(i)
                         
             grouped = grouped.reset_index()
-            grouped[variable] = grouped['sample_id'].astype('str').replace(zip_dict).astype(self.data.obs[variable].dtype)
+            grouped[variable] = grouped[N_column].astype('str').replace(zip_dict).astype(self.data.obs[variable].dtype)
             for i in to_drop_list:
                 slicer = (np.array(grouped[groupby_column] != i[0]).astype('int') + np.array(grouped[variable] != i[1]).astype('int')) != 0
                 grouped = grouped[slicer]
 
-            ready_for_GLM = grouped.pivot(columns = groupby_column, index = [variable, 'sample_id'], values = 'random_column_name').reset_index()
-            ready_for_GLM['divisor'] = ready_for_GLM.drop(['sample_id', variable], axis  =1).sum(axis = 1, numeric_only = True).astype('int')
+            ready_for_GLM = grouped.pivot(columns = groupby_column, index = [variable, N_column], values = 'random_column_name').reset_index()
+            ready_for_GLM['divisor'] = ready_for_GLM.drop([N_column, variable], axis = 1).sum(axis = 1, numeric_only = True).astype('int')
             for i in uniques:
                 ready_for_GLM[i] = ready_for_GLM[i].astype('float')
                 ready_for_GLM.loc[:, i] = ready_for_GLM[i] / ready_for_GLM['divisor'] 
@@ -3342,7 +3353,7 @@ class Analysis:
     def plot_state_distributions(self, marker_class: str = 'state', 
                                  subset_column: str = 'merging', 
                                  colorby: str = 'condition', 
-                                 grouping: str = 'sample_id', 
+                                 N_column: str = 'sample_id', 
                                  grouping_stat: str = 'median',
                                  wrap_col: int = 3, 
                                  suptitle: bool = False,
@@ -3351,7 +3362,7 @@ class Analysis:
         '''
         Plots a facetted boxplot of the expression of a specified marker_class (usually 'state'), split into various cell groupings 
         (subset_column, usually 'merging') per panel, comparing on colorby (usually 'condition'). 
-        Aggregates within each sub-group first by grouping (usually 'sample_id') using the aggregation statistic specified in grouping_stat, 
+        Aggregates within each sub-group first by N_column (usually 'sample_id') using the aggregation statistic specified in grouping_stat, 
         so that the boxplots aren't overwhelmed trying to plot thousands of individual cells. 
         
         Args:
@@ -3366,14 +3377,17 @@ class Analysis:
                 The name of a categorical column in self.data.obs to group the cells by, typically 'condition'. These groups will define how the 
                 boxplots in each panel are colored. 
 
-            grouping (string):
+            N_column (string):
                  The name of a categorical column in self.data.obs to group the cells by, typically 'sample_id'. It is recommended to not change this
                  as errors / strange looking plots are likely with any other value. It specifies how the data is aggregated before plotting,
                  as plotting every cell for a large dataset is likely to make the boxplot too confusing, as there can be far too many outlier
                  points on the plot.
+                 NOTE: a key assumption is that the categories in this column are NEVER shared between conditions -- aggregation on this column
+                 is done BEFORE comparison of conditions. This holds for the defaults (each unique ROI / sample_id can only have one condition assigned to it)
+                 but must also be true for any alternate column used. 
 
             grouping_stat (string):
-                How to aggregate the data using the grouping parameter -- as in, take the 'mean' of the sample_id's or the 'median' before plotting?
+                How to aggregate the data using the N_column parameter -- as in, take the 'mean' of the sample_id's or the 'median' before plotting?
 
             wrap_col (integer):
                 how many panels per column of the facetted plot before wrapping and starting a new row of boxplots
@@ -3396,6 +3410,12 @@ class Analysis:
             Outputs: 
                 If filename is provided (is not None), then exports the figure as a .png file
         '''
+        for i in self.data.obs[N_column].unique():
+            n_col = self.data.obs[self.data.obs[N_column] == i]
+            unique_conditions = n_col[colorby].astype('str').unique()
+            if len(unique_conditions) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
+                print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition (colorby) and not more than 1. Cancelling")
+                return
         text_size = 10
         data = self.data.copy()
         scale = self._scaling
@@ -3415,8 +3435,8 @@ class Analysis:
             data_state[subset_column] = data_state[subset_column].astype(self.data.obs[subset_column].dtype)
         data_state[colorby] = list(self.data.obs[colorby])
         data_state[colorby] = data_state[colorby].astype(self.data.obs[colorby].dtype)
-        data_state[grouping] = list(self.data.obs[grouping])
-        data_state[grouping] = data_state[grouping].astype(self.data.obs[grouping].dtype)
+        data_state[N_column] = list(self.data.obs[N_column])
+        data_state[N_column] = data_state[N_column].astype(self.data.obs[N_column].dtype)
         data_state = list(data_state.groupby([subset_column], observed = False))
         panels = len(data_state)
         if (panels % wrap_col) == 0:
@@ -3437,11 +3457,11 @@ class Analysis:
             axs = np.array([axs])
         for i,ii in enumerate(data_state):
             ax = axs[i]
-            temp_data = ii[1].drop([subset_column], axis = 1).melt([colorby,grouping])
+            temp_data = ii[1].drop([subset_column], axis = 1).melt([colorby,N_column])
             if grouping_stat == 'mean':
-                temp_data = temp_data.groupby([colorby,grouping,'antigen'], observed = False).mean(numeric_only = True).reset_index()
+                temp_data = temp_data.groupby([colorby,N_column,'antigen'], observed = False).mean(numeric_only = True).reset_index()
             elif grouping_stat == 'median':
-                temp_data = temp_data.groupby([colorby,grouping,'antigen'], observed = False).median(numeric_only = True).reset_index()
+                temp_data = temp_data.groupby([colorby,N_column,'antigen'], observed = False).median(numeric_only = True).reset_index()
             if i != (panels - 1):
                 sns.boxplot(temp_data, hue = colorby, x = 'antigen', y = 'value', legend = None, ax = ax)
                 ax.set_title(ii[0][0], size = text_size, y = 0.95)
@@ -3590,6 +3610,7 @@ class Analysis:
                             marker_class: str = "state", 
                             groupby_column: str = 'merging', 
                             variable: str = 'condition', 
+                            N_column:str = 'sample_id',
                             statistic: str = 'mean',
                             test: str = 'anova',
                             conditions: list[str] = [],
@@ -3613,6 +3634,15 @@ class Analysis:
             variable (str): 
                 the column of self.data.obs containing the independent variable / condition. Default = 'condition;
 
+            N_column (stR):
+                the column of self.data.obs that carries the experimental unit. i.e., the data will be aggregate based on this column to construct the 
+                distributions of the final statistical comparison and the number of degrees of freedom in the test could be described as:
+                    degrees_of_freedom = len(self.data.obs[N_column].unique()) - len(self.data.obs[variable].unique()) 
+                As in, N - the number of comparisons.
+                NOTE: a key assumption is that the categories in this column are NEVER shared between conditions -- aggregation on this column
+                is done BEFORE comparison of conditions. This holds for the defaults (each unique ROI / sample_id can only have one condition assigned to it)
+                but must also be true for any alternate column used. 
+
             statistic (str): 
                 one of -- "mean", "median" -- which aggregation statistic to use
 
@@ -3633,6 +3663,10 @@ class Analysis:
             Outputs: 
                 If filename is provided (is not None), then exports the summary statistic table to self.data_table_dir/filename.csv
         '''
+        if (N_column == groupby_column) or (groupby_column == variable) or (variable == N_column):
+            print("The comparison column, experimental unit column, and cell type column must all be different! Cancelling stats run.")
+            return
+
         ind_var_column = variable
         stat_test_dict = {'anova':scipy.stats.f_oneway, 'kruskal':scipy.stats.kruskal}
         stat_test_labels_dict = {'anova':'F statistic','kruskal':'H statistic'}
@@ -3652,6 +3686,15 @@ class Analysis:
             groupby_column = "whole dataset"
             data.obs["whole dataset"] = "whole dataset"
 
+        ## check N_column groups unique within the independent variable (conditions)
+        for i in self.data.obs[N_column].unique():
+            n_col = self.data.obs[self.data.obs[N_column] == i]
+            unique_conditions = n_col[variable].astype('str').unique()
+            relevant_conditions = [j for j in unique_conditions if j in conditions]
+            if len(relevant_conditions) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
+                print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
+                return
+
         merging_clusters = data.obs[groupby_column].unique()
         
         data_df = pd.DataFrame(data.X, columns = data.var.index)
@@ -3665,24 +3708,24 @@ class Analysis:
             non_type_antigens = panel['antigen']
 
         data_df[groupby_column] = data.obs[groupby_column].values    
-        data_df['sample_id'] = data.obs['sample_id'].astype('str').values
-        data_df['sample_id'] = data_df['sample_id'].astype('category')
+        data_df[N_column] = data.obs[N_column].astype('str').values
+        data_df[N_column] = data_df[N_column].astype('category')
         data_df[ind_var_column] = data.obs[ind_var_column].values
 
         ind_var_to_sample_id = {}
-        for i,ii in zip(data_df['sample_id'], data_df[ind_var_column]):
+        for i,ii in zip(data_df[N_column], data_df[ind_var_column]):
             ind_var_to_sample_id[i] = ii 
         
         if split_by_sample_id is True:
             stat_helper_label = "avg "
             if statistic == "median":
-                data_df = data_df.groupby(['sample_id', groupby_column], observed = False).median(numeric_only = True).fillna(0).reset_index()
+                data_df = data_df.groupby([N_column, groupby_column], observed = False).median(numeric_only = True).fillna(0).reset_index()
             elif statistic == "mean":
-                data_df = data_df.groupby(['sample_id', groupby_column], observed = False).mean(numeric_only = True).fillna(0).reset_index()
+                data_df = data_df.groupby([N_column, groupby_column], observed = False).mean(numeric_only = True).fillna(0).reset_index()
         else:
             stat_helper_label = ""
 
-        data_df[ind_var_column] = data_df['sample_id'].astype('str').replace(ind_var_to_sample_id)        
+        data_df[ind_var_column] = data_df[N_column].astype('str').replace(ind_var_to_sample_id)        
         grand_condition_list = []
         
         for j,jj in enumerate(merging_clusters):
@@ -3690,7 +3733,7 @@ class Analysis:
             condition_list = []
             for i in merging_data[ind_var_column].unique():
                 condition_data = merging_data[merging_data[ind_var_column] == i]
-                condition_list.append(condition_data.drop(['sample_id',groupby_column,ind_var_column], axis = 1))
+                condition_list.append(condition_data.drop([N_column,groupby_column,ind_var_column], axis = 1))
             grand_condition_list.append(condition_list)
             ANOVA_f, ANOVA_p = stat_func(*condition_list)
             if j == 0:

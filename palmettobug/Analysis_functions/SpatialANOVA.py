@@ -49,6 +49,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import seaborn.objects as so
 
+# from numba import njit
+#import dask
+#from dask import delayed
+
 from .._vendor import sigfig
 
 __all__ = []
@@ -73,7 +77,7 @@ class SpatialANOVA():
                 contain information used for cell map plotting (areas used for size of dots, filenames for subsetting data & plot titles.). 
 
     '''
-    def __init__(self):
+    def __init__(self, alt_N: str = 'patient_id'):
         self.max = None
         self.step = 1
         self.fixed_r = None
@@ -81,11 +85,13 @@ class SpatialANOVA():
         self.condition2 = None
         self.threshold = 10
         self.data_table = None
+        self.alt_N = alt_N
+        self._use_alt = False
 
     def init_data(self, 
                   space_anova_table: pd.DataFrame, 
                   output_directory: str, 
-                  plot_cell_maps: bool = True,
+                  plot_cell_maps: bool = True
                   ) -> None:
         '''
         Args:
@@ -121,7 +127,7 @@ class SpatialANOVA():
         self.data_table['condition'] = self.data_table['condition'].astype('str')
         self.data_table['cellType'] = self.data_table['cellType'].astype('str')
         self.data_table['sample_id'] = self.data_table['sample_id'].astype('str')
-        self.data_table['patient_id'] = self.data_table['patient_id'].astype('str')
+        self.data_table[self.alt_N] = self.data_table[self.alt_N].astype('str')
         output_directory = str(output_directory)
         self.output_dir = output_directory
         if not os.path.exists(output_directory):
@@ -171,7 +177,7 @@ class SpatialANOVA():
                 self.data_table['y'] = self.exp.back_up_data.obsm['spatial'][:,1]
                 self.data_table['condition'] = list(self.exp.back_up_data.obs['condition'].astype('str'))
                 self.data_table['sample_id']  = list(self.exp.back_up_data.obs['sample_id'].astype('str'))
-                self.data_table['patient_id'] = list(self.exp.back_up_data.obs['patient_id'].astype('str'))
+                self.data_table[self.alt_N] = list(self.exp.back_up_data.obs[self.alt_N].astype('str'))
                 self.data_table['cellType'] = 'dropped'
                 self.data_table.index = self.data_table.index.astype('str')
                 self.data_table.loc[self.exp.data.obs.index,['cellType']] = list(self.exp.data.obs[self.cellType_key].astype('str'))
@@ -182,7 +188,7 @@ class SpatialANOVA():
                 self.data_table['condition'] = list(self.exp.data.obs['condition'].astype('str'))
                 self.data_table['cellType'] = list(self.exp.data.obs[self.cellType_key].astype('str'))
                 self.data_table['sample_id']  = list(self.exp.data.obs['sample_id'].astype('str'))
-                self.data_table['patient_id'] = list(self.exp.data.obs['patient_id'].astype('str'))
+                self.data_table[self.alt_N] = list(self.exp.data.obs[self.alt_N].astype('str'))
         return self.data_table
 
     def set_conditions(self, 
@@ -251,18 +257,21 @@ class SpatialANOVA():
         
         self._split_by_image = []
         for i in space_anova_table['sample_id'].unique():
-            self._split_by_image.append(space_anova_table[space_anova_table['sample_id'] == i].drop(['condition','patient_id'], axis = 1))
+            self._split_by_image.append(space_anova_table[space_anova_table['sample_id'] == i].drop(['condition', self.alt_N], axis = 1))
         
-        for_group_img_dict = space_anova_table.drop(['patient_id','x','y','cellType'], axis = 1).drop_duplicates()
+        for_group_img_dict = space_anova_table.drop(['x','y','cellType'], axis = 1).drop_duplicates()
         self._group_img_dict = {}
-        for i,ii in zip(for_group_img_dict['condition'], for_group_img_dict['sample_id']):
-            self._group_img_dict[ii] = i
+        self._patient_ids = {}
+        for i,ii,iii in zip(for_group_img_dict['sample_id'], for_group_img_dict['condition'], for_group_img_dict[self.alt_N]):
+            self._group_img_dict[i] = ii
+            self._patient_ids[i] = iii
         return self._split_by_image, self._group_img_dict
 
     def do_spatial_analysis(self, 
                             condition1: Union[str, None] = None, 
                             condition2: Union[str, None] = None,
                             cellType_key: Union[str, None] = None,
+                            alt_N: Union[str, None] = None,
                             max: int = None, 
                             min: int = None,
                             step: int = None, 
@@ -279,6 +288,13 @@ class SpatialANOVA():
         Args:
             condition1, condition2 (string or None, default = None): if None, use the conditions inputted by self.set_conditions, 
                     otherwise these should be the labels of the two experimental conditions you intend to compare in the data. 
+
+            alt_N (string or None): if provided, this will set the analysis to use an alternate experimental 'N' using the column in obs
+                specified by this string. This means that the per-image data will be aggregated (by mean) within each group in the alt_N column
+                before statistics are performed.
+                If None, then 'sample_id' will be used as the experimental 'N', meaning no aggregate of the per-image data will occur.
+                Note that the unique groups in alt_N CAN NEVER BE SHARED BETWEEN CONDITIONS -- each unique group MUST be a sub-set of 
+                one particular condition's images and CANNOT be present in more than one condition!
 
             min, max, step (integer or None): If one or both are None (default), will use the radii selected by self.set_fixed_r. 
                     Otherwise, if both are not None, then the min / max / step will be used as in the self.set_fixed_r 
@@ -342,7 +358,20 @@ class SpatialANOVA():
         elif self.fixed_r is None:
             self.set_fixed_r()
 
+        if alt_N is not None:
+            self.alt_N = alt_N
+            self._use_alt = True
         space_anova_table = self._retrieve_data_table()
+        if alt_N is not None:
+            for i in self.data_table[alt_N].unique():
+                piece = self.data_table[self.data_table[alt_N] == i]
+                conditions = piece['condition'].astype('str').unique()
+                if len(conditions) > 1:
+                    self.alt_N = 'patient_id'
+                    self._use_alt = True
+                    print("Provided alternate experimental 'N' contains unique groups shared across more than one condition in the"
+                            "data! This is not allowed, reverting alternate N to 'patient_id'.")
+                    return
 
         self.threshold = threshold
         self.seed = seed
@@ -357,16 +386,15 @@ class SpatialANOVA():
                                             ## The program is meant to properly handle these, so I don't want the console spammed with warnings
             warnings.filterwarnings("ignore", message = "invalid value encountered in divide")
 
-        for i in self._all_comparison_list:
-            conditions = i.split("___")
-            type1 = conditions[0]
-            type2 = conditions[1]
-            if (type1 != "dropped") and (type2 != "dropped"):
-                all_g, all_K, all_L = self._do_all_K_L_g(type1 = type1, type2 = type2, permutations = permutations, 
-                                                        perm_state = seed, center_on_zero = center_on_zero, 
-                                                        suppress_threshold_warnings = suppress_threshold_warnings)
+        conditions_list = [i.split("___") for i in self._all_comparison_list if "dropped" not in i.split("___")]
+        for i in conditions_list:
+            type1 = i[0]
+            type2 = i[1]
+            all_g, all_K, all_L = self._do_all_K_L_g(type1 = type1, type2 = type2, permutations = permutations, 
+                                                    perm_state = seed, center_on_zero = center_on_zero, 
+                                                    suppress_threshold_warnings = suppress_threshold_warnings)
 
-                self._comparison_dictionary[i] = {"K":all_K, "L":all_L, "g":all_g}
+            self._comparison_dictionary["___".join([type1,type2])] = {"K":all_K, "L":all_L, "g":all_g}
         if silence_zero_warnings is True:
             warnings.filterwarnings("default", message = "divide by zero encountered in divide")  ## undo prior warnings modifications
             warnings.filterwarnings("default", message = "invalid value encountered in divide")                    
@@ -422,8 +450,8 @@ class SpatialANOVA():
                       permutations: int = 0, 
                       perm_state: int = None, 
                       center_on_zero: bool = False,
-                      suppress_threshold_warnings = False,
-                      ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:
+                      suppress_threshold_warnings = False
+                    ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:
         '''
         This may end being more of a helper function for do_spatial_analysis(), but it can remain in the class.
         It coordinates / performs the core statistical analysis: calculating Ripley's K, L, and g for a given cellType pair (type1 vs type2). 
@@ -442,16 +470,43 @@ class SpatialANOVA():
             perm_state = self.seed
         split_point_pattern = self._split_by_image
         group_img_dict = self._group_img_dict
+        patient_ids = self._patient_ids
         fixed_r = self.fixed_r
         if fixed_r is None:        
             print("You must provide a range object of the radii to check into this method's fixed_r argument, or first provide that object using the call the set_fixed_r() method!")
             return
-            
+
+        def append_K_L_g(output_chunk):
+            '''
+            '''
+            K_df = output_chunk[0]
+            L_df = output_chunk[1]
+            g_df = output_chunk[2]
+
+            if K_df['K'].sum() != 0: ### if sum() == 0, this means a failure of the algorithm / insufficient cells in the image:
+                condition_id = group_img_dict[ii]
+                patient_id = patient_ids[ii]
+
+                g_df["condition"] = condition_id
+                g_df[self.alt_N] = patient_id
+                g_df['image'] = i
+                self._all_g = pd.concat([self._all_g, g_df], axis = 0)
+
+                K_df["condition"] = condition_id
+                K_df[self.alt_N] = patient_id
+                K_df['image'] = i
+                self._all_K = pd.concat([self._all_K, K_df], axis = 0)
+                
+                L_df["condition"] = condition_id
+                L_df[self.alt_N] = patient_id
+                L_df['image'] = i
+                self._all_L = pd.concat([self._all_L, L_df], axis = 0)
+
         self._all_g = pd.DataFrame()
         self._all_K = pd.DataFrame()
         self._all_L = pd.DataFrame()
         for ii,i in zip(group_img_dict,range(0,len(split_point_pattern))):
-            K_df, L_df, g_df = do_K_L_g(split_point_pattern[i], 
+            K_L_g_output_chunk = do_K_L_g(split_point_pattern[i], 
                                         type_column = 'cellType', 
                                         type1 = type1, 
                                         type2 = type2, 
@@ -462,17 +517,7 @@ class SpatialANOVA():
                                         perm_state = perm_state, 
                                         center_on_zero = center_on_zero,
                                         suppress_threshold_warnings = suppress_threshold_warnings) 
-            
-            if K_df['K'].sum() != 0: ### if sum() == 0, this means a failure of the algorithm / insufficient cells in the image:
-                g_df["condition"] = group_img_dict[ii]
-                g_df['image'] = i
-                self._all_g = pd.concat([self._all_g, g_df], axis = 0)
-                K_df["condition"] = group_img_dict[ii]
-                K_df['image'] = i
-                self._all_K = pd.concat([self._all_K, K_df], axis = 0)
-                L_df["condition"] = group_img_dict[ii]
-                L_df['image'] = i
-                self._all_L = pd.concat([self._all_L, L_df], axis = 0)
+            append_K_L_g(K_L_g_output_chunk)
 
         self.type1 = type1
         self.type2 = type2
@@ -500,6 +545,10 @@ class SpatialANOVA():
                   "It might be that these two cells types are never present together in the same image above the threshold!"
                   "\n Exiting")
             return None, None
+
+        if self._use_alt:
+            g_df = g_df.drop('image', axis = 1).groupby(['radii','condition',self.alt_N]).mean().reset_index()
+
         only_at_dist = g_df[g_df['radii'] == distance_of_interest]
         if (condition1 is None) and (condition2 is None):
             condition_list = []
@@ -584,7 +633,7 @@ class SpatialANOVA():
                       "\n setting pvalue = 1, and statistic = 0")
                 statistic, p_value = (0,1)
             else:
-                statistic, p_value = do_functional_ANOVA(all_g, condition1, condition2, 
+                statistic, p_value = do_functional_ANOVA(all_g, condition1, condition2, alt_N = self.alt_N,
                                                         random_state = seed, min = min, 
                                                         max = max, step = step, stat = stat, comparison = i) 
                         # The underlying functional ANOVA implementation uses permutations, 
@@ -693,6 +742,8 @@ class SpatialANOVA():
                     "It might be that these two cells types are never present together in the same image above the threshold!"
                     "\n Skipping this plot")
             return None
+        if self._use_alt:
+            all_stat = all_stat.drop('image', axis = 1).groupby(['radii','condition',self.alt_N]).mean().reset_index()
         if seed is None:
             seed = self.seed
         fixed_r = self.fixed_r
@@ -1090,6 +1141,7 @@ def plot_spatial_stat_heatmap(p_table: Union[np.ndarray[float], pd.DataFrame],
 def do_functional_ANOVA(all_stat: pd.DataFrame, 
                         condition1: str, 
                         condition2: str,
+                        alt_N: str = 'sample_id',
                         min: int = 0, 
                         max: int = 101, 
                         step: int = 1, 
@@ -1135,6 +1187,8 @@ def do_functional_ANOVA(all_stat: pd.DataFrame,
               "but NOTE THAT THIS IS AN INVALID COMPARISON!")
         return (0, 1)
     condition_list = []
+    if alt_N != 'sample_id':
+        all_stat = all_stat.drop('image', axis = 1).groupby(['radii','condition',alt_N]).mean().reset_index()
     if (condition1 is None) and (condition2 is None):
         for i in all_stat['condition'].unique():
             condition_list.append(all_stat[all_stat['condition'] == i][[stat,'radii']])
@@ -1233,11 +1287,13 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     centerer = 1
     if permutations > 0 :
         perm_state = np.random.default_rng(perm_state)
-        avg_K = np.zeros(len(result_array))
         perm = pointpattern.copy()
+        avg_K = np.zeros(len(result_array))
         for i in range(0, permutations, 1):
             perm[type_column] = list(perm[type_column].sample(frac = 1.0, random_state = perm_state))
-            new_K, _ = _K_cross_homogeneous(perm, 
+
+            delayed_K_homogenous = _K_cross_homogeneous
+            new_K = delayed_K_homogenous(perm, 
                                 fixed_r = fixed_r, 
                                 window = window, 
                                 mark_type = type_column, 
@@ -1245,9 +1301,10 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                                 type2 = type2, 
                                 threshold = threshold,
                                 image_name = image_name,
-                                suppress_threshold_warnings = suppress_threshold_warnings)
-
+                                suppress_threshold_warnings = suppress_threshold_warnings,
+                                theo = False)
             avg_K = avg_K + new_K
+
         avg_K = avg_K / permutations
         if center_on_zero is True:
             perm_correction = 0 - avg_K 
@@ -1302,6 +1359,7 @@ def _K_cross_homogeneous(df: pd.DataFrame,
                          threshold: int = 10,
                          image_name: str = '',
                          suppress_threshold_warnings: bool = False,
+                         theo = True
                          ) -> tuple[np.ndarray[float],np.ndarray[float]]:                       
                                                  # *** deriv_spatstat (largely a direct translation, but some divergences)
     '''
@@ -1402,8 +1460,12 @@ def _K_cross_homogeneous(df: pd.DataFrame,
     K = K / (lambda1 * lambda2)
     if truncated is True:
         K = np.concatenate([K, append_array])
-    return K, K_theo
+    if theo is True:
+        return K, K_theo
+    else:
+        return K
 
+# @njit
 def _spatstat_Edge_Ripley(X: pd.DataFrame, 
                           r: np.array, 
                           window: list[float],
@@ -1433,36 +1495,43 @@ def _spatstat_Edge_Ripley(X: pd.DataFrame,
     dDown = windowYmax - X[:,1]
     corner = (_spatstat_small(dLeft) == 0) + (_spatstat_small(dRight) == 0)  + (_spatstat_small(dDown) == 0) + (_spatstat_small(dUp) == 0) >= 2   ### points in the corner will have 0-values for exactly two of the dRight/Left/Up/Down paramters
     
-    angleLeftUp = np.arctan2(dUp, dLeft)
-    angleLeftDown = np.arctan2(dDown, dLeft)
-    angleRightUp = np.arctan2(dUp, dRight)
-    angleRightDown = np.arctan2(dDown, dRight)
-    angleUpLeft = np.arctan2(dLeft, dUp)
-    angleUpRight = np.arctan2(dRight, dUp)
-    angleDownLeft = np.arctan2(dLeft, dDown)
-    angleDownRight = np.arctan2(dRight, dDown)
+    delayed_arctan = np.arctan2
 
-    angleLeft = _spatstat_hang(dLeft, r)
-    angleRight = _spatstat_hang(dRight, r)
-    angleDown = _spatstat_hang(dDown, r)
-    angleUp = _spatstat_hang(dUp, r)
+    angleLeftUp = delayed_arctan(dUp, dLeft)
+    angleLeftDown = delayed_arctan(dDown, dLeft)
+    angleRightUp = delayed_arctan(dUp, dRight)
+    angleRightDown = delayed_arctan(dDown, dRight)
+    angleUpLeft = delayed_arctan(dLeft, dUp)
+    angleUpRight = delayed_arctan(dRight, dUp)
+    angleDownLeft = delayed_arctan(dLeft, dDown)
+    angleDownRight = delayed_arctan(dRight, dDown)
 
-    mini_left = np.fmin(angleLeft.T, angleLeftUp).T + np.fmin(angleLeft.T, angleLeftDown).T
-    mini_right = np.fmin(angleRight.T, angleRightUp).T + np.fmin(angleRight.T, angleRightDown).T
-    mini_down = np.fmin(angleDown.T, angleDownLeft).T + np.fmin(angleDown.T, angleDownRight).T
-    mini_up = np.fmin(angleUp.T, angleUpLeft).T + np.fmin(angleUp.T, angleUpRight).T
+    delayed_hang = _spatstat_hang
+
+    angleLeft = delayed_hang(dLeft, r)
+    angleRight = delayed_hang(dRight, r)
+    angleDown = delayed_hang(dDown, r)
+    angleUp = delayed_hang(dUp, r)
+
+    delayed_fmin = np.fmin
+
+    mini_left = delayed_fmin(angleLeft.T, angleLeftUp).T + delayed_fmin(angleLeft.T, angleLeftDown).T
+    mini_right = delayed_fmin(angleRight.T, angleRightUp).T + delayed_fmin(angleRight.T, angleRightDown).T
+    mini_down = delayed_fmin(angleDown.T, angleDownLeft).T + delayed_fmin(angleDown.T, angleDownRight).T
+    mini_up = delayed_fmin(angleUp.T, angleUpLeft).T + delayed_fmin(angleUp.T, angleUpRight).T
     
     ## total exterior angle (? this is the note from spatstat itself --> I have not really followed the underlying math while copying the code)
     total = mini_left + mini_right + mini_down + mini_up
 
     if corner.sum() > 0:
-        print('corners!')
+        #print('corners!')
         total[corner] = total[corner] + (np.pi / 2)
 
     weights = 1 / (1 - (total / (2 * np.pi)))
     weights = np.maximum(1, np.minimum(100, weights))   ## removes weights <1 and >100
     return weights
 
+# @njit
 def _spatstat_hang(d: np.ndarray[float], 
                    r: np.ndarray[float],
                    ) -> np.ndarray[float]: # *** deriv_spatstat (direct translation)
@@ -1477,14 +1546,17 @@ def _spatstat_hang(d: np.ndarray[float],
 
     '''   
     final_matrix = np.zeros(r.shape)
-    distance = np.full(r.T.shape, d).T
+    distance = np.full(r.T.shape, d).T    ## for some reason numba can't handle np.full()
     hits = (r > distance)
     final_matrix[hits] = np.arccos(distance[hits] / r[hits])
     return final_matrix
 
+EPS = np.finfo('float64').eps  ## np.finfo interferes with numba's njit decorator
+
+# @njit
 def _spatstat_small(array: np.ndarray[float]) -> np.ndarray[bool]:  # *** deriv_spatstat (direct translation)
     '''This function checks if a float is == 0 (or close enough to 0)
 
     This function is similarly a direct translation from spatstat, it is a helper function to the _spatstat_Edge_Ripley() function above:
             see: https://github.com/spatstat/spatstat.core/blob/master/R/edgeRipley.R'''
-    return abs(array) < np.finfo('float64').eps
+    return np.absolute(array) < EPS

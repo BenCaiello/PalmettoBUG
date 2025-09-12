@@ -62,6 +62,7 @@ class Analysis_py_widgets(ctk.CTkFrame):
         super().__init__(master)
         self.master = master
         self.cat_exp = Analysis(in_gui = True)
+        self.cat_exp.N = 'sample_id'
         
         self.display2 = MatPlotLib_Display(self)
         self.display2.grid(column = 0, row = 0, padx = 5, pady = 5, rowspan = 2)
@@ -1498,11 +1499,13 @@ class plot_cluster_abundances_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
             if plot_type =="boxplot":
                 figure = self.master.cat_exp.plot_cluster_abundance_2(filename = filename, 
                                                                       groupby_column = k, 
+                                                                      N_column = self.master.cat_exp.N,
                                                                       plot_type = plot_type, 
                                                                       hue = self.color.get())
             else:
                 figure = self.master.cat_exp.plot_cluster_abundance_2(filename = filename, 
                                                                       groupby_column = k, 
+                                                                      N_column = self.master.cat_exp.N,
                                                                       plot_type = plot_type, 
                                                                       hue = self.color.get())
             Analysis_widget_logger.info(f"""Plotted Cluster Abundance with: 
@@ -1874,6 +1877,36 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.Grand_Label.grid(column = 0, row = 0, columnspan = 2, padx = 5, pady = 5)
         self.Grand_Label.configure(width = 300)
 
+        self.N_label = ctk.CTkLabel(master = self, text = "Select Experimental 'N' \n(effects spatial EDT as well):")
+        self.N_label.grid(column = 2, row = 0, columnspan = 2, padx = 5, pady = 5)
+
+        def filter_N(enter = ""):
+            output = []
+            magic_names = ["index", "metaclustering", "clustering", "merging", "classification", 
+                        # "sample_id",     ## these are expected as possible experimental N's
+                        # "patient_id", 
+                        "condition", "file_name", "leiden", "spatial_leiden", "scaling", "masks_folder"]
+            data_obs = self.master.cat_exp.data.obs
+            columns_of_interest = [i for i in data_obs.columns if i not in magic_names]
+            for i in columns_of_interest:
+                categories = data_obs[i].unique()
+                sample_ids = data_obs['sample_id'].unique()
+                if len(categories) > len(sample_ids):
+                    pass    #### don't want to offer columns with more divisions to the data than the sample_id's
+                else:       ## block columns shared between conditions
+                    for j in categories:
+                        num_conditions = len(data_obs[data_obs[i] == j]['condition'].unique())
+                        if num_conditions > 1:
+                            break
+                    else:
+                        output.append(i)
+            self.N_switch.configure(values = output)
+
+        self.N_switch = ctk.CTkOptionMenu(master = self, values = ["sample_id"], variable = ctk.StringVar(value = "sample_id"),
+                                    command = lambda choice: self.set_N(choice))
+        self.N_switch.grid(column = 2, row = 1, columnspan = 2, padx = 5, pady = 5)  
+        self.N_switch.bind("<Enter>", filter_N)                          
+
         self.make_model = ctk.CTkButton(master = self, text = "Run Cluster Abundance ANOVAs")
         self.make_model.grid(row = 1, column = 0, columnspan = 2, padx = 5, pady = 5)
         self.make_model.configure(state = "disabled")
@@ -1885,6 +1918,9 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.plot_state = ctk.CTkButton(master = self, text = "Plot State Expression comparing conditions")
         self.plot_state.grid(column = 3, row = 3, padx = 5, pady = 5)
         self.plot_state.configure(state = "disabled")
+
+    def set_N(self, choice):
+        self.master.cat_exp.N = choice
 
     def initialize_buttons(self) -> None:
         ### goal: decouple widget placement & initialization from data loading & button activation
@@ -1992,6 +2028,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             else:
                 conditions = self.condition1.get().split(" %vs.% ")
             output_df = self.master.cat_exp.do_abundance_ANOVAs(groupby_column = column, 
+                                                                N_column = self.master.cat_exp.N,
                                                                 conditions = conditions)
             output_df.to_csv(self.master.cat_exp.data_table_dir + f"/{filename}.csv", index_label = column)
         else:
@@ -2002,6 +2039,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
                 conditions = self.condition1.get().split(" %vs.% ")
             self.master.cat_exp.do_count_GLM(variable = "condition", groupby_column = column, 
                                           conditions = conditions, 
+                                          N_column = self.master.cat_exp.N,
                                           family = family_type, filename = filename)
         Analysis_widget_logger.info(f"""Ran Abundance statistical test: 
                                     conditions = {str(conditions)},
@@ -2097,6 +2135,7 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         
         success = self.master.cat_exp.do_state_exprs_ANOVAs(filename = filename, marker_class = self.marker_class.get(), 
                                                     groupby_column = clustering, # ind_var_column = 'condition', 
+                                                    N_column = self.master.cat_exp.N,
                                                     statistic = self.stat.get(), 
                                                     test = self.test.get())
         if success is None:
@@ -2186,7 +2225,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
             return
         if not overwrite_approval(self.master.cat_exp.save_dir + f"/Neg_log_{filename}.csv", file_or_folder = "file", GUI_object = self):
             return
-        self.master.cat_exp.do_cluster_stats(groupby_column = obs_column)
+        self.master.cat_exp.do_cluster_stats(groupby_column = obs_column, N_column = 'sample_id')
         figure = self.master.cat_exp.plot_cluster_stats(filename = filename)
         
         self.master.save_and_display(filename = "Neg_log_" + filename,sizeX = 550, sizeY = 550)
@@ -2228,7 +2267,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         cluster = self.cluster_to_table.get()
         obs_column = self.column_type.get()
 
-        df_out_dict = self.master.cat_exp.do_cluster_stats(groupby_column = obs_column)
+        df_out_dict = self.master.cat_exp.do_cluster_stats(groupby_column = obs_column, N_column = 'sample_id')
         try:
             dataframe = df_out_dict[int(cluster)]
         except ValueError:
@@ -3136,7 +3175,7 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def plot_scatter(self, 
                     antigen1: str, 
-                    antigen2: str, 
+                    antigen2: str,
                     hue = None, 
                     size: str = "1", 
                     alpha: str = "0.5", 
@@ -3233,7 +3272,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.marker_class.grid(column= 1, row = 0, padx = 5, pady = 5)
 
         label_1 = ctk.CTkLabel(self, text = "Subsetting Cluster:")
-        label_1.grid(column = 0, row = 0)
+        label_1.grid(column = 0, row = 1)
 
         self.clustering = ctk.CTkOptionMenu(master = self, 
                                             values = [""] + [i for i in CLUSTER_NAMES if i in self.master.master.cat_exp.data.obs.columns],
@@ -3245,7 +3284,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.clustering.bind("<Enter>", refresher1)
 
         label_1 = ctk.CTkLabel(self, text = "Color By:")
-        label_1.grid(column = 0, row = 0)
+        label_1.grid(column = 0, row = 2)
 
         self.colorby = ctk.CTkOptionMenu(master = self, 
                                             values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns],
@@ -3284,7 +3323,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         figure = self.master.master.cat_exp.plot_state_distributions(marker_class = marker_class, 
                                                     subset_column = subset_column, 
                                                     colorby = colorby, 
-                                                    grouping = 'sample_id', 
+                                                    N_column = self.master.master.cat_exp.N,
                                                     grouping_stat = 'median',
                                                     wrap_col = 3, 
                                                     suptitle = True,

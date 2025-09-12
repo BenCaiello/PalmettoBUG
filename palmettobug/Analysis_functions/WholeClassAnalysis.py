@@ -109,7 +109,7 @@ class WholeClassAnalysis:
         else:
             self._load(csv = csv)
 
-    def _load(self, csv: Union[pd.DataFrame, None] = None, arcsinh_cofactor = 5) -> None:
+    def _load(self, csv: Union[pd.DataFrame, None] = None, arcsinh_cofactor: int = 5) -> None:
         '''Helper to the __init__ method: performs the loading and shaping of data during the initial load.'''
         metadata = self._metadata
         panel = self._panel
@@ -254,7 +254,9 @@ class WholeClassAnalysis:
         self._metadata.to_csv(self.directory + "/metadata.csv", index = False)
         self._panel.to_csv(self.directory + "/Analysis_panel.csv", index = False)
 
-    def plot_percent_areas(self, filename: Union[str, None] = None, calculate_only: bool = False) -> plt.figure:
+    def plot_percent_areas(self, filename: Union[str, None] = None, 
+                                 N_column: str = "sample_id", 
+                                 calculate_only: bool = False) -> plt.figure:
         ''' 
         Plots a boxplots of percent class in each image, showing and comparing the distributions between conditions
         
@@ -263,6 +265,10 @@ class WholeClassAnalysis:
         Args:
             filename (str or None):
                 If filename is specified, this will export the plot as a PNG file to self.save_dir/{filename}.png
+
+            N_column (str):
+                The aggregating group for the data. As in, the individual dots of the distribution in the boxplot will be determined
+                by the unique groups in this column.
 
             calculate_only (bool):
                 Default == False. If True (& self.percent_areas == None), this method will not return anything, 
@@ -278,19 +284,18 @@ class WholeClassAnalysis:
             whole_regionprops_dir = self.directory  + "/regionprops"
             data_whole = self.data.copy()
             data_whole_df = pd.DataFrame(data_whole.X, columns = data_whole.var.index, index  = data_whole.obs.index)
-            data_whole_df["sample_id"] = data_whole.obs["sample_id"]
-            data_whole_df["patient_id"] = data_whole.obs["patient_id"]
+            data_whole_df[N_column] = data_whole.obs[N_column]
             data_whole_df["condition"] = data_whole.obs["condition"]
             data_whole_df['Object'] = list((self._object_column).astype('int'))
             data_whole_df['class'] = data_whole.obs["class"]
 
             ind_var_to_sample_id = {}
-            for i,ii in zip(data_whole_df['sample_id'].astype('str'), data_whole_df["condition"]):
+            for i,ii in zip(data_whole_df[N_column].astype('str'), data_whole_df["condition"]):
                 ind_var_to_sample_id[i] = ii 
 
-            data_whole_means = data_whole_df.groupby(["class","sample_id"], observed = True).mean(numeric_only = True).reset_index()
-            data_whole_means['condition'] = data_whole_means['sample_id'].astype('str').replace(ind_var_to_sample_id)
-            data_whole_means = pd.melt(data_whole_means, id_vars = ['condition',"class","sample_id"])
+            data_whole_means = data_whole_df.groupby(["class",N_column], observed = True).mean(numeric_only = True).reset_index()
+            data_whole_means['condition'] = data_whole_means[N_column].astype('str').replace(ind_var_to_sample_id)
+            data_whole_means = pd.melt(data_whole_means, id_vars = ['condition',"class",N_column])
             grand_csv = pd.DataFrame()
             regionprop_file_list = [i for i in sorted(os.listdir(whole_regionprops_dir)) if i.lower().find(".csv") != -1]
             for i in regionprop_file_list:
@@ -298,22 +303,22 @@ class WholeClassAnalysis:
                 grand_csv = pd.concat([grand_csv,csv], axis = 0)
                 
             grand_csv['class'] = list(data_whole_df['class'])
-            grand_csv['sample_id'] = list(data_whole_df['sample_id'])
+            grand_csv[N_column] = list(data_whole_df[N_column])
             grand_csv['condition'] = list(data_whole_df['condition'])
             grand_csv['area'] = grand_csv['area'] / grand_csv['image_area']      ## Percentile of total image area
             
             ind_var_to_sample_id = {}
-            for i,ii in zip(grand_csv['sample_id'], grand_csv["condition"]):
+            for i,ii in zip(grand_csv[N_column], grand_csv["condition"]):
                 ind_var_to_sample_id[i] = ii 
 
-            percent_areas = grand_csv[['area','class','sample_id']].groupby(['class','sample_id'], observed = False).mean() * 100
+            percent_areas = grand_csv[['area','class',N_column]].groupby(['class',N_column], observed = False).mean() * 100
             percent_areas = percent_areas.reset_index()
-            percent_areas['sample_class'] = [i + ii  for i, ii in zip(percent_areas['class'].astype('str'),percent_areas['sample_id'].astype('str'))]
+            percent_areas['sample_class'] = [i + ii  for i, ii in zip(percent_areas['class'].astype('str'),percent_areas[N_column].astype('str'))]
             percent_dict = {}
             for i,ii in zip(percent_areas['area'],percent_areas['sample_class']):
                 percent_dict[ii] = float(i)
-            percent_areas['condition'] = percent_areas['sample_id'].replace(ind_var_to_sample_id)
-            data_whole_df['sample_class'] = [i + ii  for i, ii in zip(data_whole_df['class'].astype('str'),data_whole_df['sample_id'].astype('str'))]
+            percent_areas['condition'] = percent_areas[N_column].replace(ind_var_to_sample_id)
+            data_whole_df['sample_class'] = [i + ii  for i, ii in zip(data_whole_df['class'].astype('str'),data_whole_df[N_column].astype('str'))]
             data_whole_df['areas******'] = data_whole_df['sample_class'].astype('str').replace(percent_dict).astype('float')
             data_whole_df = data_whole_df.drop('sample_class', axis = 1)
 
@@ -336,6 +341,7 @@ class WholeClassAnalysis:
     def plot_distribution_exprs(self, 
                                 unique_class: Union[str, int], 
                                 plot_type: str,
+                                N_column: str = "sample_id",
                                 marker_class: str = "All",
                                 filename: Union[str, None] = None,
                                 ) -> sns.FacetGrid:
@@ -345,6 +351,9 @@ class WholeClassAnalysis:
         Args: 
             unique_class (string or integer):
                 Indicates which pixel class to plot antigen expressions for
+
+            N_column (str):
+                Indicates which column in the data will serve as the aggregating column for creating the distribution in the final plot
 
             plot_type (string):
                 'Violin' or 'Bar' -- determines what kind of plot is created
@@ -373,17 +382,17 @@ class WholeClassAnalysis:
         if marker_class != "All":
             data_whole = data_whole[:, panel["marker_class"] == marker_class]
         data_whole_df = pd.DataFrame(data_whole.X, columns = data_whole.var.index, index  = data_whole.obs.index)
-        data_whole_df["sample_id"] = data_whole.obs["sample_id"]
+        data_whole_df[N_column] = data_whole.obs[N_column]
         data_whole_df["patient_id"] = data_whole.obs["patient_id"]
         data_whole_df["condition"] = data_whole.obs["condition"]
         data_whole_df['Object'] = list((self._object_column).astype('int'))
         data_whole_df['class'] = data_whole.obs["class"]
         ind_var_to_sample_id = {}
-        for i,ii in zip(data_whole_df['sample_id'].astype('str'), data_whole_df["condition"]):
+        for i,ii in zip(data_whole_df[N_column].astype('str'), data_whole_df["condition"]):
             ind_var_to_sample_id[i] = ii 
-        data_whole_means = data_whole_df.groupby(["class","sample_id"], observed = True).mean(numeric_only = True).reset_index()
-        data_whole_means['condition'] = data_whole_means['sample_id'].astype('str').replace(ind_var_to_sample_id)
-        data_whole_means = pd.melt(data_whole_means, id_vars = ['condition',"class","sample_id"])
+        data_whole_means = data_whole_df.groupby(["class",N_column], observed = True).mean(numeric_only = True).reset_index()
+        data_whole_means['condition'] = data_whole_means[N_column].astype('str').replace(ind_var_to_sample_id)
+        data_whole_means = pd.melt(data_whole_means, id_vars = ['condition',"class",N_column])
         data_whole_means_subset = data_whole_means[data_whole_means['class'] == unique_class]
         griddy = sns.FacetGrid(data_whole_means_subset,
                                 palette = palette, col = 'antigen', 
@@ -412,6 +421,7 @@ class WholeClassAnalysis:
     def whole_marker_exprs_ANOVA(self, 
                                  marker_class: str = 'All', 
                                  groupby_column: str = 'class', 
+                                 N_column: str = 'sample_id',
                                  variable: str = 'condition', 
                                  statistic: str = 'mean',
                                  area: bool = True,
@@ -425,6 +435,9 @@ class WholeClassAnalysis:
 
             groupby_column (string): which column the data will be grouped by for the purposed of running separate ANOVAs for each group 
                     (as this is whole-class analysis, should always be "class")
+
+            N_column (string): The column in the data that will defines the groups of the statistical test (i.e., the 'N' groups 
+                    that contribute to the degrees of freedom in the test)
 
             variable (string): which column in self.data.obs will be trated as the column containing condition / group information
 
@@ -450,17 +463,17 @@ class WholeClassAnalysis:
             non_type_antigens = panel['antigen']
     
         data_whole_df = pd.DataFrame(data_whole.X, columns = data_whole.var.index, index  = data_whole.obs.index)
-        data_whole_df["sample_id"] = data_whole.obs["sample_id"]
+        data_whole_df[N_column] = data_whole.obs[N_column]
         data_whole_df["patient_id"] = data_whole.obs["patient_id"]
         data_whole_df["condition"] = data_whole.obs["condition"]
         data_whole_df['Object'] = list((self._object_column).astype('int'))
         data_whole_df['class'] = data_whole.obs["class"]
         ind_var_to_sample_id = {}
-        for i,ii in zip(data_whole_df['sample_id'].astype('str'), data_whole_df["condition"]):
+        for i,ii in zip(data_whole_df[N_column].astype('str'), data_whole_df["condition"]):
             ind_var_to_sample_id[i] = ii 
-        data_whole_means = data_whole_df.groupby(["class","sample_id"], observed = True).mean(numeric_only = True).reset_index()
-        data_whole_means['condition'] = data_whole_means['sample_id'].astype('str').replace(ind_var_to_sample_id)
-        data_whole_means = pd.melt(data_whole_means, id_vars = ['condition',"class","sample_id"])
+        data_whole_means = data_whole_df.groupby(["class",N_column], observed = True).mean(numeric_only = True).reset_index()
+        data_whole_means['condition'] = data_whole_means[N_column].astype('str').replace(ind_var_to_sample_id)
+        data_whole_means = pd.melt(data_whole_means, id_vars = ['condition',"class",N_column])
         grand_csv = pd.DataFrame()
         whole_regionprops_dir = self.directory  + "/regionprops"
         regionprops_list = [i for i in sorted(os.listdir(whole_regionprops_dir)) if i.lower().find(".csv") != -1]
@@ -468,20 +481,20 @@ class WholeClassAnalysis:
             csv = pd.read_csv(whole_regionprops_dir + "/" + i)
             grand_csv = pd.concat([grand_csv,csv], axis = 0)
         grand_csv['class'] = list(data_whole_df['class'])
-        grand_csv['sample_id'] = list(data_whole_df['sample_id'])
+        grand_csv[N_column] = list(data_whole_df[N_column])
         grand_csv['condition'] = list(data_whole_df['condition'])
         grand_csv['area'] = grand_csv['area'] / grand_csv['image_area']      ## Percentile of total image area
         ind_var_to_sample_id = {}
-        for i,ii in zip(grand_csv['sample_id'], grand_csv["condition"]):
+        for i,ii in zip(grand_csv[N_column], grand_csv["condition"]):
             ind_var_to_sample_id[i] = ii 
-        percent_areas = grand_csv[['area','class','sample_id']].groupby(['class','sample_id'], observed = False).mean() * 100
+        percent_areas = grand_csv[['area','class',N_column]].groupby(['class',N_column], observed = False).mean() * 100
         percent_areas = percent_areas.reset_index()
-        percent_areas['sample_class'] = [i + ii  for i, ii in zip(percent_areas['class'].astype('str'),percent_areas['sample_id'].astype('str'))]
+        percent_areas['sample_class'] = [i + ii  for i, ii in zip(percent_areas['class'].astype('str'),percent_areas[N_column].astype('str'))]
         percent_dict = {}
         for i,ii in zip(percent_areas['area'],percent_areas['sample_class']):
             percent_dict[ii] = float(i)
-        percent_areas['condition'] = percent_areas['sample_id'].replace(ind_var_to_sample_id)
-        data_whole_df['sample_class'] = [i + ii  for i, ii in zip(data_whole_df['class'].astype('str'),data_whole_df['sample_id'].astype('str'))]
+        percent_areas['condition'] = percent_areas[N_column].replace(ind_var_to_sample_id)
+        data_whole_df['sample_class'] = [i + ii  for i, ii in zip(data_whole_df['class'].astype('str'),data_whole_df[N_column].astype('str'))]
         data_whole_df['areas******'] = data_whole_df['sample_class'].astype('str').replace(percent_dict).astype('float')
         data_whole_df = data_whole_df.drop('sample_class', axis = 1)
         data = data_whole_df.drop('Object', axis = 1)
@@ -492,17 +505,17 @@ class WholeClassAnalysis:
             non_type_antigens = pd.Series(non_type_antigens, name = 'antigen')
         data_df = data.copy()
         ind_var_to_sample_id = {}
-        for i,ii in zip(data_df['sample_id'].astype('str'), data_df[variable]):
+        for i,ii in zip(data_df[N_column].astype('str'), data_df[variable]):
             ind_var_to_sample_id[i] = ii 
         
         if statistic == "median":
             stat_column_name = "H statistic"
-            data_df = data_df.groupby(['sample_id', groupby_column], observed = False).median(numeric_only = True).fillna(0).reset_index()
+            data_df = data_df.groupby([N_column, groupby_column], observed = False).median(numeric_only = True).fillna(0).reset_index()
         elif statistic == "mean":
             stat_column_name = "F statistic"
-            data_df = data_df.groupby(['sample_id', groupby_column], observed = False).mean(numeric_only = True).fillna(0).reset_index()
+            data_df = data_df.groupby([N_column, groupby_column], observed = False).mean(numeric_only = True).fillna(0).reset_index()
         
-        data_df[variable] = data_df['sample_id'].astype('str').replace(ind_var_to_sample_id)
+        data_df[variable] = data_df[N_column].astype('str').replace(ind_var_to_sample_id)
         grand_condition_list = []
         for j,jj in enumerate(merging_clusters):
             merging_data = data_df[data_df[groupby_column] == jj]
@@ -510,7 +523,7 @@ class WholeClassAnalysis:
             condition_list = []
             for i in conditions:
                 condition_data = merging_data[merging_data[variable] == i]
-                condition_list.append(condition_data.drop(['sample_id',groupby_column,variable], axis = 1))
+                condition_list.append(condition_data.drop([N_column,groupby_column,variable], axis = 1))
             grand_condition_list.append(condition_list)
             ANOVA_f, ANOVA_p = test_func(*condition_list)
             if j == 0:

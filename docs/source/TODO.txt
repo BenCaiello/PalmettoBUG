@@ -1,0 +1,30 @@
+This file contains things TO DO for the documentation, to bring it up-to-date with the code in the package.
+
+Note that updates to the documentation are likely to be rarer than updates to the code, and recently added features in the code may not be documented
+especially if they are more experimental or not in the GUI.
+
+
+TODO:
+
+1). Update Docs for new GUI features:
+    a). main items:
+        - InstanSeg button, and Instanseg-torch installation
+        - Mask transformer function (and other re-added image processing buttons) with Napari images of output
+        - state exprs plots (and regions categorization?) for Single-Cell analysis
+
+    b). necessary steps:
+        - run methods in GUI, taking snips of key steps / outputs. 
+        - Assemble into usable slides for the .odp slide files
+        - Also make pngs for the media files
+        - Add text to docs .rst files ( can be done before other steps, with placeholders for not-yet-captured images)
+
+    c). files to be edited:
+        - How to Use PalmettoBUg.odp   (many changes)
+        - SingleCellAnalysis.rst (1-2 new sections and 1-2 new images: state exprs, [regions])
+        - ImageProcessing.rst (2-3 new section & images: Instanseg, boolean mask transform, [mask expansion])
+        - WelcometoPalmettoBUG.rst (1 section: Instanseg installation)
+
+2). Add "paper replication" notebooks to the docs' notebook section (?)
+    - could serve as a form of docuemntation for various non-GUI functions used in those files
+    - Also a way to bring better visibility to these files  
+    - WOULD  NEED TO CLEAN UP / redo some of the steps in these files (particularly where there are excessive warnings)

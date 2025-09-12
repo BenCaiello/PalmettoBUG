@@ -15,7 +15,7 @@ import pandas as pd
 import anndata
 import matplotlib
 
-from palmettobug import fetch_IMC_example, ImageAnalysis
+from palmettobug import fetch_IMC_example, ImageAnalysis, mask_expand
 from palmettobug import Analysis, SpatialAnalysis
 
 fetch_dir = homedir + "/project_folder"
@@ -36,9 +36,20 @@ def test_raw_to_img():
     assert(len(images) == 10), "Wrong number of images exported to images/img"               ## all the images are transferred
     shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
 
-#def test_instanseg():
-#    image_proc.instanseg_segmentation()
-#    assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 10), "Wrong number of masks exported (expecting 10 to match the number of images)"
+def test_expand_masks():
+    mask_expand(2, proj_directory + "/masks/example_deepcell_masks", proj_directory + "/masks/expanded_deepcell_masks")
+    images = [f"{proj_directory}/masks/expanded_deepcell_masks/{i}" for i in sorted(os.listdir(proj_directory + "/masks/expanded_deepcell_masks"))]
+    assert(len(images) == 10), "All masks not expanded" 
+     
+def test_instanseg():
+    image_proc.instanseg_segmentation(single_image = os.listdir(proj_directory + "/images/img")[0])
+    assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
+
+def test_mask_intersection_difference():
+    masks1 = proj_directory + "/masks/example_deepcell_masks"
+    masks2 = proj_directory + "/masks/expanded_deepcell_masks"
+    image_proc.mask_intersection_difference(masks1, masks2)
+    assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks"  )) == 10), "Mask intersection function failed!"
 
 def test_regionprops_write():
     image_proc.directory_object.make_analysis_dirs("test_analysis")
@@ -93,6 +104,14 @@ def test_scaling():
             assert (my_analysis.data.X[greater_than_zero] != original_X[greater_than_zero]).sum().sum() > 0, "Scaling should change some of the data points > 0!"
         else:
             assert (my_analysis.data.X != original_X).sum().sum() == 0, "Unscaling did not restore the original data!"
+
+def test_do_regions():
+    my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
+    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
+
+#def test_spatial_leiden():
+#    my_analysis._do_spatial_leiden()
+#    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
 
 def test_comBat():
     original_X = my_analysis.data.X.copy()
@@ -217,14 +236,23 @@ def test_do_abundance_ANOVAs():
     assert len(df) == len(my_analysis.data.obs['merging'].unique()), "abundance ANOVA dataframe did not have the expected length"
 
 def test_do_count_GLM():
-    df = my_analysis.do_count_GLM(list(my_analysis.data.obs['condition'].unique()))
+    for i in ["Gaussian","Poisson"]:
+        df = my_analysis.do_count_GLM(list(my_analysis.data.obs['condition'].unique()), family = i)
     assert isinstance(df, pd.DataFrame), "count_GLM method did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.data.obs['merging'].unique()), "GLM statistics dataframe did not have the expected length"
+
+def test_plot_state_distributions():
+    figure = my_analysis.plot_state_distributions(marker_class = 'type')
+    assert isinstance(figure, matplotlib.figure.Figure), "plot_state_distributions did not return a matplotlib figure"
 
 def test_do_state_exprs_ANOVAs():
     df = my_analysis.do_state_exprs_ANOVAs(marker_class = "type")
     assert isinstance(df, pd.DataFrame), "state expression statistics did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.data.obs['merging'].unique()) * (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
+
+def test_plot_state_p_value_heatmap():
+    figure =  my_analysis.plot_state_p_value_heatmap(ANOVA_kwargs = {'marker_class':"type"})
+    assert isinstance(figure, matplotlib.figure.Figure), "plot_state_p_value_heatmap did not return a matplotlib figure"
 
 def test_export_data():
     df = my_analysis.export_data()
@@ -323,7 +351,7 @@ def test_edt():
     my_analysis.filter_data(to_drop = "0")
     my_analysis.filter_data(to_drop = "8")
     my_analysis.filter_data(to_drop = "9")
-    print(os.listdir('/home/runner/work/PalmettoBUG/PalmettoBUG/project_folder/Example_IMC/Pixel_Classification/lumen_epithelia_laminapropria'))
+    # print(os.listdir('/home/runner/work/PalmettoBUG/PalmettoBUG/project_folder/Example_IMC/Pixel_Classification/lumen_epithelia_laminapropria'))
     panel, results = my_spatial.do_edt(pixel_classifier_folder = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria", 
                                         masks_folder = proj_directory + "/masks/example_deepcell_masks", 
                                         maps = "/classification_maps",
