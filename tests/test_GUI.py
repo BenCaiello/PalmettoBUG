@@ -62,8 +62,8 @@ def test_call_to_Analysis():
     app.entrypoint.image_proc_widg.call_to_Analysis()
     assert True 
 
-def test_go_to_Analysis_window():
-    app.entrypoint.image_proc_widg.go_to_Analysis_window(fetch_dir + "/Example_CyTOF")
+def test_call_to_Analysis():
+    app.entrypoint.image_proc_widg.call_to_Analysis(fetch_dir + "/Example_CyTOF")
     assert True 
 
 
