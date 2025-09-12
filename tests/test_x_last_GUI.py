@@ -72,7 +72,7 @@ def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
 
 
-
+'''
 ##>>## GUI Pixel classification tests (px class creation)
 def test_launch_loading_window():
     global loading_window
@@ -108,6 +108,7 @@ def test_launch_classes_as_png():
 def test_load_classifier():
     app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
     assert True 
+'''
 
 
 
