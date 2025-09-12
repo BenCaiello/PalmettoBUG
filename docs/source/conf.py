@@ -2,7 +2,7 @@
 project = 'palmettobug'
 copyright = '2024-2025, Medical University of South Carolina'
 author = 'Ben Caiello'
-release = '0.2.7'
+release = '0.2.8'
 
 
 extensions = ['sphinx_rtd_theme',
