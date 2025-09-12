@@ -62,10 +62,6 @@ def test_call_to_Analysis():
     app.entrypoint.image_proc_widg.call_to_Analysis()
     assert True 
 
-def test_call_to_Analysis():
-    app.entrypoint.image_proc_widg.call_to_Analysis()
-    assert True 
-
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
 
@@ -177,7 +173,7 @@ def test_launch_cluster_save_load():
 
 def test_launch_data_table_exportation_window():
     app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window(app.Tabs.py_exploratory.analysiswidg.cat_exp.data)
-'''
+
 
 def test_launch_combat_window():
     app.Tabs.py_exploratory.analysiswidg.launch_combat_window()
@@ -192,7 +188,8 @@ def test_plot_cell_maps_window():
     app.Tabs.Spatial.widgets.plot_cell_maps_window()
     assert True 
 
-# windows to test:    launch_heat_plot_window, launch_function_plot_window, launch_window, NeigborhoodEnrichmentWindow, CentralityWindow, InteractionMatrixWindow
+# spatial windows to test:    launch_heat_plot_window, launch_function_plot_window, launch_window, NeigborhoodEnrichmentWindow, CentralityWindow, InteractionMatrixWindow
                 # CNUMAPMSTwindow, CNabundanceWindow, CNheatmapWindow, CNannotationWindow, CNwindowSaveLoad, CellularNeighborhoodWindow, edt_heatmap_window
                 # edt_dist_window, edt_stat_window, edt_reload_window
 
+'''
