@@ -176,11 +176,6 @@ class EntryPoint(ctk.CTkFrame):
         label.grid(column = 0, row = 0, padx = 2, pady = 2, rowspan = 3)
         label.configure(anchor = "w")
 
-        #button_MCD = ctk.CTkButton(master = self, 
-        #                text = "Choose MCD directory and begin", 
-        #                command = lambda: self.img_entry_func("", from_mcds = True))
-        #button_MCD.grid(column = 1, row = 1, padx = 10, pady = 10)
-
         ## widget set for the images-only entry point
         button_img = ctk.CTkButton(master = self, 
                     text = "Choose Image directory and begin", 
@@ -198,22 +193,6 @@ class EntryPoint(ctk.CTkFrame):
         self.X_Y_entry = self.X_Y_res_frame(self)
         self.X_Y_entry.grid(column = 1, row = 4, padx = 10, pady = 10)
 
-        '''
-        label_dir_disp = ctk.CTkLabel(master = self, text = "Alternatively, select the folder \n using the directory display below:")
-        label_dir_disp.grid(column = 0, row = 5, padx = 10, pady = 10)
-
-        self.dir_disp = DirectoryDisplay(self)
-        # self.dir_disp.grid(column = 0, row = 6, padx = 3, pady = 3, rowspan = 4)
-        # try:
-        #    self.dir_disp.setup_with_dir(chosen_dir) 
-        # except FileNotFoundError:
-        #    root_dir = homedir[:(homedir.find("/")) + 1]
-        #    self.dir_disp.setup_with_dir(root_dir)
-
-        self.dir_helper = directory_display_helper_frame(self, self.dir_disp)
-        # self.dir_helper.grid(column = 0, row = 10, padx = 3, pady = 10, rowspan = 3)
-        '''
-
         label = ctk.CTkLabel(master = self, 
                              text = "Good Evening! I am the distinguished Mr. Palmett O. Bug, Esq." 
                                     "and gentleman. \n I am pleased to make your acquaintance. ")
@@ -229,13 +208,13 @@ class EntryPoint(ctk.CTkFrame):
         buttonConfig.grid(column = 3, row = 1, padx = 10, pady = 10)
         buttonConfig.configure(anchor = "e")
 
-        def show_GPL() -> None:
-            GPL_window(self)
-
-        button_baby = ctk.CTkButton(master = self, text = "See LICENSE Details", command = show_GPL)
+        button_baby = ctk.CTkButton(master = self, text = "See LICENSE Details", command = self.show_GPL)
         button_baby.grid(column = 3, row = 2, padx = 10, pady = 10) 
     
         self.after(200, lambda: self.focus())
+
+    def show_GPL(self) -> None:
+        GPL_window(self)
 
     class display_image_button(ctk.CTkButton):
         def __init__(self, master):
@@ -351,6 +330,7 @@ class EntryPoint(ctk.CTkFrame):
         project_log = Project_logger(self.master.directory).return_log()
         project_log.info(f"Start log in directory {self.master.directory}/Logs after loading from MCD files")
         self.master.set('MCD / Image Processing')
+        return
 
     def normalize_fcs_choice(self, directory: Union[None, str] = None) -> None:
         self.master.py_exploratory.X = self.X_Y_entry.entry_X.get()
@@ -740,82 +720,3 @@ def fetch_IMC_example(new_directory):
             write_to.write(i)
     zip_archive = zipfile.ZipFile(new_directory + "/IMC_data.zip")
     zip_archive.extractall(new_directory)
-
-## Remove, probably -- this previously coded for a widget on the opening screen that was an alternate way of inputting the directories for projects.
-'''
-class directory_display_helper_frame(ctk.CTkFrame):
-    def __init__(self, master, dir_disp):
-        super().__init__(master)
-        self.master = master
-
-        self.dir_disp = dir_disp
-
-        label = ctk.CTkLabel(master = self, text = "Working Directory:")
-        label.grid(column = 0, row = 0, pady = 3)
-
-        self.directory = ctk.StringVar(value = self.dir_disp.currentdir)
-
-        self.directory_entry = ctk.CTkEntry(master = self, textvariable = self.directory, width = 360)
-        self.directory_entry.grid(column = 0, columnspan = 2, row = 1, pady = 3)
-
-        self.dir_disp.bind("<Enter>", lambda enter:  self.get_current_directory())  
-            ## helpful video that helped get started with events: 
-            #       https://www.youtube.com/watch?v=8mZ9lZlsDHY&list=PLpMixYKO4EXeaGnqT_YWx7_mA77bz2VqM&index=9
-
-        button2 = ctk.CTkButton(master = self, text = "Save working directory as default", command = self.set_as_home_directory)
-        button2.grid(column = 1, row = 3, pady = 3)
-
-        label2 = ctk.CTkLabel(master = self, text = "Launch from Directory Display Options:")
-        label2.grid(column = 0, row = 4, columnspan = 2, pady = 3)
-
-        self.frame = ctk.CTkFrame(master = self)
-        self.frame.grid(column = 0, row = 5, columnspan = 2, pady = 3)
-
-        self.launch_selection = ctk.StringVar(value = "mcd")
-        radio1 = ctk.CTkRadioButton(master = self.frame, 
-                                    text = "from MCD files", 
-                                    variable = self.launch_selection, 
-                                    value = "mcd")
-        radio1.grid(row = 0, column = 0, padx = 1, pady = 1)
-
-        radio2 = ctk.CTkRadioButton(master = self.frame, 
-                                    text = "from .tiff files", 
-                                    variable = self.launch_selection, 
-                                    value = "tiff")
-        radio2.grid(row = 0, column = 1, padx = 1, pady = 1)
-
-        radio3 = ctk.CTkRadioButton(master = self.frame, 
-                                    text = "from .fcs files", 
-                                    variable = self.launch_selection, 
-                                    value = "fcs")
-        radio3.grid(row = 0, column = 2, padx = 1, pady = 1)
-
-        button3 = ctk.CTkButton(master = self, text = "Launch Analysis from working directory", command = self.entry_from_dir_disp)
-        button3.grid(column = 1, row = 6, pady = 3) 
-
-    def entry_from_dir_disp(self) -> None:
-        directory = self.directory_entry.get().strip()
-        launch_selection = self.launch_selection.get()
-        if launch_selection == "mcd":
-            self.master.img_entry_func(directory = directory, from_mcds = True)
-        elif launch_selection == "tiff":
-            self.master.img_entry_func(directory = directory, from_mcds = False)
-        elif launch_selection == "fcs":
-            self.master.FCS_choice(directory = directory)
-
-    def get_current_directory(self) -> None:
-        directory = self.dir_disp.currentdir
-        self.directory.set(directory)
-
-    def set_as_home_directory(self) -> None:
-        directory = self.directory.get()
-        if directory != "None":
-            try:
-                os.listdir(directory)
-            except FileNotFoundError:
-                tk.messagebox.showwarning("Warning!", message = "This is not a valid directory to save!")
-                return
-        with open(chosen_dir_file, mode = 'w') as file:
-            file.write(directory)
-        self.dir_disp.setup_with_dir(directory)
-'''
