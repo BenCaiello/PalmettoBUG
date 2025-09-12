@@ -176,11 +176,6 @@ class EntryPoint(ctk.CTkFrame):
         label.grid(column = 0, row = 0, padx = 2, pady = 2, rowspan = 3)
         label.configure(anchor = "w")
 
-        #button_MCD = ctk.CTkButton(master = self, 
-        #                text = "Choose MCD directory and begin", 
-        #                command = lambda: self.img_entry_func("", from_mcds = True))
-        #button_MCD.grid(column = 1, row = 1, padx = 10, pady = 10)
-
         ## widget set for the images-only entry point
         button_img = ctk.CTkButton(master = self, 
                     text = "Choose Image directory and begin", 
@@ -197,22 +192,6 @@ class EntryPoint(ctk.CTkFrame):
         ## The widget for the entry of the resolution of the images (can ignore for CyTOF / solution mode analyses)
         self.X_Y_entry = self.X_Y_res_frame(self)
         self.X_Y_entry.grid(column = 1, row = 4, padx = 10, pady = 10)
-
-        '''
-        label_dir_disp = ctk.CTkLabel(master = self, text = "Alternatively, select the folder \n using the directory display below:")
-        label_dir_disp.grid(column = 0, row = 5, padx = 10, pady = 10)
-
-        self.dir_disp = DirectoryDisplay(self)
-        # self.dir_disp.grid(column = 0, row = 6, padx = 3, pady = 3, rowspan = 4)
-        # try:
-        #    self.dir_disp.setup_with_dir(chosen_dir) 
-        # except FileNotFoundError:
-        #    root_dir = homedir[:(homedir.find("/")) + 1]
-        #    self.dir_disp.setup_with_dir(root_dir)
-
-        self.dir_helper = directory_display_helper_frame(self, self.dir_disp)
-        # self.dir_helper.grid(column = 0, row = 10, padx = 3, pady = 10, rowspan = 3)
-        '''
 
         label = ctk.CTkLabel(master = self, 
                              text = "Good Evening! I am the distinguished Mr. Palmett O. Bug, Esq." 

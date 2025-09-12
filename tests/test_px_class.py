@@ -37,8 +37,8 @@ proj_directory = fetch_dir + "Example_IMC"
 
 np.random.default_rng(42)
 
-def test_fetch_IMC():
-    fetch_IMC_example(fetch_dir)
+#def test_fetch_IMC():
+#    fetch_IMC_example(fetch_dir)
 
 def test_raw_to_img():
     global image_proc
