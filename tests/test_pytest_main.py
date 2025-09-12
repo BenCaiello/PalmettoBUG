@@ -251,7 +251,7 @@ def test_do_state_exprs_ANOVAs():
     assert len(df) == len(my_analysis.data.obs['merging'].unique()) * (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
 
 def test_plot_state_p_value_heatmap():
-    figure =  my_analysis.plot_state_p_value_heatmap(marker_class = "type")
+    figure =  my_analysis.plot_state_p_value_heatmap(ANOVA_kwargs = {'marker_class':"type"})
     assert isinstance(figure, matplotlib.figure.Figure), "plot_state_p_value_heatmap did not return a matplotlib figure"
 
 def test_export_data():
