@@ -267,7 +267,7 @@ class EntryPoint(ctk.CTkFrame):
                 resY = float(self.X_Y_entry.entry_Y.get())
             except ValueError:
                 tk.messagebox.showwarning("Warning!", message = "Resolution X / Y must be numbers!")
-                return
+                return 0
         else:
             resX = float(resolutions[0])
             resY = float(resolutions[1])
@@ -281,7 +281,7 @@ class EntryPoint(ctk.CTkFrame):
         if len(self.master.directory) == 0:
             self.master.directory = tk.filedialog.askdirectory()
             if self.master.directory == "":
-                return
+                return 1
 
         ## This is a check of the entered directory existing:
         try:
@@ -291,7 +291,7 @@ class EntryPoint(ctk.CTkFrame):
                 return
         except FileNotFoundError:
             tk.messagebox.showwarning("Warning!", message = "This is not a valid directory!")
-            return
+            return 2
         
         if from_mcds is None:
             example_files = sorted(os.listdir(self.master.directory + "/raw"))
@@ -302,7 +302,7 @@ class EntryPoint(ctk.CTkFrame):
                 from_mcds = False
             else:
                 tk.messagebox.showwarning("Warning!", message = "The /raw sub-folder must contain .mcd or .tiff files, and ONLY .mcd or ONLY .tiff files (not a mixture)!")
-                return
+                return 3
 
         Experiment = imc_entrypoint(directory = self.master.directory, 
                                       resolutions = [resX, resY], 
@@ -330,6 +330,7 @@ class EntryPoint(ctk.CTkFrame):
         project_log = Project_logger(self.master.directory).return_log()
         project_log.info(f"Start log in directory {self.master.directory}/Logs after loading from MCD files")
         self.master.set('MCD / Image Processing')
+        return 4
 
     def normalize_fcs_choice(self, directory: Union[None, str] = None) -> None:
         self.master.py_exploratory.X = self.X_Y_entry.entry_X.get()

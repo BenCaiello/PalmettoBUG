@@ -33,11 +33,15 @@ def test_call_configGUI():
 
 def test_launchExampleDataWindow():
     app.entrypoint.launchExampleDataWindow()
-    assert True 
+    assert True
 
 def test_img_entry_func():
-    app.entrypoint.img_entry_func(proj_directory, resolutions= [1.0,1.0], from_mcds = True)
-    assert True  
+    number = app.entrypoint.img_entry_func(proj_directory)
+    assert number != 0, "0" 
+    assert number != 1, "1" 
+    assert number != 2, "2" 
+    assert number != 3, "3" 
+    assert number != 4, "4"  
 
 def test_FCS_choice():
     app.entrypoint.FCS_choice(fetch_dir + "/Example_CyTOF")
@@ -49,11 +53,11 @@ def test_call_raw_to_img_part_1_hpf():
     app.Tabs.image_proc_widg.call_raw_to_img_part_1_hpf()
     assert True   
 
-'''
 def test_call_mask_expand():
     app.Tabs.image_proc_widg.call_mask_expand()
     assert True 
 
+'''
 def test_call_region_measurement():
     app.Tabs.image_proc_widg.call_region_measurement()
     assert True 
