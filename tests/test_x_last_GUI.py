@@ -107,13 +107,78 @@ def test_load_classifier():
     app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
     assert True 
 
-
-
 ##>>## GUI Analysis tests
-def test_Analysis():
-    app.Tabs.py_exploratory.analysiswidg
-    assert True 
+def test_launch_scatterplot():
+    app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
 
+def test_launch_classy_masker():
+    app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
+
+def test_launch_leiden():
+    app.Tabs.py_exploratory.analysiswidg.launch_leiden()
+
+def test_launch_UMAP_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_UMAP_window()
+
+def test_launch_ClusterVGroup():
+    app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
+
+def test_launch_distrib_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_distrib_window()
+
+def test_launch_plot_UMAP_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_plot_UMAP_window()
+
+def test_launch_cluster_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_cluster_window()
+
+def test_launch_Exprs_Heatmap_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_Exprs_Heatmap_window()
+
+def test_launch_Plot_Counts_per_ROI_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_Plot_Counts_per_ROI_window()
+
+def test_launch_Plot_histograms_per_ROI_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_Plot_histograms_per_ROI_window()
+
+def test_launch_MDS_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_MDS_window()
+
+def test_launch_NRS_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_NRS_window()
+
+def test_launch_abundance_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_abundance_window()
+
+def test_launch_cluster_heatmap_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_cluster_heatmap_window()
+
+def test_launch_plot_cluster_expression_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
+
+def test_launch_cluster_stats_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
+
+def test_launch_regionprop():
+    app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
+
+def test_launch_cluster_merging():
+    app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
+
+def test_launch_drop_restore():
+    app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
+
+def test_launch_scaling():
+    app.Tabs.py_exploratory.analysiswidg.launch_scaling()
+
+def test_launch_cluster_save_load():
+    app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()
+
+def test_launch_data_table_exportation_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window(app.Tabs.py_exploratory.analysiswidg.cat_exp.data)
+
+def test_launch_combat_window():
+    app.Tabs.py_exploratory.analysiswidg.launch_combat_window()
 
 
 ##>>## GUI Spatial tests
