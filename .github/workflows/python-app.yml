@@ -59,7 +59,7 @@ jobs:
         uvx ruff check palmettobug/ --exit-zero
     - name: pytest
       run: |  
-        python -m pytest -p pytest_cov --cov-report xml:coverage.xml --cov=palmettobug tests/test_x_last_GUI.py
+        python -m pytest -p pytest_cov --cov-report xml:coverage.xml --cov=palmettobug tests/
       # python -m pytest -p pytest_cov --cov-report xml:coverage.xml --cov=palmettobug tests/test_alt_classifiers.py  
 
 
