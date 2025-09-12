@@ -11,6 +11,12 @@ if not os.path.exists(fetch_dir):
     os.mkdir(fetch_dir)
 proj_directory = fetch_dir + "/Example_IMC"
 
+
+##########################################################################################################################################################
+# Right now, only trying to test majority of GUI elements and not the backend analysis functions. In the future, could consider superseding the existing #
+# test suite with tests launched from this GUI testing script -- allowing more thorough testing through every nook and cranny of the GUI widgets         #
+##########################################################################################################################################################
+
 ##>>## GUI App & entrypoint tests
 def test_fetch_IMC():
     fetch_IMC_example(fetch_dir)
@@ -63,21 +69,35 @@ def test_call_to_Analysis():
     assert True 
 
 def test_call_to_Analysis():
-    app.entrypoint.image_proc_widg.call_to_Analysis(fetch_dir + "/Example_CyTOF")
+    app.entrypoint.image_proc_widg.call_to_Analysis()
     assert True 
-
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
 
-
-'''
 ##>>## GUI Pixel classification tests
+def test_launch_loading_window():
+    global loading_window
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()   ## need access to loading window functions
+    assert True 
 
-def test_px_widg_connection():
-    app.Tabs.px_classification.create.px_widg
+def test_unsupervised():
+    loading_window.unsupervised("unsupervised1")
+    assert True 
+
+def test_unsupervised():
+    loading_window.accept_classifier_name("supervised1")
     assert True 
 
 
+def test_detail_display():
+    app.Tabs.px_classification.create.px_widg.detail_display()
+    assert True 
 
-'''
+def test_bio_label_launch():
+    app.Tabs.px_classification.create.px_widg.bio_label_launch()
+    assert True 
+
+def test_save_classifier():
+    app.Tabs.px_classification.create.px_widg.save_classifier()
+    assert True 

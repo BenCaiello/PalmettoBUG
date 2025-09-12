@@ -279,7 +279,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         self.quick_display.save_and_display(filepath)
     
     def launch_loading_window(self) -> None:
-        loading_window(self)
+        return loading_window(self)
 
     class classifier_frame(ctk.CTkFrame):
         def __init__(self, master):
