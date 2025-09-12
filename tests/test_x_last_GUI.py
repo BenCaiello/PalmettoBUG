@@ -11,6 +11,12 @@ if not os.path.exists(fetch_dir):
     os.mkdir(fetch_dir)
 proj_directory = fetch_dir + "/Example_IMC"
 
+## needed when only testing GUI (otherwise can depend on px classifier script)
+def test_fetch_IMC():
+    fetch_IMC_example(fetch_dir)
+
+def test_fetch_CyTOF():
+    fetch_CyTOF_example(fetch_dir)
 
 ##########################################################################################################################################################
 # Right now, only trying to test majority of GUI elements and not the backend analysis functions. In the future, could consider superseding the existing #
@@ -104,7 +110,7 @@ def test_toggle_in_gui():
 #    assert True 
 
 ##>>## GUI Analysis tests
-'''
+
 def test_launch_scatterplot():
     app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
 
@@ -192,4 +198,3 @@ def test_plot_cell_maps_window():
                 # CNUMAPMSTwindow, CNabundanceWindow, CNheatmapWindow, CNannotationWindow, CNwindowSaveLoad, CellularNeighborhoodWindow, edt_heatmap_window
                 # edt_dist_window, edt_stat_window, edt_reload_window
 
-'''
