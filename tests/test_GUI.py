@@ -36,7 +36,7 @@ def test_launchExampleDataWindow():
     assert True 
 
 def test_img_entry_func():
-    app.entrypoint.img_entry_func(proj_directory)
+    app.entrypoint.img_entry_func(proj_directory, resolutions= [1.0,1.0], from_mcds = True)
     assert True  
 
 def test_FCS_choice():
@@ -66,9 +66,10 @@ def test_go_to_Analysis_window():
     app.Tabs.image_proc_widg.go_to_Analysis_window(fetch_dir + "/Example_CyTOF")
     assert True 
 
+'''
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
-
+'''
 
 
 ##>>## GUI Pixel classification tests
