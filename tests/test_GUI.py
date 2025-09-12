@@ -1,4 +1,7 @@
 import os
+
+import numpy as np
+
 import palmettobug
 from palmettobug.Entrypoint.app_and_entry import App
 
@@ -25,19 +28,19 @@ def test_setup_app():
 
 def test_GPL_window():
     app.entrypoint.show_GPL()
-    assert True   ## non-failure is enough for me right now, as it implies successful setting up of the widgets of the GUI
+    assert True 
 
 def test_call_configGUI():
     app.entrypoint.call_configGUI()
-    assert True   ## non-failure is enough for me right now, as it implies successful setting up of the widgets of the GUI
+    assert True 
 
 def test_launchExampleDataWindow():
     app.entrypoint.launchExampleDataWindow()
-    assert True   ## non-failure is enough for me right now, as it implies successful setting up of the widgets of the GUI
+    assert True 
 
 def test_img_entry_func():
     app.entrypoint.img_entry_func(proj_directory)
-    assert True   ## non-failure is enough for me right now, as it implies successful setting up of the widgets of the GUI
+    assert True  
 
 def test_FCS_choice():
     app.entrypoint.FCS_choice(fetch_dir + "/Example_CyTOF")
@@ -48,6 +51,14 @@ def test_FCS_choice():
 def test_call_raw_to_img_part_1_hpf():
     app.Tabs.image_proc_widg.call_raw_to_img_part_1_hpf()
     assert True   
+
+def test_call_raw_to_img_part_2_run():
+    app.Tabs.image_proc_widg.call_raw_to_img_part_2_run(0.85)
+    assert True 
+
+def test_call_instanseg_segmentor():
+    app.Tabs.image_proc_widg.call_instanseg_segmentor(0.85)
+    assert True 
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
