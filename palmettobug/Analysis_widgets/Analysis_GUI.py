@@ -1880,6 +1880,32 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.N_label = ctk.CTkLabel(master = self, text = "Select Experimental 'N' \n(effects spatial EDT as well):")
         self.N_label.grid(column = 2, row = 0, columnspan = 2, padx = 5, pady = 5)
 
+        self.N_switch = ctk.CTkOptionMenu(master = self, values = ["sample_id"], variable = ctk.StringVar(value = "sample_id"),
+                                    command = lambda choice: self.set_N(choice))
+        self.N_switch.grid(column = 2, row = 1, columnspan = 2, padx = 5, pady = 5)  
+        self.N_switch.configure(state = "disabled")                          
+
+        self.make_model = ctk.CTkButton(master = self, text = "Run Cluster Abundance ANOVAs")
+        self.make_model.grid(row = 1, column = 0, columnspan = 2, padx = 5, pady = 5)
+        self.make_model.configure(state = "disabled")
+
+        self.DA_button = ctk.CTkButton(master = self, text = "Run State Expression ANOVAs")
+        self.DA_button.grid(column = 0, columnspan = 2, row = 3, padx = 5, pady = 5)
+        self.DA_button.configure(state = "disabled")
+
+        self.plot_state = ctk.CTkButton(master = self, text = "Plot State Expression comparing conditions")
+        self.plot_state.grid(column = 3, row = 3, padx = 5, pady = 5)
+        self.plot_state.configure(state = "disabled")
+
+    def set_N(self, choice):
+        self.master.cat_exp.N = choice
+
+    def initialize_buttons(self) -> None:
+        ### goal: decouple widget placement & initialization from data loading & button activation
+        self.make_model.configure(state = "normal", command = self.launch_abundance_ANOVAs_window)
+        self.DA_button.configure(state = "normal", command = self.launch_state_ANOVAs_window)
+        self.plot_state.configure(state = "normal", command = self.launch_state_distribution)
+
         def filter_N(enter = ""):
             output = []
             magic_names = ["index", "metaclustering", "clustering", "merging", "classification", 
@@ -1902,31 +1928,8 @@ class Hypothesis_widget(ctk.CTkFrame):
                         output.append(i)
             self.N_switch.configure(values = output)
 
-        self.N_switch = ctk.CTkOptionMenu(master = self, values = ["sample_id"], variable = ctk.StringVar(value = "sample_id"),
-                                    command = lambda choice: self.set_N(choice))
-        self.N_switch.grid(column = 2, row = 1, columnspan = 2, padx = 5, pady = 5)  
-        self.N_switch.bind("<Enter>", filter_N)                          
-
-        self.make_model = ctk.CTkButton(master = self, text = "Run Cluster Abundance ANOVAs")
-        self.make_model.grid(row = 1, column = 0, columnspan = 2, padx = 5, pady = 5)
-        self.make_model.configure(state = "disabled")
-
-        self.DA_button = ctk.CTkButton(master = self, text = "Run State Expression ANOVAs")
-        self.DA_button.grid(column = 0, columnspan = 2, row = 3, padx = 5, pady = 5)
-        self.DA_button.configure(state = "disabled")
-
-        self.plot_state = ctk.CTkButton(master = self, text = "Plot State Expression comparing conditions")
-        self.plot_state.grid(column = 3, row = 3, padx = 5, pady = 5)
-        self.plot_state.configure(state = "disabled")
-
-    def set_N(self, choice):
-        self.master.cat_exp.N = choice
-
-    def initialize_buttons(self) -> None:
-        ### goal: decouple widget placement & initialization from data loading & button activation
-        self.make_model.configure(state = "normal", command = self.launch_abundance_ANOVAs_window)
-        self.DA_button.configure(state = "normal", command = self.launch_state_ANOVAs_window)
-        self.plot_state.configure(state = "normal", command = self.launch_state_distribution)
+        self.N_switch.configure(state = "normal")
+        self.N_switch.bind("<Enter>", filter_N)  
 
     def launch_abundance_ANOVAs_window(self) -> None:
         run_abundance_ANOVAs_window(self.master)

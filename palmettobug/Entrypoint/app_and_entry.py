@@ -229,13 +229,13 @@ class EntryPoint(ctk.CTkFrame):
         buttonConfig.grid(column = 3, row = 1, padx = 10, pady = 10)
         buttonConfig.configure(anchor = "e")
 
-        def show_GPL() -> None:
-            GPL_window(self)
-
-        button_baby = ctk.CTkButton(master = self, text = "See LICENSE Details", command = show_GPL)
+        button_baby = ctk.CTkButton(master = self, text = "See LICENSE Details", command = self.show_GPL)
         button_baby.grid(column = 3, row = 2, padx = 10, pady = 10) 
     
         self.after(200, lambda: self.focus())
+
+    def show_GPL(self) -> None:
+        GPL_window(self)
 
     class display_image_button(ctk.CTkButton):
         def __init__(self, master):

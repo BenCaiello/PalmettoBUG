@@ -102,6 +102,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             self.Instanseg = ctk.CTkButton(self, text = "Run InstanSeg")
             self.intersection = ctk.CTkButton(self, text = "Mask Transform by Intersection/Difference")
             self.expander = ctk.CTkButton(self, text = "Expand Masks")
+
             self.Instanseg.grid(column = 1, row = 4, padx= 5, pady = 5)
             self.intersection.grid(column = 1, row = 5, padx= 5, pady = 5)
             self.expander.grid(column = 1, row = 6, padx= 5, pady = 5)
@@ -112,6 +113,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
                 self.master.instanseg_available = False
             self.Instanseg.configure(state = "disabled")
             self.expander.configure(state = "disabled")
+            self.intersection.configure(state = "disabled")
 
             self.seg_denoise_button = ctk.CTkButton(master = self, text = "Launch separate \n Segmentation \n & Denoising program")
             self.seg_denoise_button.grid(column = 1, row = 3, padx = 5, pady = 5)
