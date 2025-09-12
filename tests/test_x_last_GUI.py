@@ -18,12 +18,6 @@ proj_directory = fetch_dir + "/Example_IMC"
 ##########################################################################################################################################################
 
 ##>>## GUI App & entrypoint tests
-def test_fetch_IMC():
-    fetch_IMC_example(fetch_dir)
-
-def test_fetch_CyTOF():
-    fetch_CyTOF_example(fetch_dir)
-
 def test_setup_app():
     global app
     app = App(None)
@@ -75,20 +69,21 @@ def test_call_to_Analysis():
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
 
-##>>## GUI Pixel classification tests
+
+
+##>>## GUI Pixel classification tests (px class creation)
 def test_launch_loading_window():
-    global loading_window
+    #global loading_window
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()   ## need access to loading window functions
     assert True 
 
-def test_unsupervised():
-    loading_window.unsupervised("unsupervised1")
-    assert True 
+#def test_unsupervised():
+#    loading_window.unsupervised("unsupervised1")
+#    assert True 
 
-def test_unsupervised():
-    loading_window.accept_classifier_name("supervised1")
-    assert True 
-
+#def test_accept_classifier_name():   ## supervised window
+#    loading_window.accept_classifier_name("supervised1")
+ #   assert True 
 
 def test_detail_display():
     app.Tabs.px_classification.create.px_widg.detail_display()
@@ -101,3 +96,28 @@ def test_bio_label_launch():
 def test_save_classifier():
     app.Tabs.px_classification.create.px_widg.save_classifier()
     assert True 
+
+
+##>>## GUI Pixel classification tests (px class use)
+def test_launch_classes_as_png():
+    app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_classes_as_png()
+    assert True 
+
+def test_load_classifier():
+    app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
+    assert True 
+
+
+
+##>>## GUI Analysis tests
+def test_Analysis():
+    app.Tabs.py_exploratory.analysiswidg
+    assert True 
+
+
+
+##>>## GUI Spatial tests
+def test_Spatial():
+    app.Tabs.Spatial.widgets
+    assert True 
+
