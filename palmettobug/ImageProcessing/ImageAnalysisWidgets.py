@@ -195,7 +195,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
         '''
         self.call_write_panel()
         self.Experiment_object._panel_setup()
-        intersection_difference_window(self)
+        return intersection_difference_window(self)
 
     def call_segmentation_denoise_program(self):
         self.call_write_panel()
@@ -225,7 +225,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
         return RegionMeasurement(self, self.Experiment_object) 
 
     def call_to_Analysis(self):
-        go_to_Analysis_window(self)
+        return go_to_Analysis_window(self)
 
     def to_analysis(self, 
                     analysis_folder, 

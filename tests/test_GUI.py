@@ -66,24 +66,42 @@ def test_call_instanseg_segmentor():
 def test_call_mask_expand():
     expander = app.entrypoint.image_proc_widg.call_mask_expand()
     expander.image_folder.configure(values = "example_deepcell_masks")
-    expander.output_folder.configure(textvariable = ctk.StringVar(value = "expanded_example_deepcell_masks"))
+    expander.output_folder.configure(textvariable = ctk.StringVar(value = "expanded_deepcell_masks"))
     expander.read_values()
     images = os.listdir(proj_directory + "/masks/expanded_deepcell_masks")
     assert(len(images) == 10), "All masks not expanded" 
+
+def test_call_intersection_difference():
+    intersect = app.entrypoint.image_proc_widg.call_intersection_difference()
+    masks1 = proj_directory + "/masks/example_deepcell_masks"
+    masks2 = proj_directory + "/masks/expanded_deepcell_masks"
+    intersect.masks_folder1.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
+    intersect.masks_folder2.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
+    intersect.read_values()
+    assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks"  )) == 10), "Mask intersection function failed!"
 
 def test_call_region_measurement():
     region_meas = app.entrypoint.image_proc_widg.call_region_measurement()
     region_meas.output_folder.configure(textvariable = ctk.StringVar(value = "test_analysis"))
     region_meas.masks_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     region_meas.read_values(app.entrypoint.image_proc_widg.Experiment_object)
-    assert True 
+    analysis_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analyses_dir + "/test_analysis"
+    intensities_dir = analysis_dir + "/intensities"
+    assert(len(os.listdir(analysis_dir + "/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
+    assert(len(pd.read_csv(intensities_dir + "/CRC_1_ROI_001.ome.csv") == 2177)), "Unexpected number of cells in image 1" 
 
 def test_call_to_Analysis():
-    app.entrypoint.image_proc_widg.call_to_Analysis()
-    assert True 
-
-def test_toggle_in_gui():
-    palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
+    analysis_loader = app.entrypoint.image_proc_widg.call_to_Analysis()
+    analysis_loader.analysis_choice.configure(value = 'test_analysis')
+    metadata = app.Tabs.py_exploratory.analysiswidg.cat_exp.metadata
+    panel = app.Tabs.py_exploratory.analysiswidg.cat_exp.panel
+    interal_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analysis_internal_dir
+    assert(os.listdir(interal_dir + "/Analysis_fcs")[0].rfind(".fcs") != -1), "FCS files not in /main/Analysis_fcs!"
+    assert(len(metadata) == 10), "Automatically generated Metadata file's length does not match the number of FCS files in the experiment!"
+    assert("marker_class" in panel_file.columns), "Automatically generated Analysis_panel file should have a 'marker_class' column"
+    assert("Analysis_panel.csv" in os.listdir(interal_dir)), "Analysis_panel.csv not written to the proper place!"
+    assert("metadata.csv" in os.listdir(interal_dir)), "metadata.csv not written to the proper place!"
+    assert("condition" in list(pd.read_csv(interal_dir + "/metadata.csv").columns)), "Automatically generated metadata.csv file must have a 'condition' column!"
 
 
 '''
@@ -220,4 +238,7 @@ def test_launch_edt():
 # spatial windows to test:    launch_heat_plot_window, launch_function_plot_window, launch_window, NeigborhoodEnrichmentWindow, CentralityWindow, InteractionMatrixWindow
                 # CNUMAPMSTwindow, CNabundanceWindow, CNheatmapWindow, CNannotationWindow, CNwindowSaveLoad, CellularNeighborhoodWindow, edt_heatmap_window
                 # edt_dist_window, edt_stat_window, edt_reload_window
+
+def test_toggle_in_gui():
+    palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
 

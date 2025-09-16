@@ -35,16 +35,6 @@ def test_raw_to_img():
     images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
     assert(len(images) == 10), "Wrong number of images exported to images/img"               ## all the images are transferred
     shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
-     
-def test_instanseg():
-    image_proc.instanseg_segmentation(single_image = os.listdir(proj_directory + "/images/img")[0])
-    assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
-
-def test_mask_intersection_difference():
-    masks1 = proj_directory + "/masks/example_deepcell_masks"
-    masks2 = proj_directory + "/masks/expanded_deepcell_masks"
-    image_proc.mask_intersection_difference(masks1, masks2)
-    assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks"  )) == 10), "Mask intersection function failed!"
 
 def test_regionprops_write():
     image_proc.directory_object.make_analysis_dirs("test_analysis")
