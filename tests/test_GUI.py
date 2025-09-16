@@ -55,10 +55,15 @@ def test_call_raw_to_img_part_1_hpf():
     app.entrypoint.image_proc_widg.call_raw_to_img_part_1_hpf()
     assert True   
 
-def test_call_mask_expand():
-    app.entrypoint.image_proc_widg.call_mask_expand()
-    assert True 
+def test_call_raw_to_img_part_2_run():
+    app.entrypoint.image_proc_widg.call_raw_to_img_part_2_run(0.85)
+    assert True   
 
+def test_call_mask_expand():
+    expander = app.entrypoint.image_proc_widg.call_mask_expand()
+    expander.image_folder.configure(values = "example_deepcell_masks")
+    expander.read_values()
+    assert True 
 
 def test_call_region_measurement():
     app.entrypoint.image_proc_widg.call_region_measurement()

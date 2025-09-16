@@ -211,7 +211,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
     """ 
 
     def call_mask_expand(self):
-        Expander_window(self)      
+        return Expander_window(self)      
 
     def call_mask_expand_part_2(self, 
                                   distance, 
