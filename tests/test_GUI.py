@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -71,7 +72,7 @@ def test_call_instanseg_segmentor():
 
 def test_call_mask_expand():
     expander = app.entrypoint.image_proc_widg.call_mask_expand()
-    expander.image_folder.configure(vavariable = ctk.StringVar(value = "example_deepcell_masks"))
+    expander.image_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     expander.output_folder.configure(textvariable = ctk.StringVar(value = "expanded_deepcell_masks"))
     expander.read_values()
     images = os.listdir(proj_directory + "/masks/expanded_deepcell_masks")
@@ -99,6 +100,8 @@ def test_call_region_measurement():
 def test_call_to_Analysis():
     analysis_loader = app.entrypoint.image_proc_widg.call_to_Analysis()
     analysis_loader.analysis_choice.configure(variable = ctk.StringVar(value = 'test_analysis'))
+    analysis_loader.run()
+    app.entrypoint.tables.accept_and_return(app.entrypoint.image_proc_widg.Experiment_object)
     metadata = app.Tabs.py_exploratory.analysiswidg.cat_exp.metadata
     panel = app.Tabs.py_exploratory.analysiswidg.cat_exp.panel
     interal_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analysis_internal_dir
@@ -164,11 +167,44 @@ def test_setup_directories():
     shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
     shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
 
+def test_launch_drop_restore():           ## filtering
+    window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
+    assert isinstance(window, ctk.CTkToplevel)
 
+def test_launch_scaling():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_scaling()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_launch_combat_window():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_combat_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_do_regions():
+    global my_analysis
+    my_analysis = app.Tabs.py_exploratory.analysiswidg.cat_exp
+    my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
+    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
 
 def test_launch_scatterplot():
     window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
     assert isinstance(window, ctk.CTkToplevel)
+
+def test_launch_Plot_Counts_per_ROI_window():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_Counts_per_ROI_window()
+    window.plot_Counts_per_ROI()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_launch_MDS_window():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_MDS_window()
+    window.plot_MDS()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_launch_NRS_window():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_NRS_window()
+    window.plot_NRS()
+    assert isinstance(window, ctk.CTkToplevel)
+
+
 
 def test_launch_classy_masker():
     window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
@@ -202,20 +238,8 @@ def test_launch_Exprs_Heatmap_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Exprs_Heatmap_window()
     assert isinstance(window, ctk.CTkToplevel)
 
-def test_launch_Plot_Counts_per_ROI_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_Counts_per_ROI_window()
-    assert isinstance(window, ctk.CTkToplevel)
-
 def test_launch_Plot_histograms_per_ROI_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_histograms_per_ROI_window()
-    assert isinstance(window, ctk.CTkToplevel)
-
-def test_launch_MDS_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_MDS_window()
-    assert isinstance(window, ctk.CTkToplevel)
-
-def test_launch_NRS_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_NRS_window()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_abundance_window():
@@ -242,24 +266,12 @@ def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
     assert isinstance(window, ctk.CTkToplevel)
 
-def test_launch_drop_restore():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
-    assert isinstance(window, ctk.CTkToplevel)
-
-def test_launch_scaling():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_scaling()
-    assert isinstance(window, ctk.CTkToplevel)
-
 def test_launch_cluster_save_load():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_data_table_exportation_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window(app.Tabs.py_exploratory.analysiswidg.cat_exp.data)
-    assert isinstance(window, ctk.CTkToplevel)
-
-def test_launch_combat_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_combat_window()
     assert isinstance(window, ctk.CTkToplevel)
 
 
