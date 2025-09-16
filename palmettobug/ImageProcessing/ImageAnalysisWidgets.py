@@ -165,7 +165,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
         ## the panel write / setup block is too ensure the panel settings are saved while running
         self.call_write_panel()
         self.Experiment_object._panel_setup()
-        HPF_readin(self)
+        return HPF_readin(self)
 
     def call_raw_to_img_part_2_run(self, hpf):
         if not overwrite_approval(self.directory + "images/img", file_or_folder = "folder"):
@@ -187,7 +187,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
         ## the panel write / setup block is too ensure the panel settings are saved while running
         self.call_write_panel()
         self.Experiment_object._panel_setup()
-        Instanseg_window(self)
+        return Instanseg_window(self)
 
     def call_intersection_difference(self):
         '''
@@ -222,7 +222,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
 
     def call_region_measurement(self):
         # This opens a new window to choosing your region measurement options
-        RegionMeasurement(self, self.Experiment_object) 
+        return RegionMeasurement(self, self.Experiment_object) 
 
     def call_to_Analysis(self):
         go_to_Analysis_window(self)

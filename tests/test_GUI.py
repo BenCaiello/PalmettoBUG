@@ -52,21 +52,30 @@ def test_FCS_choice():
 
 ##>>## GUI Image Analysis tests
 def test_call_raw_to_img_part_1_hpf():
-    app.entrypoint.image_proc_widg.call_raw_to_img_part_1_hpf()
-    assert True   
+    hpf_window = app.entrypoint.image_proc_widg.call_raw_to_img_part_1_hpf()
+    hpf_window.read_values()
+    images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
+    assert(len(images) == 10), "Wrong number of images exported to images/img" 
 
-def test_call_raw_to_img_part_2_run():
-    app.entrypoint.image_proc_widg.call_raw_to_img_part_2_run(0.85)
-    assert True   
+def test_call_instanseg_segmentor():
+    instanseg_window = app.entrypoint.image_proc_widg.call_instanseg_segmentor()
+    instanseg_window.single_image.configure(values = os.listdir(proj_directory + "/images/img")[0])
+    instanseg_window.read_values()
+    assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
 
 def test_call_mask_expand():
     expander = app.entrypoint.image_proc_widg.call_mask_expand()
     expander.image_folder.configure(values = "example_deepcell_masks")
+    expander.output_folder.configure(textvariable = ctk.StringVar(value = "expanded_example_deepcell_masks"))
     expander.read_values()
-    assert True 
+    images = os.listdir(proj_directory + "/masks/expanded_deepcell_masks")
+    assert(len(images) == 10), "All masks not expanded" 
 
 def test_call_region_measurement():
-    app.entrypoint.image_proc_widg.call_region_measurement()
+    region_meas = app.entrypoint.image_proc_widg.call_region_measurement()
+    region_meas.output_folder.configure(textvariable = ctk.StringVar(value = "test_analysis"))
+    region_meas.masks_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
+    region_meas.read_values(app.entrypoint.image_proc_widg.Experiment_object)
     assert True 
 
 def test_call_to_Analysis():
