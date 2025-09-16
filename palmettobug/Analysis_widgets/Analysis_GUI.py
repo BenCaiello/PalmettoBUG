@@ -137,55 +137,55 @@ class Analysis_py_widgets(ctk.CTkFrame):
         self.directory_display.setup_with_dir(directory, self, png = self.display2)
 
     def launch_scatterplot(self):
-        scatterplot_window(self)
+        return scatterplot_window(self)
 
     def launch_classy_masker(self):
-        classy_masker_window(self)
+        return classy_masker_window(self)
 
     def launch_leiden(self):
-        do_leiden_window(self)
+        return do_leiden_window(self)
 
     def launch_UMAP_window(self) -> None:
-        UMAP_window(self)
+        return UMAP_window(self)
 
     def launch_ClusterVGroup(self) -> None:
-        ClusterVGroup(self)
+        return ClusterVGroup(self)
 
     def launch_distrib_window(self) -> None:
-        PrelimDistribPlotWindow(self)
+        return PrelimDistribPlotWindow(self)
 
     def launch_plot_UMAP_window(self) -> None:
-        Plot_UMAP_window(self)
+        return Plot_UMAP_window(self)
 
     def launch_cluster_window(self) -> None:
-        Cluster_Window(self)
+        return Cluster_Window(self)
 
     def launch_Exprs_Heatmap_window(self) -> None:
-        Plot_ExprsHeatMap_window(self)
+        return Plot_ExprsHeatMap_window(self)
 
     def launch_Plot_Counts_per_ROI_window(self) -> None:
-        Plot_Counts_per_ROI_window(self)
+        return Plot_Counts_per_ROI_window(self)
 
     def launch_Plot_histograms_per_ROI_window(self) -> None:
-        Plot_histograms_per_ROI_window(self)
+        return Plot_histograms_per_ROI_window(self)
 
     def launch_MDS_window(self) -> None:
-        Plot_MDS_window(self)
+        return Plot_MDS_window(self)
 
     def launch_NRS_window(self) -> None:
-        Plot_NRS_window(self)
+        return Plot_NRS_window(self)
 
     def launch_abundance_window(self) -> None:
-        plot_cluster_abundances_window(self)
+        return plot_cluster_abundances_window(self)
 
     def launch_cluster_heatmap_window(self) -> None:
-        plot_cluster_heatmap_window(self)
+        return plot_cluster_heatmap_window(self)
 
     def launch_plot_cluster_expression_window(self) -> None:
-        plot_cluster_expression_window(self)
+        return plot_cluster_expression_window(self)
     
     def launch_cluster_stats_window(self) -> None:
-        cluster_statistics_window(self)
+        return cluster_statistics_window(self)
 
     def launch_regionprop(self) -> None:
         region_props_panel = self.cat_exp.regionprops_data
@@ -204,16 +204,16 @@ class Analysis_py_widgets(ctk.CTkFrame):
         cluster_merging_window(self)
 
     def launch_drop_restore(self) -> None:
-        image_drop_restore_window(self)
+        return image_drop_restore_window(self)
 
     def launch_scaling(self) -> None:
-        Scaling_window(self)
+        return Scaling_window(self)
     
     def launch_cluster_save_load(self) -> None:
-        Cluster_save_load_window(self)
+        return Cluster_save_load_window(self)
 
     def launch_data_table_exportation_window(self) -> None:
-        data_table_exportation_window(self, self.cat_exp.data)
+        return data_table_exportation_window(self, self.cat_exp.data)
     
     def launch_data_table_importation_window(self) -> None:    ### This could be pushed back to the app&entry 
                                                                 # as a separate entrance method (?)
@@ -244,7 +244,7 @@ class Analysis_py_widgets(ctk.CTkFrame):
         self.master.master.Spatial.widgets.setup_dir_disp(Analysis_directory)
     
     def launch_combat_window(self) -> None:
-        combat_window(self)
+        return combat_window(self)
 
     def reload_experiment(self) -> None:
         self.cat_exp = Analysis(in_gui = True)
