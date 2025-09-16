@@ -97,7 +97,7 @@ def test_call_to_Analysis():
     analysis_loader = app.entrypoint.image_proc_widg.call_to_Analysis()
     analysis_loader.analysis_choice.configure(variable = ctk.StringVar(value = 'test_analysis'))
     analysis_loader.run()
-    app.entrypoint.tables.accept_button.invoke()
+    app.Tabs.tables.accept_button.invoke()
     metadata = app.Tabs.py_exploratory.analysiswidg.cat_exp.metadata
     panel = app.Tabs.py_exploratory.analysiswidg.cat_exp.panel
     interal_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analysis_internal_dir
