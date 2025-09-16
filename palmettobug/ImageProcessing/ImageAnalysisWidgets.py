@@ -392,7 +392,7 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
 
         masks_folder1 = self.masks_folder1.get()
         masks_folder2 = self.masks_folder2.get()
-        output_folder = f'{masks_folder1}_{masks_folder2}'
+        output_folder = self.master.Experiment_object.directory_object.masks_dir + f'/{masks_folder1}_{masks_folder2}'
         def check_masks_or_px(path):
             if path in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir):
                 if "merged_classification_maps" in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir + "/" + path):
@@ -440,7 +440,7 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.title('Region Measurement Options')
         label1 = ctk.CTkLabel(master = self, text = "Choose the intensity measurement option:")
         label1.grid(column = 0, row = 0, padx = 10, pady = 10)
-        self.intensity_options = ctk.CTkOptionMenu(master = self, values = ["mean","median","std"])
+        self.intensity_options = ctk.CTkOptionMenu(master = self, values = ["mean","median","std"], variable = ctk.StringVar(value = "mean"))
         self.intensity_options.grid(column = 1, row = 0, padx = 10, pady = 10)
 
         self.re_do = ctk.CTkCheckBox(master= self, 
@@ -480,8 +480,8 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.output_folder = ctk.CTkEntry(self, textvariable = ctk.StringVar(value = "Analysis_1"))
         self.output_folder.grid(column = 1, row = 4, padx = 5, pady = 5)
 
-        accept_values = ctk.CTkButton(master = self, text = "Accept choices and proceed", command = lambda: self.read_values(experiment))
-        accept_values.grid(padx = 10, pady = 10)
+        self.accept_values = ctk.CTkButton(master = self, text = "Accept choices and proceed", command = lambda: self.read_values(experiment))
+        self.accept_values.grid(padx = 10, pady = 10)
 
         self.advanced_region = ctk.CTkCheckBox(master= self, 
                                      text = "Do advanced regionprops measurements? \n (Will take much longer)", 

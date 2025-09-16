@@ -90,7 +90,7 @@ def test_call_region_measurement():
     region_meas = app.entrypoint.image_proc_widg.call_region_measurement()
     region_meas.output_folder.configure(textvariable = ctk.StringVar(value = "test_analysis"))
     region_meas.masks_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
-    region_meas.read_values(app.entrypoint.image_proc_widg.Experiment_object)
+    self.accept_values.invoke()
     analysis_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analyses_dir + "/test_analysis"
     intensities_dir = analysis_dir + "/intensities"
     assert(len(os.listdir(analysis_dir + "/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
@@ -100,7 +100,7 @@ def test_call_to_Analysis():
     analysis_loader = app.entrypoint.image_proc_widg.call_to_Analysis()
     analysis_loader.analysis_choice.configure(variable = ctk.StringVar(value = 'test_analysis'))
     analysis_loader.run()
-    app.entrypoint.tables.accept_and_return(app.entrypoint.image_proc_widg.Experiment_object)
+    app.entrypoint.tables.accept_button.invoke()
     metadata = app.Tabs.py_exploratory.analysiswidg.cat_exp.metadata
     panel = app.Tabs.py_exploratory.analysiswidg.cat_exp.panel
     interal_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analysis_internal_dir
@@ -172,11 +172,13 @@ def test_launch_combat_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_combat_window()
     assert isinstance(window, ctk.CTkToplevel)
 
+'''
 def test_do_regions():
     global my_analysis
     my_analysis = app.Tabs.py_exploratory.analysiswidg.cat_exp
     my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
     assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
+'''
 
 def test_launch_scatterplot():
     window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()

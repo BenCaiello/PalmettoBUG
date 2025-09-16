@@ -1517,7 +1517,6 @@ class TableLaunchAnalysis(TableLaunch):
             onvalue = True, 
             offvalue = False)
         self.save_meta_panel.grid(column = 1, row = 2, pady = 15)
-        return self
 
     def accept_and_return(self, experiment: ImageAnalysis) -> None:     
         #### overwrite the accept & return function from the parent to also populate the Analysis widgets
