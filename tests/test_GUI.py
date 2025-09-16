@@ -1,5 +1,8 @@
 import os
 
+import numpy as np
+import customtkinter as ctk
+
 import palmettobug
 from palmettobug.Entrypoint.app_and_entry import App, fetch_IMC_example, fetch_CyTOF_example
 
@@ -10,6 +13,8 @@ fetch_dir = homedir + "/project_folder"
 if not os.path.exists(fetch_dir):
     os.mkdir(fetch_dir)
 proj_directory = fetch_dir + "/Example_IMC"
+
+np.random.default_rng(42)
 
 ## needed when only testing GUI (otherwise can depend on px classifier script)
 def test_fetch_IMC():
@@ -59,7 +64,7 @@ def test_call_raw_to_img_part_1_hpf():
 
 def test_call_instanseg_segmentor():
     instanseg_window = app.entrypoint.image_proc_widg.call_instanseg_segmentor()
-    instanseg_window.single_image.configure(values = os.listdir(proj_directory + "/images/img")[0])
+    instanseg_window.single_image.configure(variable = ctk.StringVar(value =os.listdir(proj_directory + "/images/img")[0]))
     instanseg_window.read_values()
     assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
 
@@ -149,6 +154,16 @@ def test_load_classifier():
 
 
 ############################################ Some test require that an Analysis is loaded, these are currently commented out ############################
+
+def test_setup_directories():
+    global Analysis_panel
+    Analysis_panel = proj_directory + "/Analyses/Analysis_panel.csv"
+    global metadata
+    metadata = proj_directory + "/Analyses/metadata.csv"
+    shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
+    shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
+
+
 
 #def test_launch_scatterplot():
 #    app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
