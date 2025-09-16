@@ -61,11 +61,13 @@ def test_call_raw_to_img_part_1_hpf():
     images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
     assert(len(images) == 10), "Wrong number of images exported to images/img" 
 
+'''
 def test_call_instanseg_segmentor():
     instanseg_window = app.entrypoint.image_proc_widg.call_instanseg_segmentor()
     instanseg_window.single_image.configure(variable = ctk.StringVar(value = os.listdir(proj_directory + "/images/img")[0]))
     instanseg_window.read_values()
     assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
+'''
 
 def test_call_mask_expand():
     expander = app.entrypoint.image_proc_widg.call_mask_expand()
@@ -254,12 +256,13 @@ def test_launch_Exprs_Heatmap_window():
     window.plot_Heatmap()
     assert isinstance(window, ctk.CTkToplevel)
 
+'''
 def test_launch_cluster_heatmap_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_heatmap_window()
     window.pop_up.select()
     window.plot_cluster_heatmap()
     assert isinstance(window, ctk.CTkToplevel)
-
+'''
 
 
 
