@@ -51,11 +51,7 @@ def test_launchExampleDataWindow():
 
 def test_img_entry_func():
     number = app.entrypoint.img_entry_func(proj_directory)  ## successfully proceeding through function in tests
-    assert True
-
-def test_FCS_choice():
-    app.entrypoint.FCS_choice(fetch_dir + "/Example_CyTOF")
-    assert True  
+    assert True 
 
 
 ##>>## GUI Image Analysis tests
@@ -112,6 +108,10 @@ def test_call_to_Analysis():
     assert("metadata.csv" in os.listdir(interal_dir)), "metadata.csv not written to the proper place!"
     assert("condition" in list(pd.read_csv(interal_dir + "/metadata.csv").columns)), "Automatically generated metadata.csv file must have a 'condition' column!"
 
+def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows (as is, does not close itself and blocks future instnaces as a singleton)
+    app.entrypoint.FCS_choice(fetch_dir + "/Example_CyTOF")
+    assert True 
+
 
 '''
 ##>>## GUI Pixel classification tests (px class creation)
@@ -149,7 +149,7 @@ def test_launch_classes_as_png():
 def test_load_classifier():
     app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
     assert True 
-
+'''
 
 ##>>## GUI Analysis tests
 
@@ -308,7 +308,6 @@ def test_launch_data_table_exportation_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window(app.Tabs.py_exploratory.analysiswidg.cat_exp.data)
     assert isinstance(window, ctk.CTkToplevel)
 
-'''
 
 
 ##>>## GUI Spatial tests
