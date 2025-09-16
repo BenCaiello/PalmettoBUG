@@ -1295,7 +1295,7 @@ class ImageAnalysis:
                 print(self.directory_object.Analysis_internal_dir, os.listdir(self.directory_object.Analysis_internal_dir))
                 print(self.Analysis_panel)
                 print(self)
-                print(self.master)
+                print(Analysis_tab.master)
                 print(self.directory_object.Analyses_dir)
                 table_launcher = TableLaunchAnalysis(1, 1, 
                                                      self.directory_object.Analysis_internal_dir, 
