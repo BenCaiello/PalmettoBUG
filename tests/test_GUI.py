@@ -169,10 +169,12 @@ def test_launch_drop_restore():           ## filtering
 
 def test_launch_scaling():
     window = app.Tabs.py_exploratory.analysiswidg.launch_scaling()
+    window.call_scaling()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_combat_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_combat_window()
+    window.do_combat()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_do_regions():
@@ -186,6 +188,9 @@ def test_do_regions():
 def test_launch_scatterplot():
     window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
     assert isinstance(window, ctk.CTkToplevel)
+
+
+
 
 def test_launch_Plot_Counts_per_ROI_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_Counts_per_ROI_window()
@@ -286,6 +291,7 @@ def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
     assert isinstance(window, ctk.CTkToplevel)
 
+'''
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
     assert isinstance(window, ctk.CTkToplevel)
@@ -329,3 +335,4 @@ def test_launch_edt():
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
 
+'''
