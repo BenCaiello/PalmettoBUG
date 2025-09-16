@@ -96,6 +96,11 @@ def test_call_region_measurement():
     assert(len(pd.read_csv(intensities_dir + "/CRC_1_ROI_001.ome.csv") == 2177)), "Unexpected number of cells in image 1" 
 
 def test_call_to_Analysis():
+    ## pre load metadata / analysis panel into analysis directory so that Analysis loads properly
+    Analysis_panel = proj_directory + "/Analyses/Analysis_panel.csv"
+    metadata = proj_directory + "/Analyses/metadata.csv"
+    shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
+    shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
     analysis_loader = app.entrypoint.image_proc_widg.call_to_Analysis()
     analysis_loader.analysis_choice.configure(variable = ctk.StringVar(value = 'test_analysis'))
     analysis_loader.run()
@@ -105,7 +110,7 @@ def test_call_to_Analysis():
     interal_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analysis_internal_dir
     assert(os.listdir(interal_dir + "/Analysis_fcs")[0].rfind(".fcs") != -1), "FCS files not in /main/Analysis_fcs!"
     assert(len(metadata) == 10), "Automatically generated Metadata file's length does not match the number of FCS files in the experiment!"
-    assert("marker_class" in panel_file.columns), "Automatically generated Analysis_panel file should have a 'marker_class' column"
+    assert("marker_class" in panel.columns), "Automatically generated Analysis_panel file should have a 'marker_class' column"
     assert("Analysis_panel.csv" in os.listdir(interal_dir)), "Analysis_panel.csv not written to the proper place!"
     assert("metadata.csv" in os.listdir(interal_dir)), "metadata.csv not written to the proper place!"
     assert("condition" in list(pd.read_csv(interal_dir + "/metadata.csv").columns)), "Automatically generated metadata.csv file must have a 'condition' column!"
@@ -154,14 +159,6 @@ def test_load_classifier():
 '''
 
 ##>>## GUI Analysis tests
-
-def test_setup_directories():
-    global Analysis_panel
-    Analysis_panel = proj_directory + "/Analyses/Analysis_panel.csv"
-    global metadata
-    metadata = proj_directory + "/Analyses/metadata.csv"
-    shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
-    shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
 
 def test_launch_drop_restore():           ## filtering
     window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
