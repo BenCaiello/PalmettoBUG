@@ -90,7 +90,7 @@ def test_call_region_measurement():
     region_meas = app.entrypoint.image_proc_widg.call_region_measurement()
     region_meas.output_folder.configure(textvariable = ctk.StringVar(value = "test_analysis"))
     region_meas.masks_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
-    self.accept_values.invoke()
+    region_meas.accept_values.invoke()
     analysis_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analyses_dir + "/test_analysis"
     intensities_dir = analysis_dir + "/intensities"
     assert(len(os.listdir(analysis_dir + "/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
@@ -172,13 +172,16 @@ def test_launch_combat_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_combat_window()
     assert isinstance(window, ctk.CTkToplevel)
 
-'''
 def test_do_regions():
     global my_analysis
     my_analysis = app.Tabs.py_exploratory.analysiswidg.cat_exp
-    my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
-    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
-'''
+    shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
+    shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
+    my_analysis.load_data(proj_directory + "/Analyses/test_analysis/main")
+    #print(len(my_analysis.data.obs))
+    assert isinstance(my_analysis.data, anndata.AnnData)
+    #my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
+    #assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
 
 def test_launch_scatterplot():
     window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
