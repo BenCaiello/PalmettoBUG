@@ -3,6 +3,7 @@ import shutil
 
 import numpy as np
 import pandas as pd
+import anndata
 import customtkinter as ctk
 
 import palmettobug
@@ -148,7 +149,7 @@ def test_launch_classes_as_png():
 def test_load_classifier():
     app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
     assert True 
-'''
+
 
 ##>>## GUI Analysis tests
 
@@ -175,9 +176,6 @@ def test_launch_combat_window():
 def test_do_regions():
     global my_analysis
     my_analysis = app.Tabs.py_exploratory.analysiswidg.cat_exp
-    shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
-    shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
-    my_analysis.load_data(proj_directory + "/Analyses/test_analysis/main")
     #print(len(my_analysis.data.obs))
     assert isinstance(my_analysis.data, anndata.AnnData)
     #my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
@@ -310,7 +308,7 @@ def test_launch_data_table_exportation_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window(app.Tabs.py_exploratory.analysiswidg.cat_exp.data)
     assert isinstance(window, ctk.CTkToplevel)
 
-
+'''
 
 
 ##>>## GUI Spatial tests

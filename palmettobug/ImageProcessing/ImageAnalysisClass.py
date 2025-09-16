@@ -1460,6 +1460,11 @@ class direct_to_Analysis(ImageAnalysis):
 
         # now do the metadata initialization and table launches (shared with the main pathway)
         analysis_logger = Analysis_logger(self.directory_object.Analysis_internal_dir).return_log()
+        print(self.directory_object.Analysis_internal_dir, os.listdir(self.directory_object.Analysis_internal_dir))
+        print(self.Analysis_panel)
+        print(self)
+        print(self.master)
+        print(self.directory_object.Analyses_dir)
         table_launcher = TableLaunchAnalysis(1, 1,  
                                              self.directory_object.Analysis_internal_dir, 
                                              self.Analysis_panel, 
@@ -1468,6 +1473,7 @@ class direct_to_Analysis(ImageAnalysis):
                                              self.master, 
                                              alt_dir = self.directory_object.Analyses_dir, 
                                              logger = analysis_logger)
+        print(table_launcher)
         fcs_files  = [i for i in sorted(os.listdir(self.directory_object.fcs_dir)) if i.lower().find(".fcs") != -1]
         try:
             self.metadata = pd.read_csv(self.metadata_dir)
