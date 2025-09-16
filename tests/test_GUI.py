@@ -80,12 +80,11 @@ def test_call_mask_expand():
 
 def test_call_intersection_difference():
     intersect = app.entrypoint.image_proc_widg.call_intersection_difference()
-    masks1 = proj_directory + "/masks/example_deepcell_masks"
-    masks2 = proj_directory + "/masks/expanded_deepcell_masks"
     intersect.masks_folder1.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     intersect.masks_folder2.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     intersect.read_values()
-    assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks"  )) == 10), "Mask intersection function failed!"
+    print(os.listdir(proj_directory + "/masks"))
+    assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks")) == 10), "Mask intersection function failed!"
 
 def test_call_region_measurement():
     region_meas = app.entrypoint.image_proc_widg.call_region_measurement()
@@ -151,13 +150,7 @@ def test_load_classifier():
     assert True 
 '''
 
-
-
 ##>>## GUI Analysis tests
-
-
-
-############################################ Some test require that an Analysis is loaded, these are currently commented out ############################
 
 def test_setup_directories():
     global Analysis_panel
@@ -204,66 +197,104 @@ def test_launch_NRS_window():
     window.plot_NRS()
     assert isinstance(window, ctk.CTkToplevel)
 
-
-
-def test_launch_classy_masker():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
-    assert isinstance(window, ctk.CTkToplevel)
-
-def test_launch_leiden():
-    window =  app.Tabs.py_exploratory.analysiswidg.launch_leiden()
+def test_launch_Plot_histograms_per_ROI_window():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_histograms_per_ROI_window()
+    window.plot_ROI_histograms()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_UMAP_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_UMAP_window()
+    window.run_UMAP()
+    window.run_UMAP(kind = 'PCA')
+    assert isinstance(window, ctk.CTkToplevel)
+    assert (my_analysis.PCA_embedding is not None), "do PCA did not create an anndata embedding"
+    assert isinstance(my_analysis.PCA_embedding, anndata.AnnData), "do PCA did not create an anndata embedding"
+    assert (my_analysis.UMAP_embedding is not None), "do UMAP did not create an anndata embedding"
+    assert isinstance(my_analysis.UMAP_embedding, anndata.AnnData), "do UMAP did not create an anndata embedding"
+
+def test_launch_cluster_window():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_window()
+    window.run_clustering()
+    try:
+        metaclustering = my_analysis.data.obs['metaclustering']
+    except Exception:
+        metaclustering = None
+    assert metaclustering is not None, "do_flowsom did not create a metaclustering column"
+    assert len(metaclustering.unique()) == 20, "do_flowsom did not create the expected number of values in the metaclustering column"
+    assert '1' in metaclustering, "do_flowsom did not create the expected values in metaclustering column"
+    assert '20' in metaclustering,  "do_flowsom did not create the expected values in metaclustering column"
+    assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
+
+def test_launch_leiden():
+    window =  app.Tabs.py_exploratory.analysiswidg.launch_leiden()
+    window.do_leiden()
+    assert isinstance(window, ctk.CTkToplevel)
+    try:
+        leiden = my_analysis.data.obs['leiden']
+    except Exception:
+        leiden = None
+    assert leiden is not None,  "do_leiden did not create a leiden column"
+    number_of_leiden =  len(leiden.unique())
+    assert '1' in leiden, "do_leiden did not create the expected values in leiden column"
+    assert str(number_of_leiden) in leiden, "do_ledien did not create the expected values in leiden column"
+
+def test_launch_plot_UMAP_window():     ### this window handles UMAP, PCA, and facetted varieties of both
+    window = app.Tabs.py_exploratory.analysiswidg.launch_plot_UMAP_window()
+    window.plot_UMAP(subsetting_column = 'antigens', color_column = "HistoneH3", filename = 'UMAP_antigens')
+    window.plot_UMAP(subsetting_column = 'condition', color_column = "HistoneH3", filename = 'UMAP_condition')
+    window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'UMAP_single')
+    window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'PCA_single', kind = 'pca')
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_launch_Exprs_Heatmap_window():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_Exprs_Heatmap_window()
+    window.plot_Heatmap()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_launch_cluster_heatmap_window():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_heatmap_window()
+    window.pop_up.select()
+    window.plot_cluster_heatmap()
+    assert isinstance(window, ctk.CTkToplevel)
+
+
+
+
+def test_launch_distrib_window():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_distrib_window()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_ClusterVGroup():
     window = app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
     assert isinstance(window, ctk.CTkToplevel)
 
-def test_launch_distrib_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_distrib_window()
-    assert isinstance(window, ctk.CTkToplevel)
-
-def test_launch_plot_UMAP_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_plot_UMAP_window()
-    assert isinstance(window, ctk.CTkToplevel)
-
-def test_launch_cluster_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_window()
-    assert isinstance(window, ctk.CTkToplevel)
-
-def test_launch_Exprs_Heatmap_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_Exprs_Heatmap_window()
-    assert isinstance(window, ctk.CTkToplevel)
-
-def test_launch_Plot_histograms_per_ROI_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_histograms_per_ROI_window()
+def test_launch_plot_cluster_expression_window():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_abundance_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_abundance_window()
     assert isinstance(window, ctk.CTkToplevel)
 
-def test_launch_cluster_heatmap_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_heatmap_window()
-    assert isinstance(window, ctk.CTkToplevel)
-
-def test_launch_plot_cluster_expression_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
-    assert isinstance(window, ctk.CTkToplevel)
-
 def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
     assert isinstance(window, ctk.CTkToplevel)
 
-def test_launch_regionprop():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
-    assert isinstance(window, ctk.CTkToplevel)
-
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_launch_classy_masker():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
+    assert isinstance(window, ctk.CTkToplevel)
+
+
+
+
+
+
+def test_launch_regionprop():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_cluster_save_load():

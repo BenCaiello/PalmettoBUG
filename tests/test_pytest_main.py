@@ -104,7 +104,7 @@ def test_do_flowsom():
     assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
 
 def test_do_leiden_clustering():
-    fs = my_analysis.do_leiden_clustering()
+    my_analysis.do_leiden_clustering()
     try:
         leiden = my_analysis.data.obs['leiden']
     except Exception:
