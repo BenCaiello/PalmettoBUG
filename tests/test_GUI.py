@@ -148,8 +148,8 @@ def test_accept_classifier_name():   ## supervised window
             window.dictionary_maker.row_list[counter].configure(variable = ctk.StringVar(value = ii))
             counter += 1
     window.dictionary_maker.remove_last_row()
-    window.class_dict_maker.row_list[1][1].configure(variable = ctk.StringVar(value = 'epithelia'))
-    window.class_dict_maker.row_list[1][1].configure(variable = ctk.StringVar(value = 'laminapropria'))
+    window.class_dict_maker.row_list[1][1].configure(textvariable = ctk.StringVar(value = 'epithelia'))
+    window.class_dict_maker.row_list[1][1].configure(textvariable = ctk.StringVar(value = 'laminapropria'))
     window.set_up_classifier_details()
     assert True 
 
