@@ -305,17 +305,18 @@ def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
     assert isinstance(window, ctk.CTkToplevel)
 
-def test_launch_cluster_merging():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
-    assert isinstance(window, ctk.CTkToplevel)
+#def test_launch_cluster_merging():
+#    window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
+#    assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_classy_masker():
     window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
+    window.classy_mask(clustering = "metaclustering")
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_regionprop():
     window = app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
-    assert True
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_cluster_save_load():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()

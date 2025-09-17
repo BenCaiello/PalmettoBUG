@@ -39,6 +39,7 @@ _TESTING = False
 def toggle_TESTING():
     global _TESTING
     _TESTING = not _TESTING
+    return _TESTING
 
 homedir = __file__.replace("\\","/")
 homedir = homedir[:(homedir.rfind("/"))]
@@ -194,7 +195,7 @@ class Analysis_py_widgets(ctk.CTkFrame):
     def launch_regionprop(self) -> None:
         region_props_panel = self.cat_exp.regionprops_data
         if region_props_panel is not None:
-            TableLaunch(1, 1, 
+            return TableLaunch(1, 1, 
                         self.cat_exp.directory, 
                         dataframe = region_props_panel, 
                         table_type = "Regionprops_panel.csv", 
