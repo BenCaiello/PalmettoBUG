@@ -495,7 +495,7 @@ class PrelimDistribPlotWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         available_columns = [i for i in (CLUSTER_NAMES + COLNAMES) if i in list(self.master.cat_exp.data.obs.columns)]
         if clustering_column == "":
-            message = "You must select a clustering!")
+            message = "You must select a clustering!"
             if not _TESTING:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
@@ -693,7 +693,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def load_class_from_px_classifier(self, identifier: str) -> None:
         if (identifier == ""):
-            message = "No cell classification selected to load!")
+            message = "No cell classification selected to load!"
             if not _TESTING:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
@@ -1630,7 +1630,7 @@ class plot_cluster_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             self.focus()
             return
         elif k not in available_columns:
-            message = f"Clustering =  {k}  is not available in the dataset! \n Of {str(CLUSTER_NAMES)} \nThese are currently available: {str(available_columns)}")
+            message = f"Clustering =  {k}  is not available in the dataset! \n Of {str(CLUSTER_NAMES)} \nThese are currently available: {str(available_columns)}"
             if not _TESTING:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
@@ -2067,7 +2067,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             self.focus()
             return
         elif self.column.get() not in available_columns:
-            message = f"Clustering =  {column}  is not available in the dataset! \n Of {str(CLUSTER_NAMES)} \nThese are currently available: {str(available_columns)}")
+            message = f"Clustering =  {column}  is not available in the dataset! \n Of {str(CLUSTER_NAMES)} \nThese are currently available: {str(available_columns)}"
             if not _TESTING:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
