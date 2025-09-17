@@ -127,12 +127,19 @@ def test_launch_loading_window():
     assert True 
 
 def test_unsupervised():
-    loading_window.unsupervised("unsupervised1")
+    window = loading_window.unsupervised("unsupervised1", app.Tabs.px_classification.create.px_widg)
+    window.image_choice.configure(variable = ctk.StringVar(value = 'img'))
+    channel_2_widgets = window.keep_table.widget_list_of_lists[1]
+    channel_2_widgets[1].configure(variable = ctk.StringVar(value = 'Use Channel'))
+    for i in channel_2_widgets[2:]:
+        i.select() 
+    window.run_training()
     assert True 
 
-#def test_accept_classifier_name():   ## supervised window
-#    loading_window.accept_classifier_name("supervised1")
-#    assert True 
+def test_accept_classifier_name():   ## supervised window
+    window = loading_window.accept_classifier_name("supervised1", app.Tabs.px_classification.create.px_widg)
+    window.advanced_options()
+    assert True 
 
 #def test_detail_display():
 #    app.Tabs.px_classification.create.px_widg.detail_display()
