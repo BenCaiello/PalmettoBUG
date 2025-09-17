@@ -52,7 +52,7 @@ import numpy as np
     # first we make a shared array
 #    data_shared = RawArray(
 #        np.ctypeslib.as_ctypes_type(dtype), _array.shape[0] * _array.shape[1]
-    )
+#    )
     # and wrap it with a numpy array and fill it with our data
 #    data = np.frombuffer(data_shared, dtype=dtype).reshape(_array.shape)
 #    np.copyto(data, _array.astype(dtype))
