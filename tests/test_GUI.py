@@ -153,6 +153,15 @@ def test_accept_classifier_name():   ## supervised window
     window.set_up_classifier_details()
     assert True 
 
+def test_training():
+    print(app.Tabs.px_classification.create.px_widg.classifier_dir)
+    print(os.listdir(app.Tabs.px_classification.create.px_widg.classifier_dir))
+    training_dir = app.Tabs.px_classification.create.px_widg.classifier_dir + "/lumen_epithelia_laminapropria/training_labels"
+    shutil.rmtree(training_dir)
+    shutil.copytree(f"{homedir}/tests/training_labels", training_dir)
+    app.Tabs.px_classification.create.px_widg.Napari_frame.choose_folder.configure(variable = ctk.StringVar(value = 'img'))
+    app.Tabs.px_classification.create.px_widg.Napari_frame.training_button.invoke()
+
 def test_detail_display():
     app.Tabs.px_classification.create.px_widg.detail_display()
     assert True 
@@ -171,9 +180,9 @@ def test_launch_classes_as_png():
     app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_classes_as_png()
     assert True 
 
-#def test_load_classifier():
-#    app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
-#    assert True 
+def test_load_classifier():
+    app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
+    assert True 
 
 
 ##>>## GUI Analysis tests
