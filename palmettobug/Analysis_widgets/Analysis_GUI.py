@@ -964,7 +964,7 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
 
-    def plot_UMAP(self, subsetting_column: str, color_column: str, filename: str, kind: str = 'umap') -> None:
+    def plot_UMAP(self, subsetting_column: str, color_column: str, filename: str, kind: str = 'UMAP') -> None:
         if filename_checker(filename, self):
             return
         if ((color_column == "") and (subsetting_column != "antigens")):

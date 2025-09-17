@@ -4,6 +4,7 @@ import shutil
 import numpy as np
 import pandas as pd
 import anndata
+import maptplotlib
 import customtkinter as ctk
 
 import palmettobug
@@ -247,10 +248,10 @@ def test_launch_leiden():
 
 def test_launch_plot_UMAP_window():     ### this window handles UMAP, PCA, and facetted varieties of both
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_UMAP_window()
-    window.plot_UMAP(subsetting_column = 'antigens', color_column = "HistoneH3", filename = 'UMAP_antigens')
-    window.plot_UMAP(subsetting_column = 'condition', color_column = "HistoneH3", filename = 'UMAP_condition')
-    window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'UMAP_single')
-    window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'PCA_single', kind = 'pca')
+    window.plot_UMAP(subsetting_column = 'antigens', color_column = "HistoneH3", filename = 'UMAP_antigens', kind = 'UMAP')
+    window.plot_UMAP(subsetting_column = 'condition', color_column = "HistoneH3", filename = 'UMAP_condition', kind = 'UMAP')
+    window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'UMAP_single', kind = 'UMAP')
+    window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'PCA_single', kind = 'PCA')
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_Exprs_Heatmap_window():
@@ -258,15 +259,11 @@ def test_launch_Exprs_Heatmap_window():
     window.plot_Heatmap()
     assert isinstance(window, ctk.CTkToplevel)
 
-'''
 def test_launch_cluster_heatmap_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_heatmap_window()
-    window.pop_up.select()
+    #window.pop_up.select()
     window.plot_cluster_heatmap()
     assert isinstance(window, ctk.CTkToplevel)
-'''
-
-
 
 def test_launch_distrib_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_distrib_window()
@@ -288,7 +285,6 @@ def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
     assert isinstance(window, ctk.CTkToplevel)
 
-'''
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
     assert isinstance(window, ctk.CTkToplevel)
@@ -331,5 +327,3 @@ def test_launch_edt():
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
-
-'''
