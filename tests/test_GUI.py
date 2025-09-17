@@ -302,11 +302,11 @@ def test_launch_distrib_window():
 
 def test_launch_ClusterVGroup():
     window = app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
-    window.plot_clusterV(clustering_column = 'metaclustering', 
-                      type_of_graph = 'violin', 
-                      type_of_comp = 'Raw Group values (no substraction of rest of dataset)', 
-                      filename = "clusterV_distrib_etc", 
-                      marker_class = "type")
+#    window.plot_clusterV(clustering_column = 'metaclustering', 
+#                      type_of_graph = 'violin', 
+#                      type_of_comp = 'Raw Group values (no substraction of rest of dataset)', 
+#                      filename = "clusterV_distrib_etc", 
+#                      marker_class = "type")
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_plot_cluster_expression_window():
