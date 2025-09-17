@@ -165,6 +165,7 @@ def test_launch_classes_as_png():
 
 
 ##>>## GUI Analysis tests
+palmettobug.Analysis_widgets.Analysis_GUI.toggle_TESTING() ## prevents warning pop ups at many steps -- these block the testing suite and prevent errors from being properly debugged
 
 def test_launch_drop_restore():           ## filtering
     window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
@@ -294,7 +295,7 @@ def test_launch_plot_cluster_expression_window():
     window.run_py_plot_cluster_histograms()
     assert isinstance(window, ctk.CTkToplevel)
 
-    
+
 
 def test_launch_abundance_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_abundance_window()

@@ -35,6 +35,9 @@ from ..Analysis_functions.Analysis import Analysis
 from ..Utils.sharedClasses import DirectoryDisplay, CtkSingletonWindow, Analysis_logger, TableLaunch, filename_checker, overwrite_approval, warning_window
 
 __all__ = []
+_TESTING = False
+def toggle_TESTING():
+    _TESTING = not _TESTING
 
 homedir = __file__.replace("\\","/")
 homedir = homedir[:(homedir.rfind("/"))]
@@ -199,7 +202,11 @@ class Analysis_py_widgets(ctk.CTkFrame):
         
     def launch_cluster_merging(self) -> None:
         if ("metaclustering" not in self.cat_exp.data.obs.columns) and ("leiden" not in self.cat_exp.data.obs.columns):
-            tk.messagebox.showwarning("Warning!", message = "No metaclustering / leiden available for merging! Load or run a clustering first!")
+            message = "No metaclustering / leiden available for merging! Load or run a clustering first!" 
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             return
         return cluster_merging_window(self)
 
@@ -488,14 +495,19 @@ class PrelimDistribPlotWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         available_columns = [i for i in (CLUSTER_NAMES + COLNAMES) if i in list(self.master.cat_exp.data.obs.columns)]
         if clustering_column == "":
-            tk.messagebox.showwarning(title = "Warning!",
-                message = "You must select a clustering!")
+            message = "You must select a clustering!")
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         elif clustering_column not in available_columns:
-            tk.messagebox.showwarning(title = "Warning!",
-                message = f"Clustering =  {clustering_column}  is not available in the dataset! \n Of {str(COLNAMES)}" +
-                    f"\n These are currently available: {str(available_columns)}")
+            message = f"Clustering =  {clustering_column}  is not available in the dataset! \n Of {str(COLNAMES)}\n These are currently available: {str(available_columns)}"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         if not overwrite_approval(f"{self.master.cat_exp.save_dir}/{type_of_graph}{filename}.png", file_or_folder = "file", GUI_object = self):
@@ -641,8 +653,11 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def save_clustering(self, save_type: str, identifier: str) -> None:
         if save_type not in list(self.master.cat_exp.data.obs.columns):
-            tk.messagebox.showwarning(title = "Warning!", 
-                message = f"Cell grouping ({save_type}) column not currently in data! \n Create or Load this before trying to save")
+            message = f"Cell grouping ({save_type}) column not currently in data! \n Create or Load this before trying to save"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         if not overwrite_approval(f"{self.master.cat_exp.clusterings_dir}/{save_type}{identifier}.csv", file_or_folder = "file", GUI_object = self):
@@ -652,8 +667,11 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def load_clustering(self, identifier: str) -> None:
         if (identifier == ""):
-            tk.messagebox.showwarning(title = "Warning!", 
-                message = "No clustering selected to load!")
+            message = "No clustering selected to load!"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         identifier2 = f"{self.master.cat_exp.directory}/clusterings/{identifier}"
@@ -675,8 +693,11 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def load_class_from_px_classifier(self, identifier: str) -> None:
         if (identifier == ""):
-            tk.messagebox.showwarning(title = "Warning!", 
-                message = "No cell classification selected to load!")
+            message = "No cell classification selected to load!")
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return   
         self.master.cat_exp.load_classification(cell_classifications = (self.classy_dir + "/" + identifier))
@@ -761,8 +782,11 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             rlen = int(rlen)
             seed = int(seed)
         except ValueError:
-            tk.messagebox.showwarning("Warning!", 
-                message = "The parameters of FlowSOM clustering must be integers, but one of the inputs cannot be converted to an integer!")
+            message = "The parameters of FlowSOM clustering must be integers, but one of the inputs cannot be converted to an integer!"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         returned = self.master.cat_exp.do_flowsom(marker_class = marker_class, 
@@ -867,9 +891,11 @@ class UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 n_neighbors = int(n_neighbors)
                 min_dist = float(min_dist)
         except ValueError:
-            tk.messagebox.showwarning("Warning!", 
-                message = "At least one numerical / integer parameter (max cells / seed -- and n_neighbors / min_dist if for UMAP)"
-                          "\n was set to a non-numerical value! Dimensionality Reduction cancelled.")
+            message = "At least one numerical / integer parameter (max cells / seed -- and n_neighbors / min_dist if for UMAP)\n was set to a non-numerical value! Dimensionality Reduction cancelled."
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         
@@ -968,8 +994,11 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if filename_checker(filename, self):
             return
         if ((color_column == "") and (subsetting_column != "antigens")):
-            tk.messagebox.showwarning("Warning!", 
-                message = "The color parameter was left blank!")
+            message = "The color parameter was left blank!"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         if not overwrite_approval(f"{self.master.cat_exp.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
@@ -1241,7 +1270,11 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         try:
             seed = int(seed)
         except Exception:
-            tk.messagebox.showwarning("Warning!", message = f"{seed} is not an integer!")
+            message = f"{seed} is not an integer!"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         if filename_checker(filename, self):
@@ -1335,14 +1368,19 @@ class ClusterVGroup(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         available_columns = [i for i in (CLUSTER_NAMES + COLNAMES) if i in list(self.master.cat_exp.data.obs.columns)]
         if clustering_column == "":
-            tk.messagebox.showwarning(title = "Warning!",
-                message = "You must select a clustering!")
+            message = "You must select a clustering!"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         elif clustering_column not in available_columns:
-            tk.messagebox.showwarning(title = "Warning!",
-                message = f"Clustering column =  {clustering_column}  is not in the dataset! \n Of {str(COLNAMES)}" +
-                    f"\n These are currently available: {str(available_columns)}")
+            message = f"Clustering column =  {clustering_column}  is not in the dataset! \n Of {str(COLNAMES)}\n These are currently available: {str(available_columns)}"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         if not overwrite_approval(f"{self.master.cat_exp.save_dir}/{type_of_graph}{filename}.png", file_or_folder = "file", GUI_object = self):
@@ -1472,14 +1510,19 @@ class plot_cluster_abundances_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
             return
         available_columns = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns)]
         if k == "":
-            tk.messagebox.showwarning(title = "Warning!", 
-                                    message = "You must select a clustering!")
+            message = "You must select a clustering!"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         elif k not in available_columns:
-            tk.messagebox.showwarning(title = "Warning!", 
-                                    message = f"Clustering =  {k}  is not available in the dataset! \n Of {str(COLNAMES)} \n" +
-                                    "These are currently available: {str(available_columns)}")
+            message = f"Clustering =  {k}  is not available in the dataset! \n Of {str(COLNAMES)} \nThese are currently available: {str(available_columns)}"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         if not overwrite_approval(f"{self.master.cat_exp.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
@@ -1579,14 +1622,19 @@ class plot_cluster_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             return
         available_columns = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns)]
         if k == "":
-            tk.messagebox.showwarning(title = "Warning!", 
-                                    message = "You must select a clustering!")
+            message = "You must select a clustering!"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         elif k not in available_columns:
-            tk.messagebox.showwarning(title = "Warning!", 
-                                    message = f"Clustering =  {k}  is not available in the dataset! \n Of {str(CLUSTER_NAMES)} \n"
-                                    "These are currently available: {str(available_columns)}")
+            message = f"Clustering =  {k}  is not available in the dataset! \n Of {str(CLUSTER_NAMES)} \nThese are currently available: {str(available_columns)}")
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         if not overwrite_approval(f"{self.master.cat_exp.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
@@ -2011,14 +2059,19 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         available_columns = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns)]
         column = self.column.get()
         if column == "":
-            tk.messagebox.showwarning(title = "Warning!", 
-                                    message = "You must choose a clustering!")
+            message = "You must choose a clustering!"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         elif self.column.get() not in available_columns:
-            tk.messagebox.showwarning(title = "Warning!", 
-                                    message = f"Clustering =  {column}  is not available in the dataset! \n Of {str(CLUSTER_NAMES)} \n"
-                                    "These are currently available: {str(available_columns)}")
+            message = f"Clustering =  {column}  is not available in the dataset! \n Of {str(CLUSTER_NAMES)} \nThese are currently available: {str(available_columns)}")
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         if not overwrite_approval(self.master.cat_exp.directory + f"/Data_tables/{filename}.csv", file_or_folder = "file", GUI_object = self):
@@ -2122,14 +2175,19 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         available_columns = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns)] + ["whole dataset"]
         clustering = self.clustering_column.get()
         if clustering not in available_columns:
-            tk.messagebox.showwarning(title = "Warning!", 
-                                message = "You must select a clustering!")
+            message = "You must select a clustering!"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         elif clustering not in available_columns:
-            tk.messagebox.showwarning(title = "Warning!", 
-                                message = f"Clustering =  {clustering}  is not available in the dataset! \n" +
-                                f"Of {str(CLUSTER_NAMES + ['whole dataset'])} \n These are currently available: {str(available_columns)}")
+            message = f"Clustering =  {clustering}  is not available in the dataset! \nOf {str(CLUSTER_NAMES + ['whole dataset'])} \n These are currently available: {str(available_columns)}"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         
@@ -2254,7 +2312,11 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         except KeyError:
             if warning is True:   ## only warn if someone has selected a non-existant column -- 
                                     # not everytime someone mouses over the cluster_to_table optionmenu
-                tk.messagebox.showwarning("Warning!", message = f"{choice} not available!")
+                message = f"{choice} not available!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("Warning!", message = message)
+                else:
+                    print(message)
                 self.focus()
                 return
             return
@@ -2330,7 +2392,11 @@ class Scaling_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 upper_quant = float(upper_quant)
                 upper_quant_log = str(upper_quant)
             except ValueError:
-                tk.messagebox.showwarning("Warning!", message = "Upper quantile must be a number for %quantile scaling!")
+                message = "Upper quantile must be a number for %quantile scaling!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("Warning!", message = message)
+                else:
+                    print(message)
                 self.focus()
                 return
         self.master.cat_exp.do_scaling(scaling_choice, upper_quantile = upper_quant)
@@ -2838,7 +2904,11 @@ class do_leiden_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             resolution = float(resolution)
             minimum_distance = float(minimum_distance)
         except ValueError:
-            tk.messagebox.showwarning("Warning!", message = "Seed, resolution, neighbors, and minimum distance must be numeric! Exiting without performing Leiden")
+            message = "Seed, resolution, neighbors, and minimum distance must be numeric! Exiting without performing Leiden"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         success = self.master.cat_exp.do_leiden_clustering(marker_class = marker_class, 
@@ -3187,8 +3257,11 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         try:
             alpha = float(alpha)
         except Exception:
-            tk.messagebox.showwarning("Warning!", 
-                message = "Alpha must be numerical! Cancelling plot!")
+            message = "Alpha must be numerical! Cancelling plot!"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         try:
