@@ -139,6 +139,18 @@ def test_unsupervised():
 def test_accept_classifier_name():   ## supervised window
     window = loading_window.accept_classifier_name("lumen_epithelia_laminapropria", app.Tabs.px_classification.create.px_widg)
     window.advanced_options()
+    window.sigma_list.checkbox_list[1].select()
+    for i in window.features_list.checkbox_list:
+        i.select()
+    counter = 0
+    for i,ii in enumerate(window.dictionary_maker.dataframe['name']):
+        if (i == 6) or (i ==26):
+            window.dictionary_maker.row_list[counter].configure(variable = ctk.StringVar(value = ii))
+            counter += 1
+    window.dictionary_maker.remove_last_row()
+    window.class_dict_maker.row_list[1].configure(variable = ctk.StringVar(value = 'epithelia'))
+    window.class_dict_maker.row_list[1].configure(variable = ctk.StringVar(value = 'laminapropria'))
+    window.set_up_classifier_details()
     assert True 
 
 def test_detail_display():
@@ -290,8 +302,8 @@ def test_launch_distrib_window():
 
 def test_launch_plot_cluster_expression_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
-    self.clustering_option.configure(variable = ctk.StringVar(value = "metaclustering"))
-    self.antigen.configure(variable = ctk.StringVar(value = "HistoneH3"))
+    window.clustering_option.configure(variable = ctk.StringVar(value = "metaclustering"))
+    window.antigen.configure(variable = ctk.StringVar(value = "HistoneH3"))
     window.run_py_plot_cluster_histograms()
     assert isinstance(window, ctk.CTkToplevel)
 
