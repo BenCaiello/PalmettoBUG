@@ -4,7 +4,7 @@ import shutil
 import numpy as np
 import pandas as pd
 import anndata
-import maptplotlib
+import matplotlib
 import customtkinter as ctk
 
 import palmettobug
