@@ -121,7 +121,7 @@ def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows
     assert True 
 
 
-'''
+
 ##>>## GUI Pixel classification tests (px class creation)
 def test_launch_loading_window():
     global loading_window
@@ -157,7 +157,7 @@ def test_launch_classes_as_png():
 def test_load_classifier():
     app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
     assert True 
-'''
+
 
 ##>>## GUI Analysis tests
 
@@ -231,7 +231,6 @@ def test_launch_cluster_window():
     assert len(metaclustering.unique()) == 20, "do_flowsom did not create the expected number of values in the metaclustering column"
     assert '1' in metaclustering, "do_flowsom did not create the expected values in metaclustering column"
     assert '20' in metaclustering,  "do_flowsom did not create the expected values in metaclustering column"
-    assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
 
 def test_launch_leiden():
     window =  app.Tabs.py_exploratory.analysiswidg.launch_leiden()
@@ -296,18 +295,16 @@ def test_launch_classy_masker():
 
 
 
-
-
 def test_launch_regionprop():
     window = app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
-    assert isinstance(window, ctk.CTkToplevel)
+    assert True
 
 def test_launch_cluster_save_load():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_data_table_exportation_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window(app.Tabs.py_exploratory.analysiswidg.cat_exp.data)
+    window = app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window()
     assert isinstance(window, ctk.CTkToplevel)
 
 

@@ -201,7 +201,7 @@ class Analysis_py_widgets(ctk.CTkFrame):
         if ("metaclustering" not in self.cat_exp.data.obs.columns) and ("leiden" not in self.cat_exp.data.obs.columns):
             tk.messagebox.showwarning("Warning!", message = "No metaclustering / leiden available for merging! Load or run a clustering first!")
             return
-        cluster_merging_window(self)
+        return cluster_merging_window(self)
 
     def launch_drop_restore(self) -> None:
         return image_drop_restore_window(self)
