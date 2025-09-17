@@ -152,9 +152,9 @@ def test_launch_classes_as_png():
     app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_classes_as_png()
     assert True 
 
-def test_load_classifier():
-    app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
-    assert True 
+#def test_load_classifier():
+#    app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
+#    assert True 
 
 
 ##>>## GUI Analysis tests

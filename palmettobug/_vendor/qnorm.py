@@ -38,7 +38,7 @@ Changes:
 '''
 __all__ = []
 from typing import Union
-from multiprocessing import Pool, RawArray
+#from multiprocessing import Pool, RawArray
 
 import numba
 import numpy as np
