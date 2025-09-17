@@ -137,21 +137,21 @@ def test_unsupervised():
     assert True 
 
 def test_accept_classifier_name():   ## supervised window
-    window = loading_window.accept_classifier_name("supervised1", app.Tabs.px_classification.create.px_widg)
+    window = loading_window.accept_classifier_name("lumen_epithelia_laminapropria", app.Tabs.px_classification.create.px_widg)
     window.advanced_options()
     assert True 
 
-#def test_detail_display():
-#    app.Tabs.px_classification.create.px_widg.detail_display()
-#    assert True 
+def test_detail_display():
+    app.Tabs.px_classification.create.px_widg.detail_display()
+    assert True 
 
-#def test_bio_label_launch():
-#    app.Tabs.px_classification.create.px_widg.bio_label_launch()
-#    assert True 
+def test_bio_label_launch():
+    app.Tabs.px_classification.create.px_widg.bio_label_launch()
+    assert True 
 
-#def test_save_classifier():
-#    app.Tabs.px_classification.create.px_widg.save_classifier()
-#    assert True 
+def test_save_classifier():
+    app.Tabs.px_classification.create.px_widg.save_classifier()
+    assert True 
 
 
 ##>>## GUI Pixel classification tests (px class use)
@@ -271,15 +271,30 @@ def test_launch_cluster_heatmap_window():
 
 def test_launch_distrib_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_distrib_window()
+    window.plot_clusterV(clustering_column = 'sample_id', 
+                      type_of_graph = 'violin', 
+                      type_of_comp = 'Raw Group values (no substraction of rest of dataset)', 
+                      filename = "clusterV_distrib_etc", 
+                      marker_class = "type")
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_ClusterVGroup():
     window = app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
+    window.plot_clusterV(clustering_column = 'metaclustering', 
+                      type_of_graph = 'violin', 
+                      type_of_comp = 'Raw Group values (no substraction of rest of dataset)', 
+                      filename = "clusterV_distrib_etc", 
+                      marker_class = "type")
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_plot_cluster_expression_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
+    self.clustering_option.configure(variable = ctk.StringVar(value = "metaclustering"))
+    self.antigen.configure(variable = ctk.StringVar(value = "HistoneH3"))
+    window.run_py_plot_cluster_histograms()
     assert isinstance(window, ctk.CTkToplevel)
+
+    
 
 def test_launch_abundance_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_abundance_window()
@@ -296,9 +311,6 @@ def test_launch_cluster_merging():
 def test_launch_classy_masker():
     window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
     assert isinstance(window, ctk.CTkToplevel)
-
-
-
 
 def test_launch_regionprop():
     window = app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
