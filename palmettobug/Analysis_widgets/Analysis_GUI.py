@@ -37,6 +37,7 @@ from ..Utils.sharedClasses import DirectoryDisplay, CtkSingletonWindow, Analysis
 __all__ = []
 _TESTING = False
 def toggle_TESTING():
+    global _TESTING
     _TESTING = not _TESTING
 
 homedir = __file__.replace("\\","/")
