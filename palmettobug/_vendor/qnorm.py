@@ -32,6 +32,8 @@ Changes:
 -- Removed multiple dispatch (I only pass in numpy arrays to qnorm) and pandas check
 -- Removed unused imports
 -- add __all__ for docs
+-- commented out code for handling ncpus > 1 (multiprocessing), as palmettobug was not using it. This will 'improve' code coverage, and if multiprocessing is desired again
+    the code can be un-commented out
 
 '''
 __all__ = []
@@ -42,48 +44,48 @@ import numba
 import numpy as np
 
 
-def _parallel_argsort(_array, ncpus, dtype):
-    """
-    private argsort function of qnorm that works with multiple cpus
-    """
+#def _parallel_argsort(_array, ncpus, dtype):
+ #   """
+ #   private argsort function of qnorm that works with multiple cpus
+ #   """
     # multiproces sorting
     # first we make a shared array
-    data_shared = RawArray(
-        np.ctypeslib.as_ctypes_type(dtype), _array.shape[0] * _array.shape[1]
+#    data_shared = RawArray(
+#        np.ctypeslib.as_ctypes_type(dtype), _array.shape[0] * _array.shape[1]
     )
     # and wrap it with a numpy array and fill it with our data
-    data = np.frombuffer(data_shared, dtype=dtype).reshape(_array.shape)
-    np.copyto(data, _array.astype(dtype))
+#    data = np.frombuffer(data_shared, dtype=dtype).reshape(_array.shape)
+#    np.copyto(data, _array.astype(dtype))
 
     # now multiprocess sort
-    with Pool(
-        processes=ncpus,
-        initializer=_worker_init,
-        initargs=(data_shared, dtype, data.shape),
-    ) as pool:
-        sorted_idx = np.array(
-            pool.map(_worker_sort, range(data.shape[1])), dtype=np.int64
-        ).T
-    return data, sorted_idx
+#    with Pool(
+#        processes=ncpus,
+#        initializer=_worker_init,
+#        initargs=(data_shared, dtype, data.shape),
+#    ) as pool:
+#        sorted_idx = np.array(
+#            pool.map(_worker_sort, range(data.shape[1])), dtype=np.int64
+#        ).T
+#    return data, sorted_idx
 
-var_dict = {}
-def _worker_init(X, X_dtype, X_shape):
-    """
-    helper function to pass our reference of X to the sorter
-    """
-    var_dict["X"] = X
-    var_dict["X_dtype"] = X_dtype
-    var_dict["X_shape"] = X_shape
+#var_dict = {}
+#def _worker_init(X, X_dtype, X_shape):
+#    """
+#    helper function to pass our reference of X to the sorter
+#    """
+#    var_dict["X"] = X
+#    var_dict["X_dtype"] = X_dtype
+#    var_dict["X_shape"] = X_shape
 
 
-def _worker_sort(i):
-    """
-    argsort a single axis
-    """
-    X_np = np.frombuffer(var_dict["X"], dtype=var_dict["X_dtype"]).reshape(
-        var_dict["X_shape"]
-    )
-    return np.argsort(X_np[:, i])
+#def _worker_sort(i):
+#    """
+#    argsort a single axis
+#    """
+#    X_np = np.frombuffer(var_dict["X"], dtype=var_dict["X_dtype"]).reshape(
+#        var_dict["X_shape"]
+#    )
+#    return np.argsort(X_np[:, i])
 
 def quantile_normalize(
     _data: np.ndarray,
@@ -125,9 +127,9 @@ def quantile_normalize(
         # we do the sorting outside of numba because the numpy implementation
         # is faster, and numba does not support the axis argument.
         sorted_idx = np.argsort(data, axis=0)
-    elif ncpus > 1:
+    #elif ncpus > 1:
         # multiproces sorting
-        data, sorted_idx = _parallel_argsort(_data, ncpus, dtype)
+    #    data, sorted_idx = _parallel_argsort(_data, ncpus, dtype)
     else:
         raise ValueError("The number of cpus needs to be a positive integer.")
 

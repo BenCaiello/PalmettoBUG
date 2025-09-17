@@ -30,6 +30,7 @@ Changes:
     -- removed a mysterious symbol from the first comment in the copied code (maybe a ctrl+C / ctrl+V artifact? Not visible on github where it was copied from)
     -- replaced assert --> if not...raise 
     -- add __all__ for docs
+    -- Remove roundit, round_unc, and round_sf functions at the end of the file -- these were unused / deprecated. This is mainly to improve code coverage, but also declutters the file a bit
 
 Note on linting: Like with most of the libraries I semi-vendorized, I have the `ruff: noqa` comment at the top to block linting. Howveer, also like the other vendorizing files,
 I did see the results of an initial linting by ruff (3-28-25) --> however, unlike the other vendorized files, there were questionable patterns that might deserve editing at some point:
@@ -216,6 +217,8 @@ class _Number:
                         self.map[p] = 0
                 elif last_power > 0:
                     self.map = SortedDict({last_power:0})'''
+
+
     def decimate(self, format, unc=None, zeropadding=True, sign=True, units=''):
         '''
         returns string of all digits in given format {spacing, spacer, decimal},
@@ -515,6 +518,8 @@ def _arguments_parse(args, kwargs):
             given[prop] = _default_settings[prop]
 
     return given
+
+
 def _num_parse(num):
     '''Private function for use only in round()'s _arguments_parse() function:
     Translates given number of any type into returned _Number data structure
@@ -746,37 +751,3 @@ def round(*args, **kwargs):
             if given['prefix'] == True and units:
                 output = f'({output})'
     return output + units
-
-def roundit(*args, **kwargs):
-    '''Depreciated version of round() function with limited scope'''
-    warn('Depreciated Usage: Migrate code to use round() function instead', DeprecationWarning, stacklevel=_warn_stacklevel(2))
-    defaults = {'spacer': ' ', 'spacing': 3, 'separator': 'brackets', 'output_type' : str}
-    final_parameters = defaults
-    if 'form' in kwargs:
-        if kwargs['form'] == 'plusminus':
-            kwargs['separator'] = ' +/- '
-        else:
-            kwargs['separator'] = kwargs['form']
-        del kwargs['form']
-    if 'crop' in kwargs:
-        kwargs['crop'] -= 1
-    for key in kwargs:
-        final_parameters[key] = kwargs[key]
-    return round(*args, **final_parameters)
-def round_unc(*args, **kwargs):
-    '''Depreciated version of round() function with limited scope'''
-    warn('Depreciated Usage: Migrate code to use round() function instead', DeprecationWarning, stacklevel=_warn_stacklevel(2))
-    defaults = {'sep': tuple}
-    final_parameters = defaults
-    if 'form' in kwargs and kwargs['form'] == 'plusminus':
-        kwargs['separator'] = ' +/- '
-        del kwargs['form']
-    if 'crop' in kwargs:
-        kwargs['crop'] -= 1
-    for key in kwargs:
-        final_parameters[key] = kwargs[key]
-    return round(*[str(arg) for arg in args], **final_parameters)[0]
-def round_sf(number, sigfigs):
-    '''Depreciated version of round() function with limited scope'''
-    warn('Depreciated Usage: Migrate code to use round() function instead', DeprecationWarning, stacklevel=_warn_stacklevel(2))
-    return round(str(number),sigfigs=sigfigs)

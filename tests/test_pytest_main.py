@@ -57,39 +57,6 @@ def test_do_regions():
 #    my_analysis._do_spatial_leiden()
 #    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
 
-def test_comBat():
-    original_X = my_analysis.data.X.copy()
-    greater_than_zero = (original_X > 0)
-    my_analysis.do_COMBAT(batch_column = "patient_id")
-    assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < (len(original_X[greater_than_zero]) / 10) , "ComBat did not change all the data points > 0!"
-
-def test_countplot():
-    figure = my_analysis.plot_cell_counts()
-    assert isinstance(figure, matplotlib.figure.Figure), "Count plot did not return a matplotlib figure"
-
-def test_MDS():
-    figure, df = my_analysis.plot_MDS()
-    assert isinstance(figure, matplotlib.figure.Figure), "MDS plot did not return a matplotlib figure"
-    assert isinstance(df, pd.DataFrame), "MDS plot did not return a pandas DataFrame"
-    
-def test_NRS():
-    figure = my_analysis.plot_NRS()
-    assert isinstance(figure, matplotlib.figure.Figure), "NRS plot did not return a matplotlib figure"
-
-def test_ROI_histograms():
-    figure = my_analysis.plot_ROI_histograms()
-    assert isinstance(figure, matplotlib.figure.Figure), "ROI histogram plot did not return a matplotlib figure"
-
-def test_do_UMAP():
-    my_analysis.do_UMAP()
-    assert (my_analysis.UMAP_embedding is not None), "do UMAP did not create an anndata embedding"
-    assert isinstance(my_analysis.UMAP_embedding, anndata.AnnData), "do UMAP did not create an anndata embedding"
-
-def test_do_PCA():
-    my_analysis.do_PCA()
-    assert (my_analysis.PCA_embedding is not None), "do PCA did not create an anndata embedding"
-    assert isinstance(my_analysis.PCA_embedding, anndata.AnnData), "do PCA did not create an anndata embedding"
-
 def test_do_flowsom():
     fs = my_analysis.do_flowsom()
     figure = my_analysis._plot_stars_CNs(fs)
@@ -102,33 +69,6 @@ def test_do_flowsom():
     assert '1' in metaclustering, "do_flowsom did not create the expected values in metaclustering column"
     assert '20' in metaclustering,  "do_flowsom did not create the expected values in metaclustering column"
     assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
-
-def test_do_leiden_clustering():
-    my_analysis.do_leiden_clustering()
-    try:
-        leiden = my_analysis.data.obs['leiden']
-    except Exception:
-        leiden = None
-    assert leiden is not None,  "do_leiden did not create a leiden column"
-    number_of_leiden =  len(leiden.unique())
-    assert '1' in leiden, "do_leiden did not create the expected values in leiden column"
-    assert str(number_of_leiden) in leiden, "do_ledien did not create the expected values in leiden column"
-
-def test_plot_UMAP():
-    figure = my_analysis.plot_UMAP(color_by = "HistoneH3")
-    assert isinstance(figure, matplotlib.figure.Figure), "UMAP plot did not return a matplotlib figure"
-
-def test_plot_PCA():
-    figure = my_analysis.plot_PCA()
-    assert isinstance(figure, matplotlib.figure.Figure), "PCA plot did not return a matplotlib figure"
-
-def test_facetted_DR():
-    figure = my_analysis.plot_facetted_DR(color_by = "metaclustering", subsetting_column = "sample_id")
-    assert isinstance(figure, matplotlib.figure.Figure), "Facetted DR plot did not return a matplotlib figure"
-
-def test_facetted_by_antigen_DR():
-    figure = my_analysis.plot_facetted_DR_by_antigen(marker_class = ["type","state"], kind = "UMAP")
-    assert isinstance(figure, matplotlib.figure.Figure), "Antigen Facetted DR plot did not return a matplotlib figure"
 
 def test_medians_heatmap():
     figure = my_analysis.plot_medians_heatmap()

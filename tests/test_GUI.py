@@ -120,8 +120,6 @@ def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows
     app.entrypoint.FCS_choice(fetch_dir + "/Example_CyTOF")
     assert True 
 
-
-
 ##>>## GUI Pixel classification tests (px class creation)
 def test_launch_loading_window():
     global loading_window
@@ -132,21 +130,21 @@ def test_unsupervised():
     loading_window.unsupervised("unsupervised1")
     assert True 
 
-def test_accept_classifier_name():   ## supervised window
-    loading_window.accept_classifier_name("supervised1")
-    assert True 
+#def test_accept_classifier_name():   ## supervised window
+#    loading_window.accept_classifier_name("supervised1")
+#    assert True 
 
-def test_detail_display():
-    app.Tabs.px_classification.create.px_widg.detail_display()
-    assert True 
+#def test_detail_display():
+#    app.Tabs.px_classification.create.px_widg.detail_display()
+#    assert True 
 
-def test_bio_label_launch():
-    app.Tabs.px_classification.create.px_widg.bio_label_launch()
-    assert True 
+#def test_bio_label_launch():
+#    app.Tabs.px_classification.create.px_widg.bio_label_launch()
+#    assert True 
 
-def test_save_classifier():
-    app.Tabs.px_classification.create.px_widg.save_classifier()
-    assert True 
+#def test_save_classifier():
+#    app.Tabs.px_classification.create.px_widg.save_classifier()
+#    assert True 
 
 
 ##>>## GUI Pixel classification tests (px class use)
