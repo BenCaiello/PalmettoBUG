@@ -154,8 +154,6 @@ def test_accept_classifier_name():   ## supervised window
     assert True 
 
 def test_training():
-    print(app.Tabs.px_classification.create.px_widg.classifier_dir)
-    print(os.listdir(app.Tabs.px_classification.create.px_widg.classifier_dir))
     training_dir = app.Tabs.px_classification.create.px_widg.classifier_dir + "/lumen_epithelia_laminapropria/training_labels"
     shutil.rmtree(training_dir)
     shutil.copytree(f"{homedir}/tests/training_labels", training_dir)
@@ -171,6 +169,8 @@ def test_bio_label_launch():
     assert True 
 
 def test_save_classifier():
+    print(app.Tabs.px_classification.create.px_widg.classifier_dir)
+    print(os.listdir(app.Tabs.px_classification.create.px_widg.classifier_dir))
     app.Tabs.px_classification.create.px_widg.save_classifier()
     assert True 
 
@@ -300,14 +300,14 @@ def test_launch_distrib_window():
                       marker_class = "type")
     assert isinstance(window, ctk.CTkToplevel)
 
-#def test_launch_ClusterVGroup():
-#    window = app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
-#    window.plot_clusterV(clustering_column = 'metaclustering', 
-#                      type_of_graph = 'violin', 
-#                      type_of_comp = 'Raw Group values (no substraction of rest of dataset)', 
-#                      filename = "clusterV_distrib_etc", 
-#                      marker_class = "type")
-#    assert isinstance(window, ctk.CTkToplevel)
+def test_launch_ClusterVGroup():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
+    window.plot_clusterV(clustering_column = 'metaclustering', 
+                      type_of_graph = 'violin', 
+                      type_of_comp = 'Raw Group values (no substraction of rest of dataset)', 
+                      filename = "clusterV_distrib_etc", 
+                      marker_class = "type")
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_plot_cluster_expression_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
@@ -316,14 +316,19 @@ def test_launch_plot_cluster_expression_window():
     window.run_py_plot_cluster_histograms()
     assert isinstance(window, ctk.CTkToplevel)
 
-
-
 def test_launch_abundance_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_abundance_window()
+    window.plot_abundance(k = "metaclustering", by = "stacked barplot", filename = "Plot_12")
+    window.plot_abundance(k = "metaclustering", by = "cluster boxplot", filename = "Plot_112")
+    window.plot_abundance(k = "metaclustering", by = "cluster stripplot", filename = "Plot_1112")
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
+    window.column_type.configure(variable = ctk.StringVar(value = "metaclustering"))
+    window.button.invoke()
+    window.cluster_to_table.configure(variable = ctk.StringVar(value = "1"))
+    window.button2.invoke()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_cluster_merging():
