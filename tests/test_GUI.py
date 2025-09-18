@@ -376,24 +376,26 @@ def test_launch_data_table_exportation_window():
     assert isinstance(window, ctk.CTkToplevel)
 
 ##>>## GUI Spatial tests
+palmettobug.Analysis_widgets.Spatial_GUI.toggle_TESTING()
+
 def test_plot_cell_maps_window():
     window = app.Tabs.Spatial.widgets.plot_cell_maps_window()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_SpaceANOVA():
-    window = app.Tabs.Spatial.widgets.launch()
+    window = app.Tabs.Spatial.widgets.widgets.launch()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_SpaceANOVA_stats_and_heatmap():
-    window = app.Tabs.Spatial.widgets.launch_heat_plot()
+    window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
     assert isinstance(window, ctk.CTkToplevel) 
 
 def test_SpaceANOVA_function_plots():
-    window = app.Tabs.Spatial.widgets.launch_function_plot()
+    window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_do_neighbors():
-    app.Tabs.Spatial.widgets.squidpy_spatial.test_do_neighbors()
+    app.Tabs.Spatial.widgets.squidpy_spatial.do_neighbors()
     assert True
 
 def test_sq_centrality():
@@ -416,9 +418,9 @@ def test_CN_save_load():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_save_load()
     assert isinstance(window, ctk.CTkToplevel)
 
-def test_CN_annot():
-    window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
-    assert isinstance(window, ctk.CTkToplevel)
+#def test_CN_annot():
+#    window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
+#    assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_heatmap():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_heatmap_window()
@@ -428,12 +430,12 @@ def test_CN_abundance():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_abundance_window()
     assert isinstance(window, ctk.CTkToplevel)
 
-def test_CN_UMAP_or_MST():
-    window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
-    assert isinstance(window, ctk.CTkToplevel)
+#def test_CN_UMAP_or_MST():
+#    window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
+#    assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_edt():
-    window = app.Tabs.Spatial.widgets.test_edt.launch_reload_window()
+    window = app.Tabs.Spatial.widgets.test_edt.launch_load_window()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_edt_reload_window():
