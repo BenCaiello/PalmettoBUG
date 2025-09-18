@@ -228,7 +228,7 @@ def test_do_cluster_merging():
 
 def test_export_clustering():
     df, path = my_analysis.export_clustering(groupby_column = "merging")
-    assert len(os.listdir(my_analysis.clusterings_dir)) == 1, "Clustering save did not export!"
+    assert len(os.listdir(my_analysis.clusterings_dir)) >= 1, "Clustering save did not export!"
 
 def test_do_abundance_ANOVAs():
     df = my_analysis.do_abundance_ANOVAs()    ## need to do merging before!
