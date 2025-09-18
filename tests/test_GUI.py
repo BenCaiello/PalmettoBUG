@@ -327,13 +327,18 @@ def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
     window.column_type.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.button.invoke()
-    window.cluster_to_table.configure(variable = ctk.StringVar(value = "1"))
-    window.button2.invoke()
+    window.output.select()
+    window.launch_stat_table("1")
     assert isinstance(window, ctk.CTkToplevel)
+
+
+
 
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
     assert isinstance(window, ctk.CTkToplevel)
+
+
 
 def test_launch_classy_masker():
     window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
@@ -346,10 +351,19 @@ def test_launch_regionprop():
 
 def test_launch_cluster_save_load():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()
+    window.saver_button.invoke()
+    window.load_identifier.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory + "/clusterings")[0]))
+    window.loader_button.invoke()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_data_table_exportation_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window()
+    window.subset_command()
+    window.grouping_command()
+    window.plain_command()
+    window.whole_command()
+    window.button1.invoke()
+    window.umap_pca_button.invoke()
     assert isinstance(window, ctk.CTkToplevel)
 
 

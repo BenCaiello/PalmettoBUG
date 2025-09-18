@@ -47,6 +47,8 @@ PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
 ## do it twice to get up to the top level directory:
 PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
 PALMETTO_BUG_assets_classifier_folder = PALMETTO_BUG_homedir + '/Assets/Px_classifiers'
+if not os.path.exists(PALMETTO_BUG_assets_classifier_folder):
+    os.mkdir(PALMETTO_BUG_assets_classifier_folder)
 
 class Pixel_class_widgets(ctk.CTkFrame):
 

@@ -576,11 +576,12 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.save_identifier = ctk.CTkEntry(self, textvariable = ctk.StringVar(value = "Seed_1234"))
         self.save_identifier.grid(column= 0, row = 5, padx = 5, pady = 5)
 
-        button_run_clustering = ctk.CTkButton(self,
+        button_run_clustering1 = ctk.CTkButton(self,
                                             text = "Save metaclustering / merging / classification to this Analysis", 
                                             command = lambda: self.save_clustering(self.load_type.get(), 
                                                                                    self.save_identifier.get().strip()))
-        button_run_clustering.grid(column = 0, row = 6, padx = 5, pady = 5)
+        button_run_clustering1.grid(column = 0, row = 6, padx = 5, pady = 5)
+        self.saver_button = button_run_clustering1
 
         divider_button = ctk.CTkButton(master = self, text = "")
         divider_button.configure(height = 350, width = 5, fg_color = "blue", hover_color = "blue", state = "disabled")
@@ -593,11 +594,11 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         ## If there is no clustering in the current experiment, block the button
         def refresh_button(enter = ""):
             obs_col = (self.master.cat_exp.data.obs.columns)
-            if ("metaclustering" not in obs_col) and ("merging" not in obs_col) and ("classification" not in obs_col) and ("leiden" not in obs_col) and (button_run_clustering.cget('state') == "normal"):
-                button_run_clustering.configure(state = "disabled")
+            if ("metaclustering" not in obs_col) and ("merging" not in obs_col) and ("classification" not in obs_col) and ("leiden" not in obs_col) and (button_run_clustering1.cget('state') == "normal"):
+                button_run_clustering1.configure(state = "disabled")
             else:
-                button_run_clustering.configure(state = "normal")
-        button_run_clustering.bind("<Enter>", refresh_button)
+                button_run_clustering1.configure(state = "normal")
+        button_run_clustering1.bind("<Enter>", refresh_button)
         refresh_button()
 
         label_2 = ctk.CTkLabel(self, 
@@ -613,10 +614,10 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.load_identifier.grid(column = 2, row = 3, padx = 5, pady = 5)
         self.load_identifier.bind("<Enter>", refresh1)
 
-        button_run_clustering = ctk.CTkButton(self,
+        self.loader_button = ctk.CTkButton(self,
                                             text = "Load a metaclustering / merging / classification \n from those saved to this Analysis", 
                                             command = lambda: self.load_clustering(self.load_identifier.get()))
-        button_run_clustering.grid(column = 2, row = 4, padx = 5, pady = 5)
+        self.loader_button.grid(column = 2, row = 4, padx = 5, pady = 5)
 
         label_2 = ctk.CTkLabel(self,
             text = """Or choose a Pixel Classifier's classification output: 
@@ -2273,7 +2274,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.output = ctk.CTkCheckBox(master = self, text = "Check to export stat table to disk", onvalue = True, offvalue = False)
         self.output.grid(column = 3, row = 4, padx = 5, pady = 5)
 
-        self.button2 = ctk.CTkButton(master = self, text = "Open Table for selected cluster", command = lambda: self.launch_stat_table())
+        self.button2 = ctk.CTkButton(master = self, text = "Open Table for selected cluster", command = lambda: self.launch_stat_table(cluster = self.cluster_to_table.get()))
         self.button2.grid(column = 3, row = 5, padx = 5, pady = 5)
 
         self.pop_up = ctk.CTkCheckBox(master = self, text = "Make detailed Plot Editing Pop-up?", onvalue = True, offvalue = False)
@@ -2327,11 +2328,10 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
             option_list = [str(i) for i in option_list]
         self.cluster_to_table.configure(values = option_list)
 
-    def launch_stat_table(self) -> None:
+    def launch_stat_table(self, cluster) -> None:
         '''
         '''
         output_bool = self.output.get()
-        cluster = self.cluster_to_table.get()
         obs_column = self.column_type.get()
 
         df_out_dict = self.master.cat_exp.do_cluster_stats(groupby_column = obs_column, N_column = 'sample_id')
@@ -2341,7 +2341,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
             dataframe = df_out_dict[cluster]
         
         if output_bool is True:
-            output_path = f'{self.master.cat_exp.directory}/Data_tables/cluster_stat_tables/{str(self.cluster_to_table.get())}.csv' 
+            output_path = f'{self.master.cat_exp.directory}/Data_tables/cluster_stat_tables/{str(cluster)}.csv' 
             output_folder = f'{self.master.cat_exp.directory}/Data_tables/cluster_stat_tables/'
             if not os.path.exists(output_folder):
                 os.mkdir(output_folder)
