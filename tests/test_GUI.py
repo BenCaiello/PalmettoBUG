@@ -205,7 +205,6 @@ def test_launch_combat_window():
 def test_do_regions():
     global my_analysis
     my_analysis = app.Tabs.py_exploratory.analysiswidg.cat_exp
-    #print(len(my_analysis.data.obs))
     assert isinstance(my_analysis.data, anndata.AnnData)
     #my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
     #assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
@@ -213,9 +212,6 @@ def test_do_regions():
 def test_launch_scatterplot():
     window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
     assert isinstance(window, ctk.CTkToplevel)
-
-
-
 
 def test_launch_Plot_Counts_per_ROI_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_Counts_per_ROI_window()
@@ -302,11 +298,11 @@ def test_launch_distrib_window():
 
 def test_launch_ClusterVGroup():
     window = app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
-#    window.plot_clusterV(clustering_column = 'metaclustering', 
-#                      type_of_graph = 'violin', 
-#                      type_of_comp = 'Raw Group values (no substraction of rest of dataset)', 
-#                      filename = "clusterV_distrib_etc", 
-#                      marker_class = "type")
+    window.plot_clusterV(clustering_column = 'metaclustering', 
+                      type_of_graph = 'violin', 
+                      type_of_comp = 'Raw Group values (no substraction of rest of dataset)', 
+                      filename = "clusterV_distrib_etc2", 
+                      marker_class = "type")
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_plot_cluster_expression_window():
@@ -328,17 +324,16 @@ def test_launch_cluster_stats_window():
     window.column_type.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.button.invoke()
     window.output.select()
-    window.launch_stat_table("1")
+    window.launch_stat_table("1", True, "metaclustering")
     assert isinstance(window, ctk.CTkToplevel)
-
-
-
 
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
+    for ii,i in enumerate(window.new.table.widgetframe[1]):
+        value = ii % 4   ## generate 4 fake clusters
+        i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
+    window.new.button.invoke()
     assert isinstance(window, ctk.CTkToplevel)
-
-
 
 def test_launch_classy_masker():
     window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
@@ -352,6 +347,8 @@ def test_launch_regionprop():
 def test_launch_cluster_save_load():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()
     window.saver_button.invoke()
+    print(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory  + "/clusterings")
+    print(os.listdir(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory + "/clusterings"))
     window.load_identifier.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory + "/clusterings")[0]))
     window.loader_button.invoke()
     assert isinstance(window, ctk.CTkToplevel)

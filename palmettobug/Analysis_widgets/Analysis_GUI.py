@@ -1898,7 +1898,7 @@ class TableWidget_merging(ctk.CTkScrollableFrame):
         dataframe.to_csv(self.directory + self.to_add, index = False)
         Analysis_widget_logger.info(f"Wrote merging file, with name '{self.id}', with the values: \n {str(dataframe)}")
 
-    def add_entry_column(master, col_num: int, offset: int = 0, disable: bool = False) -> None:
+    def add_entry_column(self, col_num: int, offset: int = 0, disable: bool = False) -> None:
             '''
             Creates a column of plain labels inside the scrollable table, of the col_num specified (zero-indexed). 
             Values = a list of the values to be in the drop menu of the comboboxes
@@ -1906,16 +1906,16 @@ class TableWidget_merging(ctk.CTkScrollableFrame):
                                                                                         display the index as well).
             '''
             column_list = []
-            col1_title = ctk.CTkLabel(master = master, text = master.table_dataframe.columns[col_num])
+            col1_title = ctk.CTkLabel(master = self, text = self.table_dataframe.columns[col_num])
             col1_title.grid(column = col_num + offset, row = 0, padx = 5, pady = 3)
-            for i,ii in enumerate(master.table_dataframe.iloc[:,col_num]):
+            for i,ii in enumerate(self.table_dataframe.iloc[:,col_num]):
                 variable = ctk.StringVar(value = str(ii))
-                col_dropdown = ctk.CTkEntry(master = master, textvariable = variable)
+                col_dropdown = ctk.CTkEntry(master = self, textvariable = variable)
                 if disable is True:
                     col_dropdown.configure(state = "disabled")
                 col_dropdown.grid(column = col_num + offset, row = i + 1, padx = 5, pady = 3)
                 column_list.append(col_dropdown)
-            master.widgetframe[str(col_num)] = column_list
+            self.widgetframe[str(col_num)] = column_list
 
 class Hypothesis_widget(ctk.CTkFrame):
     def __init__(self, master):
@@ -2274,7 +2274,9 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.output = ctk.CTkCheckBox(master = self, text = "Check to export stat table to disk", onvalue = True, offvalue = False)
         self.output.grid(column = 3, row = 4, padx = 5, pady = 5)
 
-        self.button2 = ctk.CTkButton(master = self, text = "Open Table for selected cluster", command = lambda: self.launch_stat_table(cluster = self.cluster_to_table.get()))
+        self.button2 = ctk.CTkButton(master = self, text = "Open Table for selected cluster", command = lambda: self.launch_stat_table(cluster = self.cluster_to_table.get(),
+                                                                                                                                        output = self.output.get(),
+                                                                                                                                        obs_column = self.column_type.get()))
         self.button2.grid(column = 3, row = 5, padx = 5, pady = 5)
 
         self.pop_up = ctk.CTkCheckBox(master = self, text = "Make detailed Plot Editing Pop-up?", onvalue = True, offvalue = False)
@@ -2328,12 +2330,9 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
             option_list = [str(i) for i in option_list]
         self.cluster_to_table.configure(values = option_list)
 
-    def launch_stat_table(self, cluster) -> None:
+    def launch_stat_table(self, cluster, output, obs_column) -> None:
         '''
         '''
-        output_bool = self.output.get()
-        obs_column = self.column_type.get()
-
         df_out_dict = self.master.cat_exp.do_cluster_stats(groupby_column = obs_column, N_column = 'sample_id')
         try:
             dataframe = df_out_dict[int(cluster)]
