@@ -2275,7 +2275,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.output.grid(column = 3, row = 4, padx = 5, pady = 5)
 
         self.button2 = ctk.CTkButton(master = self, text = "Open Table for selected cluster", command = lambda: self.launch_stat_table(cluster = self.cluster_to_table.get(),
-                                                                                                                                        output = self.output.get(),
+                                                                                                                                        output_bool = self.output.get(),
                                                                                                                                         obs_column = self.column_type.get()))
         self.button2.grid(column = 3, row = 5, padx = 5, pady = 5)
 
@@ -2330,7 +2330,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
             option_list = [str(i) for i in option_list]
         self.cluster_to_table.configure(values = option_list)
 
-    def launch_stat_table(self, cluster, output, obs_column) -> None:
+    def launch_stat_table(self, cluster, output_bool, obs_column) -> None:
         '''
         '''
         df_out_dict = self.master.cat_exp.do_cluster_stats(groupby_column = obs_column, N_column = 'sample_id')

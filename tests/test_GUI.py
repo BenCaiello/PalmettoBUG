@@ -134,6 +134,11 @@ def test_unsupervised():
     for i in channel_2_widgets[2:]:
         i.select() 
     window.run_training()
+    ## Predict the first image to test single image prediction:
+    app.Tabs.px_classification.create.px_widg.predictions_frame.one.select()
+    app.Tabs.px_classification.create.px_widg.predictions_frame.folder.configure(variable = ctk.StringVar(value = 'img'))
+    app.Tabs.px_classification.create.px_widg.predictions_frame.one_img.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.px_classification.create.px_widg.image_directory + "/img")[0]]))
+    app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     assert True 
 
 def test_accept_classifier_name():   ## supervised window
@@ -159,6 +164,13 @@ def test_training():
     shutil.copytree(f"{homedir}/tests/training_labels", training_dir)
     app.Tabs.px_classification.create.px_widg.Napari_frame.choose_folder.configure(variable = ctk.StringVar(value = 'img'))
     app.Tabs.px_classification.create.px_widg.Napari_frame.training_button.invoke()
+    assert True 
+
+def test_prediction():
+    app.Tabs.px_classification.create.px_widg.predictions_frame.all.select()
+    app.Tabs.px_classification.create.px_widg.predictions_frame.folder.configure(variable = ctk.StringVar(value = 'img'))
+    app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
+    assert True 
 
 def test_detail_display():
     app.Tabs.px_classification.create.px_widg.detail_display()
@@ -300,7 +312,7 @@ def test_launch_ClusterVGroup():
     window = app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
     window.plot_clusterV(clustering_column = 'metaclustering', 
                       type_of_graph = 'violin', 
-                      type_of_comp = 'Raw Group values (no substraction of rest of dataset)', 
+                      type_of_comp = 'Raw Cluster values (no substraction of rest of dataset)', 
                       filename = "clusterV_distrib_etc2", 
                       marker_class = "type")
     assert isinstance(window, ctk.CTkToplevel)
@@ -323,13 +335,12 @@ def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
     window.column_type.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.button.invoke()
-    window.output.select()
     window.launch_stat_table("1", True, "metaclustering")
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
-    for ii,i in enumerate(window.new.table.widgetframe[1]):
+    for ii,i in enumerate(window.new.table.widgetframe['1']):
         value = ii % 4   ## generate 4 fake clusters
         i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
     window.new.button.invoke()
@@ -346,6 +357,7 @@ def test_launch_regionprop():
 
 def test_launch_cluster_save_load():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()
+    window.load_type.configre(variable = ctk.StringVar(value = "metaclustering"))
     window.saver_button.invoke()
     print(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory  + "/clusterings")
     print(os.listdir(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory + "/clusterings"))
@@ -370,9 +382,9 @@ def test_launch_edt():
     app.Tabs.Spatial.widgets.launch_edt()
     assert True 
 
-#def test_plot_cell_maps_window():
-#    app.Tabs.Spatial.widgets.plot_cell_maps_window()
- #   assert True 
+def test_plot_cell_maps_window():
+    app.Tabs.Spatial.widgets.plot_cell_maps_window()
+    assert True 
 
 # spatial windows to test:    launch_heat_plot_window, launch_function_plot_window, launch_window, NeigborhoodEnrichmentWindow, CentralityWindow, InteractionMatrixWindow
                 # CNUMAPMSTwindow, CNabundanceWindow, CNheatmapWindow, CNannotationWindow, CNwindowSaveLoad, CellularNeighborhoodWindow, edt_heatmap_window
