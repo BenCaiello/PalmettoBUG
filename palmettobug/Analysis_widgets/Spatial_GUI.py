@@ -140,7 +140,7 @@ class Spatial_py(ctk.CTkFrame):
 
     def plot_cell_maps_window(self) -> None:
         '''Launches the window for generating plots of the cells in X/Y space, colored by cell type and sized by cell area'''
-        plot_cell_maps_window(self)
+        return plot_cell_maps_window(self)
 
     class spacewidgets(ctk.CTkFrame):  
         '''
@@ -200,13 +200,13 @@ class Spatial_py(ctk.CTkFrame):
             self.plot_fx_button.configure(state = "disabled")
             
         def launch(self) -> None:
-            self.launch_window(self)
+            return self.launch_window(self)
 
         def launch_heat_plot(self, stat = 'g') -> None:
-            self.launch_heat_plot_window(self, stat = stat)
+            return self.launch_heat_plot_window(self, stat = stat)
 
         def launch_function_plot(self) -> None:
-            self.launch_function_plot_window(self)
+            return self.launch_function_plot_window(self)
 
         class launch_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             '''
@@ -812,16 +812,16 @@ class SquidpySpatialWidgets(ctk.CTkFrame):
                 pass
 
     def launch_CN_window(self):
-        CellularNeighborhoodWindow(self)
+        return CellularNeighborhoodWindow(self)
 
     def launch_interaction_matrix_window(self):
-        InteractionMatrixWindow(self)
+        return InteractionMatrixWindow(self)
 
     def launch_neigh_enrich_window(self):
-        NeigborhoodEnrichmentWindow(self)
+        return NeigborhoodEnrichmentWindow(self)
 
     def launch_centrality_window(self):
-        CentralityWindow(self)
+        return CentralityWindow(self)
 
     def do_neighbors(self):
         ''''''
@@ -1171,19 +1171,19 @@ class cellularNeighborhoodsFrame(SquidpySpatialWidgets):
     def clustermap_window(self):
         if self.CN_type is None:
             return
-        CNUMAPMSTwindow(self)      
+        return CNUMAPMSTwindow(self)      
 
     def launch_abundance_window(self):
-        CNabundanceWindow(self)
+        return CNabundanceWindow(self)
 
     def launch_heatmap_window(self):
-        CNheatmapWindow(self)
+        return CNheatmapWindow(self)
 
     def launch_annotation(self):
-        CNannotationWindow(self)
+        return CNannotationWindow(self)
 
     def launch_save_load(self):
-        CNwindowSaveLoad(self)
+        return CNwindowSaveLoad(self)
 
 class CNUMAPMSTwindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     '''
@@ -1806,23 +1806,23 @@ class dist_transform_frame(ctk.CTkFrame):
             pass
 
     def launch_load_window(self):
-        dist_transform_window(self.master)
+        return dist_transform_window(self.master)
 
     def launch_reload_window(self):
-        edt_reload_window(self.master)
+        return edt_reload_window(self.master)
 
     def launch_heatmap_window(self):
         if np.array(self.edt_object.exp.data.var['marker_class'] == "spatial_edt").sum() == 1:
             tk.messagebox.showwarning("Warning!", 
                                       message = 'There must at least be 2 EDTs loaded as marker_class == "spatial_edt" for a heatmap to be plotted!')
             return
-        edt_heatmap_window(self)
+        return edt_heatmap_window(self)
 
     def launch_distrib_window(self):
-        edt_dist_window(self)
+        return edt_dist_window(self)
 
     def launch_stat_window(self):
-        edt_stat_window(self)
+        return edt_stat_window(self)
 
 class edt_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):

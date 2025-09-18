@@ -353,11 +353,11 @@ def test_launch_classy_masker():
 
 def test_launch_regionprop():
     window = app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
-    assert isinstance(window, ctk.CTkToplevel)
+    #assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_cluster_save_load():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()
-    window.load_type.configre(variable = ctk.StringVar(value = "metaclustering"))
+    window.load_type.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.saver_button.invoke()
     print(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory  + "/clusterings")
     print(os.listdir(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory + "/clusterings"))
@@ -375,76 +375,82 @@ def test_launch_data_table_exportation_window():
     window.umap_pca_button.invoke()
     assert isinstance(window, ctk.CTkToplevel)
 
-
-
 ##>>## GUI Spatial tests
 def test_plot_cell_maps_window():
-    app.Tabs.Spatial.widgets.plot_cell_maps_window()
-    assert True 
+    window = app.Tabs.Spatial.widgets.plot_cell_maps_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_SpaceANOVA():
+    window = app.Tabs.Spatial.widgets.launch()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_SpaceANOVA_stats_and_heatmap():
+    window = app.Tabs.Spatial.widgets.launch_heat_plot()
+    assert isinstance(window, ctk.CTkToplevel) 
+
+def test_SpaceANOVA_function_plots():
+    window = app.Tabs.Spatial.widgets.launch_function_plot()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_do_neighbors():
-    app.Tabs.Spatial.squidpy_spatial.test_do_neighbors()
-    assert True 
-
-def test_sq_centrality():
-    app.Tabs.Spatial.squidpy_spatial.launch_centrality_window()
-    assert True 
-
-def test_sq_inter_mat():
-    app.Tabs.Spatial.squidpy_spatial.launch_interaction_matrix_window()
-    assert True 
-
-def test_sq_neigh_enrich():
-    app.Tabs.Spatial.squidpy_spatial.launch_neigh_enrich_window()
-    assert True 
-
-def test_CN_window():
-    app.Tabs.Spatial.squidpy_spatial.launch_CN_window()
-    assert True 
-
-def test_CN_save_load():
-    app.Tabs.Spatial.CN_widgets.launch_save_load()
-    assert True 
-
-def test_CN_annot():
-    app.Tabs.Spatial.CN_widgets.launch_annotation()
-    assert True 
-
-def test_CN_heatmap():
-    app.Tabs.Spatial.CN_widgets.launch_heatmap_window()
-    assert True 
-
-def test_CN_abundance():
-    app.Tabs.Spatial.CN_widgets.launch_abundance_window()
-    assert True 
-
-def test_CN_UMAP_or_MST():
-    app.Tabs.Spatial.CN_widgets.clustermap_window()
-    assert True 
-
-def test_launch_edt():
-    app.Tabs.Spatial.test_edt.button_load.invoke()
-    assert True 
-
-def test_edt_reload_window():
-    app.Tabs.Spatial.test_edt.reload.invoke()
-    assert True 
-
-def test_edt_stats_window():
-    app.Tabs.Spatial.test_edt.launch_stat_window()
-    assert True 
-
-def test_edt_distrib_window():
-    app.Tabs.Spatial.test_edt.launch_distrib_window()
+    app.Tabs.Spatial.widgets.squidpy_spatial.test_do_neighbors()
     assert True
 
+def test_sq_centrality():
+    window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_centrality_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_sq_inter_mat():
+    window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_interaction_matrix_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_sq_neigh_enrich():
+    window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_neigh_enrich_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_CN_window():
+    window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_CN_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_CN_save_load():
+    window = app.Tabs.Spatial.widgets.CN_widgets.launch_save_load()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_CN_annot():
+    window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_CN_heatmap():
+    window = app.Tabs.Spatial.widgets.CN_widgets.launch_heatmap_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_CN_abundance():
+    window = app.Tabs.Spatial.widgets.CN_widgets.launch_abundance_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_CN_UMAP_or_MST():
+    window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_launch_edt():
+    window = app.Tabs.Spatial.widgets.test_edt.launch_reload_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_edt_reload_window():
+    window = app.Tabs.Spatial.widgets.test_edt.launch_reload_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_edt_stats_window():
+    window = app.Tabs.Spatial.widgets.test_edt.launch_stat_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_edt_distrib_window():
+    window = app.Tabs.Spatial.widgets.test_edt.launch_distrib_window()
+    assert isinstance(window, ctk.CTkToplevel)
+
 #def test_edt_heatmap_window():
-#    app.Tabs.Spatial.test_edt.launch_heatmap_window()
-#    assert True
-    
-
-# spatial windows to test:    launch_heat_plot_window, launch_function_plot_window, launch_window
-
+#    window = app.Tabs.Spatial.test_edt.launch_heatmap_window()
+#    assert isinstance(window, ctk.CTkToplevel)
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above

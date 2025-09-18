@@ -24,7 +24,63 @@ if not os.path.exists(fetch_dir):
 proj_directory = fetch_dir + "/Example_IMC"
 np.random.default_rng(42)
 
+#def test_fetch_IMC():
+#    fetch_IMC_example(fetch_dir)
+
+def test_raw_to_img():
+    global image_proc
+    image_proc = ImageAnalysis(proj_directory, from_mcds = True)
+    image_proc.directory_object.makedirs()
+    image_proc.raw_to_img(0.85)
+    images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
+    assert(len(images) == 10), "Wrong number of images exported to images/img"               ## all the images are transferred
+    shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
+
+def test_expand_masks():
+    mask_expand(2, proj_directory + "/masks/example_deepcell_masks", proj_directory + "/masks/expanded_deepcell_masks")
+    images = [f"{proj_directory}/masks/expanded_deepcell_masks/{i}" for i in sorted(os.listdir(proj_directory + "/masks/expanded_deepcell_masks"))]
+    assert(len(images) == 10), "All masks not expanded" 
+     
+def test_instanseg():
+    image_proc.instanseg_segmentation(single_image = os.listdir(proj_directory + "/images/img")[0])
+    assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
+
+def test_mask_intersection_difference():
+    masks1 = proj_directory + "/masks/example_deepcell_masks"
+    masks2 = proj_directory + "/masks/expanded_deepcell_masks"
+    image_proc.mask_intersection_difference(masks1, masks2)
+    assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks"  )) == 10), "Mask intersection function failed!"
+
+def test_regionprops_write():
+    image_proc.directory_object.make_analysis_dirs("test_analysis")
+    input_img_folder = proj_directory + "/images/img"
+    input_mask_folder = proj_directory + "/masks/example_deepcell_masks"    # "/masks/instanseg_masks" 
+    image_proc.make_segmentation_measurements(input_img_folder = input_img_folder, input_mask_folder = input_mask_folder)
+    analysis_dir = image_proc.directory_object.Analyses_dir + "/test_analysis"
+    intensities_dir = analysis_dir + "/intensities"
+    assert(len(os.listdir(analysis_dir + "/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
+    assert(len(pd.read_csv(intensities_dir + "/CRC_1_ROI_001.ome.csv") == 2177)), "Unexpected number of cells in image 1"
+
+def test_setup_analysis():
+    panel_file, metadata, Analysis_panel_dir, metadata_dir = image_proc.to_analysis()
+    panel_file.to_csv(Analysis_panel_dir)
+    metadata.to_csv(metadata_dir)
+    assert(os.listdir(image_proc.directory_object.Analysis_internal_dir + "/Analysis_fcs")[0].rfind(".fcs") != -1), "FCS files not in /main/Analysis_fcs!"
+    assert(len(metadata) == 10), "Automatically generated Metadata file's length does not match the number of FCS files in the experiment!"
+    assert("marker_class" in panel_file.columns), "Automatically generated Analysis_panel file should have a 'marker_class' column"
+    assert("Analysis_panel.csv" in os.listdir(image_proc.directory_object.Analysis_internal_dir)), "Analysis_panel.csv not written to the proper place!"
+    assert("metadata.csv" in os.listdir(image_proc.directory_object.Analysis_internal_dir)), "metadata.csv not written to the proper place!"
+    assert("condition" in list(pd.read_csv(image_proc.directory_object.Analysis_internal_dir + "/metadata.csv").columns)), "Automatically generated metadata.csv file must have a 'condition' column!"
+
 ########### CRITICAL! -- depends on test_img_proc having been run first!
+def test_setup_directories():
+    global Analysis_panel
+    Analysis_panel = proj_directory + "/Analyses/Analysis_panel.csv"
+    global metadata
+    metadata = proj_directory + "/Analyses/metadata.csv"
+    shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
+    shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
+
 def test_load():
     global my_analysis
     my_analysis = Analysis()
@@ -57,6 +113,39 @@ def test_do_regions():
 #    my_analysis._do_spatial_leiden()
 #    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
 
+def test_comBat():
+    original_X = my_analysis.data.X.copy()
+    greater_than_zero = (original_X > 0)
+    my_analysis.do_COMBAT(batch_column = "patient_id")
+    assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < (len(original_X[greater_than_zero]) / 10) , "ComBat did not change all the data points > 0!"
+
+def test_countplot():
+    figure = my_analysis.plot_cell_counts()
+    assert isinstance(figure, matplotlib.figure.Figure), "Count plot did not return a matplotlib figure"
+
+def test_MDS():
+    figure, df = my_analysis.plot_MDS()
+    assert isinstance(figure, matplotlib.figure.Figure), "MDS plot did not return a matplotlib figure"
+    assert isinstance(df, pd.DataFrame), "MDS plot did not return a pandas DataFrame"
+    
+def test_NRS():
+    figure = my_analysis.plot_NRS()
+    assert isinstance(figure, matplotlib.figure.Figure), "NRS plot did not return a matplotlib figure"
+
+def test_ROI_histograms():
+    figure = my_analysis.plot_ROI_histograms()
+    assert isinstance(figure, matplotlib.figure.Figure), "ROI histogram plot did not return a matplotlib figure"
+
+def test_do_UMAP():
+    my_analysis.do_UMAP()
+    assert (my_analysis.UMAP_embedding is not None), "do UMAP did not create an anndata embedding"
+    assert isinstance(my_analysis.UMAP_embedding, anndata.AnnData), "do UMAP did not create an anndata embedding"
+
+def test_do_PCA():
+    my_analysis.do_PCA()
+    assert (my_analysis.PCA_embedding is not None), "do PCA did not create an anndata embedding"
+    assert isinstance(my_analysis.PCA_embedding, anndata.AnnData), "do PCA did not create an anndata embedding"
+
 def test_do_flowsom():
     fs = my_analysis.do_flowsom()
     figure = my_analysis._plot_stars_CNs(fs)
@@ -69,6 +158,33 @@ def test_do_flowsom():
     assert '1' in metaclustering, "do_flowsom did not create the expected values in metaclustering column"
     assert '20' in metaclustering,  "do_flowsom did not create the expected values in metaclustering column"
     assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
+
+def test_do_leiden_clustering():
+    fs = my_analysis.do_leiden_clustering()
+    try:
+        leiden = my_analysis.data.obs['leiden']
+    except Exception:
+        leiden = None
+    assert leiden is not None,  "do_leiden did not create a leiden column"
+    number_of_leiden =  len(leiden.unique())
+    assert '1' in leiden, "do_leiden did not create the expected values in leiden column"
+    assert str(number_of_leiden) in leiden, "do_ledien did not create the expected values in leiden column"
+
+def test_plot_UMAP():
+    figure = my_analysis.plot_UMAP(color_by = "HistoneH3")
+    assert isinstance(figure, matplotlib.figure.Figure), "UMAP plot did not return a matplotlib figure"
+
+def test_plot_PCA():
+    figure = my_analysis.plot_PCA()
+    assert isinstance(figure, matplotlib.figure.Figure), "PCA plot did not return a matplotlib figure"
+
+def test_facetted_DR():
+    figure = my_analysis.plot_facetted_DR(color_by = "metaclustering", subsetting_column = "sample_id")
+    assert isinstance(figure, matplotlib.figure.Figure), "Facetted DR plot did not return a matplotlib figure"
+
+def test_facetted_by_antigen_DR():
+    figure = my_analysis.plot_facetted_DR_by_antigen(marker_class = ["type","state"], kind = "UMAP")
+    assert isinstance(figure, matplotlib.figure.Figure), "Antigen Facetted DR plot did not return a matplotlib figure"
 
 def test_medians_heatmap():
     figure = my_analysis.plot_medians_heatmap()
@@ -263,5 +379,3 @@ def test_run_edt_statistics():
     df = my_spatial.run_edt_statistics(groupby_column = "merging")
     assert isinstance(df, pd.DataFrame), "edt statistics did not return a pandas dataframe"
     assert len(df) == ((np.array(my_analysis.data.var['marker_class'] == "spatial_edt").sum()) * len(my_analysis.data.obs['merging'].unique())), "edt_statistics did not retrun the expected number of comparison"
-
-

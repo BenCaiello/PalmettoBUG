@@ -1,3 +1,4 @@
+
 import sys
 import os
 import shutil
@@ -37,10 +38,14 @@ proj_directory = fetch_dir + "Example_IMC"
 
 np.random.default_rng(42)
 
+def test_fetch_IMC():
+    fetch_IMC_example(fetch_dir)
+
 def test_raw_to_img():
     global image_proc
     image_proc = ImageAnalysis(proj_directory, from_mcds = True)
     image_proc.directory_object.makedirs()
+    image_proc.raw_to_img(0.85)
     images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
     assert(len(images) == 10), "Wrong number of images exported to images/img"               ## all the images are transferred
     shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
@@ -83,7 +88,6 @@ def test_train_predict_supervised_classifier():
     assert (tf.imread(prediction_paths[1]).astype('int') != tf.imread(prediction_paths[1])).sum() == 0, "The pixel class maps shoul be integers!"
     assert tf.imread(prediction_paths[2]).max() <= 3, "There should be no pixels >3 (the number of prediction classes)"
 
-'''
 def test_unsupervised_classifier():
     global unsup
     unsup = UnsupervisedClassifier(proj_directory, classifier_name = "test_unsup")
@@ -112,7 +116,6 @@ def test_unsupervised_classifier():
                                                                     smoothing = 2)
     unsup.predict_folder(img_directory = img_directory, flowsom_dictionary = flowsom_dictionary)
     assert len(os.listdir(unsup.output_dir)) == 10, "Wrong number of classification maps generated!"
-'''
 
 def test_pixel_class_heatmap():
     clustergrid, df = plot_pixel_heatmap(pixel_folder = unsup.output_dir, 
@@ -241,4 +244,3 @@ def test_wca_export():
                         statistic= 'mean',
                         include_marker_class_row = False)
     assert isinstance(df, pd.DataFrame), "Whole class export funciton did not return a pandas dataframe!"
-                    
