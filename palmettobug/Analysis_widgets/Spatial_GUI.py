@@ -138,9 +138,6 @@ class Spatial_py(ctk.CTkFrame):
         self.squidpy_spatial.do_neighbors()
         self.CN_widgets.targeted_enable()
 
-    def launch_edt(self) -> None:
-        dist_transform_window(self)
-
     def plot_cell_maps_window(self) -> None:
         '''Launches the window for generating plots of the cells in X/Y space, colored by cell type and sized by cell area'''
         plot_cell_maps_window(self)
