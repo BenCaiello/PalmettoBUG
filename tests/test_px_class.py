@@ -1,3 +1,4 @@
+
 import sys
 import os
 import shutil
@@ -243,4 +244,3 @@ def test_wca_export():
                         statistic= 'mean',
                         include_marker_class_row = False)
     assert isinstance(df, pd.DataFrame), "Whole class export funciton did not return a pandas dataframe!"
-                    

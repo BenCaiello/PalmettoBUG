@@ -379,5 +379,3 @@ def test_run_edt_statistics():
     df = my_spatial.run_edt_statistics(groupby_column = "merging")
     assert isinstance(df, pd.DataFrame), "edt statistics did not return a pandas dataframe"
     assert len(df) == ((np.array(my_analysis.data.var['marker_class'] == "spatial_edt").sum()) * len(my_analysis.data.obs['merging'].unique())), "edt_statistics did not retrun the expected number of comparison"
-
-

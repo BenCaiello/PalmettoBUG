@@ -47,6 +47,8 @@ PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
 ## do it twice to get up to the top level directory:
 PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
 PALMETTO_BUG_assets_classifier_folder = PALMETTO_BUG_homedir + '/Assets/Px_classifiers'
+if not os.path.exists(PALMETTO_BUG_assets_classifier_folder):
+    os.mkdir(PALMETTO_BUG_assets_classifier_folder)
 
 class Pixel_class_widgets(ctk.CTkFrame):
 
@@ -856,9 +858,10 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master.unsupervised = UnsupervisedClassifier(self.master.main_directory, classifier_name = ("/Unsupervised_" + classifier_name))
         self.master.segment_frame.initialize_with_classifier()
         pixel_logger.info(f"Initialized Classifier {self.master.name}")
-        unsupervised_window(master)
+        window = unsupervised_window(master)
         self.withdraw()
-
+        return window
+        
     def accept_classifier_name(self, classifier_name: str, master) -> None:
         ''''''
         if not overwrite_approval(self.master.classifier_dir + "/" + classifier_name, file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
@@ -870,8 +873,9 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master.Napari_frame.activate_buttons()
         self.master.segment_frame.initialize_with_classifier()
         pixel_logger.info(f"Initialized Classifier {self.master.name}")
-        Classifier_deets_window(master)
+        window = Classifier_deets_window(master)
         self.withdraw()
+        return window
 
     def load(self, name: str) -> None:
         ''''''
