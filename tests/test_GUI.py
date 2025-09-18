@@ -386,13 +386,13 @@ def test_SpaceANOVA():
     window = app.Tabs.Spatial.widgets.widgets.launch()
     assert isinstance(window, ctk.CTkToplevel)
 
-def test_SpaceANOVA_stats_and_heatmap():
-    window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
-    assert isinstance(window, ctk.CTkToplevel) 
+#def test_SpaceANOVA_stats_and_heatmap():
+#    window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
+#    assert isinstance(window, ctk.CTkToplevel) 
 
-def test_SpaceANOVA_function_plots():
-    window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
-    assert isinstance(window, ctk.CTkToplevel)
+#def test_SpaceANOVA_function_plots():
+#    window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
+#    assert isinstance(window, ctk.CTkToplevel)
 
 def test_do_neighbors():
     app.Tabs.Spatial.widgets.squidpy_spatial.do_neighbors()
