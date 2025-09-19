@@ -130,8 +130,9 @@ def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows
     assert True 
 
 ##>>## GUI Pixel classification tests (px class creation)
-def test_toggle1():
+def test_toggle1a():
     palmettobug.Pixel_Classification.Classifiers_GUI.toggle_TESTING()
+    assert (palmettobug.Pixel_Classification.Classifiers_GUI._TESTING is True)
 
 def test_launch_loading_window():
     global loading_window
@@ -205,6 +206,10 @@ def test_segmentation():
 
 
 ##>>## GUI Pixel classification tests (px class use)
+def test_toggle1b():
+    palmettobug.Pixel_Classification.use_classifier_GUI.toggle_TESTING()
+    assert (palmettobug.Pixel_Classification.use_classifier_GUI._TESTING is True)
+
 def test_load_classifier():
     app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
     assert True 
@@ -226,6 +231,25 @@ def test_filter():
     app.Tabs.px_classification.use_class.px_widg.filter.filter_images()
     assert True
 
+def test_classify_masks_on_mode():
+    app.Tabs.px_classification.use_class.px_widg.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = f"{proj_directory}/masks/expanded_deepcell_masks"))
+    app.Tabs.px_classification.use_class.px_widg.classify_cells.do_classy_masks()
+    assert True
+
+def test_classify_masks_on_flowsom():
+    app.Tabs.px_classification.use_class.px_widg.classify_cells.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
+    app.Tabs.px_classification.use_class.px_widg.classify_cells.radioframe_do_secondary_flowsom.radio_SOM.invoke()
+    global secondary_FlowSOM_window
+    secondary_FlowSOM_window = app.Tabs.px_classification.use_class.px_widg.classify_cells.do_classy_masks()
+    assert isinstance(secondary_FlowSOM_window, ctk.CTkToplevel)
+
+def test_secondary_FlowSOM_merge():
+    secondary_FlowSOM_window.new_heatmap()
+    for ii,i in enumerate(secondary_FlowSOM_window.secondary_labels.entry_list):
+        value = ii % 4   ## generate 4 fake clusters
+        i.configure(textvariable = ctk.StringVar(value = str(value)))
+    secondary_FlowSOM_window.run_labeling()
+
 
 ## windows to add: RegionMeasurement, Secondary_FlowSOM_Analysis_window, whole_class_analysis_window, stats_window
 
@@ -233,14 +257,18 @@ def test_filter():
 ##>>## GUI Analysis tests
 def test_toggle2():
     palmettobug.Analysis_widgets.Analysis_GUI.toggle_TESTING() ## prevents warning pop ups at many steps -- these block the testing suite and prevent errors from being properly debugged
+    assert (palmettobug.Analysis_widgets.Analysis_GUI._TESTING is True)
 
 def test_launch_drop_restore():           ## filtering
-    window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
+    window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()  ##>>##
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_scaling():
     window = app.Tabs.py_exploratory.analysiswidg.launch_scaling()
-    window.call_scaling()
+    window.call_scaling()    ##>>##
+    global my_analysis
+    my_analysis = app.Tabs.py_exploratory.analysiswidg.cat_exp
+    assert isinstance(my_analysis.data, anndata.AnnData)
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_combat_window():
@@ -248,15 +276,8 @@ def test_launch_combat_window():
     window.do_combat()
     assert isinstance(window, ctk.CTkToplevel)
 
-def test_do_regions():
-    global my_analysis
-    my_analysis = app.Tabs.py_exploratory.analysiswidg.cat_exp
-    assert isinstance(my_analysis.data, anndata.AnnData)
-    #my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
-    #assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
-
 def test_launch_scatterplot():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
+    window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()   ##>>##
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_Plot_Counts_per_ROI_window():
@@ -412,6 +433,7 @@ def test_launch_data_table_exportation_window():
 ##>>## GUI Spatial tests
 def test_toggle3():
     palmettobug.Analysis_widgets.Spatial_GUI.toggle_TESTING()
+    assert (palmettobug.Analysis_widgets.Spatial_GUI._TESTING is True)
 
 def test_plot_cell_maps_window():
     window = app.Tabs.Spatial.widgets.plot_cell_maps_window()

@@ -46,6 +46,11 @@ from ..Utils.sharedClasses import (CtkSingletonWindow,
 pd.set_option('future.no_silent_downcasting', True)
 
 __all__ = []
+_TESTING = False
+def toggle_TESTING():
+    global _TESTING
+    _TESTING = not _TESTING
+    return _TESTING
 
 PALMETTO_BUG_homedir = __file__.replace("\\","/")
 PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
@@ -156,7 +161,11 @@ class Pixel_usage_widgets(ctk.CTkFrame):
         
         def launch_bio_labels(self) -> None:
             if self.master.classifier_type is None:
-                tk.messagebox.showwarning("No Classifier Loaded!", message = "No Classifier Loaded!")
+                message = "No Classifier Loaded!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("No Classifier Loaded!", message = message)
+                else:
+                    print(message)
                 return
             return bio_labels_window(self.master)
 
@@ -222,7 +231,11 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             if folder_checker(self.name_output.get()):
                 return
             if self.master.classifier_type is None:
-                tk.messagebox.showwarning("No Classifier Loaded!", message = "No Classifier Loaded!")
+                message = "No Classifier Loaded!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("No Classifier Loaded!", message = message)
+                else:
+                    print(message)
                 return
             output_folder = self.master.image_directory + "/" + self.name_output.get().strip()
             
@@ -233,7 +246,11 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             padding = int(self.padding.get())
             class_to_keep = self.filter_list.retrieve()
             if len(class_to_keep) == 0:
-                tk.messagebox.showwarning("Warning!", message = "You must select at least one class to filter images on!")
+                message = "You must select at least one class to filter images on!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("Warning!", message = message)
+                else:
+                    print(message)
                 return
             if not overwrite_approval(output_folder, file_or_folder = "folder"):
                 return
@@ -272,10 +289,11 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                         self.list_of_labels = [i for i in range(1,self.dictionary["number_of_classes"]+1)]
                         self.from_labels = False
                     except Exception:
-                        tk.messagebox.showwarning("Warning!", 
-                            message = "Classifier is corrupted (_details.json missing)! \n"
-                                "Both the biological_labels.csv and _details.json is missing from this classifier. Please recreate classifier \n"
-                                "or load a different classifier.")
+                        message = "Classifier is corrupted (_details.json missing)! \nBoth the biological_labels.csv and _details.json is missing from this classifier. Please recreate classifier \nor load a different classifier."
+                        if not _TESTING:
+                            tk.messagebox.showwarning("Warning!", message = message)
+                        else:
+                            print(message)
                         return
                     
                 if self.from_labels is True:
@@ -367,10 +385,18 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
         def create(self) -> None:
             if self.master.classifier_type is None:
-                tk.messagebox.showwarning("No Classifier Loaded!", message = "No Classifier Loaded!")
+                message = "No Classifier Loaded!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("No Classifier Loaded!", message = message)
+                else:
+                    print(message)
                 return
             if self.classifier_option_menu.get() == "":
-                tk.messagebox.showwarning("Error", message = "Select what kind of classification map is being used!")
+                message = "Select what kind of classification map is being used!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("Error!", message = message)
+                else:
+                    print(message)
                 return
             if not overwrite_approval(self.master.active_classifier_dir + "/Whole_class_analysis", file_or_folder = "folder", custom_message = "This step"
                                       "will overwrite previously calculated intensity/regionprop \n files for the whole-class analysis of this classifier, if image filenames match -- "
@@ -523,19 +549,35 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
         def run_merging(self) -> None:
             if self.master.classifier_type is None:
-                tk.messagebox.showwarning("No Classifier Loaded!", message = "No Classifier Loaded!")
+                message = "No Classifier Loaded!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("No Classifier Loaded!", message = message)
+                else:
+                    print(message)
                 return
             if self.mask_option_menu.get() == "":
-                tk.messagebox.showwarning("Warning!", message = "You must select a mask folder!")
+                message = "You must select a mask folder!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("Warning!", message = message)
+                else:
+                    print(message)
                 return
             if self.classy_mask_option_menu.get() == "":
-                tk.messagebox.showwarning("Warning!", message = "You must select a classy mask folder!")
+                message = "You must select a classy mask folder!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("Warning!", message = message)
+                else:
+                    print(message)
                 return
             if folder_checker(self.output_name.get()):
                 return
             merge_list = self.select_table.retrieve()
             if len(merge_list) == 0:
-                tk.messagebox.showwarning("Warning!", message = "You must select at least one class to extend on!")
+                message = "You must select at least one class to extend on!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("Warning!", message = message)
+                else:
+                    print(message)
                 return
 
             connectivity = int(self.connectivity.get())
@@ -583,8 +625,11 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 try:
                     self.table = pd.read_csv(bio_path)
                 except FileNotFoundError:
-                    tk.messagebox.showwarning("Warning!", message = "The biological labels for the classifier or classy masks are missing! \n"
-                                              "DO NOT attempt a mask merging until this is fixed & the classifier reloaded!")
+                    message = "The biological labels for the classifier or classy masks are missing! \nDO NOT attempt a mask merging until this is fixed & the classifier reloaded!"
+                    if not _TESTING:
+                        tk.messagebox.showwarning("Warning!", message = message)
+                    else:
+                        print(message)
                     return
 
                 self.checkbox_list = []
@@ -659,7 +704,8 @@ class Pixel_usage_widgets(ctk.CTkFrame):
         class biological_labels:
             '''
             '''
-            ### Will need to be initialized after the classifier has been chosen
+            ### vestigial (probably formerly a widgetframe, but no longer part of the GUI), this is just a container for the biological labels dataframe
+            ## it is still called by code however, so it cannot be removed with replacing its functionality with something else.
             def __init__(self, master):
                 self.master = master
 
@@ -743,11 +789,19 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 
         def do_classy_masks(self) -> None:
             if self.master.classifier_type is None:
-                tk.messagebox.showwarning("Warning!", message = "No Classifier Loaded!")
+                message = "No Classifier Loaded!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("Warning!", message = message)
+                else:
+                    print(message)
                 return
             masks_folder = self.mask_option_menu.get()
             if masks_folder == "":
-                tk.messagebox.showwarning("Warning!", message = "You must select a masks folder!")
+                message = "You must select a masks folder!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("Warning!", message = message)
+                else:
+                    print(message)
                 return 
             
             mode_or_SOM = self.radioframe_do_secondary_flowsom.radio_variable.get()
@@ -763,14 +817,19 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             masks_files = [i for i in sorted(os.listdir(masks_folder)) if i.lower().find(".tif") != -1]
             shared_names = [i for i in classifier_files if i in masks_files]
             if len(shared_names) == 0:
-                tk.messagebox.showwarning("Warning", 
-                    message = "None of the names of the files in the classifier maps folder & masks folder match!")
+                message = "None of the names of the files in the classifier maps folder & masks folder match!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("Warning!", message = message)
+                else:
+                    print(message)
                 return
 
             if len(shared_names) < len(masks_files):
-                tk.messagebox.showwarning("Warning", 
-                    message = "The number of masks and the number of pixel classification maps do not match! \n" 
-                            "Did you only do part of the classifier prediction, or only segmented some of your images?")
+                message = "The number of masks and the number of pixel classification maps do not match! \nDid you only do part of the classifier prediction, or only segmented some of your images?"
+                if not _TESTING:
+                    tk.messagebox.showwarning("Warning!", message = message)
+                else:
+                    print(message)
                                
             
             output_folder = f'''{self.master.main_directory}/classy_masks/{self.master.name}_{self.mask_option_menu.get()}'''
@@ -816,8 +875,11 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                     seed =  int(self.flowsom_training.seed_entry.get())
                     rlen = int(self.flowsom_training.rlen.get())
                 except ValueError:
-                    tk.messagebox.showwarning("XY dimensions, number of clusters, training iterations, and random seed must all be integers, \n" 
-                                              "but one of the provided values was not an integer!")
+                    message = "XY dimensions, number of clusters, training iterations, and random seed must all be integers, \nbut one of the provided values was not an integer!"
+                    if not _TESTING:
+                        tk.messagebox.showwarning("Warning!", message = message)
+                    else:
+                        print(message)
                     return
                 
                 if not os.path.exists(self.master.active_classifier_dir + "/merged_classification_maps"):
@@ -860,7 +922,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                                   f"n_clusters = {str(n_clusters)}, \n"
                                   f"seed = {str(seed)}")
                 self.output_folder = output_folder
-                Secondary_FlowSOM_Analysis_window(self, heatmap_path = self.output_path, fs = fs)
+                return Secondary_FlowSOM_Analysis_window(self, heatmap_path = self.output_path, fs = fs)
 
 class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     '''
@@ -1033,8 +1095,11 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
     def new_heatmap(self) -> None:
         type_array = np.array([i.get() for i in self.checkbox_list])
         if type_array.sum() < 2:
-            tk.messagebox.showwarning("Warning", 
-                        message = "You must have at least two channels selected to create a new heatmap!")
+            message = "You must have at least two channels selected to create a new heatmap!"
+            if not _TESTING:
+                tk.messagebox.showwarning("Warning!", message = message)
+            else:
+                print(message)
             self.focus()
             return
         panel = self.master.master.Experiment_object.panel
@@ -1059,7 +1124,12 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
 
         merging_table = self.secondary_labels.retrieve()
         if (merging_table == "").sum().sum() > 0:
-            choice = tk.messagebox.askyesno("One of labeling fields was left blank! Are you sure you want to continue?")
+            message = "One of labeling fields was left blank! Are you sure you want to continue?"
+            if not _TESTING:
+                 choice = tk.messagebox.askyesno(message)
+            else:
+                print(message)
+                choice = False
             self.focus()
             if not choice:
                 return
@@ -1110,9 +1180,11 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
                     try:
                         self.biological_class_labels = pd.read_csv(self.master.master.master.active_classifier_dir + "/biological_labels.csv")
                     except FileNotFoundError:
-                        tk.messagebox.showwarning("Warning!", 
-                            message = "The biological_labels.csv is missing from this classifier! \n"
-                                      "Please create Biological Labels for the classes before classifying cell masks")
+                        message = "The biological_labels.csv is missing from this classifier! \nPlease create Biological Labels for the classes before classifying cell masks"
+                        if not _TESTING:
+                            tk.messagebox.showwarning("Warning!", message = message)
+                        else:
+                            print(message)
                         return
                     else:
                         self.biological_class_labels['labels'] = self.biological_class_labels['labels'].astype('str')
@@ -1222,8 +1294,11 @@ class bio_labels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                     self.list_of_labels = [i for i in range(1,self.dictionary["number_of_classes"]+1)]
                     self.from_labels = False
                 except Exception:
-                    tk.messagebox.showwarning("Warning!",
-                        message = "The biological_labels.csv and _details.json (if unsupervised) is missing from this classifier!")
+                    message = "The biological_labels.csv and _details.json (if unsupervised) is missing from this classifier!"
+                    if not _TESTING:
+                        tk.messagebox.showwarning("Warning!", message = message)
+                    else:
+                        print(message)
                     return
         else:
             self.biological_class_labels = pd.DataFrame()

@@ -1622,8 +1622,7 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 try:
                     number = int(number)
                 except ValueError:
-                    tk.messagebox.showwarning("Warning!",
-                            message = f"{str(number)} can not be interpreted as an integer! Change and save again.")
+                    message = f"{str(number)} can not be interpreted as an integer! Change and save again."
                     if not _TESTING:
                         tk.messagebox.showwarning("No Channels selected!", message = message)
                     else:
