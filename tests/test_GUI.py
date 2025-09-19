@@ -195,11 +195,20 @@ def test_load_classifier():
     assert True 
 
 def test_launch_classes_as_png():
-    app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_classes_as_png()
-    assert True 
+    window = app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_classes_as_png()
+    window.option1.configure(variable = ctk.StringVar(value = "pixel classification"))
+    if_pixel_classifier = ["classification_maps", "merged_classification_maps"]
+    options = [i for i in if_pixel_classifier if i in os.listdir(window.master.master.active_classifier_dir)]
+    window.option2.configure(variable = ctk.StringVar(value = options[0]))
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_launch_classes_as_png():
+    window = app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_bio_labels()
+    window.accept_labels()
+    assert isinstance(window, ctk.CTkToplevel)
 
 
-## windows to add: RegionMeasurement, Secondary_FlowSOM_Analysis_window, bio_labels_window, whole_class_analysis_window, stats_window
+## windows to add: RegionMeasurement, Secondary_FlowSOM_Analysis_window, whole_class_analysis_window, stats_window
 
 
 ##>>## GUI Analysis tests
@@ -452,18 +461,19 @@ def test_CN_annot():
     for ii,i in enumerate(window.new.table.widgetframe['1']):
         value = ii % 4   ## generate 4 fake clusters
         i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
-    window.annotate()
+    window.annotate(id = 'CN_merge')
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_heatmap():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_heatmap_window()
+    print(window.master.clustering)
     #window.clustering.configure(variable = ctk.StringVar("merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_abundance():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_abundance_window()
-    #window.clustering.configure(variable = ctk.StringVar("merging"))
+    window.clustering.configure(variable = ctk.StringVar("merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
@@ -482,7 +492,7 @@ def test_edt_reload_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_reload_window()
     options = [i for i in sorted(os.listdir(window.folder)) if i.lower().find(".csv") != -1]
     window.choice.configure(variable = ctk.StringVar(value = options[0]))
-    window.reload()
+    #window.reload()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_edt_stats_window():

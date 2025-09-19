@@ -152,13 +152,13 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
         def launch_classes_as_png(self):
             ''''''
-            classes_as_png_window(self)
+            return classes_as_png_window(self)
         
         def launch_bio_labels(self) -> None:
             if self.master.classifier_type is None:
                 tk.messagebox.showwarning("No Classifier Loaded!", message = "No Classifier Loaded!")
                 return
-            bio_labels_window(self.master)
+            return bio_labels_window(self.master)
 
         def refresh1(self) -> None:
             classifier_folders = [i for i in sorted(os.listdir(self.master.classifier_dir)) if i.find(".") == -1]
