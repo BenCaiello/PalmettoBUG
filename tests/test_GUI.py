@@ -250,7 +250,7 @@ def test_secondary_FlowSOM_merge():
     secondary_FlowSOM_window.new_heatmap()
     for ii,i in enumerate(secondary_FlowSOM_window.secondary_labels.entry_list):
         value = ii % 4   ## generate 4 fake clusters
-        i.configure(textvariable = ctk.StringVar(value = str(value)))
+        i.configure(variable = ctk.StringVar(value = str(value)))
     secondary_FlowSOM_window.run_labeling()
 
 def test_mask_extend():
@@ -279,7 +279,7 @@ def test_wca_3():
     wca_window.plot_distribution_exprs(wca_window.class_to_barplot.get(),"Violin","crazy_filename_to_avoid_collisions")
     export_window = wca_window.launch_export_window()
     export_window.export_table()
-    stats_window = wca_window.stats()
+    stats_window = wca_window.stats(wca_window)
     assert isinstance(stats_window, ctk.CTkToplevel)
 
 '''
