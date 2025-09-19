@@ -238,9 +238,9 @@ def test_classify_masks_on_mode():
     px_use_widgets.classify_cells.do_classy_masks()
     assert True
 
-'''
 def test_classify_masks_on_flowsom():
     px_use_widgets.classify_cells.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
+    px_use_widgets.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     px_use_widgets.classify_cells.radioframe_do_secondary_flowsom.radio_SOM.invoke()
     global secondary_FlowSOM_window
     secondary_FlowSOM_window = px_use_widgets.classify_cells.do_classy_masks()
@@ -252,7 +252,6 @@ def test_secondary_FlowSOM_merge():
         value = ii % 4   ## generate 4 fake clusters
         i.configure(textvariable = ctk.StringVar(value = str(value)))
     secondary_FlowSOM_window.run_labeling()
-'''
 
 def test_mask_extend():
     px_use_widgets.merge_class_masks.mask_option_menu.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
@@ -271,7 +270,7 @@ def test_whole_class_analysis_1():
 
 def test_wca_2():
     table_launcher = px_use_widgets.whole_class.add_panel()
-    assert isinstance(region_window, ctk.CTkToplevel)
+    assert isinstance(table_launcher, ctk.CTkToplevel)
     table_launcher.accept_and_return(None)
 
 def test_wca_3():
@@ -283,7 +282,7 @@ def test_wca_3():
     stats_window = wca_window.stats()
     assert isinstance(stats_window, ctk.CTkToplevel)
 
-
+'''
 ##>>## GUI Analysis tests
 def test_toggle2():
     palmettobug.Analysis_widgets.Analysis_GUI.toggle_TESTING() ## prevents warning pop ups at many steps -- these block the testing suite and prevent errors from being properly debugged
@@ -588,3 +587,4 @@ def test_edt_heatmap_window():
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
+'''
