@@ -254,7 +254,7 @@ def test_secondary_FlowSOM_merge():
     secondary_FlowSOM_window.run_labeling()
 
 def test_mask_extend():
-    px_use_widgets.merge_class_masks.mask_option_menu.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
+    px_use_widgets.merge_class_masks.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     options = [i for i in sorted(os.listdir(px_use_widgets.merge_class_masks.master.main_directory + "/classy_masks")) if i.find(".") == -1]  
     px_use_widgets.merge_class_masks.classy_mask_option_menu.configure(variable = ctk.StringVar(value = options[0]))
     px_use_widgets.merge_class_masks.output_name.configure(textvariable = ctk.StringVar(value = "extended_masks"))
@@ -276,7 +276,7 @@ def test_wca_2():
 def test_wca_3():
     global wca_window
     wca_window = px_use_widgets.whole_class.launch_analysis()
-    wca_window.plot_type_choice.invoke()
+    wca_window.plot_distribution_exprs(wca_window.class_to_barplot.get(),"Violin","crazy_filename_to_avoid_collisions")
     export_window = wca_window.launch_export_window()
     export_window.export_table()
     stats_window = wca_window.stats()

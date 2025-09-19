@@ -891,7 +891,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 for i in class_maps:
                     merged_class = merge_classes(tf.imread(classifier_masks_folder + "/" + i), metadata)
                     tf.imwrite(self.master.active_classifier_dir + "/merged_classification_maps/" + i, 
-                               merged_class.astype('int'))
+                               merged_class.astype('int32'))
                 to_use_classifier_masks_folder = self.master.active_classifier_dir + "/" + self.classifier_option_menu.get()
 
                 fs, anndata_df = secondary_flowsom(masks_folder, 
