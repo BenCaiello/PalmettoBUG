@@ -818,8 +818,6 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             classifier_files = [i for i in sorted(os.listdir(classifier_masks_folder)) if i.lower().find(".tif") != -1]
             masks_files = [i for i in sorted(os.listdir(masks_folder)) if i.lower().find(".tif") != -1]
             shared_names = [i for i in classifier_files if i in masks_files]
-            print(shared_names)
-            print(masks_files)
             if len(shared_names) == 0:
                 message = "None of the names of the files in the classifier maps folder & masks folder match!"
                 if not _TESTING:

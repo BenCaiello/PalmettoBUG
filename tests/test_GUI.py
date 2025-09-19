@@ -240,7 +240,7 @@ def test_classify_masks_on_mode():
 
 def test_classify_masks_on_flowsom():
     px_use_widgets.classify_cells.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
-    px_use_widgets.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
+    px_use_widgets.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     px_use_widgets.classify_cells.radioframe_do_secondary_flowsom.radio_SOM.invoke()
     global secondary_FlowSOM_window
     secondary_FlowSOM_window = px_use_widgets.classify_cells.do_classy_masks()
