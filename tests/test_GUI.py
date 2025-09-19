@@ -207,15 +207,17 @@ def test_segmentation():
 
 ##>>## GUI Pixel classification tests (px class use)
 def test_toggle1b():
-    palmettobug.Pixel_Classification.use_classifier_GUI.toggle_TESTING()
-    assert (palmettobug.Pixel_Classification.use_classifier_GUI._TESTING is True)
+    palmettobug.Pixel_Classification.use_classifiers_GUI.toggle_TESTING()
+    assert (palmettobug.Pixel_Classification.use_classifiers_GUI._TESTING is True)
 
 def test_load_classifier():
-    app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
+    global px_use_widgets
+    px_use_widgets = app.Tabs.px_classification.use_class.px_widg
+    px_use_widgets.load_classifier("lumen_epithelia_laminapropria")
     assert True 
 
 def test_launch_classes_as_png():
-    window = app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_classes_as_png()
+    window = px_use_widgets.load_and_display.launch_classes_as_png()
     window.option1.configure(variable = ctk.StringVar(value = "pixel classification"))
     if_pixel_classifier = ["classification_maps", "merged_classification_maps"]
     options = [i for i in if_pixel_classifier if i in os.listdir(window.master.master.active_classifier_dir)]
@@ -223,24 +225,24 @@ def test_launch_classes_as_png():
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_bio_labels():
-    window = app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_bio_labels()
+    window = px_use_widgets.load_and_display.launch_bio_labels()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_filter():
-    app.Tabs.px_classification.use_class.px_widg.filter.filter_list.checkbox_list[0].select()
-    app.Tabs.px_classification.use_class.px_widg.filter.filter_images()
+    px_use_widgets.filter.filter_list.checkbox_list[0].select()
+    px_use_widgets.filter.filter_images()
     assert True
 
 def test_classify_masks_on_mode():
-    app.Tabs.px_classification.use_class.px_widg.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = f"{proj_directory}/masks/expanded_deepcell_masks"))
-    app.Tabs.px_classification.use_class.px_widg.classify_cells.do_classy_masks()
+    px_use_widgets.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
+    px_use_widgets.classify_cells.do_classy_masks()
     assert True
 
 def test_classify_masks_on_flowsom():
-    app.Tabs.px_classification.use_class.px_widg.classify_cells.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
-    app.Tabs.px_classification.use_class.px_widg.classify_cells.radioframe_do_secondary_flowsom.radio_SOM.invoke()
+    px_use_widgets.classify_cells.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
+    px_use_widgets.classify_cells.radioframe_do_secondary_flowsom.radio_SOM.invoke()
     global secondary_FlowSOM_window
-    secondary_FlowSOM_window = app.Tabs.px_classification.use_class.px_widg.classify_cells.do_classy_masks()
+    secondary_FlowSOM_window = px_use_widgets.classify_cells.do_classy_masks()
     assert isinstance(secondary_FlowSOM_window, ctk.CTkToplevel)
 
 def test_secondary_FlowSOM_merge():
@@ -250,8 +252,34 @@ def test_secondary_FlowSOM_merge():
         i.configure(textvariable = ctk.StringVar(value = str(value)))
     secondary_FlowSOM_window.run_labeling()
 
+def test_mask_extend():
+    px_use_widgets.merge_class_masks.mask_option_menu.configure(variable = ctk.StringVar(value = f"{proj_directory}/masks/example_deepcell_masks"))
+    options = [i for i in sorted(os.listdir(px_use_widgets.merge_class_masks.master.main_directory + "/classy_masks")) if i.find(".") == -1]  
+    px_use_widgets.merge_class_masks.classy_mask_option_menu.configure(variable = ctk.StringVar(value = options[0]))
+    px_use_widgets.merge_class_masks.output_name.configure(textvariable = ctk.StringVar(value = "extended_masks"))
+    px_use_widgets.merge_class_masks.select_table.checkbox_list[1].select()
+    px_use_widgets.merge_class_masks.run_merging()
+    assert True
 
-## windows to add: RegionMeasurement, Secondary_FlowSOM_Analysis_window, whole_class_analysis_window, stats_window
+def test_whole_class_analysis_1():
+    px_use_widgets.whole_class.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
+    region_window = px_use_widgets.whole_class.create()
+    assert isinstance(region_window, ctk.CTkToplevel)
+    region_window.read_values()
+
+def test_wca_2():
+    table_launcher = px_use_widgets.whole_class.add_panel()
+    assert isinstance(region_window, ctk.CTkToplevel)
+    table_launcher.accept_and_return(None)
+
+def test_wca_3():
+    global wca_window
+    wca_window = px_use_widgets.whole_class.launch_analysis()
+    wca_window.plot_type_choice.invoke()
+    export_window = wca_window.launch_export_window()
+    export_window.export_table()
+    stats_window = wca_window.stats()
+    assert isinstance(stats_window, ctk.CTkToplevel)
 
 
 ##>>## GUI Analysis tests

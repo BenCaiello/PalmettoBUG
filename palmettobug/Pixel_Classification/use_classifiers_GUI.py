@@ -410,13 +410,14 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                              pd.read_csv(self.master.active_classifier_dir + "/biological_labels.csv"))
             '''
 
-            RegionMeasurement(self.master, 
+            return RegionMeasurement(self.master, 
                               self.master.Experiment_object, 
                               input_masks_dir = (self.master.active_classifier_dir + "/" + self.classifier_option_menu.get()))
 
         def launch_analysis(self) -> None:  
-            whole_class_analysis_window(self)
+            window = whole_class_analysis_window(self)
             pixel_logger.info("""Entered Whole class analysis""") 
+            return window
 
         def add_panel(self) -> None:
             try:                ## first read from classifier directory
@@ -483,6 +484,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                                      self.master.active_classifier_dir + "/Whole_class_analysis", 
                                      metadata, "metadata", 
                                      favor_table = True)
+            return table_launcher
 
     class merge_class_masks_frame(ctk.CTkFrame):
         def __init__(self, master):
@@ -1441,10 +1443,10 @@ class whole_class_analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
 
     def launch_export_window(self):
         self.cat_exp = self.analysis_exp_whole
-        data_table_exportation_window(self, self.analysis_exp_whole.data, umap = False)  
+        return data_table_exportation_window(self, self.analysis_exp_whole.data, umap = False)  
 
     def stats(self, master) -> None:
-        self.stats_window(master, statistic = self.statistic.get())
+        return self.stats_window(master, statistic = self.statistic.get())
 
     class stats_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         def __init__(self, master, statistic: str) -> None:
