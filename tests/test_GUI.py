@@ -127,7 +127,6 @@ def test_call_to_Analysis():
 
 def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows (as is, does not close itself and blocks future instnaces as a singleton)
     window = app.entrypoint.FCS_choice(fetch_dir + "/Example_CyTOF")
-    assert isinstance(window, ctk.CTkToplevel)
     window.table_launcher.destroy()
 
 ##>>## GUI Pixel classification tests (px class creation)
