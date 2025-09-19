@@ -20,7 +20,11 @@ proj_directory = fetch_dir + "/Example_IMC"
 
 np.random.default_rng(42)
 
-## needed when only testing GUI (otherwise can depend on px classifier script)
+def test_print_licenses():
+    palmettobug.print_license()
+    palmettobug.print_3rd_party_license_info()
+    assert True
+
 def test_fetch_IMC():
     fetch_IMC_example(fetch_dir)
 
@@ -181,20 +185,21 @@ def test_bio_label_launch():
     assert True 
 
 def test_save_classifier():
-    print(app.Tabs.px_classification.create.px_widg.classifier_dir)
-    print(os.listdir(app.Tabs.px_classification.create.px_widg.classifier_dir))
     app.Tabs.px_classification.create.px_widg.save_classifier()
     assert True 
 
 
 ##>>## GUI Pixel classification tests (px class use)
+def test_load_classifier():
+    app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
+    assert True 
+
 def test_launch_classes_as_png():
     app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_classes_as_png()
     assert True 
 
-def test_load_classifier():
-    app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
-    assert True 
+
+## windows to add: RegionMeasurement, Secondary_FlowSOM_Analysis_window, bio_labels_window, whole_class_analysis_window, stats_window
 
 
 ##>>## GUI Analysis tests
@@ -429,7 +434,7 @@ def test_sq_neigh_enrich():
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_window():
-    window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_CN_window()
+    window = app.Tabs.Spatial.widgets.CN_widgets.launch_CN_window()
     window.celltype.configure(variable = ctk.StringVar(value = "merging"))
     window.run_cellular_neighborhoods()
     assert isinstance(window, ctk.CTkToplevel)
@@ -444,15 +449,21 @@ def test_CN_save_load():
 
 def test_CN_annot():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
+    for ii,i in enumerate(window.new.table.widgetframe['1']):
+        value = ii % 4   ## generate 4 fake clusters
+        i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
+    window.annotate()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_heatmap():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_heatmap_window()
+    #window.clustering.configure(variable = ctk.StringVar("merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_abundance():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_abundance_window()
+    #window.clustering.configure(variable = ctk.StringVar("merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
@@ -476,19 +487,19 @@ def test_edt_reload_window():
 
 def test_edt_stats_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_stat_window()
-    window.groupby_column.configure(variable = ctk.StringVar("merging"))
+    window.groupby_column.configure(variable = ctk.StringVar(value = "merging"))
     window.do_stats()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_edt_distrib_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_distrib_window()
-    window.var_column.configure(variable = ctk.StringVar("HistoneH3"))
-    window.subset_col.configure(variable = ctk.StringVar("merging"))
+    window.var_column.configure(variable = ctk.StringVar(value = "HistoneH3"))
+    window.subset_col.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_edt_heatmap_window():
-    window = app.Tabs.Spatial.test_edt.launch_heatmap_window()
+    window = app.Tabs.Spatial.widgets.test_edt.launch_heatmap_window()
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
