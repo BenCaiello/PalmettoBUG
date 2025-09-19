@@ -1460,7 +1460,7 @@ class direct_to_Analysis(ImageAnalysis):
 
         # now do the metadata initialization and table launches (shared with the main pathway)
         analysis_logger = Analysis_logger(self.directory_object.Analysis_internal_dir).return_log()
-        table_launcher = TableLaunchAnalysis(1, 1,  
+        self.table_launcher = TableLaunchAnalysis(1, 1,  
                                              self.directory_object.Analysis_internal_dir, 
                                              self.Analysis_panel, 
                                              "Analysis_panel.csv", 
@@ -1479,11 +1479,10 @@ class direct_to_Analysis(ImageAnalysis):
             self.metadata['patient_id'] = 'na'      # manually set later
             self.metadata['condition'] = 'treatment vs. control'       # manually set later
 
-        table_launcher.add_table(1, 1, 
+        self.table_launcher.add_table(1, 1, 
                                  self.directory_object.main, 
                                  self.metadata, 
                                  "metadata")
-        return table_launcher
 
 
 class TableLaunchAnalysis(TableLaunch):

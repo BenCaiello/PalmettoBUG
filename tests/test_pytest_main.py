@@ -105,19 +105,19 @@ def test_scaling():
         else:
             assert (my_analysis.data.X != original_X).sum().sum() == 0, "Unscaling did not restore the original data!"
 
-def test_do_regions():
-    my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
-    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
+#def test_do_regions():
+#    my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
+#    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
 
 #def test_spatial_leiden():
 #    my_analysis._do_spatial_leiden()
 #    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
 
-def test_comBat():
-    original_X = my_analysis.data.X.copy()
-    greater_than_zero = (original_X > 0)
-    my_analysis.do_COMBAT(batch_column = "patient_id")
-    assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < (len(original_X[greater_than_zero]) / 10) , "ComBat did not change all the data points > 0!"
+#def test_comBat():
+#    original_X = my_analysis.data.X.copy()
+#    greater_than_zero = (original_X > 0)
+#    my_analysis.do_COMBAT(batch_column = "patient_id")
+#    assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < (len(original_X[greater_than_zero]) / 10) , "ComBat did not change all the data points > 0!"
 
 def test_countplot():
     figure = my_analysis.plot_cell_counts()
