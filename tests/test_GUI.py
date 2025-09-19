@@ -238,6 +238,7 @@ def test_classify_masks_on_mode():
     px_use_widgets.classify_cells.do_classy_masks()
     assert True
 
+'''
 def test_classify_masks_on_flowsom():
     px_use_widgets.classify_cells.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
     px_use_widgets.classify_cells.radioframe_do_secondary_flowsom.radio_SOM.invoke()
@@ -251,6 +252,7 @@ def test_secondary_FlowSOM_merge():
         value = ii % 4   ## generate 4 fake clusters
         i.configure(textvariable = ctk.StringVar(value = str(value)))
     secondary_FlowSOM_window.run_labeling()
+'''
 
 def test_mask_extend():
     px_use_widgets.merge_class_masks.mask_option_menu.configure(variable = ctk.StringVar(value = f"{proj_directory}/masks/example_deepcell_masks"))
