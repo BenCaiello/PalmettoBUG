@@ -391,7 +391,7 @@ def test_SpaceANOVA():
                                          max_radii = 100, 
                                          step = 5, 
                                          condition_comparison = "All (multicomparison)", 
-                                         celltype_key = 'merging1', 
+                                         celltype_key = 'merging', 
                                          permutations = 2, 
                                          seed = 42)
     assert isinstance(window, ctk.CTkToplevel)
@@ -410,67 +410,87 @@ def test_do_neighbors():
 
 def test_sq_centrality():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_centrality_window()
-    window.clustering.configure(variable = ctk.StringVar(value = "merging1"))
+    window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_sq_inter_mat():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_interaction_matrix_window()
-    window.clustering.configure(variable = ctk.StringVar(value = "merging1"))
+    window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     window.facet.configure(variable = ctk.StringVar(value = "condition"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_sq_neigh_enrich():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_neigh_enrich_window()
-    window.clustering.configure(variable = ctk.StringVar(value = "merging1"))
+    window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     window.facet.configure(variable = ctk.StringVar(value = "condition"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_window():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_CN_window()
+    window.celltype.configure(variable = ctk.StringVar(value = "merging"))
+    window.run_cellular_neighborhoods()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_save_load():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_save_load()
+    window.save()
+    saved_clusterings = [i for i in sorted(os.listdir(window.master.master.master_exp.clusterings_dir)) if (i.find("cellular_neighborhood") != -1)]
+    window.path.configure(variable = ctk.StringVar(value = saved_clusterings[0]))
+    window.reload()
     assert isinstance(window, ctk.CTkToplevel)
 
-#def test_CN_annot():
-#    window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
-#    assert isinstance(window, ctk.CTkToplevel)
+def test_CN_annot():
+    window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_heatmap():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_heatmap_window()
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_abundance():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_abundance_window()
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
-#def test_CN_UMAP_or_MST():
-#    window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
-#    assert isinstance(window, ctk.CTkToplevel)
+def test_CN_UMAP_or_MST():
+    window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
+    window.plot()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_edt():
     window = app.Tabs.Spatial.widgets.test_edt.launch_load_window()
+    window.pixel_class_entry.configure(textvariable = ctk.StringVar(value = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria"))
+    window.do_dist_transform()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_edt_reload_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_reload_window()
+    options = [i for i in sorted(os.listdir(window.folder)) if i.lower().find(".csv") != -1]
+    window.choice.configure(variable = ctk.StringVar(value = options[0]))
+    window.reload()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_edt_stats_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_stat_window()
+    window.groupby_column.configure(variable = ctk.StringVar("merging"))
+    window.do_stats()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_edt_distrib_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_distrib_window()
+    window.var_column.configure(variable = ctk.StringVar("HistoneH3"))
+    window.subset_col.configure(variable = ctk.StringVar("merging"))
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
-#def test_edt_heatmap_window():
-#    window = app.Tabs.Spatial.test_edt.launch_heatmap_window()
-#    assert isinstance(window, ctk.CTkToplevel)
+def test_edt_heatmap_window():
+    window = app.Tabs.Spatial.test_edt.launch_heatmap_window()
+    window.plot()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
