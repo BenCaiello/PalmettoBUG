@@ -1508,7 +1508,8 @@ class TableLaunchAnalysis(TableLaunch):
                          logger = logger)
         self.geometry("+0+0")
         self.tab = tab
-        tab.tables = self
+        if tab is not None:
+            tab.tables = self
         self.alt_dir = alt_dir
         self.Analysis_internal_dir = directory 
 
