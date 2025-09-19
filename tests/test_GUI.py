@@ -126,8 +126,9 @@ def test_call_to_Analysis():
     assert("condition" in list(pd.read_csv(interal_dir + "/metadata.csv").columns)), "Automatically generated metadata.csv file must have a 'condition' column!"
 
 def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows (as is, does not close itself and blocks future instnaces as a singleton)
-    app.entrypoint.FCS_choice(fetch_dir + "/Example_CyTOF")
-    assert True 
+    window = app.entrypoint.FCS_choice(fetch_dir + "/Example_CyTOF")
+    assert isinstance(window, ctk.CTkToplevel)
+    window.destroy()
 
 ##>>## GUI Pixel classification tests (px class creation)
 def test_toggle1a():
@@ -255,7 +256,7 @@ def test_secondary_FlowSOM_merge():
 '''
 
 def test_mask_extend():
-    px_use_widgets.merge_class_masks.mask_option_menu.configure(variable = ctk.StringVar(value = f"{proj_directory}/masks/example_deepcell_masks"))
+    px_use_widgets.merge_class_masks.mask_option_menu.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     options = [i for i in sorted(os.listdir(px_use_widgets.merge_class_masks.master.main_directory + "/classy_masks")) if i.find(".") == -1]  
     px_use_widgets.merge_class_masks.classy_mask_option_menu.configure(variable = ctk.StringVar(value = options[0]))
     px_use_widgets.merge_class_masks.output_name.configure(textvariable = ctk.StringVar(value = "extended_masks"))
@@ -267,7 +268,7 @@ def test_whole_class_analysis_1():
     px_use_widgets.whole_class.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
     region_window = px_use_widgets.whole_class.create()
     assert isinstance(region_window, ctk.CTkToplevel)
-    region_window.read_values()
+    region_window.read_values(px_use_widgets.whole_class.master.Experiment_object)
 
 def test_wca_2():
     table_launcher = px_use_widgets.whole_class.add_panel()

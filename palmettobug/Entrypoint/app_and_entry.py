@@ -385,11 +385,12 @@ class EntryPoint(ctk.CTkFrame):
         
         ## set up project logger:
         project_log = Analysis_logger(self.master.directory + "/main").return_log()
-        direct_to_Analysis(self.master, self.master.directory)
+        table_launcher = direct_to_Analysis(self.master, self.master.directory)
         project_log.info(f"Start log of experiment from the directory {self.master.directory + '/main'}/Logs after loading .fcs for direct analysis")
         self.master.set('Analysis')
         self.master.master.Tabs.py_exploratory.analysiswidg.setup_dir_disp(self.master.directory + "/main")  
         self.master.master.Tabs.Spatial.widgets.setup_dir_disp(self.master.directory + "/main")
+        return table_launcher
 
 
 class configGUI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):

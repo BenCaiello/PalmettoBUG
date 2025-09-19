@@ -1483,6 +1483,7 @@ class direct_to_Analysis(ImageAnalysis):
                                  self.directory_object.main, 
                                  self.metadata, 
                                  "metadata")
+        return table_launcher
 
 
 class TableLaunchAnalysis(TableLaunch):
