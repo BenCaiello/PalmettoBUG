@@ -380,19 +380,23 @@ palmettobug.Analysis_widgets.Spatial_GUI.toggle_TESTING()
 
 def test_plot_cell_maps_window():
     window = app.Tabs.Spatial.widgets.plot_cell_maps_window()
+    list_of_file_names = list(window.master.master_exp.data.obs['file_name'].unique())
+    window.python_run_cell_maps( multi_or_single = list_of_file_names[0], clustering = 'metaclustering', masks = "masks")
+    window.python_run_cell_maps( multi_or_single = list_of_file_names[1], clustering = 'metaclustering', masks = "points")
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_SpaceANOVA():
     window = app.Tabs.Spatial.widgets.widgets.launch()
+    window.load_and_run_spatial_analysis(min_radius = 10, max_radii = 100, step = 5, condition_comparison = "All (multicomparison)", seed = 42)
     assert isinstance(window, ctk.CTkToplevel)
 
-#def test_SpaceANOVA_stats_and_heatmap():
-#    window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
-#    assert isinstance(window, ctk.CTkToplevel) 
+def test_SpaceANOVA_stats_and_heatmap():
+    window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
+    assert isinstance(window, ctk.CTkToplevel) 
 
-#def test_SpaceANOVA_function_plots():
-#    window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
-#    assert isinstance(window, ctk.CTkToplevel)
+def test_SpaceANOVA_function_plots():
+    window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_do_neighbors():
     app.Tabs.Spatial.widgets.squidpy_spatial.do_neighbors()
