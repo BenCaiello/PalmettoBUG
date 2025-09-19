@@ -330,6 +330,8 @@ class Spatial_py(ctk.CTkFrame):
                                                                                                      max_radii = self.radFrame.maxR.get(),
                                                                                                      step = self.radFrame.Radii_step.get(),
                                                                                                      condition_comparison = self.C1.get(),
+                                                                                                     celltype_key = self.celltype.get(),
+                                                                                                     permutations = self.nPerm.get(),
                                                                                                      seed = self.seed.get()
                                                                                                      ))
                 button_run_uni.grid(column = 0, row = 9, padx = 5, pady = 5)
@@ -363,7 +365,13 @@ class Spatial_py(ctk.CTkFrame):
                     self.Radii_step.grid(column = 2, row = 1)
                     self.Radii_step.configure(width = 65)
 
-            def load_and_run_spatial_analysis(self, min_radius: int, max_radii: int, step: int, condition_comparison: str, seed: int = 42) -> None:
+            def load_and_run_spatial_analysis(self, min_radius: int, 
+                                              max_radii: int, 
+                                              step: int, 
+                                              condition_comparison: str, 
+                                              celltype_key: str, 
+                                              permutations: int, 
+                                              seed: int = 42) -> None:
                 ''' If not All (multicomparison), this function splits condition_comparison by the string "_vs_" into the two conditions, and
                 then loads these conditions & the other provided parameters into the do_spatial_analysis method of the spatial class.
                 '''
@@ -372,8 +380,6 @@ class Spatial_py(ctk.CTkFrame):
                                                         # zero divisions are very common (strictly necessary?) in the vectorised calculation steps
                                                         # The program should properly handle these, so I don't want the console spammed with warnings
                 warnings.filterwarnings("ignore", message = "invalid value encountered in divide") 
-                permutations = self.nPerm.get()
-                celltype_key = self.celltype.get()
                 if celltype_key == "":
                     message = 'You must select a clustering!'
                     if not _TESTING:

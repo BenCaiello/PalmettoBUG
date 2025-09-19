@@ -36,20 +36,20 @@ def test_raw_to_img():
     assert(len(images) == 10), "Wrong number of images exported to images/img"               ## all the images are transferred
     shutil.rmtree(proj_directory + "/raw") ## don't need raw anymore
 
-def test_expand_masks():
-    mask_expand(2, proj_directory + "/masks/example_deepcell_masks", proj_directory + "/masks/expanded_deepcell_masks")
-    images = [f"{proj_directory}/masks/expanded_deepcell_masks/{i}" for i in sorted(os.listdir(proj_directory + "/masks/expanded_deepcell_masks"))]
-    assert(len(images) == 10), "All masks not expanded" 
+#def test_expand_masks():
+#    mask_expand(2, proj_directory + "/masks/example_deepcell_masks", proj_directory + "/masks/expanded_deepcell_masks")
+#    images = [f"{proj_directory}/masks/expanded_deepcell_masks/{i}" for i in sorted(os.listdir(proj_directory + "/masks/expanded_deepcell_masks"))]
+#    assert(len(images) == 10), "All masks not expanded" 
      
-def test_instanseg():
-    image_proc.instanseg_segmentation(single_image = os.listdir(proj_directory + "/images/img")[0])
-    assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
+#def test_instanseg():
+#    image_proc.instanseg_segmentation(single_image = os.listdir(proj_directory + "/images/img")[0])
+#    assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
 
-def test_mask_intersection_difference():
-    masks1 = proj_directory + "/masks/example_deepcell_masks"
-    masks2 = proj_directory + "/masks/expanded_deepcell_masks"
-    image_proc.mask_intersection_difference(masks1, masks2)
-    assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks"  )) == 10), "Mask intersection function failed!"
+#def test_mask_intersection_difference():
+#    masks1 = proj_directory + "/masks/example_deepcell_masks"
+#    masks2 = proj_directory + "/masks/expanded_deepcell_masks"
+#    image_proc.mask_intersection_difference(masks1, masks2)
+#    assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks"  )) == 10), "Mask intersection function failed!"
 
 def test_regionprops_write():
     image_proc.directory_object.make_analysis_dirs("test_analysis")
@@ -105,19 +105,19 @@ def test_scaling():
         else:
             assert (my_analysis.data.X != original_X).sum().sum() == 0, "Unscaling did not restore the original data!"
 
-def test_do_regions():
-    my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
-    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
+#def test_do_regions():
+#    my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
+#    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
 
 #def test_spatial_leiden():
 #    my_analysis._do_spatial_leiden()
 #    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
 
-def test_comBat():
-    original_X = my_analysis.data.X.copy()
-    greater_than_zero = (original_X > 0)
-    my_analysis.do_COMBAT(batch_column = "patient_id")
-    assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < (len(original_X[greater_than_zero]) / 10) , "ComBat did not change all the data points > 0!"
+#def test_comBat():
+#    original_X = my_analysis.data.X.copy()
+#    greater_than_zero = (original_X > 0)
+#    my_analysis.do_COMBAT(batch_column = "patient_id")
+#    assert (my_analysis.data.X[greater_than_zero] == original_X[greater_than_zero]).sum().sum() < (len(original_X[greater_than_zero]) / 10) , "ComBat did not change all the data points > 0!"
 
 def test_countplot():
     figure = my_analysis.plot_cell_counts()

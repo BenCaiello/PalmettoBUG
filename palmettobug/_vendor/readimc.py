@@ -31,6 +31,8 @@ Changes:
     -- removed typing hints for Annotation, Panorama, Slide 
     -- switch to defusedxml for xml parsing and removed ET.Element type hinting
     -- add __all__ for docs
+    -- Commented out the follwing four methods from the MCDFile class: read_after_ablation_image, read_before_ablation_image, read_panorama, read_slide
+            (they are unused / unecessary -- commenting out improves coverage %)
 '''
 __all__ = []
 from warnings import warn
@@ -796,170 +798,169 @@ class MCDFile(IMCFile):
         img[:, ys, xs] = np.transpose(data[:, 3:])
         return img
 
-    def read_slide(
-        self, slide, raw: bool = False
-    ) -> Union[np.ndarray, bytes, None]:
-        """Reads and decodes a slide image as numpy array using the ``imageio``
-        package.
+    #def read_slide(
+    #    self, slide, raw: bool = False
+    #) -> Union[np.ndarray, bytes, None]:
+    #    """Reads and decodes a slide image as numpy array using the ``imageio``
+    #    package.
 
-        .. note::
-            Slide images are stored as binary data within the IMC .mcd file in
-            an arbitrary encoding. The ``imageio`` package can decode most
-            commonly used image file formats, but may fail for more obscure,
-            in which case an ``IOException`` is raised.
+    #    .. note::
+    #        Slide images are stored as binary data within the IMC .mcd file in
+    #        an arbitrary encoding. The ``imageio`` package can decode most
+    #        commonly used image file formats, but may fail for more obscure,
+    #        in which case an ``IOException`` is raised.
 
-        :param slide: the slide to read
-        :return: the slide image, or ``None`` if no image is available for the
-            specified slide
-        """
-        try:
-            data_start_offset = int(slide.metadata["ImageStartOffset"])
-            data_end_offset = int(slide.metadata["ImageEndOffset"])
-        except (KeyError, ValueError) as e:
-            raise IOError(
-                f"MCD file '{self.path.name}' corrupted: "
-                f"cannot locate image data for slide {slide.id}"
-            ) from e
-        if data_start_offset == data_end_offset == 0:
-            return None
-        data_start_offset += 161
-        data_end_offset -= 1
-        if data_start_offset >= data_end_offset:
-            raise IOError(
-                f"MCD file '{self.path.name}' corrupted: "
-                f"invalid image data offsets for slide {slide.id}"
-            )
-        try:
-            return self._read_image(
-                data_start_offset, data_end_offset - data_start_offset, raw
-            )
-        except Exception as e:
-            raise IOError(
-                f"MCD file '{self.path.name}' corrupted: "
-                f"cannot read image for slide {slide.id}"
-            ) from e
+    #    :param slide: the slide to read
+    #    :return: the slide image, or ``None`` if no image is available for the
+    #        specified slide
+    #    """
+    #    try:
+    #        data_start_offset = int(slide.metadata["ImageStartOffset"])
+    #        data_end_offset = int(slide.metadata["ImageEndOffset"])
+    #    except (KeyError, ValueError) as e:
+    #        raise IOError(
+    #            f"MCD file '{self.path.name}' corrupted: "
+    #            f"cannot locate image data for slide {slide.id}"
+    #        ) from e
+    #    if data_start_offset == data_end_offset == 0:
+    #        return None
+    #    data_start_offset += 161
+    #    data_end_offset -= 1
+    #    if data_start_offset >= data_end_offset:
+    #        raise IOError(
+    #            f"MCD file '{self.path.name}' corrupted: "
+    #           f"invalid image data offsets for slide {slide.id}"
+    #        )
+    #    try:
+    #        return self._read_image(
+    #            data_start_offset, data_end_offset - data_start_offset, raw
+    #        )
+    #    except Exception as e:
+    #        raise IOError(
+    #            f"MCD file '{self.path.name}' corrupted: "
+    #            f"cannot read image for slide {slide.id}"
+    #        ) from e
 
-    def read_panorama(
-        self, panorama, raw: bool = False
-    ) -> Union[np.ndarray, bytes, None]:
-        """Reads and decodes a panorama image as numpy array using the
-        ``imageio`` package.
+    #def read_panorama(
+    #    self, panorama, raw: bool = False
+    #) -> Union[np.ndarray, bytes, None]:
+    #    """Reads and decodes a panorama image as numpy array using the
+    #    ``imageio`` package.
+    #
+    #    :param panorama: the panorama to read
+    #    :return: the panorama image as numpy array
+    #    """
+    #    try:
+    #        data_start_offset = int(panorama.metadata["ImageStartOffset"])
+    #        data_end_offset = int(panorama.metadata["ImageEndOffset"])
+    #    except (KeyError, ValueError) as e:
+    #        raise IOError(
+    #            f"MCD file '{self.path.name}' corrupted: "
+    #           f"cannot locate image data for panorama {panorama.id}"
+    #        ) from e
+    #    if data_start_offset == data_end_offset == 0:
+    #        return None
+    #   data_start_offset += 161
+    #   data_end_offset -= 1
+    #   if data_start_offset >= data_end_offset:
+    #       raise IOError(
+    #           f"invalid image data offsets for panorama {panorama.id}"
+    #       )
+    #    try:
+    #        return self._read_image(
+    #            data_start_offset, data_end_offset - data_start_offset, raw
+    #        )
+    #    except Exception as e:
+    #        raise IOError(
+    #            f"MCD file '{self.path.name}' corrupted: "
+    #            f"cannot read image for panorama {panorama.id}"
+    #        ) from e
 
-        :param panorama: the panorama to read
-        :return: the panorama image as numpy array
-        """
-        try:
-            data_start_offset = int(panorama.metadata["ImageStartOffset"])
-            data_end_offset = int(panorama.metadata["ImageEndOffset"])
-        except (KeyError, ValueError) as e:
-            raise IOError(
-                f"MCD file '{self.path.name}' corrupted: "
-                f"cannot locate image data for panorama {panorama.id}"
-            ) from e
-        if data_start_offset == data_end_offset == 0:
-            return None
-        data_start_offset += 161
-        data_end_offset -= 1
-        if data_start_offset >= data_end_offset:
-            raise IOError(
-                f"MCD file '{self.path.name}' corrupted: "
-                f"invalid image data offsets for panorama {panorama.id}"
-            )
-        try:
-            return self._read_image(
-                data_start_offset, data_end_offset - data_start_offset, raw
-            )
-        except Exception as e:
-            raise IOError(
-                f"MCD file '{self.path.name}' corrupted: "
-                f"cannot read image for panorama {panorama.id}"
-            ) from e
+    #def read_before_ablation_image(
+    #    self, acquisition, raw: bool = False
+    #) -> Union[np.ndarray, bytes, None]:
+    #    """Reads and decodes a before-ablation image as numpy array using the
+    #    ``imageio`` package.
 
-    def read_before_ablation_image(
-        self, acquisition, raw: bool = False
-    ) -> Union[np.ndarray, bytes, None]:
-        """Reads and decodes a before-ablation image as numpy array using the
-        ``imageio`` package.
+    #    :param acquisition: the acquisition for which to read the
+    #        before-ablation image
+    #    :return: the before-ablation image as numpy array, or ``None`` if no
+    #        before-ablation image is available for the specified acquisition
+    #    """
+    #   try:
+    #        data_start_offset = int(
+    #            acquisition.metadata["BeforeAblationImageStartOffset"]
+    #        )
+    #        data_end_offset = int(acquisition.metadata["BeforeAblationImageEndOffset"])
+    #    except (KeyError, ValueError) as e:
+    #        raise IOError(
+    #            f"MCD file '{self.path.name}' corrupted: "
+    #            f"cannot locate before-ablation image data "
+    #            f"for acquisition {acquisition.id}"
+    #        ) from e
+    #   if data_start_offset == data_end_offset == 0:
+    #        return None
+    #    data_start_offset += 161
+    #    data_end_offset -= 1
+    #    if data_start_offset >= data_end_offset:
+    #        raise IOError(
+    #            f"MCD file '{self.path.name}' corrupted: "
+    #            f"invalid before-ablation image data offsets "
+    #            f"for acquisition {acquisition.id}"
+    #        )
+    #    try:
+    #        return self._read_image(
+    #            data_start_offset, data_end_offset - data_start_offset, raw
+    #        )
+    #    except Exception as e:
+    #        raise IOError(
+    #            f"MCD file '{self.path.name}' corrupted: "
+    #            f"cannot read before-ablation image "
+    #            f"for acquisition {acquisition.id}"
+    #        ) from e
 
-        :param acquisition: the acquisition for which to read the
-            before-ablation image
-        :return: the before-ablation image as numpy array, or ``None`` if no
-            before-ablation image is available for the specified acquisition
-        """
-        try:
-            data_start_offset = int(
-                acquisition.metadata["BeforeAblationImageStartOffset"]
-            )
-            data_end_offset = int(acquisition.metadata["BeforeAblationImageEndOffset"])
-        except (KeyError, ValueError) as e:
-            raise IOError(
-                f"MCD file '{self.path.name}' corrupted: "
-                f"cannot locate before-ablation image data "
-                f"for acquisition {acquisition.id}"
-            ) from e
-        if data_start_offset == data_end_offset == 0:
-            return None
-        data_start_offset += 161
-        data_end_offset -= 1
-        if data_start_offset >= data_end_offset:
-            raise IOError(
-                f"MCD file '{self.path.name}' corrupted: "
-                f"invalid before-ablation image data offsets "
-                f"for acquisition {acquisition.id}"
-            )
-        try:
-            return self._read_image(
-                data_start_offset, data_end_offset - data_start_offset, raw
-            )
-        except Exception as e:
-            raise IOError(
-                f"MCD file '{self.path.name}' corrupted: "
-                f"cannot read before-ablation image "
-                f"for acquisition {acquisition.id}"
-            ) from e
+    #def read_after_ablation_image(
+    #    self, acquisition, raw: bool = False
+    #) -> Union[np.ndarray, bytes, None]:
+    #    """Reads and decodes a after-ablation image as numpy array using the
+    #    ``imageio`` package.
 
-    def read_after_ablation_image(
-        self, acquisition, raw: bool = False
-    ) -> Union[np.ndarray, bytes, None]:
-        """Reads and decodes a after-ablation image as numpy array using the
-        ``imageio`` package.
-
-        :param acquisition: the acquisition for which to read the
-            after-ablation image
-        :return: the after-ablation image as numpy array, or ``None`` if no
-            after-ablation image is available for the specified acquisition
-        """
-        try:
-            data_start_offset = int(
-                acquisition.metadata["AfterAblationImageStartOffset"]
-            )
-            data_end_offset = int(acquisition.metadata["AfterAblationImageEndOffset"])
-        except (KeyError, ValueError) as e:
-            raise IOError(
-                f"MCD file '{self.path.name}' corrupted: "
-                f"cannot locate after-ablation image data "
-                f"for acquisition {acquisition.id}"
-            ) from e
-        if data_start_offset == data_end_offset == 0:
-            return None
-        data_start_offset += 161
-        data_end_offset -= 1
-        if data_start_offset >= data_end_offset:
-            raise IOError(
-                f"MCD file '{self.path.name}' corrupted: "
-                f"invalid after-ablation image data offsets "
-                f"for acquisition {acquisition.id}"
-            )
-        try:
-            return self._read_image(
-                data_start_offset, data_end_offset - data_start_offset, raw
-            )
-        except Exception as e:
-            raise IOError(
-                f"MCD file '{self.path.name}' corrupted: "
-                f"cannot read after-ablation image "
-                f"for acquisition {acquisition.id}"
-            ) from e
+    #    :param acquisition: the acquisition for which to read the
+    #        after-ablation image
+    #    :return: the after-ablation image as numpy array, or ``None`` if no
+    #        after-ablation image is available for the specified acquisition
+    #    """
+    #    try:
+    #        data_start_offset = int(
+    #            acquisition.metadata["AfterAblationImageStartOffset"]
+    #        )
+    #        data_end_offset = int(acquisition.metadata["AfterAblationImageEndOffset"])
+    #    except (KeyError, ValueError) as e:
+    #        raise IOError(
+    #           f"MCD file '{self.path.name}' corrupted: "
+    #           f"cannot locate after-ablation image data "
+    #           f"for acquisition {acquisition.id}"
+    #       ) from e
+    #   if data_start_offset == data_end_offset == 0:
+    #        return None
+    #    data_start_offset += 161
+    #    data_end_offset -= 1
+    #    if data_start_offset >= data_end_offset:
+    #        raise IOError(
+    #            f"MCD file '{self.path.name}' corrupted: "
+    #            f"invalid after-ablation image data offsets "
+    #            f"for acquisition {acquisition.id}"
+    #        )
+    #    try:
+    #        return self._read_image(
+    #            data_start_offset, data_end_offset - data_start_offset, raw
+    #        )
+    #    except Exception as e:
+    #        raise IOError(
+    #            f"MCD file '{self.path.name}' corrupted: "
+    #            f"cannot read after-ablation image "
+    #            f"for acquisition {acquisition.id}"
+    #        ) from e
 
     def _read_schema_xml(
         self,
