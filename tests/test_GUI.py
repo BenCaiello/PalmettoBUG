@@ -380,14 +380,20 @@ palmettobug.Analysis_widgets.Spatial_GUI.toggle_TESTING()
 
 def test_plot_cell_maps_window():
     window = app.Tabs.Spatial.widgets.plot_cell_maps_window()
-    list_of_file_names = list(window.master.master_exp.data.obs['file_name'].unique())
-    window.python_run_cell_maps( multi_or_single = list_of_file_names[0], clustering = 'metaclustering', masks = "masks")
-    window.python_run_cell_maps( multi_or_single = list_of_file_names[1], clustering = 'metaclustering', masks = "points")
+    list_of_file_names = [(i[:i.rfind(".ome.fcs")]) for i in sorted(list(window.master.master_exp.data.obs['file_name'].unique()))]
+    window.python_run_cell_maps(multi_or_single = list_of_file_names[0], clustering = 'metaclustering', masks = "masks")
+    window.python_run_cell_maps(multi_or_single = list_of_file_names[1], clustering = 'metaclustering', masks = "points")
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_SpaceANOVA():
     window = app.Tabs.Spatial.widgets.widgets.launch()
-    window.load_and_run_spatial_analysis(min_radius = 10, max_radii = 100, step = 5, condition_comparison = "All (multicomparison)", seed = 42)
+    window.load_and_run_spatial_analysis(min_radius = 10, 
+                                         max_radii = 100, 
+                                         step = 5, 
+                                         condition_comparison = "All (multicomparison)", 
+                                         celltype_key = 'merging1', 
+                                         permutations = 2, 
+                                         seed = 42)
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_SpaceANOVA_stats_and_heatmap():
@@ -404,14 +410,22 @@ def test_do_neighbors():
 
 def test_sq_centrality():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_centrality_window()
+    window.clustering.configure(variable = ctk.StringVar(value = "merging1"))
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_sq_inter_mat():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_interaction_matrix_window()
+    window.clustering.configure(variable = ctk.StringVar(value = "merging1"))
+    window.facet.configure(variable = ctk.StringVar(value = "condition"))
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_sq_neigh_enrich():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_neigh_enrich_window()
+    window.clustering.configure(variable = ctk.StringVar(value = "merging1"))
+    window.facet.configure(variable = ctk.StringVar(value = "condition"))
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_window():
