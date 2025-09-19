@@ -1290,7 +1290,7 @@ class bio_labels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if self.master.classifier_type == "supervised":
             merge_folder(self.master.active_classifier_dir + "/classification_maps", 
                         pd.read_csv(self.master.active_classifier_dir + "/biological_labels.csv"),
-                        self.master.PxQuPy_class.active_classifier_dir + "/merged_classification_maps")
+                        self.master.active_classifier_dir + "/merged_classification_maps")
         elif self.master.classifier_type == "unsupervised":
             merge_folder(self.master.active_classifier_dir + "/classification_maps", 
                         pd.read_csv(self.master.active_classifier_dir + "/biological_labels.csv"),

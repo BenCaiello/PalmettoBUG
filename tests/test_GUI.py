@@ -43,16 +43,21 @@ def test_setup_app():
     assert True   ## non-failure is enough for me right now, as it implies successful setting up of the widgets of the GUI
 
 def test_GPL_window():
-    app.entrypoint.show_GPL()
-    assert True 
+    window = app.entrypoint.show_GPL()
+    window.display_main()
+    window.display_3rd()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_call_configGUI():
-    app.entrypoint.call_configGUI()
-    assert True 
+    window = app.entrypoint.call_configGUI()
+    window.toggle_light_dark()
+    window.slider_moved(1.0)
+    window.change_theme('blue')
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_launchExampleDataWindow():
-    app.entrypoint.launchExampleDataWindow()
-    assert True
+    window = app.entrypoint.launchExampleDataWindow()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_img_entry_func():
     number = app.entrypoint.img_entry_func(proj_directory)  ## successfully proceeding through function in tests
@@ -125,6 +130,9 @@ def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows
     assert True 
 
 ##>>## GUI Pixel classification tests (px class creation)
+def test_toggle1():
+    palmettobug.Pixel_Classification.Classifiers_GUI.toggle_TESTING()
+
 def test_launch_loading_window():
     global loading_window
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()   ## need access to loading window functions
@@ -181,11 +189,18 @@ def test_detail_display():
     assert True 
 
 def test_bio_label_launch():
-    app.Tabs.px_classification.create.px_widg.bio_label_launch()
-    assert True 
+    window = app.Tabs.px_classification.create.px_widg.bio_label_launch()
+    window.save_labels_csv()
+    window.plot_heatmap()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_save_classifier():
     app.Tabs.px_classification.create.px_widg.save_classifier()
+    assert True 
+
+def test_segmentation():
+    app.Tabs.px_classification.create.px_widg.segment_frame.input_folder.configure(variable = ctk.StringVar(value = "classification_maps"))
+    app.Tabs.px_classification.create.px_widg.segment_frame.run_seg()
     assert True 
 
 
@@ -202,17 +217,22 @@ def test_launch_classes_as_png():
     window.option2.configure(variable = ctk.StringVar(value = options[0]))
     assert isinstance(window, ctk.CTkToplevel)
 
-def test_launch_classes_as_png():
+def test_launch_bio_labels():
     window = app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_bio_labels()
-    window.accept_labels()
     assert isinstance(window, ctk.CTkToplevel)
+
+def test_filter():
+    app.Tabs.px_classification.use_class.px_widg.filter.filter_list.checkbox_list[0].select()
+    app.Tabs.px_classification.use_class.px_widg.filter.filter_images()
+    assert True
 
 
 ## windows to add: RegionMeasurement, Secondary_FlowSOM_Analysis_window, whole_class_analysis_window, stats_window
 
 
 ##>>## GUI Analysis tests
-palmettobug.Analysis_widgets.Analysis_GUI.toggle_TESTING() ## prevents warning pop ups at many steps -- these block the testing suite and prevent errors from being properly debugged
+def test_toggle2():
+    palmettobug.Analysis_widgets.Analysis_GUI.toggle_TESTING() ## prevents warning pop ups at many steps -- these block the testing suite and prevent errors from being properly debugged
 
 def test_launch_drop_restore():           ## filtering
     window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
@@ -390,7 +410,8 @@ def test_launch_data_table_exportation_window():
     assert isinstance(window, ctk.CTkToplevel)
 
 ##>>## GUI Spatial tests
-palmettobug.Analysis_widgets.Spatial_GUI.toggle_TESTING()
+def test_toggle3():
+    palmettobug.Analysis_widgets.Spatial_GUI.toggle_TESTING()
 
 def test_plot_cell_maps_window():
     window = app.Tabs.Spatial.widgets.plot_cell_maps_window()
@@ -466,20 +487,19 @@ def test_CN_annot():
 
 def test_CN_heatmap():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_heatmap_window()
-    print(window.master.clustering)
-    #window.clustering.configure(variable = ctk.StringVar("merging"))
+    window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_abundance():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_abundance_window()
-    window.clustering.configure(variable = ctk.StringVar("merging"))
+    window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_UMAP_or_MST():
     window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
-    window.plot()
+    #window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_edt():
@@ -510,6 +530,7 @@ def test_edt_distrib_window():
 
 def test_edt_heatmap_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_heatmap_window()
+    window.groupby_column.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
