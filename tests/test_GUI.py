@@ -20,6 +20,7 @@ proj_directory = fetch_dir + "/Example_IMC"
 
 np.random.default_rng(42)
 
+
 def test_print_licenses():
     palmettobug.print_license()
     palmettobug.print_3rd_party_license_info()
@@ -155,6 +156,7 @@ def test_unsupervised():
 def test_accept_classifier_name():   ## supervised window
     window = loading_window.accept_classifier_name("lumen_epithelia_laminapropria", app.Tabs.px_classification.create.px_widg)
     window.advanced_options()
+    self.advanced_options_window.retrieve_and_accept()
     window.sigma_list.checkbox_list[1].select()
     for i in window.features_list.checkbox_list:
         i.select()
@@ -279,6 +281,7 @@ def test_wca_3():
     wca_window.plot_distribution_exprs(wca_window.class_to_barplot.get(),"Violin","crazy_filename_to_avoid_collisions")
     export_window = wca_window.launch_export_window()
     export_window.export_table()
+    export_window.destroy()
     stats_window = wca_window.stats(wca_window)
     assert isinstance(stats_window, ctk.CTkToplevel)
 
@@ -299,6 +302,25 @@ def test_launch_scaling():
     my_analysis = app.Tabs.py_exploratory.analysiswidg.cat_exp
     assert isinstance(my_analysis.data, anndata.AnnData)
     assert isinstance(window, ctk.CTkToplevel)
+
+#def test_scaling():
+#    scaling_options = ["%quantile", "min_max", "standard", "robust", "qnorm", "unscale"]
+##    original_X = my_analysis.data.X.copy()
+ #   greater_than_zero = (original_X > 0)
+ #   for i in scaling_options:
+ #       my_analysis.do_scaling(scaling_algorithm = i)
+ #       if i != "unscale":
+ #           assert (my_analysis.data.X[greater_than_zero] != original_X[greater_than_zero]).sum().sum() > 0, "Scaling should change some of the data points > 0!"
+ #       else:
+ #           assert (my_analysis.data.X != original_X).sum().sum() == 0, "Unscaling did not restore the original data!"
+
+#def test_do_regions():
+#    my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
+#    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
+
+#def test_spatial_leiden():
+#    my_analysis._do_spatial_leiden()
+#    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
 
 def test_launch_combat_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_combat_window()
@@ -438,6 +460,26 @@ def test_launch_classy_masker():
 def test_launch_regionprop():
     window = app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
     #assert isinstance(window, ctk.CTkToplevel)
+
+def test_launch_abundance_ANOVAs_window():
+    window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_abundance_ANOVAs_window()
+    window.column.configure(variable = ctk.StringVar(value = "merging"))
+    window.run_ANOVAs()
+    window.GLMs.configure(variable = ctk.StringVar(value = "ANOVA"))
+    window.filename.configure(textvariable = ctk.StringVar(value = "ANOVA_NOVA_table"))
+    window.run_ANOVAs()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_run_state_ANOVAs_window():
+    window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_state_ANOVAs_window()
+    window.run_state_ANOVAs()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_state_distribution_window():
+    window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_state_distribution()
+    window.clustering.configure(variable = ctk.StringVar(value = "merging"))
+    window.plot()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_cluster_save_load():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()

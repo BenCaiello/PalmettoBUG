@@ -1158,7 +1158,7 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
         for i,ii in zip(image_path_list, write_path_list):
             mask = tf.imread(i).astype('int32')
             new_mask = merge_classes(mask, merging_table)
-            tf.imwrite(ii, new_mask)
+            tf.imwrite(ii, new_mask.astype('int32'))
 
         pixel_logger.info("Merged Secondary FlowSOM output into biological labels & secondary masks: \n"
                           f"{str(merged_classifications_per_cell)}")

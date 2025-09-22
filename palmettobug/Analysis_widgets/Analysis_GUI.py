@@ -1983,13 +1983,13 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.N_switch.bind("<Enter>", filter_N)  
 
     def launch_abundance_ANOVAs_window(self) -> None:
-        run_abundance_ANOVAs_window(self.master)
+        return run_abundance_ANOVAs_window(self.master)
 
     def launch_state_ANOVAs_window(self) -> None:
-        run_state_ANOVAs_window(self.master)
+        return run_state_ANOVAs_window(self.master)
 
     def launch_state_distribution(self):
-        state_distribution_window(self)
+        return state_distribution_window(self)
 
 class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
@@ -2178,14 +2178,6 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         available_columns = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns)] + ["whole dataset"]
         clustering = self.clustering_column.get()
         if clustering not in available_columns:
-            message = "You must select a clustering!"
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
-            self.focus()
-            return
-        elif clustering not in available_columns:
             message = f"Clustering =  {clustering}  is not available in the dataset! \nOf {str(CLUSTER_NAMES + ['whole dataset'])} \n These are currently available: {str(available_columns)}"
             if not _TESTING:
                 tk.messagebox.showwarning("Warning!", message = message)
@@ -3385,7 +3377,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.pop_up.grid(column = 0, row = 5, padx = 3, pady = 3)
         self.after(200, lambda: self.focus())
 
-    def plot(self, clustering = "merging", identifier = "") -> None:
+    def plot(self) -> None:
         '''  '''
         marker_class = self.marker_class.get()
         subset_column = self.clustering.get()

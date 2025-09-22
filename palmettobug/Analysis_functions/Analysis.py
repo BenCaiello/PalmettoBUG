@@ -3683,7 +3683,6 @@ class Analysis:
             slicing_array = np.array([(i in conditions) for i in data.obs[ind_var_column].astype(str)])
             data = data[slicing_array]
         if groupby_column == "whole dataset":  #########
-            groupby_column = "whole dataset"
             data.obs["whole dataset"] = "whole dataset"
 
         ## check N_column groups unique within the independent variable (conditions)
