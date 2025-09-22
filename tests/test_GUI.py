@@ -167,7 +167,7 @@ def test_accept_classifier_name():   ## supervised window
             counter += 1
     window.dictionary_maker.remove_last_row()
     window.class_dict_maker.row_list[1][1].configure(textvariable = ctk.StringVar(value = 'epithelia'))
-    window.class_dict_maker.row_list[1][1].configure(textvariable = ctk.StringVar(value = 'laminapropria'))
+    window.class_dict_maker.row_list[2][2].configure(textvariable = ctk.StringVar(value = 'laminapropria'))
     window.set_up_classifier_details()
     assert True 
 
@@ -248,8 +248,10 @@ def test_classify_masks_on_flowsom():
 
 def test_secondary_FlowSOM_merge():
     secondary_FlowSOM_window.new_heatmap()
+    list_of_classes = ['background','epithelia','laminapropria']
     for ii,i in enumerate(secondary_FlowSOM_window.secondary_labels.entry_list):
-        value = ii % 4   ## generate 4 fake clusters
+        value = ii % 3   ## cycle through available classes using a mod
+        value = list_of_classes[value]
         i.configure(variable = ctk.StringVar(value = str(value)))
     secondary_FlowSOM_window.run_labeling()
 

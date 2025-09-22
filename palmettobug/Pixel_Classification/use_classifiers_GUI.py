@@ -1128,7 +1128,7 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
         if (merging_table == "").sum().sum() > 0:
             message = "One of labeling fields was left blank! Are you sure you want to continue?"
             if not _TESTING:
-                 choice = tk.messagebox.askyesno(message)
+                 choice = tk.messagebox.askyesno(title = "Warning!", message = message)
             else:
                 print(message)
                 choice = False
