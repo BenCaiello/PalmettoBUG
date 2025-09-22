@@ -1246,7 +1246,6 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
 
             def retrieve(self) -> pd.DataFrame:
                 metadata = pd.DataFrame()
-                print(self.blank_options)
                 if self.blank_options is not None:
                     classes_numbers = [self.blank_options[i.get().strip()] for i in self.entry_list]
                     metadata['labels'] = [i.get() for i in self.entry_list]

@@ -70,7 +70,6 @@ def test_call_raw_to_img_part_1_hpf():
     hpf_window.read_values()
     images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
     assert(len(images) == 10), "Wrong number of images exported to images/img" 
-
 '''
 def test_call_instanseg_segmentor():
     instanseg_window = app.entrypoint.image_proc_widg.call_instanseg_segmentor()
@@ -78,7 +77,6 @@ def test_call_instanseg_segmentor():
     instanseg_window.read_values()
     assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
 '''
-
 def test_call_mask_expand():
     expander = app.entrypoint.image_proc_widg.call_mask_expand()
     expander.image_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
@@ -167,7 +165,7 @@ def test_accept_classifier_name():   ## supervised window
             counter += 1
     window.dictionary_maker.remove_last_row()
     window.class_dict_maker.row_list[1][1].configure(textvariable = ctk.StringVar(value = 'epithelia'))
-    window.class_dict_maker.row_list[2][2].configure(textvariable = ctk.StringVar(value = 'laminapropria'))
+    window.class_dict_maker.row_list[2][1].configure(textvariable = ctk.StringVar(value = 'laminapropria'))
     window.set_up_classifier_details()
     assert True 
 
