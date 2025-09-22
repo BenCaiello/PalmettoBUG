@@ -303,16 +303,16 @@ def test_launch_scaling():
     assert isinstance(my_analysis.data, anndata.AnnData)
     assert isinstance(window, ctk.CTkToplevel)
 
-#def test_scaling():
-#    scaling_options = ["%quantile", "min_max", "standard", "robust", "qnorm", "unscale"]
-##    original_X = my_analysis.data.X.copy()
- #   greater_than_zero = (original_X > 0)
- #   for i in scaling_options:
- #       my_analysis.do_scaling(scaling_algorithm = i)
- #       if i != "unscale":
- #           assert (my_analysis.data.X[greater_than_zero] != original_X[greater_than_zero]).sum().sum() > 0, "Scaling should change some of the data points > 0!"
- #       else:
- #           assert (my_analysis.data.X != original_X).sum().sum() == 0, "Unscaling did not restore the original data!"
+def test_scaling():
+    scaling_options = ["%quantile", "min_max", "standard", "robust", "qnorm", "unscale"]
+    original_X = my_analysis.data.X.copy()
+    greater_than_zero = (original_X > 0)
+    for i in scaling_options:
+        my_analysis.do_scaling(scaling_algorithm = i)
+        if i != "unscale":
+            assert (my_analysis.data.X[greater_than_zero] != original_X[greater_than_zero]).sum().sum() > 0, "Scaling should change some of the data points > 0!"
+        else:
+            assert (my_analysis.data.X != original_X).sum().sum() == 0, "Unscaling did not restore the original data!"
 
 #def test_do_regions():
 #    my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
