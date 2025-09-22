@@ -501,6 +501,7 @@ def test_launch_data_table_exportation_window():
     window.umap_pca_button.invoke()
     assert isinstance(window, ctk.CTkToplevel)
 
+
 ##>>## GUI Spatial tests
 def test_toggle3():
     palmettobug.Analysis_widgets.Spatial_GUI.toggle_TESTING()
@@ -526,10 +527,12 @@ def test_SpaceANOVA():
 
 def test_SpaceANOVA_stats_and_heatmap():
     window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
+    window.plot_heatmap()
     assert isinstance(window, ctk.CTkToplevel) 
 
 def test_SpaceANOVA_function_plots():
     window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
+    window.plot_pairwise_comparison()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_do_neighbors():
@@ -626,6 +629,11 @@ def test_edt_heatmap_window():
     window.groupby_column.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
+
+
+def test_reload():    ### do after spatial, to repserve merging, etc.
+    app.Tabs.py_exploratory.analysiswidg.reload_experiment()
+    app.Tabs.py_exploratory.analysiswidg.launch_data_table_importation_window(directory = my_analysis.data_table_dir + "/data_table_1.csv")
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above

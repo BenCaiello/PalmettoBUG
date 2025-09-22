@@ -224,9 +224,10 @@ class Analysis_py_widgets(ctk.CTkFrame):
     def launch_data_table_exportation_window(self) -> None:
         return data_table_exportation_window(self, self.cat_exp.data)
     
-    def launch_data_table_importation_window(self) -> None:    ### This could be pushed back to the app&entry 
+    def launch_data_table_importation_window(self, directory = "") -> None:    ### This could be pushed back to the app&entry 
                                                                 # as a separate entrance method (?)
-        directory = tk.filedialog.askopenfilename()
+        if directory == "":    ### directory changed to a optional argument to allow for inclusion in the testing suite
+            directory = tk.filedialog.askopenfilename()
         if directory == "":
             return
         directory  = directory.replace("\\" , "/")
