@@ -279,6 +279,7 @@ def test_wca_3():
     wca_window.plot_distribution_exprs(wca_window.class_to_barplot.get(),"Violin","crazy_filename_to_avoid_collisions")
     export_window = wca_window.launch_export_window()
     export_window.export_table()
+    export_window.destroy()
     stats_window = wca_window.stats(wca_window)
     assert isinstance(stats_window, ctk.CTkToplevel)
 
