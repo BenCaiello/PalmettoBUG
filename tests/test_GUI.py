@@ -70,13 +70,13 @@ def test_call_raw_to_img_part_1_hpf():
     hpf_window.read_values()
     images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
     assert(len(images) == 10), "Wrong number of images exported to images/img" 
-'''
+
 def test_call_instanseg_segmentor():
     instanseg_window = app.entrypoint.image_proc_widg.call_instanseg_segmentor()
     instanseg_window.single_image.configure(variable = ctk.StringVar(value = os.listdir(proj_directory + "/images/img")[0]))
     instanseg_window.read_values()
     assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
-'''
+
 def test_call_mask_expand():
     expander = app.entrypoint.image_proc_widg.call_mask_expand()
     expander.image_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
@@ -282,7 +282,7 @@ def test_wca_3():
     stats_window = wca_window.stats(wca_window)
     assert isinstance(stats_window, ctk.CTkToplevel)
 
-'''
+
 ##>>## GUI Analysis tests
 def test_toggle2():
     palmettobug.Analysis_widgets.Analysis_GUI.toggle_TESTING() ## prevents warning pop ups at many steps -- these block the testing suite and prevent errors from being properly debugged
@@ -587,4 +587,3 @@ def test_edt_heatmap_window():
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
-'''

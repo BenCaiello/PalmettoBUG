@@ -1156,7 +1156,7 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
             os.mkdir(one_folder_up + "/secondary_masks/")
 
         for i,ii in zip(image_path_list, write_path_list):
-            mask = tf.imread(i).astype('int')
+            mask = tf.imread(i).astype('int32')
             new_mask = merge_classes(mask, merging_table)
             tf.imwrite(ii, new_mask)
 
