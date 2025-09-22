@@ -20,7 +20,11 @@ proj_directory = fetch_dir + "/Example_IMC"
 
 np.random.default_rng(42)
 
-## needed when only testing GUI (otherwise can depend on px classifier script)
+def test_print_licenses():
+    palmettobug.print_license()
+    palmettobug.print_3rd_party_license_info()
+    assert True
+
 def test_fetch_IMC():
     fetch_IMC_example(fetch_dir)
 
@@ -39,16 +43,21 @@ def test_setup_app():
     assert True   ## non-failure is enough for me right now, as it implies successful setting up of the widgets of the GUI
 
 def test_GPL_window():
-    app.entrypoint.show_GPL()
-    assert True 
+    window = app.entrypoint.show_GPL()
+    window.display_main()
+    window.display_3rd()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_call_configGUI():
-    app.entrypoint.call_configGUI()
-    assert True 
+    window = app.entrypoint.call_configGUI()
+    window.toggle_light_dark()
+    window.slider_moved(1.0)
+    window.change_theme('blue')
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_launchExampleDataWindow():
-    app.entrypoint.launchExampleDataWindow()
-    assert True
+    window = app.entrypoint.launchExampleDataWindow()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_img_entry_func():
     number = app.entrypoint.img_entry_func(proj_directory)  ## successfully proceeding through function in tests
@@ -62,13 +71,11 @@ def test_call_raw_to_img_part_1_hpf():
     images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
     assert(len(images) == 10), "Wrong number of images exported to images/img" 
 
-'''
 def test_call_instanseg_segmentor():
     instanseg_window = app.entrypoint.image_proc_widg.call_instanseg_segmentor()
     instanseg_window.single_image.configure(variable = ctk.StringVar(value = os.listdir(proj_directory + "/images/img")[0]))
     instanseg_window.read_values()
     assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
-'''
 
 def test_call_mask_expand():
     expander = app.entrypoint.image_proc_widg.call_mask_expand()
@@ -117,10 +124,14 @@ def test_call_to_Analysis():
     assert("condition" in list(pd.read_csv(interal_dir + "/metadata.csv").columns)), "Automatically generated metadata.csv file must have a 'condition' column!"
 
 def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows (as is, does not close itself and blocks future instnaces as a singleton)
-    app.entrypoint.FCS_choice(fetch_dir + "/Example_CyTOF")
-    assert True 
+    window = app.entrypoint.FCS_choice(fetch_dir + "/Example_CyTOF")
+    window.table_launcher.destroy()
 
 ##>>## GUI Pixel classification tests (px class creation)
+def test_toggle1a():
+    palmettobug.Pixel_Classification.Classifiers_GUI.toggle_TESTING()
+    assert (palmettobug.Pixel_Classification.Classifiers_GUI._TESTING is True)
+
 def test_launch_loading_window():
     global loading_window
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()   ## need access to loading window functions
@@ -154,7 +165,7 @@ def test_accept_classifier_name():   ## supervised window
             counter += 1
     window.dictionary_maker.remove_last_row()
     window.class_dict_maker.row_list[1][1].configure(textvariable = ctk.StringVar(value = 'epithelia'))
-    window.class_dict_maker.row_list[1][1].configure(textvariable = ctk.StringVar(value = 'laminapropria'))
+    window.class_dict_maker.row_list[2][1].configure(textvariable = ctk.StringVar(value = 'laminapropria'))
     window.set_up_classifier_details()
     assert True 
 
@@ -177,36 +188,116 @@ def test_detail_display():
     assert True 
 
 def test_bio_label_launch():
-    app.Tabs.px_classification.create.px_widg.bio_label_launch()
-    assert True 
+    window = app.Tabs.px_classification.create.px_widg.bio_label_launch()
+    window.save_labels_csv()
+    window.plot_heatmap()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_save_classifier():
-    print(app.Tabs.px_classification.create.px_widg.classifier_dir)
-    print(os.listdir(app.Tabs.px_classification.create.px_widg.classifier_dir))
     app.Tabs.px_classification.create.px_widg.save_classifier()
+    assert True 
+
+def test_segmentation():
+    app.Tabs.px_classification.create.px_widg.segment_frame.input_folder.configure(variable = ctk.StringVar(value = "classification_maps"))
+    app.Tabs.px_classification.create.px_widg.segment_frame.run_seg()
     assert True 
 
 
 ##>>## GUI Pixel classification tests (px class use)
-def test_launch_classes_as_png():
-    app.Tabs.px_classification.use_class.px_widg.load_and_display.launch_classes_as_png()
-    assert True 
+def test_toggle1b():
+    palmettobug.Pixel_Classification.use_classifiers_GUI.toggle_TESTING()
+    assert (palmettobug.Pixel_Classification.use_classifiers_GUI._TESTING is True)
 
 def test_load_classifier():
-    app.Tabs.px_classification.use_class.px_widg.load_classifier("lumen_epithelia_laminapropria")
+    global px_use_widgets
+    px_use_widgets = app.Tabs.px_classification.use_class.px_widg
+    px_use_widgets.load_classifier("lumen_epithelia_laminapropria")
     assert True 
+
+def test_launch_classes_as_png():
+    window = px_use_widgets.load_and_display.launch_classes_as_png()
+    window.option1.configure(variable = ctk.StringVar(value = "pixel classification"))
+    if_pixel_classifier = ["classification_maps", "merged_classification_maps"]
+    options = [i for i in if_pixel_classifier if i in os.listdir(window.master.master.active_classifier_dir)]
+    window.option2.configure(variable = ctk.StringVar(value = options[0]))
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_launch_bio_labels():
+    window = px_use_widgets.load_and_display.launch_bio_labels()
+    assert isinstance(window, ctk.CTkToplevel)
+
+def test_filter():
+    px_use_widgets.filter.filter_list.checkbox_list[0].select()
+    px_use_widgets.filter.filter_images()
+    assert True
+
+def test_classify_masks_on_mode():
+    px_use_widgets.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
+    px_use_widgets.classify_cells.do_classy_masks()
+    assert True
+
+def test_classify_masks_on_flowsom():
+    px_use_widgets.classify_cells.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
+    px_use_widgets.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
+    px_use_widgets.classify_cells.radioframe_do_secondary_flowsom.radio_SOM.invoke()
+    global secondary_FlowSOM_window
+    secondary_FlowSOM_window = px_use_widgets.classify_cells.do_classy_masks()
+    assert isinstance(secondary_FlowSOM_window, ctk.CTkToplevel)
+
+def test_secondary_FlowSOM_merge():
+    secondary_FlowSOM_window.new_heatmap()
+    list_of_classes = ['background','epithelia','laminapropria']
+    for ii,i in enumerate(secondary_FlowSOM_window.secondary_labels.entry_list):
+        value = ii % 3   ## cycle through available classes using a mod
+        value = list_of_classes[value]
+        i.configure(variable = ctk.StringVar(value = str(value)))
+    secondary_FlowSOM_window.run_labeling()
+
+def test_mask_extend():
+    px_use_widgets.merge_class_masks.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
+    options = [i for i in sorted(os.listdir(px_use_widgets.merge_class_masks.master.main_directory + "/classy_masks")) if i.find(".") == -1]  
+    px_use_widgets.merge_class_masks.classy_mask_option_menu.configure(variable = ctk.StringVar(value = options[0]))
+    px_use_widgets.merge_class_masks.output_name.configure(textvariable = ctk.StringVar(value = "extended_masks"))
+    px_use_widgets.merge_class_masks.select_table.checkbox_list[1].select()
+    px_use_widgets.merge_class_masks.run_merging()
+    assert True
+
+def test_whole_class_analysis_1():
+    px_use_widgets.whole_class.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
+    region_window = px_use_widgets.whole_class.create()
+    assert isinstance(region_window, ctk.CTkToplevel)
+    region_window.read_values(px_use_widgets.whole_class.master.Experiment_object)
+
+def test_wca_2():
+    table_launcher = px_use_widgets.whole_class.add_panel()
+    assert isinstance(table_launcher, ctk.CTkToplevel)
+    table_launcher.accept_and_return(None)
+
+def test_wca_3():
+    global wca_window
+    wca_window = px_use_widgets.whole_class.launch_analysis()
+    wca_window.plot_distribution_exprs(wca_window.class_to_barplot.get(),"Violin","crazy_filename_to_avoid_collisions")
+    export_window = wca_window.launch_export_window()
+    export_window.export_table()
+    stats_window = wca_window.stats(wca_window)
+    assert isinstance(stats_window, ctk.CTkToplevel)
 
 
 ##>>## GUI Analysis tests
-palmettobug.Analysis_widgets.Analysis_GUI.toggle_TESTING() ## prevents warning pop ups at many steps -- these block the testing suite and prevent errors from being properly debugged
+def test_toggle2():
+    palmettobug.Analysis_widgets.Analysis_GUI.toggle_TESTING() ## prevents warning pop ups at many steps -- these block the testing suite and prevent errors from being properly debugged
+    assert (palmettobug.Analysis_widgets.Analysis_GUI._TESTING is True)
 
 def test_launch_drop_restore():           ## filtering
-    window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
+    window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()  ##>>##
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_scaling():
     window = app.Tabs.py_exploratory.analysiswidg.launch_scaling()
-    window.call_scaling()
+    window.call_scaling()    ##>>##
+    global my_analysis
+    my_analysis = app.Tabs.py_exploratory.analysiswidg.cat_exp
+    assert isinstance(my_analysis.data, anndata.AnnData)
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_combat_window():
@@ -214,15 +305,8 @@ def test_launch_combat_window():
     window.do_combat()
     assert isinstance(window, ctk.CTkToplevel)
 
-def test_do_regions():
-    global my_analysis
-    my_analysis = app.Tabs.py_exploratory.analysiswidg.cat_exp
-    assert isinstance(my_analysis.data, anndata.AnnData)
-    #my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
-    #assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
-
 def test_launch_scatterplot():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
+    window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()   ##>>##
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_Plot_Counts_per_ROI_window():
@@ -376,23 +460,35 @@ def test_launch_data_table_exportation_window():
     assert isinstance(window, ctk.CTkToplevel)
 
 ##>>## GUI Spatial tests
-palmettobug.Analysis_widgets.Spatial_GUI.toggle_TESTING()
+def test_toggle3():
+    palmettobug.Analysis_widgets.Spatial_GUI.toggle_TESTING()
+    assert (palmettobug.Analysis_widgets.Spatial_GUI._TESTING is True)
 
 def test_plot_cell_maps_window():
     window = app.Tabs.Spatial.widgets.plot_cell_maps_window()
+    list_of_file_names = [(i[:i.rfind(".ome.fcs")]) for i in sorted(list(window.master.master_exp.data.obs['file_name'].unique()))]
+    window.python_run_cell_maps(multi_or_single = list_of_file_names[0], clustering = 'metaclustering', masks = "masks")
+    window.python_run_cell_maps(multi_or_single = list_of_file_names[1], clustering = 'metaclustering', masks = "points")
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_SpaceANOVA():
     window = app.Tabs.Spatial.widgets.widgets.launch()
+    window.load_and_run_spatial_analysis(min_radius = 10, 
+                                         max_radii = 100, 
+                                         step = 5, 
+                                         condition_comparison = "All (multicomparison)", 
+                                         celltype_key = 'merging', 
+                                         permutations = 2, 
+                                         seed = 42)
     assert isinstance(window, ctk.CTkToplevel)
 
-#def test_SpaceANOVA_stats_and_heatmap():
-#    window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
-#    assert isinstance(window, ctk.CTkToplevel) 
+def test_SpaceANOVA_stats_and_heatmap():
+    window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
+    assert isinstance(window, ctk.CTkToplevel) 
 
-#def test_SpaceANOVA_function_plots():
-#    window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
-#    assert isinstance(window, ctk.CTkToplevel)
+def test_SpaceANOVA_function_plots():
+    window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_do_neighbors():
     app.Tabs.Spatial.widgets.squidpy_spatial.do_neighbors()
@@ -400,59 +496,94 @@ def test_do_neighbors():
 
 def test_sq_centrality():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_centrality_window()
+    window.clustering.configure(variable = ctk.StringVar(value = "merging"))
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_sq_inter_mat():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_interaction_matrix_window()
+    window.clustering.configure(variable = ctk.StringVar(value = "merging"))
+    window.facet.configure(variable = ctk.StringVar(value = "condition"))
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_sq_neigh_enrich():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_neigh_enrich_window()
+    window.clustering.configure(variable = ctk.StringVar(value = "merging"))
+    window.facet.configure(variable = ctk.StringVar(value = "condition"))
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_window():
-    window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_CN_window()
+    window = app.Tabs.Spatial.widgets.CN_widgets.launch_CN_window()
+    window.celltype.configure(variable = ctk.StringVar(value = "merging"))
+    window.run_cellular_neighborhoods()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_save_load():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_save_load()
+    window.save()
+    saved_clusterings = [i for i in sorted(os.listdir(window.master.master.master_exp.clusterings_dir)) if (i.find("cellular_neighborhood") != -1)]
+    window.path.configure(variable = ctk.StringVar(value = saved_clusterings[0]))
+    window.reload()
     assert isinstance(window, ctk.CTkToplevel)
 
-#def test_CN_annot():
-#    window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
-#    assert isinstance(window, ctk.CTkToplevel)
+def test_CN_annot():
+    window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
+    for ii,i in enumerate(window.new.table.widgetframe['1']):
+        value = ii % 4   ## generate 4 fake clusters
+        i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
+    window.annotate(id = 'CN_merge')
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_heatmap():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_heatmap_window()
+    window.clustering.configure(variable = ctk.StringVar(value = "merging"))
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_CN_abundance():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_abundance_window()
+    window.clustering.configure(variable = ctk.StringVar(value = "merging"))
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
-#def test_CN_UMAP_or_MST():
-#    window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
-#    assert isinstance(window, ctk.CTkToplevel)
+def test_CN_UMAP_or_MST():
+    window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
+    #window.plot()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_edt():
     window = app.Tabs.Spatial.widgets.test_edt.launch_load_window()
+    window.pixel_class_entry.configure(textvariable = ctk.StringVar(value = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria"))
+    window.do_dist_transform()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_edt_reload_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_reload_window()
+    options = [i for i in sorted(os.listdir(window.folder)) if i.lower().find(".csv") != -1]
+    window.choice.configure(variable = ctk.StringVar(value = options[0]))
+    #window.reload()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_edt_stats_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_stat_window()
+    window.groupby_column.configure(variable = ctk.StringVar(value = "merging"))
+    window.do_stats()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_edt_distrib_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_distrib_window()
+    window.var_column.configure(variable = ctk.StringVar(value = "HistoneH3"))
+    window.subset_col.configure(variable = ctk.StringVar(value = "merging"))
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
-#def test_edt_heatmap_window():
-#    window = app.Tabs.Spatial.test_edt.launch_heatmap_window()
-#    assert isinstance(window, ctk.CTkToplevel)
+def test_edt_heatmap_window():
+    window = app.Tabs.Spatial.widgets.test_edt.launch_heatmap_window()
+    window.groupby_column.configure(variable = ctk.StringVar(value = "merging"))
+    window.plot()
+    assert isinstance(window, ctk.CTkToplevel)
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above

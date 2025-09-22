@@ -214,7 +214,7 @@ class EntryPoint(ctk.CTkFrame):
         self.after(200, lambda: self.focus())
 
     def show_GPL(self) -> None:
-        GPL_window(self)
+        return GPL_window(self)
 
     class display_image_button(ctk.CTkButton):
         def __init__(self, master):
@@ -235,10 +235,10 @@ class EntryPoint(ctk.CTkFrame):
             self.configure(image = image)
 
     def call_configGUI(self) -> None:
-        configGUI_window(self.master.master)
+        return configGUI_window(self.master.master)
 
     def launchExampleDataWindow(self):
-        LoadExampleDataWindow(self)
+       return LoadExampleDataWindow(self)
 
     class X_Y_res_frame(ctk.CTkFrame):
         '''
@@ -385,11 +385,12 @@ class EntryPoint(ctk.CTkFrame):
         
         ## set up project logger:
         project_log = Analysis_logger(self.master.directory + "/main").return_log()
-        direct_to_Analysis(self.master, self.master.directory)
+        table_launcher = direct_to_Analysis(self.master, self.master.directory)
         project_log.info(f"Start log of experiment from the directory {self.master.directory + '/main'}/Logs after loading .fcs for direct analysis")
         self.master.set('Analysis')
         self.master.master.Tabs.py_exploratory.analysiswidg.setup_dir_disp(self.master.directory + "/main")  
         self.master.master.Tabs.Spatial.widgets.setup_dir_disp(self.master.directory + "/main")
+        return table_launcher
 
 
 class configGUI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):

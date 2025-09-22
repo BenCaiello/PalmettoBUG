@@ -29,6 +29,7 @@ Edits:  --> removed mmap reading code (my program will not ever use that format,
 --> In concatenating the files listed above, and removed redundant and unused code / imports
 --> in the code taken from the io module (just the first two functions --> removed dtype & special exceptions)
 --> add __all__ for docs
+--> commented out list_txt_files and create_panel_from_imc_panel functions (improved coverage % by removing unused code lines)
 
 Edit 8/28/24 ---> removing code from steinbock.measurement.neighbors (not needed anymore in the program)
 
@@ -157,15 +158,15 @@ def list_mcd_files(mcd_dir: Union[str, PathLike], unzip: bool = False) -> List[P
     return mcd_files
 
 
-def list_txt_files(txt_dir: Union[str, PathLike], unzip: bool = False) -> List[Path]:
-    txt_files = sorted(Path(txt_dir).rglob("[!.]*.txt"))
-    if unzip:
-        for zip_file in sorted(Path(txt_dir).rglob("[!.]*.zip")):
-            with ZipFile(zip_file) as fzip:
-                for zip_info in sorted(fzip.infolist(), key=lambda x: x.filename):
-                    if not zip_info.is_dir() and zip_info.filename.endswith(".txt"):
-                        txt_files.append(zip_file / zip_info.filename)
-    return txt_files
+#def list_txt_files(txt_dir: Union[str, PathLike], unzip: bool = False) -> List[Path]:
+#    txt_files = sorted(Path(txt_dir).rglob("[!.]*.txt"))
+#    if unzip:
+#        for zip_file in sorted(Path(txt_dir).rglob("[!.]*.zip")):
+#            with ZipFile(zip_file) as fzip:
+#                for zip_info in sorted(fzip.infolist(), key=lambda x: x.filename):
+#                    if not zip_info.is_dir() and zip_info.filename.endswith(".txt"):
+#                        txt_files.append(zip_file / zip_info.filename)
+#    return txt_files
 
 
 def _clean_panel(panel: pd.DataFrame) -> pd.DataFrame:
@@ -196,64 +197,64 @@ def _clean_panel(panel: pd.DataFrame) -> pd.DataFrame:
     return panel
 
 
-def create_panel_from_imc_panel(
-    imc_panel_file: Union[str, PathLike],
-    imc_panel_channel_col: str = "Metal Tag",
-    imc_panel_name_col: str = "Target",
-    imc_panel_keep_col: str = "full",
-    imc_panel_ilastik_col: str = "ilastik",
-) -> pd.DataFrame:
-    imc_panel = pd.read_csv(
-        imc_panel_file,
-        sep=",|;",
-        dtype={
-            imc_panel_channel_col: pd.StringDtype(),
-            imc_panel_name_col: pd.StringDtype(),
-            imc_panel_keep_col: pd.BooleanDtype(),
-            imc_panel_ilastik_col: pd.BooleanDtype(),
-        },
-        engine="python",
-        true_values=["1"],
-        false_values=["0"],
-    )
-    for required_col in (imc_panel_channel_col, imc_panel_name_col):
-        if required_col not in imc_panel:
-            raise Exception(
-                f"Missing '{required_col}' column in IMC panel"
-            )
-    for notnan_col in (
-        imc_panel_channel_col,
-        imc_panel_keep_col,
-        imc_panel_ilastik_col,
-    ):
-        if notnan_col in imc_panel and imc_panel[notnan_col].isna().any():
-            raise Exception(
-                f"Missing values for '{notnan_col}' in IMC panel"
-            )
-    rename_columns = {
-        imc_panel_channel_col: "channel",
-        imc_panel_name_col: "name",
-        imc_panel_keep_col: "keep",
-        imc_panel_ilastik_col: "ilastik",
-    }
-    drop_columns = [
-        panel_col
-        for imc_panel_col, panel_col in rename_columns.items()
-        if panel_col in imc_panel.columns and panel_col != imc_panel_col
-    ]
-    panel = imc_panel.drop(columns=drop_columns).rename(columns=rename_columns)
-    for _, g in panel.groupby("channel"):
-        panel.loc[g.index, "name"] = " / ".join(g["name"].dropna().unique())
-        if "keep" in panel:
-            panel.loc[g.index, "keep"] = g["keep"].any()
-        if "ilastik" in panel:
-            panel.loc[g.index, "ilastik"] = g["ilastik"].any()
-    panel = panel.groupby(panel["channel"].values).aggregate("first")
-    panel = _clean_panel(panel)  # ilastik column may be nullable uint8 now
-    ilastik_mask = panel["ilastik"].fillna(False).astype(bool)
-    panel["ilastik"] = pd.Series(dtype=pd.UInt8Dtype())
-    panel.loc[ilastik_mask, "ilastik"] = range(1, ilastik_mask.sum() + 1)
-    return panel
+#def create_panel_from_imc_panel(
+#    imc_panel_file: Union[str, PathLike],
+#    imc_panel_channel_col: str = "Metal Tag",
+#    imc_panel_name_col: str = "Target",
+#    imc_panel_keep_col: str = "full",
+#    imc_panel_ilastik_col: str = "ilastik",
+#) -> pd.DataFrame:
+#    imc_panel = pd.read_csv(
+#        imc_panel_file,
+#        sep=",|;",
+#        dtype={
+#            imc_panel_channel_col: pd.StringDtype(),
+#            imc_panel_name_col: pd.StringDtype(),
+#            imc_panel_keep_col: pd.BooleanDtype(),
+#            imc_panel_ilastik_col: pd.BooleanDtype(),
+#        },
+#        engine="python",
+#        true_values=["1"],
+#        false_values=["0"],
+#    )
+#    for required_col in (imc_panel_channel_col, imc_panel_name_col):
+#        if required_col not in imc_panel:
+#            raise Exception(
+#                f"Missing '{required_col}' column in IMC panel"
+#            )
+#    for notnan_col in (
+#        imc_panel_channel_col,
+#        imc_panel_keep_col,
+#        imc_panel_ilastik_col,
+#    ):
+#        if notnan_col in imc_panel and imc_panel[notnan_col].isna().any():
+#            raise Exception(
+#                f"Missing values for '{notnan_col}' in IMC panel"
+#            )
+#    rename_columns = {
+#        imc_panel_channel_col: "channel",
+#        imc_panel_name_col: "name",
+#        imc_panel_keep_col: "keep",
+#        imc_panel_ilastik_col: "ilastik",
+#    }
+#    drop_columns = [
+#        panel_col
+#        for imc_panel_col, panel_col in rename_columns.items()
+#        if panel_col in imc_panel.columns and panel_col != imc_panel_col
+#    ]
+#    panel = imc_panel.drop(columns=drop_columns).rename(columns=rename_columns)
+#    for _, g in panel.groupby("channel"):
+#        panel.loc[g.index, "name"] = " / ".join(g["name"].dropna().unique())
+#        if "keep" in panel:
+#            panel.loc[g.index, "keep"] = g["keep"].any()
+#        if "ilastik" in panel:
+#            panel.loc[g.index, "ilastik"] = g["ilastik"].any()
+#    panel = panel.groupby(panel["channel"].values).aggregate("first")
+#    panel = _clean_panel(panel)  # ilastik column may be nullable uint8 now
+#    ilastik_mask = panel["ilastik"].fillna(False).astype(bool)
+#    panel["ilastik"] = pd.Series(dtype=pd.UInt8Dtype())
+#    panel.loc[ilastik_mask, "ilastik"] = range(1, ilastik_mask.sum() + 1)
+#    return panel
 
 def create_panels_from_mcd_file(mcd_file: Union[str, PathLike]) -> List[pd.DataFrame]:
     panels = []
