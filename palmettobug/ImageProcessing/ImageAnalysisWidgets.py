@@ -279,11 +279,14 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.image_folder.bind("<Enter>", refresh1)
 
         def refresh2(enter = ""):
-            self.filenames = [i for i in sorted(os.listdir(self.image_folder.get())) if i.find(".tif") != -1]
+            self.filenames = [i for i in sorted(os.listdir(self.img_dir + '/' + self.image_folder.get())) if i.find(".tif") != -1]
             self.single_image.configure(values = [""] + self.filenames)
 
+        label_8 = ctk.CTkLabel(self, text = "Select a single image to segment:")
+        label_8.grid(column = 0, row = 4, padx = 5, pady = 5)
+
         self.single_image = ctk.CTkOptionMenu(self, values = [""], variable = ctk.StringVar(value = ""))
-        self.single_image.grid(column = 1, row = 3, padx = 5, pady = 5)
+        self.single_image.grid(column = 1, row = 4, padx = 5, pady = 5)
         self.single_image.bind("<Enter>", refresh2)
 
         self.re_do = ctk.CTkCheckBox(master = self, 
