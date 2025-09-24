@@ -156,7 +156,7 @@ def test_unsupervised():
 def test_accept_classifier_name():   ## supervised window
     window = loading_window.accept_classifier_name("lumen_epithelia_laminapropria", app.Tabs.px_classification.create.px_widg)
     window.advanced_options()
-    self.advanced_options_window.retrieve_and_accept()
+    window.advanced_options_window.retrieve_and_accept()
     window.sigma_list.checkbox_list[1].select()
     for i in window.features_list.checkbox_list:
         i.select()
@@ -307,6 +307,7 @@ def test_scaling():
     scaling_options = ["%quantile", "min_max", "standard", "robust", "qnorm", "unscale"]
     original_X = my_analysis.data.X.copy()
     greater_than_zero = (original_X > 0)
+    my_analysis.do_scaling("unscale")
     for i in scaling_options:
         my_analysis.do_scaling(scaling_algorithm = i)
         if i != "unscale":
@@ -527,7 +528,7 @@ def test_SpaceANOVA():
 
 def test_SpaceANOVA_stats_and_heatmap():
     window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
-    window.plot_heatmap()
+    window.plot_heatmap("adjusted p values")
     assert isinstance(window, ctk.CTkToplevel) 
 
 def test_SpaceANOVA_function_plots():
