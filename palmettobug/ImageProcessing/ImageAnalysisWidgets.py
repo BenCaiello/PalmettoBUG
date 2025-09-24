@@ -336,14 +336,14 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         self.master = master
         self.title('Mask transformation by Intersection / Difference')
 
-        label1 = ctk.CTkLabel(master = self, text = "Choose First folder of Masks \n (or pixel classifier merged output):")
+        label1 = ctk.CTkLabel(master = self, text = "Choose First folder of Masks:")
         label1.grid(column = 0, row = 0, padx = 10, pady = 10)
         def refresh1(enter = ""):
             created_mask_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.masks_dir)) if i.find(".") == -1]
             created_px_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir)) if i.find(".") == -1]
-            self.folders1 = created_mask_classifiers + created_px_classifiers
-            self.masks_folder1.configure(values = self.folders1)
-            self.masks_folder2.configure(values = self.folders1)
+            folders1 = created_mask_classifiers + created_px_classifiers
+            self.masks_folder1.configure(values = created_mask_classifiers)  ## don't really want pixel classifiers available as "first" masks
+            self.masks_folder2.configure(values = folders1)
 
         self.masks_folder1 = ctk.CTkOptionMenu(master = self, 
                                             values = [""], 

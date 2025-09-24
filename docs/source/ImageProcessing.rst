@@ -195,7 +195,7 @@ Cell Segmentation
 
 Segmentation creates regions identifying where the cells are in the
 images of the dataset – a necessary and critical step in the analysis
-of  most cellular imaging data. The PalmettoBUG GUI wraps two generalist cell
+of  most cellular imaging data. The iSD GUI wraps two generalist cell
 segmentation packages – Cellpose and DeepCell / Mesmer. These packages
 offer 1 or more deep-learning models that were trained on many datasets in order to
 make them decent at identifying many different types of cells. These
@@ -239,6 +239,12 @@ DeepCell is only allowed for non-commercial / academic use, while
 Cellpose has no restrictions (although many of its models were trained
 on ‘non-commercial’ datasets, making a bit of a licensing gray area).
 
+.. important::
+
+    New Feature! -- If instanseg has been installed with `pip install palmettobug[instanseg]`, or `pip install instanseg-torch`, then it will be available inside
+    the main PalmettoBUG GUI (not iSD) for segmenting cells. It is a truly open-source deep learning segmentation model, with only a few parameters
+    to select when running.
+
 *Example segmentation results (colored regions = segmentation
 masks):*
 |image9|
@@ -270,6 +276,20 @@ final result.
 *Example of expansion:* 
 
 |image10|
+
+**Mask Intersection / Difference**
+
+Sometimes you might only to analyze a particular set of masks in the images,
+for example you might only be interested in cells within particular regions of 
+the tissue. PalmettoBUG lets you take one set of masks and compare them with a second set
+(or with a pixel classifier output) to only select masks from the first set of masks which overlap / do not overlap
+with the second ("one-way"). Thresholds can be set as well to determine what counts as "overlap" -- both the number
+of pixels to count a single mask as an overlapping object, and how many overlapping objects are needed
+to trigger keeping / discarding the mask. 
+
+*Example:* 
+
+|imagemasktransform|
 
 Region Measurements
 ~~~~~~~~~~~~~~~~~~~
@@ -372,6 +392,9 @@ as either code or techniques / ideas from these are used in PalmettoBUG's & isoS
    :width: 5.78863in
    :height: 3.2827in
 .. |image10| image:: media/ImageProcessing/ImageProcessing10.png
+   :width: 4.9014in
+   :height: 2.50725in
+.. |imagemasktransform| image:: media/ImageProcessing/ImageProcessingMaskTransform.png
    :width: 4.9014in
    :height: 2.50725in
 .. |image11| image:: media/ImageProcessing/ImageProcessing11.png
