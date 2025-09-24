@@ -552,6 +552,27 @@ each sample / image. Notice that this test is not performed using the
 cells as the sample population, but instead the aggregate statistic
 (mean / median) of each sample / image in the dataset.
 
+**Selecting the Experimental 'N'**
+
+PalmettoBUG lets you select an experimental 'N' for how statistical tests are performed.
+By default, this is 'sample_id' -- essentially treating each ROI / image as an experimental unit 
+when plotting and doing hypothesis tests. However, it is not uncommon to have multiple images / ROIs from 
+one animal where the animal is the real biological / experimental unit of interest and not each individual image.
+In this case, if you are intending on doing stats inside PalmettoBUG (although generally it is better if stats are done 
+outside PalmettoBUG - after exporting the data - by an expert using a more statistically-focused software) then
+you can use an alternate column in the data as your experimental N. In thge GUI, this is usually patient_id.
+
+The way this works is that an aggregate statistic (the mean) is taken for the data within each category of the selected
+N column, and then those means are used for the statistical tesst / plot. Normally, this means aggregating the cell data within each ROI, if applicable.
+The functions affected by this include the statistical tests, cell-type abundance plots where a distribution is shown, and the state expression plots 
+(in scripting, these are the methods of a palmettobug.Analysis object which have an 'N_column' parameter). It also affects certain spatial functions, 
+including SpaceANOVA & the statistics run on EDT transforms.
+
+**Critically for the Experimental N:** whatever column you use must contain categories that are unique to each condition - 
+you absolutely cannot have categories that are shared between conditions. 
+In practice, this means that if one or more patient_id's is shared across the conditions, then you must  edit it to make sure 
+that the patient_id's become unique for each condition (say, by appending the condition name to the patient_id, even if it 'splits' a patient_id category). 
+
 .. warning::
    
    Variability or batch effects between different runs of the
