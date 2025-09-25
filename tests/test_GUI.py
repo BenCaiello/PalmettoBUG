@@ -706,3 +706,8 @@ def non_GUI_TableLaunch():
     t_launch.tablewidget.toggle_delete_column()
     table = t_launch.tablewidget.recover_input()
     assert isinstance(table, pd.DataFrame)
+
+def test_salamification():
+    salami = my_analysis.space_analysis.do_salamification()
+    figure = my_analysis.space_analysis.plot_salami(condition = "SSA", radii = 25)
+    assert isinstance(figure, matplotlib.figure.Figure)
