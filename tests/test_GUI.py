@@ -147,6 +147,7 @@ def test_launch_loading_window():
 
 def test_unsupervised():
     window = loading_window.unsupervised("unsupervised1", app.Tabs.px_classification.create.px_widg)
+    window.training_number.configure(textvariable = ctk.StringVar(value = "50000"))
     window.image_choice.configure(variable = ctk.StringVar(value = 'img'))
     channel_2_widgets = window.keep_table.widget_list_of_lists[1]
     channel_2_widgets[1].configure(variable = ctk.StringVar(value = 'Use Channel'))
@@ -689,10 +690,10 @@ def test_edt_heatmap_window():
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
-
 def test_reload():    ### do after spatial, to repserve merging, etc.
     app.Tabs.py_exploratory.analysiswidg.reload_experiment()
     app.Tabs.py_exploratory.analysiswidg.launch_data_table_importation_window(directory = my_analysis.data_table_dir + "/data_table_1.csv")
+
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
