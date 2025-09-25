@@ -330,9 +330,9 @@ def test_scaling():
         else:
             assert (my_analysis.data.X != original_X).sum().sum() == 0, "Unscaling did not restore the original data!"
 
-#def test_do_regions():
-#    my_analysis.do_regions(region_folder = proj_directory + "/masks/test_seg")
-#    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
+def test_do_regions():
+    my_analysis.do_regions(region_folder = proj_directory + "/masks/expanded_deepcell_masks")
+    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
 
 #def test_spatial_leiden():
 #    my_analysis._do_spatial_leiden()
