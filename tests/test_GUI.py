@@ -55,6 +55,7 @@ def test_call_configGUI():
     window.toggle_light_dark()
     window.slider_moved(1.0)
     window.change_theme('blue')
+    window.change_theme('green') ### reset so local tests change less for git versioning (assets theme file)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -80,6 +81,7 @@ def test_call_instanseg_segmentor():
     instanseg_window.single_image.configure(variable = ctk.StringVar(value = os.listdir(proj_directory + "/images/img")[0]))
     instanseg_window.read_values()
     assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
+    instanseg_window.destroy()
 
 def test_call_mask_expand():
     expander = app.entrypoint.image_proc_widg.call_mask_expand()
@@ -96,6 +98,7 @@ def test_call_intersection_difference():
     intersect.read_values()
     print(os.listdir(proj_directory + "/masks"))
     assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks")) == 10), "Mask intersection function failed!"
+    intersect.destroy()
 
 def test_call_region_measurement():
     region_meas = app.entrypoint.image_proc_widg.call_region_measurement()
@@ -189,8 +192,9 @@ def test_prediction():
     assert True 
 
 def test_detail_display():
-    app.Tabs.px_classification.create.px_widg.detail_display()
-    assert True 
+    window = app.Tabs.px_classification.create.px_widg.detail_display()
+    assert isinstance(window, ctk.CTkToplevel)
+    window.destroy()
 
 def test_bio_label_launch():
     window = app.Tabs.px_classification.create.px_widg.bio_label_launch()
@@ -282,7 +286,6 @@ def test_wca_2():
     table_launcher.accept_and_return(None)
 
 def test_wca_3():
-    global wca_window
     wca_window = px_use_widgets.whole_class.launch_analysis()
     wca_window.plot_distribution_exprs(wca_window.class_to_barplot.get(),"Violin","crazy_filename_to_avoid_collisions")
     export_window = wca_window.launch_export_window()
@@ -291,6 +294,7 @@ def test_wca_3():
     stats_window = wca_window.stats(wca_window)
     assert isinstance(stats_window, ctk.CTkToplevel)
     stats_window.destroy()
+    wca_window.destroy()
 
 
 ##>>## GUI Analysis tests
@@ -314,9 +318,9 @@ def test_launch_scaling():
 
 def test_scaling():
     scaling_options = ["%quantile", "min_max", "standard", "robust", "qnorm", "unscale"]
+    my_analysis.do_scaling("unscale")
     original_X = my_analysis.data.X.copy()
     greater_than_zero = (original_X > 0)
-    my_analysis.do_scaling("unscale")
     for i in scaling_options:
         my_analysis.do_scaling(scaling_algorithm = i)
         if i != "unscale":
@@ -491,7 +495,7 @@ def test_launch_abundance_ANOVAs_window():
     window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_abundance_ANOVAs_window()
     window.column.configure(variable = ctk.StringVar(value = "merging"))
     window.run_ANOVAs()
-    window.GLMs.configure(variable = ctk.StringVar(value = "ANOVA"))
+    window.GLM.configure(variable = ctk.StringVar(value = "ANOVA"))
     window.filename.configure(textvariable = ctk.StringVar(value = "ANOVA_NOVA_table"))
     window.run_ANOVAs()
     assert isinstance(window, ctk.CTkToplevel)
@@ -499,6 +503,7 @@ def test_launch_abundance_ANOVAs_window():
 
 def test_run_state_ANOVAs_window():
     window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_state_ANOVAs_window()
+    window.marker_class.configure(variable = ctk.StringVar(value = "type"))
     window.run_state_ANOVAs()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
@@ -566,7 +571,7 @@ def test_SpaceANOVA_stats_and_heatmap():
 
 def test_SpaceANOVA_function_plots():
     window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
-    window.plot_pairwise_comparison()
+    window.plot_pairwise_comparison(comparison = "Run All", stat = 'g', plot_f_vals = True)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
