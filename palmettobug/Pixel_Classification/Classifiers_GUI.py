@@ -1756,7 +1756,7 @@ class Classifier_deets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.after(200, lambda: self.focus())
 
     def advanced_options(self) -> None:
-        self.advanced_options_window(self)
+        return self.advanced_options_window(self)
 
     def set_up_classifier_details(self) -> None:
         ''''''
