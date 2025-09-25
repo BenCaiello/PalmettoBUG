@@ -314,7 +314,7 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if single_image == "":
             single_image = None
         
-        warning_window("Don't worry if this step takes a while to complete or the window appears to freeze!\n"
+        w_window = warning_window("Don't worry if this step takes a while to complete or the window appears to freeze!\n"
                     "This behavior during Instanseg segmentation is normal.")
         self.master.Experiment_object.instanseg_segmentation(re_do = re_do, 
                                                              input_img_folder = f"{self.master.Experiment_object.directory_object.img_dir}/{input_folder}",
@@ -327,6 +327,7 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                             f"mean_threshold = {str(threshold)}, target = {str(target)},"
                                                             f"model = {model}")
         self.master.buttonframe.initialize_buttons()
+        return w_window
 
 
 class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):

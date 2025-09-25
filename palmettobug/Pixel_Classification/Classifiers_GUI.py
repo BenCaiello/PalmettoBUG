@@ -114,7 +114,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
             else:
                 print(message)
             return
-        detail_display_window(self)
+        return detail_display_window(self)
 
     def bio_label_launch(self) -> None:
         if self.name is None:
@@ -168,7 +168,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
             return
         self.PxQuPy_class.train_folder(image_folder = image_folder)    
         pixel_logger.info(f"Trained supervised classifier {self.name} on image folder = {image_folder}")
-        warning_window("Training Finished!")
+        return warning_window("Training Finished!")
 
     def predict(self, prediction_type: str) -> None:
         if self.classifier_type == "supervised":
@@ -186,7 +186,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
             tk.messagebox.showwarning("No Classifier Available!", message = "No Classifier Available!")
             return
         if success:
-            warning_window("Prediction Finished!")
+            return warning_window("Prediction Finished!")
 
     def predict_one_image_fx(self) -> None:
         image_folder_choice = self.predictions_frame.folder.get()
@@ -1224,7 +1224,8 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         #pd.DataFrame(self.master.unsupervised.classifier_dictionary['fs'].model.codes).to_csv(self.master.classifier_dir + f"/{self.master.name}/clustering_codes.csv")   
                                             ## this .csv might allow loading & predicting from a previously done classifier
                                             ## However, creating the flowsom object in the first place may be difficult...
-        warning_window("Training Finished!")
+
+        w_window = warning_window("Training Finished!")
         ## Instead of plotting cluster centers, plot from actual pixels
         '''
         plot, cluster_centers = plot_class_centers(flowsom = self.master.unsupervised.classifier_dictionary['fs'],
@@ -1236,6 +1237,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master.quick_display.save_and_display(filepath)
         '''
         self.after(200, self.withdraw())
+        return w_window
 
     class keep_channel_table(ctk.CTkScrollableFrame):
         def __init__(self, master):

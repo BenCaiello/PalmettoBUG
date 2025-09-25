@@ -54,8 +54,8 @@ def test_call_configGUI():
     window = app.entrypoint.call_configGUI()
     window.toggle_light_dark()
     window.slider_moved(1.0)
-    window.change_theme('blue')
-    window.change_theme('green') ### reset so local tests change less for git versioning (assets theme file)
+    window = window.change_theme('blue')
+    window = window.change_theme('green') ### reset so local tests change less for git versioning (assets theme file)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -79,7 +79,8 @@ def test_call_raw_to_img_part_1_hpf():
 def test_call_instanseg_segmentor():
     instanseg_window = app.entrypoint.image_proc_widg.call_instanseg_segmentor()
     instanseg_window.single_image.configure(variable = ctk.StringVar(value = os.listdir(proj_directory + "/images/img")[0]))
-    instanseg_window.read_values()
+    w_window = instanseg_window.read_values()
+    w_window.destroy()
     assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
     instanseg_window.destroy()
 
@@ -151,7 +152,8 @@ def test_unsupervised():
     channel_2_widgets[1].configure(variable = ctk.StringVar(value = 'Use Channel'))
     for i in channel_2_widgets[2:]:
         i.select() 
-    window.run_training()
+    warning_window = window.run_training()
+    warning_window.destroy()
     ## Predict the first image to test single image prediction:
     app.Tabs.px_classification.create.px_widg.predictions_frame.one.select()
     app.Tabs.px_classification.create.px_widg.predictions_frame.folder.configure(variable = ctk.StringVar(value = 'img'))
@@ -374,7 +376,8 @@ def test_launch_Plot_histograms_per_ROI_window():
 def test_launch_UMAP_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_UMAP_window()
     window.run_UMAP()
-    window.run_UMAP(kind = 'PCA')
+    w_window = window.run_UMAP(kind = 'PCA')
+    w_window.destroy()
     assert isinstance(window, ctk.CTkToplevel)
     assert (my_analysis.PCA_embedding is not None), "do PCA did not create an anndata embedding"
     assert isinstance(my_analysis.PCA_embedding, anndata.AnnData), "do PCA did not create an anndata embedding"
@@ -383,7 +386,8 @@ def test_launch_UMAP_window():
 
 def test_launch_cluster_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_window()
-    window.run_clustering()
+    w_window = window.run_clustering()
+    w_window.destroy()
     try:
         metaclustering = my_analysis.data.obs['metaclustering']
     except Exception:
@@ -504,8 +508,10 @@ def test_launch_abundance_ANOVAs_window():
 def test_run_state_ANOVAs_window():
     window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_state_ANOVAs_window()
     window.marker_class.configure(variable = ctk.StringVar(value = "type"))
-    window.run_state_ANOVAs()
+    table_launch = window.run_state_ANOVAs()
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(table_launch, ctk.CTkToplevel)
+    table_launch.destroy()
     window.destroy()
 
 def test_state_distribution_window():
@@ -690,3 +696,13 @@ def test_reload():    ### do after spatial, to repserve merging, etc.
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
+
+def non_GUI_TableLaunch():
+    path_to_df = proj_directory + "/panel.csv"
+    panel_df = pd.read_csv(path_to_df)
+    t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'panel')
+    assert isinstance(t_launch, ctk.CTkToplevel)
+    t_launch.tablewidget.add_row(3)
+    t_launch.tablewidget.toggle_delete_column()
+    table = t_launch.tablewidget.recover_input()
+    assert isinstance(table, pd.DataFrame)

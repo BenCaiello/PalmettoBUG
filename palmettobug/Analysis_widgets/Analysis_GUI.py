@@ -819,8 +819,9 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 filename = "FlowSOM_MST"
                 self.master.cat_exp._plot_stars_CNs(returned, filename = filename + ".png")
                 self.master.save_and_display(filename = filename,sizeX = 550, sizeY = 550)
-            warning_window("FlowSOM complete!")
+            w_window = warning_window("FlowSOM complete!")
             self.withdraw()
+            return w_window
         else:
             warning_window("There are no channels of this marker_class!")
 
@@ -918,8 +919,9 @@ class UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                 marker_class = {features}, 
                                                 seed = {seed}""")
         if kind == "UMAP":  #### UMAP takes a long time, so a pop up is reasonable (PCA is usually fast)
-            warning_window("UMAP run complete!")
+            w_window = warning_window("UMAP run complete!")
         self.withdraw()
+        return w_window
 
 class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -2210,7 +2212,7 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                     anova_or_kruskal = {self.test.get()},
                                     filename = {filename}.csv""")
         dataframe = pd.read_csv(self.master.cat_exp.directory + f"/Data_tables/{filename}.csv")
-        TableLaunch(dataframe = dataframe.head(50), 
+        return TableLaunch(dataframe = dataframe.head(50), 
                     directory = filename, 
                     width = 1, 
                     height = 1, 
