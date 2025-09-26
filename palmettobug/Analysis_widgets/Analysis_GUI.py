@@ -2360,7 +2360,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                                     cell clustering = {obs_column},
                                     exported = {output_bool}""")
         
-        TableLaunch(dataframe = dataframe, 
+        table_launched = TableLaunch(dataframe = dataframe, 
                     directory = cluster, 
                     width = 1, 
                     height = 1, 
@@ -2368,7 +2368,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                     experiment = None, 
                     favor_table = True, 
                     logger = Analysis_widget_logger)
-        return df_out_dict
+        return df_out_dict, table_launched
 
 class Scaling_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):

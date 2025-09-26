@@ -168,8 +168,9 @@ def test_accept_classifier_name():   ## supervised window
     advanced_window = window.advanced_options()
     advanced_window.retrieve_and_accept()
     window.sigma_list.checkbox_list[1].select()
-    for i in window.features_list.checkbox_list:
-        i.select()
+    for ii,i in enumerate(window.features_list.checkbox_list):
+        if (ii < 2) or (ii > 8):
+            i.select()
     counter = 0
     for i,ii in enumerate(window.dictionary_maker.dataframe['name']):
         if (i == 6) or (i ==26):
@@ -498,11 +499,13 @@ def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
     window.column_type.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.button.invoke()
-    output_dict = window.launch_stat_table("1", True, "metaclustering")
+    output_dict, table_launch = window.launch_stat_table("1", True, "metaclustering")
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(output_dict, dict), "do_cluster_stats did not return a dictionary"
     assert len(output_dict) == len(my_analysis.data.obs['metaclustering'].unique()), "cluster statistics dictionary did not have expected length"
     assert len(output_dict[1]) == (my_analysis.data.var['marker_class'] == 'type').sum(), "cluster statistics dictionary sub-dataframe did not have expected length"
+    assert isinstance(table_launch, ctk.CTkToplevel)
+    table_launch.destroy()
     window.destroy()
 
 def test_launch_cluster_merging():
@@ -528,13 +531,13 @@ def test_launch_abundance_ANOVAs_window():
     window.column.configure(variable = ctk.StringVar(value = "merging"))
     df, table_launch = window.run_ANOVAs()
     assert isinstance(table_launch, ctk.CTkToplevel)
+    assert isinstance(df, pd.DataFrame), "count_GLM method did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.data.obs['merging'].unique()), "GLM statistics dataframe did not have the expected length"
-    assert isinstance(table_launch, ctk.CTkToplevel)
-    window.destroy()
+    table_launch.destroy()
     window.GLM.configure(variable = ctk.StringVar(value = "ANOVA"))
     window.filename.configure(textvariable = ctk.StringVar(value = "ANOVA_NOVA_table"))
     df, table_launch = window.run_ANOVAs()
-    assert isinstance(df, pd.DataFrame), "count_GLM method did not return a pandas DataFrame"
+    assert isinstance(table_launch, ctk.CTkToplevel)
     assert isinstance(df, pd.DataFrame), "abundance ANOVA method did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.data.obs['merging'].unique()), "abundance ANOVA dataframe did not have the expected length"
     assert isinstance(window, ctk.CTkToplevel)
