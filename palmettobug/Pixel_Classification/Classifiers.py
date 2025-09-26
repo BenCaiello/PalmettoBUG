@@ -881,7 +881,6 @@ def _getMixedDerivs(image: np.ndarray[float],
     dyy = cv.sepFilter2D(image,ddepth = -1,kernelX = kernel0, kernelY = kernel2, borderType = 1)
     return dxx, dyy, dxy
 
-@numba.njit()
 def _getHessian(dxx: np.ndarray[float], 
                 dyy: np.ndarray[float], 
                 dxy: np.ndarray[float],
