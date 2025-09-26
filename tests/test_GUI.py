@@ -381,8 +381,8 @@ def test_launch_Plot_histograms_per_ROI_window():
 
 def test_launch_UMAP_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_UMAP_window()
-    window.run_UMAP()
-    w_window = window.run_UMAP(kind = 'PCA')
+    w_window = window.run_UMAP()
+    window.run_UMAP(kind = 'PCA')
     w_window.destroy()
     assert isinstance(window, ctk.CTkToplevel)
     assert (my_analysis.PCA_embedding is not None), "do PCA did not create an anndata embedding"
@@ -536,6 +536,7 @@ def test_launch_abundance_ANOVAs_window():
     assert isinstance(df, pd.DataFrame), "abundance ANOVA method did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.data.obs['merging'].unique()), "abundance ANOVA dataframe did not have the expected length"
     assert isinstance(window, ctk.CTkToplevel)
+    table_launch.destroy()
     window.destroy()
 
 def test_run_state_ANOVAs_window():

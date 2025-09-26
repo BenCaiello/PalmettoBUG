@@ -919,10 +919,10 @@ class UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                 cell_number = {cells}, 
                                                 marker_class = {features}, 
                                                 seed = {seed}""")
+        self.withdraw()
         if kind == "UMAP":  #### UMAP takes a long time, so a pop up is reasonable (PCA is usually fast)
             w_window = warning_window("UMAP run complete!")
-        self.withdraw()
-        return w_window
+            return w_window
 
 class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
