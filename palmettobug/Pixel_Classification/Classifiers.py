@@ -75,7 +75,6 @@ import json
 import warnings
 
 import numpy as np
-import numba
 import pandas as pd
 import tifffile as tf
 import cv2 as cv
@@ -880,7 +879,6 @@ def _getMixedDerivs(image: np.ndarray[float],
     dyy = cv.sepFilter2D(image,ddepth = -1,kernelX = kernel0, kernelY = kernel2, borderType = 1)
     return dxx, dyy, dxy
 
-@numba.jit()
 def _getHessian(dxx: np.ndarray[float], 
                 dyy: np.ndarray[float], 
                 dxy: np.ndarray[float],
