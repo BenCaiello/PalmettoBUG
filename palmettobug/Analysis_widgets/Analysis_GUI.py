@@ -2702,7 +2702,7 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
         if not overwrite_approval(self.master.cat_exp.data_table_dir + f"/{filename}.csv", file_or_folder = "file", GUI_object = self):
             return
 
-        df, df_path = self.master.cat_exp.export_data(filename = filename, 
+        df = self.master.cat_exp.export_data(filename = filename, 
             subset_columns = columns_to_subset_on, 
             subset_types = column_values_list, 
             groupby_columns = grouping_list, 

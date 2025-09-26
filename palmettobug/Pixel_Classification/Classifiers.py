@@ -824,7 +824,6 @@ def _predictClassifier(all_together: np.ndarray[float],
 
 ## Features generation functions:
 
-@numba.njit()
 def _getGaussianDerivs(sigma: float) -> tuple[np.ndarray[float],np.ndarray[float],np.ndarray[float]]:  # ***QuPath translation [complete]
     '''
     This is a simplified function that return all gaussian derivative kernel of order 0, 1, and 2 at once for a given sigma, 
@@ -881,6 +880,7 @@ def _getMixedDerivs(image: np.ndarray[float],
     dyy = cv.sepFilter2D(image,ddepth = -1,kernelX = kernel0, kernelY = kernel2, borderType = 1)
     return dxx, dyy, dxy
 
+@numba.jit()
 def _getHessian(dxx: np.ndarray[float], 
                 dyy: np.ndarray[float], 
                 dxy: np.ndarray[float],
@@ -891,7 +891,7 @@ def _getHessian(dxx: np.ndarray[float],
     '''
     hessian_min = np.zeros((dxy.shape))
     hessian_max = np.zeros((dxy.shape))
-    eigenvalues, eigenvectors = np.linalg.eig((np.array(([dxx,dxy],[dxy,dyy])).T))
+    eigenvalues, eigenvectors = np.linalg.eig([np.array([[dxx,dxy],[dxy,dyy]]).T])
     hessian_determinant = (dxx*dyy) - (dxy**2)
     for i in range(0,dxy.shape[0]):
         for j in range(0,dxy.shape[1]):
