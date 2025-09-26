@@ -352,26 +352,31 @@ def test_launch_scatterplot():
 
 def test_launch_Plot_Counts_per_ROI_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_Counts_per_ROI_window()
-    window.plot_Counts_per_ROI()
+    figure = window.plot_Counts_per_ROI()
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(figure, matplotlib.figure.Figure), "Count plot did not return a matplotlib figure"
     window.destroy()
 
 def test_launch_MDS_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_MDS_window()
-    window.plot_MDS()
+    figure, df = window.plot_MDS()
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(figure, matplotlib.figure.Figure), "MDS plot did not return a matplotlib figure"
+    assert isinstance(df, pd.DataFrame), "MDS plot did not return a pandas DataFrame"
     window.destroy()
 
 def test_launch_NRS_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_NRS_window()
-    window.plot_NRS()
+    figure = window.plot_NRS()
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(figure, matplotlib.figure.Figure), "NRS plot did not return a matplotlib figure"
     window.destroy()
 
 def test_launch_Plot_histograms_per_ROI_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_histograms_per_ROI_window()
-    window.plot_ROI_histograms()
+    figure = window.plot_ROI_histograms()
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(figure, matplotlib.figure.Figure), "ROI histogram plot did not return a matplotlib figure"
     window.destroy()
 
 def test_launch_UMAP_window():
@@ -387,8 +392,9 @@ def test_launch_UMAP_window():
 
 def test_launch_cluster_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_window()
-    w_window = window.run_clustering()
+    w_window, fs = window.run_clustering()
     w_window.destroy()
+    figure = my_analysis._plot_stars_CNs(fs)
     try:
         metaclustering = my_analysis.data.obs['metaclustering']
     except Exception:
@@ -397,6 +403,7 @@ def test_launch_cluster_window():
     assert len(metaclustering.unique()) == 20, "do_flowsom did not create the expected number of values in the metaclustering column"
     assert '1' in metaclustering, "do_flowsom did not create the expected values in metaclustering column"
     assert '20' in metaclustering,  "do_flowsom did not create the expected values in metaclustering column"
+    assert isinstance(figure, matplotlib.figure.Figure), "FlowSOM MST plot did not return a matplotlib figure"
 
 def test_launch_leiden():
     window =  app.Tabs.py_exploratory.analysiswidg.launch_leiden()
@@ -413,59 +420,75 @@ def test_launch_leiden():
 
 def test_launch_plot_UMAP_window():     ### this window handles UMAP, PCA, and facetted varieties of both
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_UMAP_window()
-    window.plot_UMAP(subsetting_column = 'antigens', color_column = "HistoneH3", filename = 'UMAP_antigens', kind = 'UMAP')
-    window.plot_UMAP(subsetting_column = 'condition', color_column = "HistoneH3", filename = 'UMAP_condition', kind = 'UMAP')
-    window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'UMAP_single', kind = 'UMAP')
-    window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'PCA_single', kind = 'PCA')
+    figure = window.plot_UMAP(subsetting_column = 'antigens', color_column = "HistoneH3", filename = 'UMAP_antigens', kind = 'UMAP')
+    assert isinstance(figure, matplotlib.figure.Figure), "UMAP facetted by antigen plot did not return a matplotlib figure"
+
+    figure = window.plot_UMAP(subsetting_column = 'condition', color_column = "HistoneH3", filename = 'UMAP_condition', kind = 'UMAP')
+    assert isinstance(figure, matplotlib.figure.Figure), "Facetted UMAP plot did not return a matplotlib figure"
+
+    figure = window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'UMAP_single', kind = 'UMAP')
+    assert isinstance(figure, matplotlib.figure.Figure), "UMAP plot did not return a matplotlib figure"
+
+    figure = window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'PCA_single', kind = 'PCA')
+    assert isinstance(figure, matplotlib.figure.Figure), "PCA plot did not return a matplotlib figure"
+
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
 def test_launch_Exprs_Heatmap_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Exprs_Heatmap_window()
-    window.plot_Heatmap()
+    figure = window.plot_Heatmap()
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(figure, matplotlib.figure.Figure), "ROI medians Heatmap plot did not return a matplotlib figure"
     window.destroy()
 
 def test_launch_cluster_heatmap_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_heatmap_window()
     #window.pop_up.select()
-    window.plot_cluster_heatmap()
+    figure = window.plot_cluster_heatmap()
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(figure, matplotlib.figure.Figure), "Cluster medians Heatmap plot did not return a matplotlib figure"
     window.destroy()
 
 def test_launch_distrib_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_distrib_window()
-    window.plot_clusterV(clustering_column = 'sample_id', 
+    figure = window.plot_clusterV(clustering_column = 'sample_id', 
                       type_of_graph = 'violin', 
                       type_of_comp = 'Raw Group values (no substraction of rest of dataset)', 
                       filename = "clusterV_distrib_etc", 
                       marker_class = "type")
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(figure, matplotlib.figure.Figure), "ROI distributions (violin)plot did not return a matplotlib figure"
     window.destroy()
 
 def test_launch_ClusterVGroup():
     window = app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
-    window.plot_clusterV(clustering_column = 'metaclustering', 
-                      type_of_graph = 'violin', 
+    figure = window.plot_clusterV(clustering_column = 'metaclustering', 
+                      type_of_graph = 'bar', 
                       type_of_comp = 'Raw Cluster values (no substraction of rest of dataset)', 
                       filename = "clusterV_distrib_etc2", 
                       marker_class = "type")
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(figure, matplotlib.figure.Figure), "cluster distributions (bar)plot did not return a matplotlib figure"
     window.destroy()
 
 def test_launch_plot_cluster_expression_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
     window.clustering_option.configure(variable = ctk.StringVar(value = "metaclustering"))
-    window.antigen.configure(variable = ctk.StringVar(value = "HistoneH3"))
-    window.run_py_plot_cluster_histograms()
+    window.antigen.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
+    figure = window.run_py_plot_cluster_histograms()
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(figure, matplotlib.figure.Figure), "cluster histograms plot did not return a matplotlib figure"
     window.destroy()
 
 def test_launch_abundance_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_abundance_window()
-    window.plot_abundance(k = "metaclustering", by = "stacked barplot", filename = "Plot_12")
-    window.plot_abundance(k = "metaclustering", by = "cluster boxplot", filename = "Plot_112")
-    window.plot_abundance(k = "metaclustering", by = "cluster stripplot", filename = "Plot_1112")
+    figure = window.plot_abundance(k = "metaclustering", by = "stacked barplot", filename = "Plot_12")
+    assert isinstance(figure, matplotlib.figure.Figure), "abundance 1 plot did not return a matplotlib figure"
+    figure = window.plot_abundance(k = "metaclustering", by = "cluster boxplot", filename = "Plot_112")
+    assert isinstance(figure, matplotlib.figure.Figure), "abundance 2 (box)plot did not return a matplotlib figure"
+    figure = window.plot_abundance(k = "metaclustering", by = "cluster stripplot", filename = "Plot_1112")
+    assert isinstance(figure, matplotlib.figure.Figure), "abundance 2 (strip)plot did not return a matplotlib figure"
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -473,8 +496,11 @@ def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
     window.column_type.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.button.invoke()
-    window.launch_stat_table("1", True, "metaclustering")
+    output_dict = window.launch_stat_table("1", True, "metaclustering")
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(output_dict, dict), "do_cluster_stats did not return a dictionary"
+    assert len(output_dict) == len(my_analysis.data.obs['metaclustering'].unique()), "cluster statistics dictionary did not have expected length"
+    assert len(output_dict[1]) == (my_analysis.data.var['marker_class'] == 'type').sum(), "cluster statistics dictionary sub-dataframe did not have expected length"
     window.destroy()
 
 def test_launch_cluster_merging():
@@ -484,50 +510,61 @@ def test_launch_cluster_merging():
         i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
     window.new.button.invoke()
     assert isinstance(window, ctk.CTkToplevel)
+    assert ('merging' in my_analysis.data.obs.columns), "do_merging did not add a merging!"
+    assert len(my_analysis.data.obs['merging'].unique()) == 4, "do_merging did not add the expected number of merging categories!"
     window.destroy()
 
 def test_launch_classy_masker():
     window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
-    window.classy_mask(clustering = "metaclustering")
+    data_df = window.classy_mask(clustering = "metaclustering")
     assert isinstance(window, ctk.CTkToplevel)
+    assert len(data_df) == len(my_analysis.back_up_data)
     window.destroy()
-
-def test_launch_regionprop():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
-    #assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_abundance_ANOVAs_window():
     window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_abundance_ANOVAs_window()
     window.column.configure(variable = ctk.StringVar(value = "merging"))
-    window.run_ANOVAs()
+    df, table_launch = window.run_ANOVAs()
+    assert isinstance(table_launch, ctk.CTkToplevel)
+    assert len(df) == len(my_analysis.data.obs['merging'].unique()), "GLM statistics dataframe did not have the expected length"
+    assert isinstance(table_launch, ctk.CTkToplevel)
+    window.destroy()
     window.GLM.configure(variable = ctk.StringVar(value = "ANOVA"))
     window.filename.configure(textvariable = ctk.StringVar(value = "ANOVA_NOVA_table"))
-    window.run_ANOVAs()
+    df, table_launch = window.run_ANOVAs()
+    assert isinstance(df, pd.DataFrame), "count_GLM method did not return a pandas DataFrame"
+    assert isinstance(df, pd.DataFrame), "abundance ANOVA method did not return a pandas DataFrame"
+    assert len(df) == len(my_analysis.data.obs['merging'].unique()), "abundance ANOVA dataframe did not have the expected length"
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
 def test_run_state_ANOVAs_window():
     window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_state_ANOVAs_window()
     window.marker_class.configure(variable = ctk.StringVar(value = "type"))
-    table_launch = window.run_state_ANOVAs()
+    df, table_launch = window.run_state_ANOVAs()
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(table_launch, ctk.CTkToplevel)
+    assert isinstance(df, pd.DataFrame), "state expression statistics did not return a pandas DataFrame"
+    assert len(df) == len(my_analysis.data.obs['merging'].unique()) * (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
     table_launch.destroy()
     window.destroy()
+
+def test_plot_state_p_value_heatmap():
+    figure =  my_analysis.plot_state_p_value_heatmap(ANOVA_kwargs = {'marker_class':"type"})
+    assert isinstance(figure, matplotlib.figure.Figure), "plot_state_p_value_heatmap did not return a matplotlib figure"
 
 def test_state_distribution_window():
     window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_state_distribution()
     window.clustering.configure(variable = ctk.StringVar(value = "merging"))
-    window.plot()
+    figure = window.plot()
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(figure, matplotlib.figure.Figure), "plot_state_distributions did not return a matplotlib figure"
     window.destroy()
 
 def test_launch_cluster_save_load():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()
     window.load_type.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.saver_button.invoke()
-    print(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory  + "/clusterings")
-    print(os.listdir(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory + "/clusterings"))
     window.load_identifier.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory + "/clusterings")[0]))
     window.loader_button.invoke()
     assert isinstance(window, ctk.CTkToplevel)
@@ -539,10 +576,18 @@ def test_launch_data_table_exportation_window():
     window.grouping_command()
     window.plain_command()
     window.whole_command()
-    window.button1.invoke()
-    window.umap_pca_button.invoke()
+    df = window.export_table()
+    assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
+    assert len(df) == len(my_analysis.data.obs), "data export did not have the same length as the source data!"
+    df = window.umap_pca_button.invoke()
+    assert isinstance(df, pd.DataFrame), "DR export did not return a pandas DataFrame"
+    assert len(df) == len(my_analysis.UMAP_embedding), "DR export did not have the same length as the source embedding!"
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
+
+def test_launch_regionprop():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
+    #assert isinstance(window, ctk.CTkToplevel)
 
 
 ##>>## GUI Spatial tests

@@ -75,6 +75,7 @@ import json
 import warnings
 
 import numpy as np
+import numba
 import pandas as pd
 import tifffile as tf
 import cv2 as cv
@@ -823,6 +824,7 @@ def _predictClassifier(all_together: np.ndarray[float],
 
 ## Features generation functions:
 
+@numba.njit()
 def _getGaussianDerivs(sigma: float) -> tuple[np.ndarray[float],np.ndarray[float],np.ndarray[float]]:  # ***QuPath translation [complete]
     '''
     This is a simplified function that return all gaussian derivative kernel of order 0, 1, and 2 at once for a given sigma, 
@@ -879,6 +881,7 @@ def _getMixedDerivs(image: np.ndarray[float],
     dyy = cv.sepFilter2D(image,ddepth = -1,kernelX = kernel0, kernelY = kernel2, borderType = 1)
     return dxx, dyy, dxy
 
+@numba.njit()
 def _getHessian(dxx: np.ndarray[float], 
                 dyy: np.ndarray[float], 
                 dxy: np.ndarray[float],
