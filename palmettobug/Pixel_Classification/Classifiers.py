@@ -889,7 +889,7 @@ def _getHessian(dxx: np.ndarray[float],
     '''
     hessian_min = np.zeros((dxy.shape))
     hessian_max = np.zeros((dxy.shape))
-    eigenvalues, eigenvectors = np.linalg.eig((np.array(([dxx,dxy],[dxy,dyy])).T])
+    eigenvalues, eigenvectors = np.linalg.eig((np.array(([dxx,dxy],[dxy,dyy])).T))
     hessian_determinant = (dxx*dyy) - (dxy**2)
     for i in range(0,dxy.shape[0]):
         for j in range(0,dxy.shape[1]):
