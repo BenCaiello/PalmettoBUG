@@ -97,7 +97,6 @@ def test_call_intersection_difference():
     intersect.masks_folder1.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     intersect.masks_folder2.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     intersect.read_values()
-    print(os.listdir(proj_directory + "/masks"))
     assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks")) == 10), "Mask intersection function failed!"
     intersect.destroy()
 

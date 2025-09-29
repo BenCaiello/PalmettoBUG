@@ -537,11 +537,11 @@ class GPL_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.button_alt_license_text.configure(state = 'disabled')
 
 class Channel_normalization_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
-    def __init__(self, master, channels: np.array[str], directory: str):
+    def __init__(self, master, channels, directory: str):
         super().__init__(master)
         self.master = master
         self.directory = directory
-        self.channels = channels
+        self.channels = channels   ## numpy array of strings
 
         self.scrollable_frame = ctk.CTkScrollableFrame(master = self, width = 350, height = 500)
         self.scrollable_frame.grid()
