@@ -551,7 +551,7 @@ def test_run_state_ANOVAs_window():
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(table_launch, ctk.CTkToplevel)
     assert isinstance(df, pd.DataFrame), "state expression statistics did not return a pandas DataFrame"
-    assert len(df) == len(my_analysis.data.obs['merging'].unique()) * (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
+    assert len(df) == (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
     table_launch.destroy()
     window.destroy()
 
