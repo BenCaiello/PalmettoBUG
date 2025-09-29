@@ -8,7 +8,7 @@ import matplotlib
 import customtkinter as ctk
 
 import palmettobug
-from palmettobug.Entrypoint.app_and_entry import App, fetch_IMC_example, fetch_CyTOF_example
+from palmettobug.Entrypoint.app_and_entry import App
 
 homedir = __file__.replace("\\","/")
 homedir = homedir[:(homedir.rfind("/"))]
@@ -25,12 +25,6 @@ def test_print_licenses():
     palmettobug.print_license()
     palmettobug.print_3rd_party_license_info()
     assert True
-
-def test_fetch_IMC():
-    fetch_IMC_example(fetch_dir)
-
-def test_fetch_CyTOF():
-    fetch_CyTOF_example(fetch_dir)
 
 ##########################################################################################################################################################
 # Right now, only trying to test majority of GUI elements and not the backend analysis functions. In the future, could consider superseding the existing #
@@ -53,20 +47,25 @@ def test_GPL_window():
 def test_call_configGUI():
     window = app.entrypoint.call_configGUI()
     window.toggle_light_dark()
+    window.toggle_light_dark()
     window.slider_moved(1.0)
     window = window.change_theme('blue')
     window = window.change_theme('green') ### reset so local tests change less for git versioning (assets theme file)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
-def test_launchExampleDataWindow():
-    window = app.entrypoint.launchExampleDataWindow()
-    assert isinstance(window, ctk.CTkToplevel)
-    window.destroy()
+def test_launchExampleDataWindow():     ## now also handles the loading of the example data
+    global loader_window
+    loader_window = app.entrypoint.launchExampleDataWindow()
+    assert isinstance(loader_window, ctk.CTkToplevel)
+    loader_window.entry.configure(textvariable = ctk.StringVar(value = fetch_dir))
+    loader_window.load_IMC()
 
-def test_img_entry_func():
-    number = app.entrypoint.img_entry_func(proj_directory)  ## successfully proceeding through function in tests
-    assert True 
+def test_bead_norm_window():   ## can only test GUI elements, and with fake 'data', since nothing in sample data to use
+    window = palmettobug.Entrypoint.app_and_entry.Channel_normalization_window(channels = ['fake1','fake2','fake3','fake4'], directory = "Not/really/here")
+    assert isinstance(window, ctk.CTkToplevel)
+    window.retrieve_channels()
+    window.destroy()
 
 
 ##>>## GUI Image Analysis tests
@@ -132,9 +131,10 @@ def test_call_to_Analysis():
     assert("condition" in list(pd.read_csv(interal_dir + "/metadata.csv").columns)), "Automatically generated metadata.csv file must have a 'condition' column!"
 
 def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows (as is, does not close itself and blocks future instnaces as a singleton)
-    window = app.entrypoint.FCS_choice(fetch_dir + "/Example_CyTOF")
+    window = loader_window.load_CyTOF()
     window.table_launcher.destroy()
-
+    loader_window.destroy()
+    
 ##>>## GUI Pixel classification tests (px class creation)
 def test_toggle1a():
     palmettobug.Pixel_Classification.Classifiers_GUI.toggle_TESTING()
@@ -191,8 +191,10 @@ def test_training():
     assert True 
 
 def test_prediction():
-    app.Tabs.px_classification.create.px_widg.predictions_frame.all.select()
+    app.Tabs.px_classification.create.px_widg.predictions_frame.update_one()
     app.Tabs.px_classification.create.px_widg.predictions_frame.folder.configure(variable = ctk.StringVar(value = 'img'))
+    app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
+    app.Tabs.px_classification.create.px_widg.predictions_frame.all.select()
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     assert True 
 
@@ -231,15 +233,15 @@ def test_load_classifier():
 
 def test_launch_classes_as_png():
     window = px_use_widgets.load_and_display.launch_classes_as_png()
-    window.option1.configure(variable = ctk.StringVar(value = "pixel classification"))
     if_pixel_classifier = ["classification_maps", "merged_classification_maps"]
     options = [i for i in if_pixel_classifier if i in os.listdir(window.master.master.active_classifier_dir)]
-    window.option2.configure(variable = ctk.StringVar(value = options[0]))
+    window.convert_to_png("pixel classification", options[0])
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
 def test_launch_bio_labels():
     window = px_use_widgets.load_and_display.launch_bio_labels()
+    window.accept_labels()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 

@@ -1262,10 +1262,8 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
                 return metadata
         
 class bio_labels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
-    def __init__(self, master, blank_load: Union[int, None] = None):
+    def __init__(self, master):
         '''
-        blank_load (int) or None -- when None, the existing class labels are loaded in. When blank load is a number, 
-                then a new, blank class labels are made with length = blank_load
         '''
         super().__init__(master)
         self.master = master 
@@ -1280,33 +1278,27 @@ class bio_labels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         column2 = ctk.CTkLabel(master = self, text = "Biological Label:")
         column2.grid(row = 1, column = 1, padx = 3, pady = 3)
 
-        if blank_load is None:
-            try:
-                self.biological_class_labels = pd.read_csv(self.master.active_classifier_dir + "/biological_labels.csv")
-                self.from_labels = True
-                column3 = ctk.CTkLabel(master = self, 
-                                       text = "Biological Merging's new number: \n (0 and 1 are a special numbers reserved for the background class)")
-                column3.grid(row = 1, column = 2, padx = 3, pady = 3)
+        try:
+            self.biological_class_labels = pd.read_csv(self.master.active_classifier_dir + "/biological_labels.csv")
+            self.from_labels = True
+            column3 = ctk.CTkLabel(master = self, 
+                                    text = "Biological Merging's new number: \n (0 and 1 are a special numbers reserved for the background class)")
+            column3.grid(row = 1, column = 2, padx = 3, pady = 3)
+        except Exception:
+            try:   
+                open_json = open(self.master.active_classifier_dir + f"/{self.master.name}_details.json", 'r' , encoding="utf-8")
+                loaded_json = open_json.read()
+                self.dictionary = json.loads(loaded_json)
+                open_json.close()
+                self.list_of_labels = [i for i in range(1,self.dictionary["number_of_classes"]+1)]
+                self.from_labels = False
             except Exception:
-                try:   
-                    open_json = open(self.master.active_classifier_dir + f"/{self.master.name}_details.json", 'r' , encoding="utf-8")
-                    loaded_json = open_json.read()
-                    self.dictionary = json.loads(loaded_json)
-                    open_json.close()
-                    self.list_of_labels = [i for i in range(1,self.dictionary["number_of_classes"]+1)]
-                    self.from_labels = False
-                except Exception:
-                    message = "The biological_labels.csv and _details.json (if unsupervised) is missing from this classifier!"
-                    if not _TESTING:
-                        tk.messagebox.showwarning("Warning!", message = message)
-                    else:
-                        print(message)
-                    return
-        else:
-            self.biological_class_labels = pd.DataFrame()
-            self.biological_class_labels['class'] = [i for i in range(1,blank_load + 1)]
-            self.biological_class_labels['labels'] = ""
-            self.from_labels = False
+                message = "The biological_labels.csv and _details.json (if unsupervised) is missing from this classifier!"
+                if not _TESTING:
+                    tk.messagebox.showwarning("Warning!", message = message)
+                else:
+                    print(message)
+                return
  
         if self.from_labels is True:
             self.entry_numbers_list = []

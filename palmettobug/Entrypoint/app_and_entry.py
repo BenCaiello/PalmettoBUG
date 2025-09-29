@@ -669,8 +669,9 @@ class LoadExampleDataWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                                                                              "as well as the associated panel and metdata files?"):
             return
         fetch_CyTOF_example(choice)
-        self.master.FCS_choice(choice + "/Example_CyTOF")
+        table_launcher = self.master.FCS_choice(choice + "/Example_CyTOF")
         self.withdraw()
+        return table_launcher
 
     def load_IMC(self):
         choice = self.entry.get()

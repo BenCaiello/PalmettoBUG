@@ -310,26 +310,6 @@ class Pixel_class_widgets(ctk.CTkFrame):
         plt.close(fig = 'all')
         pixel_logger.info(f"Plotted heatmap from pixel class prediction for {self.name}")
         self.quick_display.save_and_display(filepath)
-
-    def _plot_heatmap_cluster_centers(self) -> None:
-        '''Previous way of plotting pixel classification heatmap -- now superseded'''
-        panel = pd.read_csv(self.main_directory + "/panel.csv")
-        open_json = open(self.classifier_dir + f"/{self.name}/{self.name}_details.json", 'r' , encoding="utf-8")
-        loaded_json = open_json.read()
-        loaded_json = json.loads(loaded_json) 
-        open_json.close()
-        channels = []
-        for i in loaded_json['features_dictionary']:
-            for j in loaded_json['features_dictionary'][i]:
-                if j == "GAUSSIAN":
-                    channels.append(f'{i}')
-        image_folder_name = loaded_json['img_directory']
-        plot, cluster_centers = plot_class_centers(self.unsupervised.output_dir, image_folder_name, channels = channels,
-                                                    panel = panel, silence_division_warnings = True)
-        filepath = self.classifier_dir + "/" + self.name + "/cluster_heatmap.png"
-        plot.savefig(filepath)
-        plt.close(fig = 'all')
-        self.quick_display.save_and_display(filepath)
     
     def launch_loading_window(self) -> None:
         return loading_window(self)
