@@ -594,7 +594,7 @@ class Spatial_py(ctk.CTkFrame):
 
                 self.after(200, lambda: self.focus())
 
-            def plot_pairwise_comparison(self, comparison: str, stat: str, plot_f_vals: str) -> None:
+            def plot_pairwise_comparison(self, comparison: str, stat: str, plot_f_vals: bool) -> None:
                 output_dir = self.master.master.master_exp.space_analysis.output_dir
                 if comparison != "Run All":
                     if not overwrite_approval(f"{output_dir}/Functional_plots/{comparison}_{stat}",

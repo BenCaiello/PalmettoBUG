@@ -431,7 +431,7 @@ class configGUI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def re__init__(self) -> None:
         Appinstance = self.master
         self.destroy()
-        configGUI_window(Appinstance)
+        return configGUI_window(Appinstance)
     
     def toggle_light_dark(self) -> None:
         if self.master.light_dark == "dark":
@@ -456,7 +456,7 @@ class configGUI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             theme.write(new_theme)
         self.master.theme = new_theme
         self.master.re__init__()
-        self.re__init__()
+        return self.re__init__()
 
 class GPL_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 

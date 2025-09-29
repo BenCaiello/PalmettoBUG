@@ -279,11 +279,14 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.image_folder.bind("<Enter>", refresh1)
 
         def refresh2(enter = ""):
-            self.filenames = [i for i in sorted(os.listdir(self.image_folder.get())) if i.find(".tif") != -1]
+            self.filenames = [i for i in sorted(os.listdir(self.img_dir + '/' + self.image_folder.get())) if i.find(".tif") != -1]
             self.single_image.configure(values = [""] + self.filenames)
 
+        label_8 = ctk.CTkLabel(self, text = "Select a single image to segment:")
+        label_8.grid(column = 0, row = 4, padx = 5, pady = 5)
+
         self.single_image = ctk.CTkOptionMenu(self, values = [""], variable = ctk.StringVar(value = ""))
-        self.single_image.grid(column = 1, row = 3, padx = 5, pady = 5)
+        self.single_image.grid(column = 1, row = 4, padx = 5, pady = 5)
         self.single_image.bind("<Enter>", refresh2)
 
         self.re_do = ctk.CTkCheckBox(master = self, 
@@ -311,7 +314,7 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if single_image == "":
             single_image = None
         
-        warning_window("Don't worry if this step takes a while to complete or the window appears to freeze!\n"
+        w_window = warning_window("Don't worry if this step takes a while to complete or the window appears to freeze!\n"
                     "This behavior during Instanseg segmentation is normal.")
         self.master.Experiment_object.instanseg_segmentation(re_do = re_do, 
                                                              input_img_folder = f"{self.master.Experiment_object.directory_object.img_dir}/{input_folder}",
@@ -324,6 +327,7 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                             f"mean_threshold = {str(threshold)}, target = {str(target)},"
                                                             f"model = {model}")
         self.master.buttonframe.initialize_buttons()
+        return w_window
 
 
 class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
@@ -333,14 +337,14 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         self.master = master
         self.title('Mask transformation by Intersection / Difference')
 
-        label1 = ctk.CTkLabel(master = self, text = "Choose First folder of Masks \n (or pixel classifier merged output):")
+        label1 = ctk.CTkLabel(master = self, text = "Choose First folder of Masks:")
         label1.grid(column = 0, row = 0, padx = 10, pady = 10)
         def refresh1(enter = ""):
             created_mask_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.masks_dir)) if i.find(".") == -1]
             created_px_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir)) if i.find(".") == -1]
-            self.folders1 = created_mask_classifiers + created_px_classifiers
-            self.masks_folder1.configure(values = self.folders1)
-            self.masks_folder2.configure(values = self.folders1)
+            folders1 = created_mask_classifiers + created_px_classifiers
+            self.masks_folder1.configure(values = created_mask_classifiers)  ## don't really want pixel classifiers available as "first" masks
+            self.masks_folder2.configure(values = folders1)
 
         self.masks_folder1 = ctk.CTkOptionMenu(master = self, 
                                             values = [""], 

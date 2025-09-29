@@ -224,9 +224,10 @@ class Analysis_py_widgets(ctk.CTkFrame):
     def launch_data_table_exportation_window(self) -> None:
         return data_table_exportation_window(self, self.cat_exp.data)
     
-    def launch_data_table_importation_window(self) -> None:    ### This could be pushed back to the app&entry 
+    def launch_data_table_importation_window(self, directory = "") -> None:    ### This could be pushed back to the app&entry 
                                                                 # as a separate entrance method (?)
-        directory = tk.filedialog.askopenfilename()
+        if directory == "":    ### directory changed to a optional argument to allow for inclusion in the testing suite
+            directory = tk.filedialog.askopenfilename()
         if directory == "":
             return
         directory  = directory.replace("\\" , "/")
@@ -536,6 +537,7 @@ class PrelimDistribPlotWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 self.withdraw()
             else:
                 self.destroy()
+            return figure
 
 
 class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
@@ -818,8 +820,9 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 filename = "FlowSOM_MST"
                 self.master.cat_exp._plot_stars_CNs(returned, filename = filename + ".png")
                 self.master.save_and_display(filename = filename,sizeX = 550, sizeY = 550)
-            warning_window("FlowSOM complete!")
+            w_window = warning_window("FlowSOM complete!")
             self.withdraw()
+            return w_window, returned
         else:
             warning_window("There are no channels of this marker_class!")
 
@@ -916,9 +919,10 @@ class UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                 cell_number = {cells}, 
                                                 marker_class = {features}, 
                                                 seed = {seed}""")
-        if kind == "UMAP":  #### UMAP takes a long time, so a pop up is reasonable (PCA is usually fast)
-            warning_window("UMAP run complete!")
         self.withdraw()
+        if kind == "UMAP":  #### UMAP takes a long time, so a pop up is reasonable (PCA is usually fast)
+            w_window = warning_window("UMAP run complete!")
+            return w_window
 
 class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1018,7 +1022,7 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                             subsetting_column = subsetting_column, 
                                                             kind = kind)
         elif (subsetting_column == "Do not Facet"):
-            self.plot_single(kind = kind, color_by = color_column, filename = filename)
+            figure = self.plot_single(kind = kind, color_by = color_column, filename = filename)
         elif (subsetting_column == "antigens"):
             all_but_none = list(self.master.cat_exp.data.var['marker_class'].unique())
             all_but_none = [i for i in all_but_none if i != "none"]
@@ -1036,6 +1040,7 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.withdraw()
         else:
             self.destroy()
+        return figure
 
     def plot_single(self, kind: str, color_by: str, filename: str) -> None:
         if kind == "UMAP":
@@ -1049,6 +1054,7 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.withdraw()
         else:
             self.destroy()
+        return figure
 
 class Plot_ExprsHeatMap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1103,6 +1109,7 @@ class Plot_ExprsHeatMap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.withdraw()
         else:
             self.destroy()
+        return figure
 
 class Plot_Counts_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1164,6 +1171,7 @@ class Plot_Counts_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow
             self.withdraw()
         else:
            self.destroy()
+        return figure
 
 class Plot_histograms_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1215,6 +1223,7 @@ class Plot_histograms_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
             self.withdraw()
         else:
             self.destroy()
+        return figure
 
 class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1297,6 +1306,7 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.withdraw()
         else:
             self.destroy()
+        return figure, df
 
 class ClusterVGroup(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1410,6 +1420,7 @@ class ClusterVGroup(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 self.withdraw()
             else:
                 self.destroy()
+            return figure
 
 class Plot_NRS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1453,6 +1464,7 @@ class Plot_NRS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.withdraw()
         else:
             self.destroy()
+        return figure
 
 class plot_cluster_abundances_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1540,6 +1552,7 @@ class plot_cluster_abundances_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
                 self.withdraw()
             else:
                 self.destroy()
+            return figure
         else:
             plot_type = by[by.rfind(" ") + 1:]
             if plot_type =="boxplot":
@@ -1565,6 +1578,7 @@ class plot_cluster_abundances_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
                 self.withdraw()
             else:
                 self.destroy()
+            return figure
 
 class plot_cluster_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1661,6 +1675,7 @@ class plot_cluster_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             self.withdraw()
         else:
             self.destroy()
+        return figure
 
 class plot_cluster_expression_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1726,6 +1741,7 @@ class plot_cluster_expression_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
             self.withdraw()
         else:
             self.destroy()
+        return figure
 
 class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1983,13 +1999,13 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.N_switch.bind("<Enter>", filter_N)  
 
     def launch_abundance_ANOVAs_window(self) -> None:
-        run_abundance_ANOVAs_window(self.master)
+        return run_abundance_ANOVAs_window(self.master)
 
     def launch_state_ANOVAs_window(self) -> None:
-        run_state_ANOVAs_window(self.master)
+        return run_state_ANOVAs_window(self.master)
 
     def launch_state_distribution(self):
-        state_distribution_window(self)
+        return state_distribution_window(self)
 
 class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
@@ -2107,7 +2123,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
                                     filename = {filename}.csv""")  
 
         dataframe = pd.read_csv(self.master.cat_exp.directory + f"/Data_tables/{filename}.csv")
-        TableLaunch(dataframe = dataframe.head(50), 
+        table_launched = TableLaunch(dataframe = dataframe.head(50), 
                     directory = filename, 
                     width = 1, 
                     height = 1, 
@@ -2115,6 +2131,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
                     experiment = None, 
                     favor_table = True, 
                     logger = Analysis_widget_logger)
+        return dataframe, table_launched
         
 class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
@@ -2178,14 +2195,6 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         available_columns = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns)] + ["whole dataset"]
         clustering = self.clustering_column.get()
         if clustering not in available_columns:
-            message = "You must select a clustering!"
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
-            self.focus()
-            return
-        elif clustering not in available_columns:
             message = f"Clustering =  {clustering}  is not available in the dataset! \nOf {str(CLUSTER_NAMES + ['whole dataset'])} \n These are currently available: {str(available_columns)}"
             if not _TESTING:
                 tk.messagebox.showwarning("Warning!", message = message)
@@ -2217,7 +2226,7 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                     anova_or_kruskal = {self.test.get()},
                                     filename = {filename}.csv""")
         dataframe = pd.read_csv(self.master.cat_exp.directory + f"/Data_tables/{filename}.csv")
-        TableLaunch(dataframe = dataframe.head(50), 
+        table_launched = TableLaunch(dataframe = dataframe.head(50), 
                     directory = filename, 
                     width = 1, 
                     height = 1, 
@@ -2225,6 +2234,7 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                     experiment = None, 
                     favor_table = True, 
                     logger = Analysis_widget_logger)
+        return dataframe, table_launched
 
 class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
@@ -2350,7 +2360,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                                     cell clustering = {obs_column},
                                     exported = {output_bool}""")
         
-        TableLaunch(dataframe = dataframe, 
+        table_launched = TableLaunch(dataframe = dataframe, 
                     directory = cluster, 
                     width = 1, 
                     height = 1, 
@@ -2358,6 +2368,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                     experiment = None, 
                     favor_table = True, 
                     logger = Analysis_widget_logger)
+        return df_out_dict, table_launched
 
 class Scaling_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -2657,8 +2668,9 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
             return
         if not overwrite_approval(self.master.cat_exp.data_table_dir + f"/{filename}.csv", file_or_folder = "file", GUI_object = self):
             return
-        self.master.cat_exp.export_DR(kind = kind, filename = filename)
+        df = self.master.cat_exp.export_DR(kind = kind, filename = filename)
         Analysis_widget_logger.info(f"DR table exported: kind = {kind}, filename = {filename}") 
+        return df
 
     def export_table(self) -> None:
         filename = self.file_name_entry.get().strip()
@@ -2690,7 +2702,7 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
         if not overwrite_approval(self.master.cat_exp.data_table_dir + f"/{filename}.csv", file_or_folder = "file", GUI_object = self):
             return
 
-        self.master.cat_exp.export_data(filename = filename, 
+        df = self.master.cat_exp.export_data(filename = filename, 
             subset_columns = columns_to_subset_on, 
             subset_types = column_values_list, 
             groupby_columns = grouping_list, 
@@ -2713,6 +2725,7 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
                     f"groupby_columns = {str(grouping_list)},  \n"
                     f"aggregation_statistic = {str(stat)} \n"
                     f"include_marker_class_row = {self.export_marker_class.get()}") 
+        return df
 
     class grouping_frame(ctk.CTkFrame):
         def __init__(self, master, data_table):
@@ -3327,11 +3340,12 @@ class classy_masker_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def classy_mask(self, clustering = "merging", identifier = "") -> None:
         '''  '''
-        self.master.cat_exp.export_clustering_classy_masks(clustering = clustering, identifier = identifier)
+        data = self.master.cat_exp.export_clustering_classy_masks(clustering = clustering, identifier = identifier)
         Analysis_widget_logger.info(f"""Ran classy Masker with:
                                             clustering = {str(clustering)},
                                             identifier = {str(identifier)}""")
         self.destroy()
+        return data
 
 
 class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
@@ -3385,7 +3399,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.pop_up.grid(column = 0, row = 5, padx = 3, pady = 3)
         self.after(200, lambda: self.focus())
 
-    def plot(self, clustering = "merging", identifier = "") -> None:
+    def plot(self) -> None:
         '''  '''
         marker_class = self.marker_class.get()
         subset_column = self.clustering.get()
@@ -3417,3 +3431,4 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
             self.withdraw()
         else:
             self.destroy()
+        return figure

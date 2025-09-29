@@ -353,6 +353,7 @@ def warning_window(warning_to_show: str, title: str = "Warning!") -> None:
     sub_label = ctk.CTkLabel(master = sub_window, text = warning_to_show)
     sub_label.grid(padx = 25, pady = 25)
     sub_window.after(200, lambda: sub_window.focus())
+    return sub_window
         
 ## The following class sets up & saves the directory structure of a steinbock-style experiment
 ## Originally written to setup the structure used by the steinbock package: 
@@ -1164,76 +1165,6 @@ class text_window(ctk.CTkToplevel):
         text_frame.insert(0.0, text_to_display)
         text_frame.configure(state = "disabled")
         self.after(200, lambda: self.focus())
- 
-
-class DirSetup_nonGUI:
-    '''
-    This class is a helper for organizing & creating the directories of both the image processing and the Analysis portions of PalmettoBUG.
-
-    Initialize with a directory, if initializing for an Analysis only, then be sure to pass:  kind = "Analysis". 
-
-    Its two main methods, self.makedirs() and self.make_analysis_dirs(analysis_name) create the directories in the style of the 
-    PalmettoBUG GUI where files will be read / exported from. 
-    '''
-    def __init__(self, 
-                directory: Union[Path, str], 
-                kind: Union[None, str] = None,
-                ) -> None:
-        '''
-        If kind = None, then pass in a directory for image processing / a whole project, if kind = "Analysis" then pass in the directory 
-        for an Analysis only
-        '''
-        directory = str(directory)
-        self.main = directory
-        if kind == "Analysis":
-            self.analysis_dir = self.main
-            self.kind = "Analysis"
-            self.Analyses_dir = directory[:directory.rfind("/")]
-        else:
-            self.kind = None
-            self.raw_dir = directory + '/raw'
-            self.img_dir = directory + '/images'
-            self.masks_dir = directory + '/masks'
-            self.classy_masks_dir = directory + '/classy_masks'
-            self.px_classifiers_dir = directory + '/Pixel_classification'
-            self.Analyses_dir = directory + '/Analyses'
-
-    def makedirs(self) -> None:
-        '''Create the directories for an image / entire project (the self.Analyses_dir is meant to contain Analysis subdirectories)'''
-        if not os.path.exists(self.raw_dir):
-            os.mkdir(self.raw_dir)
-        if not os.path.exists(self.img_dir):
-            os.mkdir(self.img_dir)
-        if not os.path.exists(self.masks_dir):
-            os.mkdir(self.masks_dir)
-        if not os.path.exists(self.classy_masks_dir):
-            os.mkdir(self.classy_masks_dir)
-        if not os.path.exists(self.Analyses_dir):
-            os.mkdir(self.Analyses_dir) 
-
-    def make_analysis_dirs(self, analysis_name: str) -> None:
-        '''Make the directories for an Analysis -- can be called alone, or inside the /Analyses folder of an imaging-based project'''
-        if self.kind is None:
-            self.analysis_dir = self.Analyses_dir + f"/{analysis_name}"
-
-        self.regionprops_dir = self.analysis_dir + '/regionprops'
-        self.intensities_dir = self.analysis_dir + '/intensities'
-        self.Analysis_internal_dir = self.analysis_dir + '/main'
-        self.fcs_dir = self.Analysis_internal_dir + '/Analysis_fcs'
-        self.saved_clusterings = self.Analysis_internal_dir + '/clusterings'
-
-        if not os.path.exists(self.analysis_dir):
-            os.mkdir(self.analysis_dir)
-        if not os.path.exists(self.regionprops_dir):
-            os.mkdir(self.regionprops_dir)
-        if not os.path.exists(self.intensities_dir):
-            os.mkdir(self.intensities_dir)
-        if not os.path.exists(self.Analysis_internal_dir):
-            os.mkdir(self.Analysis_internal_dir)
-        if not os.path.exists(self.fcs_dir):
-            os.mkdir(self.fcs_dir)
-        if not os.path.exists(self.saved_clusterings):
-            os.mkdir(self.saved_clusterings)
 
 class TableLaunch_nonGUI(ctk.CTk):
     '''
@@ -1304,9 +1235,10 @@ class TableLaunch_nonGUI(ctk.CTk):
 
     def accept_and_return(self) -> None:
         for i in self.table_list:
-            i.recover_input()
-            i.table_dataframe.to_csv(i.export_dir, index = False)
+            table = i.recover_input()
+            table.to_csv(i.export_dir, index = False)
         self.destroy()
+        return table
 
 
 ## This is a core class for representing, interacting, and editing .csv / panel / metadata files, for the nonGUI / scripting API
@@ -1601,3 +1533,4 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
                 retrieval_list.append(out)
             new_table_dataframe[ii] = retrieval_list
         self.table_dataframe = new_table_dataframe
+        return new_table_dataframe
