@@ -63,7 +63,7 @@ def test_launchExampleDataWindow():     ## now also handles the loading of the e
     # number = app.entrypoint.img_entry_func(proj_directory) 
 
 def test_bead_norm_window():   ## can only test GUI elements, and with fake 'data', since nothing in sample data to use
-    window = palmettobug.Entrypoint.app_and_entry.Channel_normalization_window(master = app, channels = ['fake1','fake2','fake3','fake4'], directory = "Not/really/here")
+    window = palmettobug.Entrypoint.app_and_entry.Channel_normalization_window(master = app, channels = np.array(['fake1','fake2','fake3','fake4']), directory = "Not/really/here")
     assert isinstance(window, ctk.CTkToplevel)
     window.retrieve_channels()
     window.destroy()
@@ -121,6 +121,7 @@ def test_call_to_Analysis():
     analysis_loader.analysis_choice.configure(variable = ctk.StringVar(value = 'test_analysis'))
     analysis_loader.run()
     app.Tabs.tables.accept_button.invoke()
+    app.Tabs.tables.tablewidget.toggle_delete_column("disabled")
     metadata = app.Tabs.py_exploratory.analysiswidg.cat_exp.metadata
     panel = app.Tabs.py_exploratory.analysiswidg.cat_exp.panel
     interal_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analysis_internal_dir
@@ -133,8 +134,13 @@ def test_call_to_Analysis():
 
 def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows (as is, does not close itself and blocks future instnaces as a singleton)
     window = loader_window.load_CyTOF()
+    assert isinstance(window, ctk.CTkToplevel)
     window.table_launcher.destroy()
     loader_window.destroy()
+
+def test_setup_for_FCS():
+    palmettobug.setup_for_FCS(homedir + "/Example_CyTOF")
+    assert True
     
 ##>>## GUI Pixel classification tests (px class creation)
 def test_toggle1a():
@@ -192,11 +198,12 @@ def test_training():
     assert True 
 
 def test_prediction():
-    app.Tabs.px_classification.create.px_widg.predictions_frame.update_one()
+    app.Tabs.px_classification.create.px_widg.predictions_frame.update_one("img")
     app.Tabs.px_classification.create.px_widg.predictions_frame.folder.configure(variable = ctk.StringVar(value = 'img'))
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     app.Tabs.px_classification.create.px_widg.predictions_frame.all.select()
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
+    app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
     assert True 
 
 def test_detail_display():
@@ -211,9 +218,29 @@ def test_bio_label_launch():
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
+def test_load_project_classifier():
+    loading_window.load("Unsupervised_unsupervised1")
+    ### additionally check unsupervised details display
+    window = app.Tabs.px_classification.create.px_widg.detail_display()
+    assert isinstance(window, ctk.CTkToplevel)
+    window.destroy()
+    loading_window.load("lumen_epithelia_laminapropria")
+    assert True 
+
 def test_save_classifier():
     app.Tabs.px_classification.create.px_widg.save_classifier()
     assert True 
+
+def test_load_assets_classifier():
+    load_from_assets = loading_window.launch_load_window()
+    assert isinstance(load_from_assets, ctk.CTkToplevel)
+    load_from_assets.choice("lumen_epithelia_laminapropria")
+    check_channels_window = load_from_assets.load_classifier(name = "", classifier_load_name = "lumen_epithelia_laminapropria")
+    assert isinstance(check_channels_window, ctk.CTkToplevel)
+    reference_window = check_channels_window.launch_reference()
+    assert isinstance(reference_window, ctk.CTkToplevel)
+    reference_window.destroy()
+    check_channels_window.channel_corrector.save_changes()
 
 def test_segmentation():
     app.Tabs.px_classification.create.px_widg.segment_frame.input_folder.configure(variable = ctk.StringVar(value = "classification_maps"))
@@ -555,7 +582,7 @@ def test_run_state_ANOVAs_window():
     assert isinstance(table_launch, ctk.CTkToplevel)
     assert isinstance(df, pd.DataFrame), "state expression statistics did not return a pandas DataFrame"
     assert len(df) == (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
-    table_launch.destroy()
+    table_launch.accept_and_return()
     window.destroy()
 
 def test_plot_state_p_value_heatmap():
@@ -752,7 +779,7 @@ def test_reload():    ### do after spatial, to repserve merging, etc.
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
 
-def non_GUI_TableLaunch():
+def test_non_GUI_TableLaunch():
     path_to_df = proj_directory + "/panel.csv"
     panel_df = pd.read_csv(path_to_df)
     t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'panel')

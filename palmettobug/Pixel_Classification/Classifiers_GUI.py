@@ -274,10 +274,10 @@ class Pixel_class_widgets(ctk.CTkFrame):
             return False
         self.unsupervised.predict_folder(image_folder_name, self.unsupervised.classifier_dictionary)
 
-        self.plot_pixel_heatmap(image_folder_name, from_button = False)
+        self.plot_pixel_heatmap(image_folder_name)
         pixel_logger.info(f"Predicted classification map for following image folder: {image_folder_name}")
 
-    def plot_pixel_heatmap(self, image_folder = None, from_button = True):
+    def plot_pixel_heatmap(self, image_folder = None):
         ''''''
         if self.name is None:
             message = "No Classifier Available to Plot Heatmap from!"
@@ -287,10 +287,6 @@ class Pixel_class_widgets(ctk.CTkFrame):
                 print(message)
             return
         filepath = self.classifier_dir + "/" + self.name + "/cluster_heatmap.png"
-        if from_button:
-            if not overwrite_approval(filepath, file_or_folder = "file"):
-                return
-        
         panel = pd.read_csv(self.main_directory + "/panel.csv")
         open_json = open(self.classifier_dir + f"/{self.name}/{self.name}_details.json", 'r' , encoding="utf-8")
         loaded_json = open_json.read()
@@ -981,8 +977,9 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.after(200, self.destroy())
 
     def launch_load_window(self, master) -> None:
-        load_from_assets_window(master)
+        window = load_from_assets_window(master)
         self.after(200, self.withdraw())
+        return window
 
     class new_classifier_frame(ctk.CTkFrame):
         def __init__(self, master, higher):
@@ -1329,7 +1326,7 @@ class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.name.set(choice)
 
     def load_classifier(self, name: str, classifier_load_name: str) -> None:
-        ## classifier load name is only  needed when loading from assets (specifically when the project name != the assets name for the classifier)
+        ''''''
         if not overwrite_approval(self.master.classifier_dir + "/" + name, file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
             return
         self.master.name = name
@@ -1354,8 +1351,9 @@ class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master.number_of_classes = len(loaded_json["classes_dict"])
 
         pixel_logger.info(f"Supervised Classifier {name} loaded from assets and copied into this project")
-        check_channels_window(self.master, loaded_json)
+        window = check_channels_window(self.master, loaded_json)
         self.after(200, self.withdraw())
+        return window
 
 
 class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
@@ -1655,7 +1653,7 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return dictionary_out
         
         def launch_reference(self) -> None:
-            self.reference_window(self)
+            return self.reference_window(self)
         
         class reference_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 

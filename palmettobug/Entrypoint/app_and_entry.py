@@ -537,7 +537,7 @@ class GPL_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.button_alt_license_text.configure(state = 'disabled')
 
 class Channel_normalization_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
-    def __init__(self, master, channels: list[str], directory: str):
+    def __init__(self, master, channels: np.array[str], directory: str):
         super().__init__(master)
         self.master = master
         self.directory = directory
