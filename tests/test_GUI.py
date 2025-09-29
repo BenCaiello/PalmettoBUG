@@ -60,9 +60,10 @@ def test_launchExampleDataWindow():     ## now also handles the loading of the e
     assert isinstance(loader_window, ctk.CTkToplevel)
     loader_window.entry.configure(textvariable = ctk.StringVar(value = fetch_dir))
     loader_window.load_IMC()
+    # number = app.entrypoint.img_entry_func(proj_directory) 
 
 def test_bead_norm_window():   ## can only test GUI elements, and with fake 'data', since nothing in sample data to use
-    window = palmettobug.Entrypoint.app_and_entry.Channel_normalization_window(channels = ['fake1','fake2','fake3','fake4'], directory = "Not/really/here")
+    window = palmettobug.Entrypoint.app_and_entry.Channel_normalization_window(master = app, channels = ['fake1','fake2','fake3','fake4'], directory = "Not/really/here")
     assert isinstance(window, ctk.CTkToplevel)
     window.retrieve_channels()
     window.destroy()
