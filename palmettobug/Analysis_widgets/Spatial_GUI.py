@@ -31,11 +31,6 @@ homedir = homedir[:(homedir.rfind("/"))]
 homedir = homedir[:(homedir.rfind("/"))]  
 
 __all__ = []
-_TESTING = False
-def toggle_TESTING():
-    global _TESTING
-    _TESTING = not _TESTING
-    return _TESTING
 
 CLUSTER_NAMES = ["metaclustering", "merging", "classification", "leiden", "CN"] 
 MARKER_CLASSES = ["type","state","none"]                                                        
@@ -382,10 +377,7 @@ class Spatial_py(ctk.CTkFrame):
                 warnings.filterwarnings("ignore", message = "invalid value encountered in divide") 
                 if celltype_key == "":
                     message = 'You must select a clustering!'
-                    if not _TESTING:
-                        tk.messagebox.showwarning("Warning!", message = message)
-                    else:
-                        print(message)
+                    tk.messagebox.showwarning("Warning!", message = message)
                     self.focus()
                     return
                 try:
@@ -397,17 +389,11 @@ class Spatial_py(ctk.CTkFrame):
                     threshold = int(self.threshold.get())
                 except ValueError:
                     message = "Radius Parameters, nPerm, and seed must be integers / numerical, but at least one was not!"
-                    if not _TESTING:
-                        tk.messagebox.showwarning("Warning!", message = message)
-                    else:
-                        print(message)
+                    tk.messagebox.showwarning("Warning!", message = message)
                     return
                 if (min_rad > max_radii) or ((max_radii - min_rad) % step != 0):
                     message = "Radius Parameter error: minimum radius must be < maximum, and the interval (max - min) must be evenly divible by the radius step!"
-                    if not _TESTING:
-                        tk.messagebox.showwarning("Warning!", message = message)
-                    else:
-                        print(message)
+                    tk.messagebox.showwarning("Warning!", message = message)
                     return
                 
                 if condition_comparison == "All (multicomparison)":
@@ -688,10 +674,7 @@ class plot_cell_maps_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.directory = self.master.master_exp.directory
         if self.directory is None:
             message = 'Load an experiment before trying to create cell maps!'
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return 
         
         self.label_1 = ctk.CTkLabel(self, text = "Cells as Masks or as Points:")
@@ -744,18 +727,12 @@ class plot_cell_maps_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         '''
         if clustering == "":
             message = 'You must select a clustering to color the cell maps!'
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             self.focus()
             return
         if multi_or_single == "":
             message = "You must specify an image if you are not going to do all at once!"
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             self.focus()
             return
         
@@ -963,10 +940,7 @@ class NeigborhoodEnrichmentWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         clustering = self.clustering.get()
         if clustering == "":
             message = "You must select a clustering!"
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             self.focus()
             return
         facet = self.facet.get()
@@ -977,10 +951,7 @@ class NeigborhoodEnrichmentWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             n_perms = int(n_perms)
         except Exception:
             message = 'Random seed and number of permutations must be integers! Cancelling plot'
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return 
         self.master.spatial.exp.data.obs[clustering] = self.master.spatial.exp.data.obs[clustering].astype('category')
         filename = self.filename.get()
@@ -1055,10 +1026,7 @@ class CentralityWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         clustering = self.clustering.get()
         if clustering == "":
             message = "You must select a clustering!"
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             self.focus()
             return
         self.master.spatial.exp.data.obs[clustering] = self.master.spatial.exp.data.obs[clustering].astype('category')
@@ -1135,10 +1103,7 @@ class InteractionMatrixWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         clustering = self.clustering.get()
         if clustering == "":
             message = "You must select a clustering!"
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             self.focus()
             return
         facet = self.facet.get()
@@ -1610,10 +1575,7 @@ class CNwindowSaveLoad(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def reload(self, load_into_experiment = True):
         if self.path.get() == "":
             message = "Please select a CN save to reload!"
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             self.focus()
             return
         path = self.master.master.master_exp.clusterings_dir + "/" + self.path.get()
@@ -1721,10 +1683,7 @@ class CellularNeighborhoodWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow
             celltype = self.celltype.get()
             if celltype == "":
                 message = "You must select a clustering!"
-                if not _TESTING:
-                    tk.messagebox.showwarning("Warning!", message = message)
-                else:
-                    print(message)
+                tk.messagebox.showwarning("Warning!", message = message)
                 self.focus()
                 return
             seed = int(self.seed.get())
@@ -1866,10 +1825,7 @@ class dist_transform_frame(ctk.CTkFrame):
     def launch_heatmap_window(self):
         if np.array(self.edt_object.exp.data.var['marker_class'] == "spatial_edt").sum() == 1:
             message = 'There must at least be 2 EDTs loaded as marker_class == "spatial_edt" for a heatmap to be plotted!'
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return
         return edt_heatmap_window(self)
 
@@ -2185,10 +2141,7 @@ class dist_transform_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         pixel_class_folder = str(self.pixel_class_entry.get())
         if pixel_class_folder == "":
             message = 'Please select a pixel classifier folder!'
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             self.focus()
             return
         mask_folder = str(self.master.master_exp.input_mask_folder)
@@ -2276,10 +2229,7 @@ class edt_reload_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         if self.choice.get() == "":
             message = 'Please select an EDT to load!'
-            if not _TESTING:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             self.focus()
             return
         self.path = f"{self.folder}/{self.choice.get()}"

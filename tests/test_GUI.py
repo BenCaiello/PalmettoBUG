@@ -8,7 +8,7 @@ import matplotlib
 import customtkinter as ctk
 
 import palmettobug
-from palmettobug.Entrypoint.app_and_entry import App, fetch_IMC_example, fetch_CyTOF_example
+from palmettobug.Entrypoint.app_and_entry import App
 
 homedir = __file__.replace("\\","/")
 homedir = homedir[:(homedir.rfind("/"))]
@@ -25,12 +25,6 @@ def test_print_licenses():
     palmettobug.print_license()
     palmettobug.print_3rd_party_license_info()
     assert True
-
-def test_fetch_IMC():
-    fetch_IMC_example(fetch_dir)
-
-def test_fetch_CyTOF():
-    fetch_CyTOF_example(fetch_dir)
 
 ##########################################################################################################################################################
 # Right now, only trying to test majority of GUI elements and not the backend analysis functions. In the future, could consider superseding the existing #
@@ -53,20 +47,26 @@ def test_GPL_window():
 def test_call_configGUI():
     window = app.entrypoint.call_configGUI()
     window.toggle_light_dark()
+    window.toggle_light_dark()
     window.slider_moved(1.0)
     window = window.change_theme('blue')
     window = window.change_theme('green') ### reset so local tests change less for git versioning (assets theme file)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
-def test_launchExampleDataWindow():
-    window = app.entrypoint.launchExampleDataWindow()
-    assert isinstance(window, ctk.CTkToplevel)
-    window.destroy()
+def test_launchExampleDataWindow():     ## now also handles the loading of the example data
+    global loader_window
+    loader_window = app.entrypoint.launchExampleDataWindow()
+    assert isinstance(loader_window, ctk.CTkToplevel)
+    loader_window.entry.configure(textvariable = ctk.StringVar(value = fetch_dir))
+    loader_window.load_IMC()
+    # number = app.entrypoint.img_entry_func(proj_directory) 
 
-def test_img_entry_func():
-    number = app.entrypoint.img_entry_func(proj_directory)  ## successfully proceeding through function in tests
-    assert True 
+def test_bead_norm_window():   ## can only test GUI elements, and with fake 'data', since nothing in sample data to use
+    window = palmettobug.Entrypoint.app_and_entry.Channel_normalization_window(master = app, channels = np.array(['fake1','fake2','fake3','fake4']), directory = "Not/really/here")
+    assert isinstance(window, ctk.CTkToplevel)
+    window.retrieve_channels()
+    window.destroy()
 
 
 ##>>## GUI Image Analysis tests
@@ -97,7 +97,6 @@ def test_call_intersection_difference():
     intersect.masks_folder1.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     intersect.masks_folder2.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     intersect.read_values()
-    print(os.listdir(proj_directory + "/masks"))
     assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks")) == 10), "Mask intersection function failed!"
     intersect.destroy()
 
@@ -120,6 +119,7 @@ def test_call_to_Analysis():
     analysis_loader = app.entrypoint.image_proc_widg.call_to_Analysis()
     analysis_loader.analysis_choice.configure(variable = ctk.StringVar(value = 'test_analysis'))
     analysis_loader.run()
+    app.Tabs.tables.tablewidget.toggle_delete_column("disabled")
     app.Tabs.tables.accept_button.invoke()
     metadata = app.Tabs.py_exploratory.analysiswidg.cat_exp.metadata
     panel = app.Tabs.py_exploratory.analysiswidg.cat_exp.panel
@@ -132,20 +132,18 @@ def test_call_to_Analysis():
     assert("condition" in list(pd.read_csv(interal_dir + "/metadata.csv").columns)), "Automatically generated metadata.csv file must have a 'condition' column!"
 
 def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows (as is, does not close itself and blocks future instnaces as a singleton)
-    window = app.entrypoint.FCS_choice(fetch_dir + "/Example_CyTOF")
+    window = loader_window.load_CyTOF()
+    assert isinstance(window, ctk.CTkToplevel)
     window.table_launcher.destroy()
+    loader_window.destroy()
 
+def test_setup_for_FCS():
+    palmettobug.setup_for_FCS(fetch_dir + "/Example_CyTOF")
+    assert True
+    
 ##>>## GUI Pixel classification tests (px class creation)
-def test_toggle1a():
-    palmettobug.Pixel_Classification.Classifiers_GUI.toggle_TESTING()
-    assert (palmettobug.Pixel_Classification.Classifiers_GUI._TESTING is True)
-
-def test_launch_loading_window():
-    global loading_window
-    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()   ## need access to loading window functions
-    assert True 
-
 def test_unsupervised():
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
     window = loading_window.unsupervised("unsupervised1", app.Tabs.px_classification.create.px_widg)
     window.training_number.configure(textvariable = ctk.StringVar(value = "25000"))
     window.image_choice.configure(variable = ctk.StringVar(value = 'img'))
@@ -161,9 +159,11 @@ def test_unsupervised():
     app.Tabs.px_classification.create.px_widg.predictions_frame.folder.configure(variable = ctk.StringVar(value = 'img'))
     app.Tabs.px_classification.create.px_widg.predictions_frame.one_img.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.px_classification.create.px_widg.image_directory + "/img")[0]))
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
+    # app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
     assert True 
 
 def test_accept_classifier_name():   ## supervised window
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
     window = loading_window.accept_classifier_name("lumen_epithelia_laminapropria", app.Tabs.px_classification.create.px_widg)
     advanced_window = window.advanced_options()
     advanced_window.retrieve_and_accept()
@@ -191,8 +191,10 @@ def test_training():
     assert True 
 
 def test_prediction():
-    app.Tabs.px_classification.create.px_widg.predictions_frame.all.select()
+    app.Tabs.px_classification.create.px_widg.predictions_frame.update_one("img")
     app.Tabs.px_classification.create.px_widg.predictions_frame.folder.configure(variable = ctk.StringVar(value = 'img'))
+    #app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
+    app.Tabs.px_classification.create.px_widg.predictions_frame.all.select()
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     assert True 
 
@@ -207,10 +209,35 @@ def test_bio_label_launch():
     window.plot_heatmap()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
+    
+def test_load_project_classifier():
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
+    loading_window.load("Unsupervised_unsupervised1")
+    ### additionally check unsupervised details display
+    window = app.Tabs.px_classification.create.px_widg.detail_display()
+    assert isinstance(window, ctk.CTkToplevel)
+    window.destroy()
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
+    loading_window.load("lumen_epithelia_laminapropria")
+    assert True 
 
 def test_save_classifier():
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
     app.Tabs.px_classification.create.px_widg.save_classifier()
+    loading_window.destroy()
     assert True 
+
+def test_load_assets_classifier():
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
+    load_from_assets = loading_window.launch_load_window(app.Tabs.px_classification.create.px_widg)
+    assert isinstance(load_from_assets, ctk.CTkToplevel)
+    load_from_assets.choice("lumen_epithelia_laminapropria")
+    check_channels_window = load_from_assets.load_classifier(name = "lumen_epithelia_laminapropria", classifier_load_name = "lumen_epithelia_laminapropria")
+    assert isinstance(check_channels_window, ctk.CTkToplevel)
+    reference_window = check_channels_window.channel_corrector.launch_reference()
+    assert isinstance(reference_window, ctk.CTkToplevel)
+    reference_window.destroy()
+    check_channels_window.channel_corrector.save_changes()
 
 def test_segmentation():
     app.Tabs.px_classification.create.px_widg.segment_frame.input_folder.configure(variable = ctk.StringVar(value = "classification_maps"))
@@ -219,10 +246,6 @@ def test_segmentation():
 
 
 ##>>## GUI Pixel classification tests (px class use)
-def test_toggle1b():
-    palmettobug.Pixel_Classification.use_classifiers_GUI.toggle_TESTING()
-    assert (palmettobug.Pixel_Classification.use_classifiers_GUI._TESTING is True)
-
 def test_load_classifier():
     global px_use_widgets
     px_use_widgets = app.Tabs.px_classification.use_class.px_widg
@@ -231,15 +254,15 @@ def test_load_classifier():
 
 def test_launch_classes_as_png():
     window = px_use_widgets.load_and_display.launch_classes_as_png()
-    window.option1.configure(variable = ctk.StringVar(value = "pixel classification"))
     if_pixel_classifier = ["classification_maps", "merged_classification_maps"]
     options = [i for i in if_pixel_classifier if i in os.listdir(window.master.master.active_classifier_dir)]
-    window.option2.configure(variable = ctk.StringVar(value = options[0]))
+    window.convert_to_png("pixel classification", options[0])
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
 def test_launch_bio_labels():
     window = px_use_widgets.load_and_display.launch_bio_labels()
+    window.accept_labels()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -304,10 +327,6 @@ def test_wca_3():
 
 
 ##>>## GUI Analysis tests
-def test_toggle2():
-    palmettobug.Analysis_widgets.Analysis_GUI.toggle_TESTING() ## prevents warning pop ups at many steps -- these block the testing suite and prevent errors from being properly debugged
-    assert (palmettobug.Analysis_widgets.Analysis_GUI._TESTING is True)
-
 def test_launch_drop_restore():           ## filtering
     window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()  ##>>##
     assert isinstance(window, ctk.CTkToplevel)
@@ -338,9 +357,9 @@ def test_do_regions():
     my_analysis.do_regions(region_folder = proj_directory + "/masks/expanded_deepcell_masks")
     assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
 
-#def test_spatial_leiden():
-#    my_analysis._do_spatial_leiden()
-#    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
+def test_spatial_leiden():
+    my_analysis._do_spatial_leiden()
+    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
 
 def test_launch_combat_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_combat_window()
@@ -552,7 +571,7 @@ def test_run_state_ANOVAs_window():
     assert isinstance(table_launch, ctk.CTkToplevel)
     assert isinstance(df, pd.DataFrame), "state expression statistics did not return a pandas DataFrame"
     assert len(df) == (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
-    table_launch.destroy()
+    table_launch.accept_and_return(None)
     window.destroy()
 
 def test_plot_state_p_value_heatmap():
@@ -597,10 +616,6 @@ def test_launch_regionprop():
 
 
 ##>>## GUI Spatial tests
-def test_toggle3():
-    palmettobug.Analysis_widgets.Spatial_GUI.toggle_TESTING()
-    assert (palmettobug.Analysis_widgets.Spatial_GUI._TESTING is True)
-
 def test_plot_cell_maps_window():
     window = app.Tabs.Spatial.widgets.plot_cell_maps_window()
     list_of_file_names = [(i[:i.rfind(".ome.fcs")]) for i in sorted(list(window.master.master_exp.data.obs['file_name'].unique()))]
@@ -749,13 +764,13 @@ def test_reload():    ### do after spatial, to repserve merging, etc.
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
 
-def non_GUI_TableLaunch():
+def test_non_GUI_TableLaunch():
     path_to_df = proj_directory + "/panel.csv"
     panel_df = pd.read_csv(path_to_df)
     t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'panel')
-    assert isinstance(t_launch, ctk.CTkToplevel)
+    assert isinstance(t_launch, ctk.CTk)
     t_launch.tablewidget.add_row(3)
-    t_launch.tablewidget.toggle_delete_column()
+    t_launch.tablewidget.toggle_delete_column("disabled")
     table = t_launch.tablewidget.recover_input()
     assert isinstance(table, pd.DataFrame)
 

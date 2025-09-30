@@ -1188,10 +1188,8 @@ class Analysis:
 
         Uncertain how useful this is, but it is available      
         '''
-        data = self.data.copy()
-        slicer = ((self.data.var['antigen'] == 'centroid-0').astype('int') + (self.data.var['antigen'] == 'centroid-1').astype('int')).astype('bool')
-        new_data = data.T[slicer].copy()
-        new_data = new_data.T
+        new_data = self.data.copy()
+        new_data = ann.AnnData(X = new_data.obsm['spatial'], var = ['centroid-0', 'centroid-1'], obs = new_data.obs)
         ## for now, copy the defaults of the major paramteres of scanpy's neighbors function below --> 
         # so that I can easily use a paramter if I decide to add as an option for the user
         all_leiden = []
@@ -1212,7 +1210,7 @@ class Analysis:
                          random_state = random_state,
                          flavor = "leidenalg", 
                         n_iterations = 2)
-            this_sample_leiden = list((str(i) + "_") + this_sample.obs['spatial_leiden'].astype('str'))
+            this_sample_leiden = list((str(i) + "_") + this_sample.obs['leiden'].astype('str'))
             all_leiden = all_leiden + this_sample_leiden
         self.data.obs['spatial_leiden'] = all_leiden
         if self.UMAP_embedding is not None:

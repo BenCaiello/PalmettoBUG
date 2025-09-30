@@ -537,11 +537,11 @@ class GPL_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.button_alt_license_text.configure(state = 'disabled')
 
 class Channel_normalization_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
-    def __init__(self, master, channels: list[str], directory: str):
+    def __init__(self, master, channels, directory: str):
         super().__init__(master)
         self.master = master
         self.directory = directory
-        self.channels = channels
+        self.channels = channels   ## numpy array of strings
 
         self.scrollable_frame = ctk.CTkScrollableFrame(master = self, width = 350, height = 500)
         self.scrollable_frame.grid()
@@ -669,8 +669,9 @@ class LoadExampleDataWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                                                                              "as well as the associated panel and metdata files?"):
             return
         fetch_CyTOF_example(choice)
-        self.master.FCS_choice(choice + "/Example_CyTOF")
+        table_launcher = self.master.FCS_choice(choice + "/Example_CyTOF")
         self.withdraw()
+        return table_launcher
 
     def load_IMC(self):
         choice = self.entry.get()
