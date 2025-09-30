@@ -236,7 +236,7 @@ def test_load_assets_classifier():
     load_from_assets = loading_window.launch_load_window(app.Tabs.px_classification.create.px_widg)
     assert isinstance(load_from_assets, ctk.CTkToplevel)
     load_from_assets.choice("lumen_epithelia_laminapropria")
-    check_channels_window = load_from_assets.load_classifier(name = "", classifier_load_name = "lumen_epithelia_laminapropria")
+    check_channels_window = load_from_assets.load_classifier(name = "lumen_epithelia_laminapropria2", classifier_load_name = "lumen_epithelia_laminapropria")
     assert isinstance(check_channels_window, ctk.CTkToplevel)
     reference_window = check_channels_window.channel_corrector.launch_reference()
     assert isinstance(reference_window, ctk.CTkToplevel)
