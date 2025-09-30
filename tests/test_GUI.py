@@ -167,6 +167,7 @@ def test_unsupervised():
     app.Tabs.px_classification.create.px_widg.predictions_frame.folder.configure(variable = ctk.StringVar(value = 'img'))
     app.Tabs.px_classification.create.px_widg.predictions_frame.one_img.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.px_classification.create.px_widg.image_directory + "/img")[0]))
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
+    app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
     assert True 
 
 def test_accept_classifier_name():   ## supervised window
@@ -202,7 +203,6 @@ def test_prediction():
     #app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     app.Tabs.px_classification.create.px_widg.predictions_frame.all.select()
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
-    app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
     assert True 
 
 def test_detail_display():
