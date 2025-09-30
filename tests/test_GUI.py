@@ -228,6 +228,7 @@ def test_load_project_classifier():
 def test_save_classifier():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
     app.Tabs.px_classification.create.px_widg.save_classifier()
+    loading_window.destroy()
     assert True 
 
 def test_load_assets_classifier():

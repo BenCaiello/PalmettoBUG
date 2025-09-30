@@ -1210,7 +1210,7 @@ class Analysis:
                          random_state = random_state,
                          flavor = "leidenalg", 
                         n_iterations = 2)
-            this_sample_leiden = list((str(i) + "_") + this_sample.obs['spatial_leiden'].astype('str'))
+            this_sample_leiden = list((str(i) + "_") + this_sample.obs['leiden'].astype('str'))
             all_leiden = all_leiden + this_sample_leiden
         self.data.obs['spatial_leiden'] = all_leiden
         if self.UMAP_embedding is not None:
