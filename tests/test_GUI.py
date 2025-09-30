@@ -144,7 +144,7 @@ def test_setup_for_FCS():
 ##>>## GUI Pixel classification tests (px class creation)
 def test_toggle1a():
     palmettobug.Pixel_Classification.Classifiers_GUI.toggle_TESTING()
-    assert (palmettobug.Pixel_Classification.Classifiers_GUI._TESTING is True)
+    assert (palmettobug.Pixel_Classification.Classifiers_GUI._testing is True)
 
 def test_unsupervised():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
@@ -236,7 +236,7 @@ def test_load_assets_classifier():
     load_from_assets = loading_window.launch_load_window(app.Tabs.px_classification.create.px_widg)
     assert isinstance(load_from_assets, ctk.CTkToplevel)
     load_from_assets.choice("lumen_epithelia_laminapropria")
-    check_channels_window = load_from_assets.load_classifier(name = "lumen_epithelia_laminapropria2", classifier_load_name = "lumen_epithelia_laminapropria")
+    check_channels_window = load_from_assets.load_classifier(name = "lumen_epithelia_laminapropria", classifier_load_name = "lumen_epithelia_laminapropria")
     assert isinstance(check_channels_window, ctk.CTkToplevel)
     reference_window = check_channels_window.channel_corrector.launch_reference()
     assert isinstance(reference_window, ctk.CTkToplevel)
@@ -251,8 +251,8 @@ def test_segmentation():
 
 ##>>## GUI Pixel classification tests (px class use)
 def test_toggle1b():
-    palmettobug.Pixel_Classification.use_classifiers_GUI.toggle_TESTING()
-    assert (palmettobug.Pixel_Classification.use_classifiers_GUI._TESTING is True)
+    palmettobug.Pixel_Classification.use_classifiers_GUI.toggle_testing()
+    assert (palmettobug.Pixel_Classification.use_classifiers_GUI._testing is True)
 
 def test_load_classifier():
     global px_use_widgets
@@ -336,8 +336,8 @@ def test_wca_3():
 
 ##>>## GUI Analysis tests
 def test_toggle2():
-    palmettobug.Analysis_widgets.Analysis_GUI.toggle_TESTING() ## prevents warning pop ups at many steps -- these block the testing suite and prevent errors from being properly debugged
-    assert (palmettobug.Analysis_widgets.Analysis_GUI._TESTING is True)
+    palmettobug.Analysis_widgets.Analysis_GUI.toggle_testing() ## prevents warning pop ups at many steps -- these block the testing suite and prevent errors from being properly debugged
+    assert (palmettobug.Analysis_widgets.Analysis_GUI._testing is True)
 
 def test_launch_drop_restore():           ## filtering
     window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()  ##>>##
@@ -629,8 +629,8 @@ def test_launch_regionprop():
 
 ##>>## GUI Spatial tests
 def test_toggle3():
-    palmettobug.Analysis_widgets.Spatial_GUI.toggle_TESTING()
-    assert (palmettobug.Analysis_widgets.Spatial_GUI._TESTING is True)
+    palmettobug.Analysis_widgets.Spatial_GUI.toggle_testing()
+    assert (palmettobug.Analysis_widgets.Spatial_GUI._testing is True)
 
 def test_plot_cell_maps_window():
     window = app.Tabs.Spatial.widgets.plot_cell_maps_window()

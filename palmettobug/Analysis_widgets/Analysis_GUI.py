@@ -35,11 +35,11 @@ from ..Analysis_functions.Analysis import Analysis
 from ..Utils.sharedClasses import DirectoryDisplay, CtkSingletonWindow, Analysis_logger, TableLaunch, filename_checker, overwrite_approval, warning_window
 
 __all__ = []
-_TESTING = False
-def toggle_TESTING():
-    global _TESTING
-    _TESTING = not _TESTING
-    return _TESTING
+_testing = False
+def toggle_testing():
+    global _testing
+    _testing = not _testing
+    return _testing
 
 homedir = __file__.replace("\\","/")
 homedir = homedir[:(homedir.rfind("/"))]
@@ -205,7 +205,7 @@ class Analysis_py_widgets(ctk.CTkFrame):
     def launch_cluster_merging(self) -> None:
         if ("metaclustering" not in self.cat_exp.data.obs.columns) and ("leiden" not in self.cat_exp.data.obs.columns):
             message = "No metaclustering / leiden available for merging! Load or run a clustering first!" 
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -499,7 +499,7 @@ class PrelimDistribPlotWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         available_columns = [i for i in (CLUSTER_NAMES + COLNAMES) if i in list(self.master.cat_exp.data.obs.columns)]
         if clustering_column == "":
             message = "You must select a clustering!"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -507,7 +507,7 @@ class PrelimDistribPlotWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         elif clustering_column not in available_columns:
             message = f"Clustering =  {clustering_column}  is not available in the dataset! \n Of {str(COLNAMES)}\n These are currently available: {str(available_columns)}"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -659,7 +659,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def save_clustering(self, save_type: str, identifier: str) -> None:
         if save_type not in list(self.master.cat_exp.data.obs.columns):
             message = f"Cell grouping ({save_type}) column not currently in data! \n Create or Load this before trying to save"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -673,7 +673,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def load_clustering(self, identifier: str) -> None:
         if (identifier == ""):
             message = "No clustering selected to load!"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -699,7 +699,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def load_class_from_px_classifier(self, identifier: str) -> None:
         if (identifier == ""):
             message = "No cell classification selected to load!"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -788,7 +788,7 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             seed = int(seed)
         except ValueError:
             message = "The parameters of FlowSOM clustering must be integers, but one of the inputs cannot be converted to an integer!"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -898,7 +898,7 @@ class UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 min_dist = float(min_dist)
         except ValueError:
             message = "At least one numerical / integer parameter (max cells / seed -- and n_neighbors / min_dist if for UMAP)\n was set to a non-numerical value! Dimensionality Reduction cancelled."
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -1002,7 +1002,7 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         if ((color_column == "") and (subsetting_column != "antigens")):
             message = "The color parameter was left blank!"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -1283,7 +1283,7 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             seed = int(seed)
         except Exception:
             message = f"{seed} is not an integer!"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -1382,7 +1382,7 @@ class ClusterVGroup(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         available_columns = [i for i in (CLUSTER_NAMES + COLNAMES) if i in list(self.master.cat_exp.data.obs.columns)]
         if clustering_column == "":
             message = "You must select a clustering!"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -1390,7 +1390,7 @@ class ClusterVGroup(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         elif clustering_column not in available_columns:
             message = f"Clustering column =  {clustering_column}  is not in the dataset! \n Of {str(COLNAMES)}\n These are currently available: {str(available_columns)}"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -1526,7 +1526,7 @@ class plot_cluster_abundances_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         available_columns = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns)]
         if k == "":
             message = "You must select a clustering!"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -1534,7 +1534,7 @@ class plot_cluster_abundances_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
             return
         elif k not in available_columns:
             message = f"Clustering =  {k}  is not available in the dataset! \n Of {str(COLNAMES)} \nThese are currently available: {str(available_columns)}"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -1640,7 +1640,7 @@ class plot_cluster_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         available_columns = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns)]
         if k == "":
             message = "You must select a clustering!"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -1648,7 +1648,7 @@ class plot_cluster_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             return
         elif k not in available_columns:
             message = f"Clustering =  {k}  is not available in the dataset! \n Of {str(CLUSTER_NAMES)} \nThese are currently available: {str(available_columns)}"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -2079,7 +2079,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         column = self.column.get()
         if column == "":
             message = "You must choose a clustering!"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -2087,7 +2087,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             return
         elif self.column.get() not in available_columns:
             message = f"Clustering =  {column}  is not available in the dataset! \n Of {str(CLUSTER_NAMES)} \nThese are currently available: {str(available_columns)}"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -2196,7 +2196,7 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         clustering = self.clustering_column.get()
         if clustering not in available_columns:
             message = f"Clustering =  {clustering}  is not available in the dataset! \nOf {str(CLUSTER_NAMES + ['whole dataset'])} \n These are currently available: {str(available_columns)}"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -2328,7 +2328,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
             if warning is True:   ## only warn if someone has selected a non-existant column -- 
                                     # not everytime someone mouses over the cluster_to_table optionmenu
                 message = f"{choice} not available!"
-                if not _TESTING:
+                if not _testing:
                     tk.messagebox.showwarning("Warning!", message = message)
                 else:
                     print(message)
@@ -2405,7 +2405,7 @@ class Scaling_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 upper_quant_log = str(upper_quant)
             except ValueError:
                 message = "Upper quantile must be a number for %quantile scaling!"
-                if not _TESTING:
+                if not _testing:
                     tk.messagebox.showwarning("Warning!", message = message)
                 else:
                     print(message)
@@ -2919,7 +2919,7 @@ class do_leiden_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             minimum_distance = float(minimum_distance)
         except ValueError:
             message = "Seed, resolution, neighbors, and minimum distance must be numeric! Exiting without performing Leiden"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
@@ -3272,7 +3272,7 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             alpha = float(alpha)
         except Exception:
             message = "Alpha must be numerical! Cancelling plot!"
-            if not _TESTING:
+            if not _testing:
                 tk.messagebox.showwarning("Warning!", message = message)
             else:
                 print(message)
