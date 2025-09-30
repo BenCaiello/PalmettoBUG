@@ -11,7 +11,6 @@ This file is licensed under the GPL3 license. No significant portion of the code
 
 import os
 from pathlib import Path
-from typing import Union
 import json
 import tkinter as tk
 import customtkinter as ctk

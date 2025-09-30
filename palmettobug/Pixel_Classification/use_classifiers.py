@@ -15,7 +15,6 @@ import os
 import tkinter as tk
 from typing import Union
 from pathlib import Path
-import seaborn as sns 
 
 import matplotlib.pyplot as plt
 import skimage
@@ -29,7 +28,6 @@ from flowsom import FlowSOM  ## formerly vendored
 
 from .._vendor import pyometiff as pot
 
-from ..Analysis_functions.Analysis import _quant
 from ..Utils.Exceptions import NoSharedFilesError
 
 pd.set_option('future.no_silent_downcasting', True)

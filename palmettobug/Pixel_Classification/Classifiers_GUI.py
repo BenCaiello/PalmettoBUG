@@ -23,7 +23,6 @@ import matplotlib.pyplot as plt
 
 from .Classifiers import (SupervisedClassifier, 
                           UnsupervisedClassifier, 
-                          plot_class_centers, 
                           plot_pixel_heatmap, 
                           segment_class_map_folder)
 
