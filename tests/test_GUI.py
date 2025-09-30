@@ -199,7 +199,7 @@ def test_training():
 def test_prediction():
     app.Tabs.px_classification.create.px_widg.predictions_frame.update_one("img")
     app.Tabs.px_classification.create.px_widg.predictions_frame.folder.configure(variable = ctk.StringVar(value = 'img'))
-    app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
+    #app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     app.Tabs.px_classification.create.px_widg.predictions_frame.all.select()
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
