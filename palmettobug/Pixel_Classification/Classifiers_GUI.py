@@ -41,11 +41,7 @@ from ..Utils.sharedClasses import (DirectoryDisplay,
 pd.set_option('future.no_silent_downcasting', True)
 
 __all__ = []
-_testing = False
-def toggle_testing():
-    global _testing
-    _testing = not _testing
-    return _testing
+
 
 PALMETTO_BUG_homedir = __file__.replace("\\","/")
 PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
@@ -109,20 +105,14 @@ class Pixel_class_widgets(ctk.CTkFrame):
     def detail_display(self) -> None:
         if self.name is None:
             message = "No Classifier Loaded!"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return
         return detail_display_window(self)
 
     def bio_label_launch(self) -> None:
         if self.name is None:
             message = "No Classifier Loaded!"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return
         return bio_label_launch_window(self)
 
@@ -131,10 +121,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         '''
         if self.name is None:
             message = "No Classifier Available to Save!"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return
     
         ## this code is just a reverse of the load option:
@@ -152,19 +139,13 @@ class Pixel_class_widgets(ctk.CTkFrame):
     def training(self, image_folder: str) -> None:
         if image_folder == "":
             message = "You must select a folder of images in the training folder before training!\nThis will be the same folder drop-down you use when launching in Napari\nfor label generation."
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return
         image_folder = f"{self.image_directory}/{image_folder}"
         images = [i for i in os.listdir(image_folder) if i.lower().find(".tif") != -1]
         if len(images) == 0:
             message = "The are no saved label images in the training folder of the classifier!"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return
         self.PxQuPy_class.train_folder(image_folder = image_folder)    
         pixel_logger.info(f"Trained supervised classifier {self.name} on image folder = {image_folder}")
@@ -192,19 +173,13 @@ class Pixel_class_widgets(ctk.CTkFrame):
         image_folder_choice = self.predictions_frame.folder.get()
         if image_folder_choice == "":
             message = "Please select a folder to predict pixel classes from!"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return False
         
         image_name = self.predictions_frame.one_img.get()
         if image_name == "":
             message = "Please select the image to predict pixel classes for!"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return False
     
         image_folder_name = self.image_directory + "/" + image_folder_choice
@@ -221,10 +196,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         image_folder_choice = self.predictions_frame.folder.get()
         if image_folder_choice == "":
             message = "Please select a folder to predict pixel classes from!"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return False
         image_folder_name = self.image_directory + "/" + image_folder_choice
         if not overwrite_approval(self.PxQuPy_class.classifier_dir + "/classification_maps", file_or_folder = "folder", custom_message = "Are you sure you want to potentially overwrite files in this folder"
@@ -240,19 +212,13 @@ class Pixel_class_widgets(ctk.CTkFrame):
         image_folder_choice = self.predictions_frame.folder.get()
         if image_folder_choice == "":
             message = "Please select a folder to predict pixel classes from!"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return False
         
         image_name = self.predictions_frame.one_img.get()
         if image_name == "":
             message = "Please select the image to predict pixel classes for!"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return False
         image_folder_name = self.image_directory + "/" + image_folder_choice
         if not overwrite_approval(self.unsupervised.classifier_dir + "/classification_maps/" + image_name, file_or_folder = "file"):
@@ -264,10 +230,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         image_folder_choice = self.predictions_frame.folder.get()
         if image_folder_choice == "":
             message = "Please select a folder to predict pixel classes from!"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return False
         image_folder_name = self.image_directory + "/" + image_folder_choice
         if not overwrite_approval(self.unsupervised.classifier_dir + "/classification_maps/", file_or_folder = "folder"):
@@ -281,10 +244,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         ''''''
         if self.name is None:
             message = "No Classifier Available to Plot Heatmap from!"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return
         filepath = self.classifier_dir + "/" + self.name + "/cluster_heatmap.png"
         panel = pd.read_csv(self.main_directory + "/panel.csv")
@@ -460,19 +420,13 @@ class Pixel_class_widgets(ctk.CTkFrame):
             image_folder = self.choose_folder.get()
             if (image_name == "") or (image_folder == ""):
                 message = "You must select an image folder as well as an image in that folder to launch in Napari!"
-                if not _testing:
-                    tk.messagebox.showwarning("Napari Warning!", message = message)
-                else:
-                    print(message)
+                tk.messagebox.showwarning("Napari Warning!", message = message)
                 return
             image_path = self.image_directory + "/" + image_folder + "/" + image_name
             self.image_path_choice = image_path
             if self.labels_done is True:
                 message = "Labels have been generated and not exported! \n Napari will not launch unless you export or discard those labels!"
-                if not _testing:
-                    tk.messagebox.showwarning("Napari Warning!", message = message)
-                else:
-                    print(message)
+                tk.messagebox.showwarning("Napari Warning!", message = message)
                 return
             self.master.PxQuPy_class.launch_Napari_px(image_path, display_all_channels = display_all_channels)
             self.labels_done = True
@@ -482,17 +436,11 @@ class Pixel_class_widgets(ctk.CTkFrame):
         def accept_Napari_labeling(self) -> None:
             if self.labels_done is False:
                 message = "No labels are available to save!"
-                if not _testing:
-                    tk.messagebox.showwarning("Napari Warning!", message = message)
-                else:
-                    print(message)
+                tk.messagebox.showwarning("Napari Warning!", message = message)
                 return
             if np.max(self.master.PxQuPy_class._user_labels) == 0:
                 message = "No labels to save! \n Did you accidently click save before drawing any labels in Napari? \nIf you have closed Napari, click the Discard button to allow another Napari window to be opened"
-                if not _testing:
-                    tk.messagebox.showwarning("Napari Warning!", message = message)
-                else:
-                    print(message)
+                tk.messagebox.showwarning("Napari Warning!", message = message)
                 return
             if not overwrite_approval(self.master.PxQuPy_class.classifier_training_labels + "/" + self.master.PxQuPy_class._image_name, file_or_folder = "file"):
                 return
@@ -505,10 +453,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         def discard_labels(self) -> None:
             if self.labels_done is False:
                 message = "No labels are available to discard!"
-                if not _testing:
-                    tk.messagebox.showwarning("Napari Warning!", message = message)
-                else:
-                    print(message)
+                tk.messagebox.showwarning("Napari Warning!", message = message)
                 return
             self.master.PxQuPy_class._user_labels = None   ## clears stored Napari layer
             self.labels_done = False
@@ -613,17 +558,11 @@ class Pixel_class_widgets(ctk.CTkFrame):
         def run_seg(self) -> None:
             if self.master.name is None:
                 message = "No Classifier Loaded!"
-                if not _testing:
-                    tk.messagebox.showwarning("No Classifier Loaded!", message = message)
-                else:
-                    print(message)
+                tk.messagebox.showwarning("No Classifier Loaded!", message = message)
                 return
             if self.input_folder.get() == "":
                 message = "Select a classification maps input folder before trying to run segmentation!"
-                if not _testing:
-                    tk.messagebox.showwarning("No Class maps selected!", message = message)
-                else:
-                    print(message)
+                tk.messagebox.showwarning("No Class maps selected!", message = message)
                 return
             threshold = self.threshold.get()
             distance_between_centroids = self.distance_between_centroids.get()
@@ -632,10 +571,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
                 distance_between_centroids = int(distance_between_centroids)
             except ValueError:
                 message = "Threshold and distance between centroids must be integers, but one or both cannot be converted to an integer!"
-                if not _testing:
-                    tk.messagebox.showwarning("Warning!", message = message)
-                else:
-                    print(message)
+                tk.messagebox.showwarning("Warning!", message = message)
                 return
             
             input_folder = self.master.classifier_dir  + f"/{self.master.name}/" + self.input_folder.get()
@@ -646,10 +582,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
 
             if not maps_exist:
                 message = "No Classifier Maps! Have you both trained and predicted from this classifier?"
-                if not _testing:
-                    tk.messagebox.showwarning("Warning!", message = message)
-                else:
-                    print(message)
+                tk.messagebox.showwarning("Warning!", message = message)
                 return
 
             output_folder = self.master.main_directory  + f"/masks/{self.master.name}_direct_segmentation"
@@ -760,10 +693,7 @@ class bio_label_launch_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         
         if len(channels) == 1:
             message = "Cannot plot a heatmap with only 1 channel! Cancelling heatmap"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             return
 
         image_folder = details_dict['img_directory']       
@@ -1130,10 +1060,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         img_directory = self.master.image_directory + "/" + self.image_choice.get()
         if self.image_choice.get() == "":
             message = "You must select a folder of images to train from!"
-            if not _testing:
-                tk.messagebox.showwarning("Warning!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Warning!", message = message)
             self.focus()
             return
         try:
@@ -1145,29 +1072,20 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             XYdim = int(self.XY_dim.get())
         except ValueError:
             message = "Number of Pixels & clusters, seed, rlen, quantile, and XY dimensions must all be integers!"
-            if not _testing:
-                tk.messagebox.showwarning("Not Integer inputs!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Not Integer inputs!", message = message)
             self.focus()
             return
         
         if (quantile > 1) or (quantile < 0):
             message = "Quantile parameter must be between 0 and 1"
-            if not _testing:
-                tk.messagebox.showwarning("Improper inputs!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("Improper inputs!", message = message)
             self.focus()
             return
         
         self.panel = self.keep_table.retrieve()
         if self.panel['keep'].sum() ==0:
             message = "You must select at least one channel to use!"
-            if not _testing:
-                tk.messagebox.showwarning("No Channels selected!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("No Channels selected!", message = message)
             self.focus()
             return
         self.panel.to_csv(self.master.classifier_dir + f"/{self.master.name}/flowsom_panel.csv", index = False)
@@ -1603,10 +1521,7 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                     number = int(number)
                 except ValueError:
                     message = f"{str(number)} can not be interpreted as an integer! Change and save again."
-                    if not _testing:
-                        tk.messagebox.showwarning("No Channels selected!", message = message)
-                    else:
-                        print(message)
+                    tk.messagebox.showwarning("No Channels selected!", message = message)
                     return
                     
                 channel_dict[antigen] = number
@@ -1749,10 +1664,7 @@ class Classifier_deets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.dictionary = self.dictionary_maker.make_dict()
         if (len(sigma_list) == 0) or (len(features_list) == 0) or (len(df) == 1) or (len(self.dictionary) == 0):
             message = "You must select at least one sigma, feature, channel, and class (besides background)"
-            if not _testing:
-                tk.messagebox.showwarning("No Channels selected!", message = message)
-            else:
-                print(message)
+            tk.messagebox.showwarning("No Channels selected!", message = message)
             self.focus()
             return
         unique_names = df["labels"].unique()
@@ -1980,10 +1892,7 @@ class Classifier_deets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 iterations = float(iterations)
             except ValueError:
                 message = "Epsilon must be a floating point number and epochs must be an integer!"
-                if not _testing:
-                    tk.messagebox.showwarning("No Channels selected!", message = message)
-                else:
-                    print(message)
+                tk.messagebox.showwarning("No Channels selected!", message = message)
                 return
             internals = internals.strip(" ")
             internals = internals.rstrip(",")  ## just in case a trailing comma causes issues
@@ -1994,10 +1903,7 @@ class Classifier_deets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                     self.master.internals = internals
                 except Exception:
                     message = "Internal Architecture must be a list of integers separated by commas!"
-                    if not _testing:
-                        tk.messagebox.showwarning("No Channels selected!", message = message)
-                    else:
-                        print(message)
+                    tk.messagebox.showwarning("No Channels selected!", message = message)
                     return
             else:
                 pass

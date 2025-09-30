@@ -142,10 +142,6 @@ def test_setup_for_FCS():
     assert True
     
 ##>>## GUI Pixel classification tests (px class creation)
-def test_toggle1a():
-    palmettobug.Pixel_Classification.Classifiers_GUI.toggle_TESTING()
-    assert (palmettobug.Pixel_Classification.Classifiers_GUI._testing is True)
-
 def test_unsupervised():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
     window = loading_window.unsupervised("unsupervised1", app.Tabs.px_classification.create.px_widg)
@@ -250,10 +246,6 @@ def test_segmentation():
 
 
 ##>>## GUI Pixel classification tests (px class use)
-def test_toggle1b():
-    palmettobug.Pixel_Classification.use_classifiers_GUI.toggle_testing()
-    assert (palmettobug.Pixel_Classification.use_classifiers_GUI._testing is True)
-
 def test_load_classifier():
     global px_use_widgets
     px_use_widgets = app.Tabs.px_classification.use_class.px_widg
@@ -335,10 +327,6 @@ def test_wca_3():
 
 
 ##>>## GUI Analysis tests
-def test_toggle2():
-    palmettobug.Analysis_widgets.Analysis_GUI.toggle_testing() ## prevents warning pop ups at many steps -- these block the testing suite and prevent errors from being properly debugged
-    assert (palmettobug.Analysis_widgets.Analysis_GUI._testing is True)
-
 def test_launch_drop_restore():           ## filtering
     window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()  ##>>##
     assert isinstance(window, ctk.CTkToplevel)
@@ -628,10 +616,6 @@ def test_launch_regionprop():
 
 
 ##>>## GUI Spatial tests
-def test_toggle3():
-    palmettobug.Analysis_widgets.Spatial_GUI.toggle_testing()
-    assert (palmettobug.Analysis_widgets.Spatial_GUI._testing is True)
-
 def test_plot_cell_maps_window():
     window = app.Tabs.Spatial.widgets.plot_cell_maps_window()
     list_of_file_names = [(i[:i.rfind(".ome.fcs")]) for i in sorted(list(window.master.master_exp.data.obs['file_name'].unique()))]
