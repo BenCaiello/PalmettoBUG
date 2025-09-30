@@ -209,7 +209,7 @@ def test_bio_label_launch():
     window.plot_heatmap()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
-
+    
 def test_load_project_classifier():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
     loading_window.load("Unsupervised_unsupervised1")
