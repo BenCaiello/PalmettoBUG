@@ -119,8 +119,8 @@ def test_call_to_Analysis():
     analysis_loader = app.entrypoint.image_proc_widg.call_to_Analysis()
     analysis_loader.analysis_choice.configure(variable = ctk.StringVar(value = 'test_analysis'))
     analysis_loader.run()
-    app.Tabs.tables.accept_button.invoke()
     app.Tabs.tables.tablewidget.toggle_delete_column("disabled")
+    app.Tabs.tables.accept_button.invoke()
     metadata = app.Tabs.py_exploratory.analysiswidg.cat_exp.metadata
     panel = app.Tabs.py_exploratory.analysiswidg.cat_exp.panel
     interal_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analysis_internal_dir
@@ -138,7 +138,7 @@ def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows
     loader_window.destroy()
 
 def test_setup_for_FCS():
-    palmettobug.setup_for_FCS(homedir + "/Example_CyTOF")
+    palmettobug.setup_for_FCS(proj_directory + "/Example_CyTOF")
     assert True
     
 ##>>## GUI Pixel classification tests (px class creation)
@@ -231,7 +231,7 @@ def test_save_classifier():
     assert True 
 
 def test_load_assets_classifier():
-    load_from_assets = loading_window.launch_load_window()
+    load_from_assets = loading_window.launch_load_window(app.Tabs.px_classification.create.px_widg)
     assert isinstance(load_from_assets, ctk.CTkToplevel)
     load_from_assets.choice("lumen_epithelia_laminapropria")
     check_channels_window = load_from_assets.load_classifier(name = "", classifier_load_name = "lumen_epithelia_laminapropria")
@@ -367,9 +367,9 @@ def test_do_regions():
     my_analysis.do_regions(region_folder = proj_directory + "/masks/expanded_deepcell_masks")
     assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
 
-#def test_spatial_leiden():
-#    my_analysis._do_spatial_leiden()
-#    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
+def test_spatial_leiden():
+    my_analysis._do_spatial_leiden()
+    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
 
 def test_launch_combat_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_combat_window()
@@ -581,7 +581,7 @@ def test_run_state_ANOVAs_window():
     assert isinstance(table_launch, ctk.CTkToplevel)
     assert isinstance(df, pd.DataFrame), "state expression statistics did not return a pandas DataFrame"
     assert len(df) == (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
-    table_launch.accept_and_return()
+    table_launch.accept_and_return(None)
     window.destroy()
 
 def test_plot_state_p_value_heatmap():
