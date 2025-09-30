@@ -1189,7 +1189,7 @@ class Analysis:
         Uncertain how useful this is, but it is available      
         '''
         new_data = self.data.copy()
-        new_data.obs[['centroid-0', 'centroid-1']] = new_data.obsm['spatial']
+        new_data = ann.AnnData(X = new_data.obsm['spatial'], var = ['centroid-0', 'centroid-1'], obs = new_data.obs)
         ## for now, copy the defaults of the major paramteres of scanpy's neighbors function below --> 
         # so that I can easily use a paramter if I decide to add as an option for the user
         all_leiden = []

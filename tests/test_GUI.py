@@ -146,12 +146,8 @@ def test_toggle1a():
     palmettobug.Pixel_Classification.Classifiers_GUI.toggle_TESTING()
     assert (palmettobug.Pixel_Classification.Classifiers_GUI._TESTING is True)
 
-def test_launch_loading_window():
-    global loading_window
-    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()   ## need access to loading window functions
-    assert True 
-
 def test_unsupervised():
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
     window = loading_window.unsupervised("unsupervised1", app.Tabs.px_classification.create.px_widg)
     window.training_number.configure(textvariable = ctk.StringVar(value = "25000"))
     window.image_choice.configure(variable = ctk.StringVar(value = 'img'))
@@ -171,6 +167,7 @@ def test_unsupervised():
     assert True 
 
 def test_accept_classifier_name():   ## supervised window
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
     window = loading_window.accept_classifier_name("lumen_epithelia_laminapropria", app.Tabs.px_classification.create.px_widg)
     advanced_window = window.advanced_options()
     advanced_window.retrieve_and_accept()
@@ -218,6 +215,7 @@ def test_bio_label_launch():
     window.destroy()
 
 def test_load_project_classifier():
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
     loading_window.load("Unsupervised_unsupervised1")
     ### additionally check unsupervised details display
     window = app.Tabs.px_classification.create.px_widg.detail_display()
@@ -228,6 +226,7 @@ def test_load_project_classifier():
     assert True 
 
 def test_save_classifier():
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
     app.Tabs.px_classification.create.px_widg.save_classifier()
     assert True 
 
@@ -238,7 +237,7 @@ def test_load_assets_classifier():
     load_from_assets.choice("lumen_epithelia_laminapropria")
     check_channels_window = load_from_assets.load_classifier(name = "", classifier_load_name = "lumen_epithelia_laminapropria")
     assert isinstance(check_channels_window, ctk.CTkToplevel)
-    reference_window = check_channels_window.launch_reference()
+    reference_window = check_channels_window.channel_corrector.launch_reference()
     assert isinstance(reference_window, ctk.CTkToplevel)
     reference_window.destroy()
     check_channels_window.channel_corrector.save_changes()
@@ -786,7 +785,7 @@ def test_non_GUI_TableLaunch():
     t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'panel')
     assert isinstance(t_launch, ctk.CTk)
     t_launch.tablewidget.add_row(3)
-    t_launch.tablewidget.toggle_delete_column()
+    t_launch.tablewidget.toggle_delete_column("disabled")
     table = t_launch.tablewidget.recover_input()
     assert isinstance(table, pd.DataFrame)
 
