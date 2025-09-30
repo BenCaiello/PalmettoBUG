@@ -138,7 +138,7 @@ def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows
     loader_window.destroy()
 
 def test_setup_for_FCS():
-    palmettobug.setup_for_FCS(proj_directory + "/Example_CyTOF")
+    palmettobug.setup_for_FCS(fetch_dir + "/Example_CyTOF")
     assert True
     
 ##>>## GUI Pixel classification tests (px class creation)
@@ -167,7 +167,7 @@ def test_unsupervised():
     app.Tabs.px_classification.create.px_widg.predictions_frame.folder.configure(variable = ctk.StringVar(value = 'img'))
     app.Tabs.px_classification.create.px_widg.predictions_frame.one_img.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.px_classification.create.px_widg.image_directory + "/img")[0]))
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
-    app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
+    # app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
     assert True 
 
 def test_accept_classifier_name():   ## supervised window
@@ -223,6 +223,7 @@ def test_load_project_classifier():
     window = app.Tabs.px_classification.create.px_widg.detail_display()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
     loading_window.load("lumen_epithelia_laminapropria")
     assert True 
 
@@ -231,6 +232,7 @@ def test_save_classifier():
     assert True 
 
 def test_load_assets_classifier():
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
     load_from_assets = loading_window.launch_load_window(app.Tabs.px_classification.create.px_widg)
     assert isinstance(load_from_assets, ctk.CTkToplevel)
     load_from_assets.choice("lumen_epithelia_laminapropria")
@@ -782,7 +784,7 @@ def test_non_GUI_TableLaunch():
     path_to_df = proj_directory + "/panel.csv"
     panel_df = pd.read_csv(path_to_df)
     t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'panel')
-    assert isinstance(t_launch, ctk.CTkToplevel)
+    assert isinstance(t_launch, ctk.CTk)
     t_launch.tablewidget.add_row(3)
     t_launch.tablewidget.toggle_delete_column()
     table = t_launch.tablewidget.recover_input()

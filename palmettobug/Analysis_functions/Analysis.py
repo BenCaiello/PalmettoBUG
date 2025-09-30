@@ -1188,10 +1188,8 @@ class Analysis:
 
         Uncertain how useful this is, but it is available      
         '''
-        data = self.data.copy()
-        slicer = ((self.data.var['antigen'] == 'centroid-0').astype('int') + (self.data.var['antigen'] == 'centroid-1').astype('int')).astype('bool')
-        new_data = data.T[slicer].copy()
-        new_data = new_data.T
+        new_data = self.data.copy()
+        new_data.obs[['centroid-0', 'centroid-1']] = new_data.obsm['spatial']
         ## for now, copy the defaults of the major paramteres of scanpy's neighbors function below --> 
         # so that I can easily use a paramter if I decide to add as an option for the user
         all_leiden = []
