@@ -131,6 +131,7 @@ class Analysis_py_widgets(ctk.CTkFrame):
         if regions:
             self.master.master.Spatial.widgets.add_Analysis(self.cat_exp)      ## this method in spatial also handles the proper activation of widgets in the spatial frame
             self.master.master.Spatial.widgets.setup_dir_disp(directory)
+            self.region.configure(state = 'normal')
         else:
             self.master.master.Spatial.widgets.add_Analysis(self.cat_exp)
 
