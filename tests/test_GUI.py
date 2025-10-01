@@ -658,13 +658,19 @@ def test_launch_data_table_exportation_window():
 def test_facetted_heatmap():
     path_to_svg = my_analysis._plot_facetted_heatmap("facetted_heatmap", "condition")
     assert path_to_svg.rfind(".svg") != -1
-    assert os.path.isdir(path_to_svg)
+    assert os.path.exists(path_to_svg)
 
 def test_launch_regionprop():
     window = app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
-    window.accept_and_return()
-    #assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(window, ctk.CTkToplevel)
+    window.accept_and_return(app.Tabs.py_exploratory.analysiswidg.cat_exp)
 
+def test_directoy_display():
+    app.Tabs.py_exploratory.analysiswidg.directory_display.switch_deleter()
+    app.Tabs.py_exploratory.analysiswidg.directory_display.switch_deleter()
+    app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].invoke()
+    app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].invoke()
+    
 
 ### GUI Spatial tests
 def test_plot_cell_maps_window():
