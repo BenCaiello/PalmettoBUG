@@ -662,6 +662,7 @@ def test_facetted_heatmap():
 
 def test_launch_regionprop():
     window = app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
+    window.accept_and_return()
     #assert isinstance(window, ctk.CTkToplevel)
 
 
