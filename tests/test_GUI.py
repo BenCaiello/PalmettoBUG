@@ -327,7 +327,8 @@ def test_wca_3():
     value = list(wca_window.analysis_exp_whole.data.obs[column].unique())[0]
     export_window.subset_frame.columns_keep_or_no[0].select()
     export_window.subset_frame.column_values_list[0].insert("0.0", f'{value},')
-    export_window.grouping.checkbox_list[3].select()
+    print(export_window.grouping.to_list)
+    export_window.grouping.checkbox_list[2].select()
     export_window.file_name_entry.configure(textvariable = ctk.StringVar(value = "subset_grouped_data_table"))
     df = export_window.export_table()
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
