@@ -327,7 +327,7 @@ def test_wca_3():
     value = list(wca_window.analysis_exp_whole.data.obs[column].unique())[0]
     export_window.subset_frame.columns_keep_or_no[0].select()
     export_window.subset_frame.column_values_list[0].insert("0.0", f'{value},')
-    window.grouping.checkbox_list[3].select()
+    export_window.grouping.checkbox_list[3].select()
     export_window.file_name_entry.configure(textvariable = ctk.StringVar(value = "subset_grouped_data_table"))
     df = export_window.export_table()
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
@@ -432,7 +432,6 @@ def test_launch_cluster_window():
         metaclustering = my_analysis.data.obs['metaclustering']
     except Exception:
         metaclustering = None
-    print(metaclustering)
     assert metaclustering is not None, "do_flowsom did not create a metaclustering column"
     assert len(metaclustering.unique()) == 20, "do_flowsom did not create the expected number of values in the metaclustering column"
     assert '1' in metaclustering, "do_flowsom did not create the expected values in metaclustering column"
