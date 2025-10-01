@@ -133,8 +133,8 @@ def test_call_to_Analysis():
 
 def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows (as is, does not close itself and blocks future instnaces as a singleton)
     window = loader_window.load_CyTOF()
-    assert isinstance(window, ctk.CTkToplevel)
-    window.destroy()
+    assert isinstance(window.table_launcher, ctk.CTkToplevel)
+    window.table_launcher.destroy()
     loader_window.destroy()
 
 def test_setup_for_FCS():
