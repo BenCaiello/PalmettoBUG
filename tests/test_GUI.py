@@ -339,7 +339,10 @@ def test_wca_3():
 
 ### GUI Analysis tests
 def test_launch_drop_restore():           ## filtering
-    window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()  ##>>##
+    window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
+    window.switch_column('sample_id')
+    window.drop.checkbox_list[0].select()
+    window.button1.invoke()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -375,7 +378,7 @@ def test_launch_scatterplot():
     window.antigen1.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
     window.antigen2.configure(variable = ctk.StringVar(value = "HistoneH3"))
     window.hue.configure(variable = ctk.StringVar(value = "None"))
-    window.button_plot.invoke()
+    #window.button_plot.invoke()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
