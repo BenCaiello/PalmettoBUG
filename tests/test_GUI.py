@@ -325,8 +325,9 @@ def test_wca_3():
     export_window.groupby_or_plain = ctk.StringVar(value = "groupby")
     column = wca_window.analysis_exp_whole.data.obs.columns[0]
     value = list(wca_window.analysis_exp_whole.data.obs[column].unique())[0]
-    export_window.subset_frame_class.columns_keep_or_no[0].select()
-    export_window.subset_frame_class.column_values_list[0].insert("0.0", f'{value},')
+    export_window.subset_frame.columns_keep_or_no[0].select()
+    export_window.subset_frame.column_values_list[0].insert("0.0", f'{value},')
+    window.grouping.checkbox_list[3].select()
     export_window.file_name_entry.configure(textvariable = ctk.StringVar(value = "subset_grouped_data_table"))
     df = export_window.export_table()
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
@@ -338,14 +339,6 @@ def test_wca_3():
 
 
 ### GUI Analysis tests
-def test_launch_drop_restore():           ## filtering
-    window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
-    window.switch_column('sample_id')
-    window.drop.checkbox_list[0].select()
-    window.button1.invoke()
-    assert isinstance(window, ctk.CTkToplevel)
-    window.destroy()
-
 def test_launch_scaling():
     window = app.Tabs.py_exploratory.analysiswidg.launch_scaling()
     window.call_scaling()  
@@ -439,6 +432,7 @@ def test_launch_cluster_window():
         metaclustering = my_analysis.data.obs['metaclustering']
     except Exception:
         metaclustering = None
+    print(metaclustering)
     assert metaclustering is not None, "do_flowsom did not create a metaclustering column"
     assert len(metaclustering.unique()) == 20, "do_flowsom did not create the expected number of values in the metaclustering column"
     assert '1' in metaclustering, "do_flowsom did not create the expected values in metaclustering column"
@@ -494,7 +488,7 @@ def test_launch_distrib_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_distrib_window()
     figure = window.plot_clusterV(clustering_column = 'sample_id', 
                       type_of_graph = 'violin', 
-                      type_of_comp = 'cluster vs. other clusters', 
+                      type_of_comp = 'group vs. others', 
                       filename = "clusterV_distrib_etc", 
                       marker_class = "type")
     assert isinstance(window, ctk.CTkToplevel)
@@ -628,6 +622,14 @@ def test_launch_cluster_save_load():
     assert 'classification' in my_analysis.data.obs.columns
     window.destroy()
 
+def test_launch_drop_restore():           ## filtering
+    window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
+    window.switch_column('sample_id')
+    window.drop.checkbox_list[0].select()
+    window.button1.invoke()
+    assert isinstance(window, ctk.CTkToplevel)
+    window.destroy()
+
 def test_launch_data_table_exportation_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window()
     window.subset_command()
@@ -641,8 +643,9 @@ def test_launch_data_table_exportation_window():
     window.groupby_or_plain = ctk.StringVar(value = "groupby")
     column = my_analysis.data.obs.columns[0]
     value = list(my_analysis.data.obs[column].unique())[0]
-    window.subset_frame_class.columns_keep_or_no[0].select()
-    window.subset_frame_class.column_values_list[0].insert("0.0", f'{value},')
+    window.subset_frame.columns_keep_or_no[0].select()
+    window.subset_frame.column_values_list[0].insert("0.0", f'{value},')
+    window.grouping.checkbox_list[3].select()
     window.file_name_entry.configure(textvariable = ctk.StringVar(value = "subset_grouped_data_table"))
     df = window.export_table()
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"

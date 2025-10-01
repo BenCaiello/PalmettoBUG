@@ -2178,7 +2178,7 @@ class Analysis:
             main_df = pd.DataFrame()
             grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
             for ii,i in zip(grouped.index, grouped):
-                slicer = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
+                slicer = pd.DataFrame(i, index = for_fs.index, columns = [ii])
                 main_df = pd.concat([main_df,slicer], axis = 1)
             cluster_centers = main_df.T
         else:
