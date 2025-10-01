@@ -134,7 +134,7 @@ def test_call_to_Analysis():
 def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows (as is, does not close itself and blocks future instnaces as a singleton)
     window = loader_window.load_CyTOF()
     assert isinstance(window, ctk.CTkToplevel)
-    window.table_launcher.destroy()
+    window.destroy()
     loader_window.destroy()
 
 def test_setup_for_FCS():
@@ -232,7 +232,7 @@ def test_load_assets_classifier():
     load_from_assets = loading_window.launch_load_window(app.Tabs.px_classification.create.px_widg)
     assert isinstance(load_from_assets, ctk.CTkToplevel)
     load_from_assets.choice("lumen_epithelia_laminapropria")
-    check_channels_window = load_from_assets.load_classifier(name = "lumen_epithelia_laminapropria", classifier_load_name = "lumen_epithelia_laminapropria")
+    check_channels_window = load_from_assets.load_classifier(name = "lumen_epithelia_laminapropria2", classifier_load_name = "lumen_epithelia_laminapropria")
     assert isinstance(check_channels_window, ctk.CTkToplevel)
     reference_window = check_channels_window.channel_corrector.launch_reference()
     assert isinstance(reference_window, ctk.CTkToplevel)
