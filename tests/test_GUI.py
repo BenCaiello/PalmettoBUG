@@ -31,7 +31,7 @@ def test_print_licenses():
 # test suite with tests launched from this GUI testing script -- allowing more thorough testing through every nook and cranny of the GUI widgets         #
 ##########################################################################################################################################################
 
-##>>## GUI App & entrypoint tests
+### GUI App & entrypoint tests
 def test_setup_app():
     global app
     app = App(None)
@@ -58,6 +58,8 @@ def test_launchExampleDataWindow():     ## now also handles the loading of the e
     global loader_window
     loader_window = app.entrypoint.launchExampleDataWindow()
     assert isinstance(loader_window, ctk.CTkToplevel)
+    
+
     loader_window.entry.configure(textvariable = ctk.StringVar(value = fetch_dir))
     loader_window.load_IMC()
     # number = app.entrypoint.img_entry_func(proj_directory) 
@@ -69,7 +71,7 @@ def test_bead_norm_window():   ## can only test GUI elements, and with fake 'dat
     window.destroy()
 
 
-##>>## GUI Image Analysis tests
+### GUI Image Analysis tests
 def test_call_raw_to_img_part_1_hpf():
     hpf_window = app.entrypoint.image_proc_widg.call_raw_to_img_part_1_hpf()
     hpf_window.read_values()
@@ -141,7 +143,7 @@ def test_setup_for_FCS():
     palmettobug.setup_for_FCS(fetch_dir + "/Example_CyTOF")
     assert True
     
-##>>## GUI Pixel classification tests (px class creation)
+### GUI Pixel classification tests (px class creation)
 def test_unsupervised():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
     window = loading_window.unsupervised("unsupervised1", app.Tabs.px_classification.create.px_widg)
@@ -245,7 +247,7 @@ def test_segmentation():
     assert True 
 
 
-##>>## GUI Pixel classification tests (px class use)
+### GUI Pixel classification tests (px class use)
 def test_load_classifier():
     global px_use_widgets
     px_use_widgets = app.Tabs.px_classification.use_class.px_widg
@@ -319,6 +321,15 @@ def test_wca_3():
     export_window = wca_window.launch_export_window()
     export_window.export_table()
     assert isinstance(export_window, ctk.CTkToplevel)
+    export_window.subset_or_whole = ctk.StringVar(value = "subset")
+    export_window.groupby_or_plain = ctk.StringVar(value = "groupby")
+    column = wca_window.analysis_exp_whole.data.obs.columns[0]
+    value = list(wca_window.analysis_exp_whole.data.obs[column].unique())[0]
+    export_window.subset_frame_class.columns_keep_or_no[0].select()
+    export_window.subset_frame_class.column_values_list[0].insert("0.0", f'{value},')
+    export_window.file_name_entry.configure(textvariable = ctk.StringVar(value = "subset_grouped_data_table"))
+    df = export_window.export_table()
+    assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
     export_window.destroy()
     stats_window = wca_window.stats(wca_window)
     assert isinstance(stats_window, ctk.CTkToplevel)
@@ -326,7 +337,7 @@ def test_wca_3():
     wca_window.destroy()
 
 
-##>>## GUI Analysis tests
+### GUI Analysis tests
 def test_launch_drop_restore():           ## filtering
     window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()  ##>>##
     assert isinstance(window, ctk.CTkToplevel)
@@ -334,7 +345,7 @@ def test_launch_drop_restore():           ## filtering
 
 def test_launch_scaling():
     window = app.Tabs.py_exploratory.analysiswidg.launch_scaling()
-    window.call_scaling()    ##>>##
+    window.call_scaling()  
     global my_analysis
     my_analysis = app.Tabs.py_exploratory.analysiswidg.cat_exp
     assert isinstance(my_analysis.data, anndata.AnnData)
@@ -353,14 +364,6 @@ def test_scaling():
         else:
             assert (my_analysis.data.X != original_X).sum().sum() == 0, "Unscaling did not restore the original data!"
 
-def test_do_regions():
-    my_analysis.do_regions(region_folder = proj_directory + "/masks/expanded_deepcell_masks")
-    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
-
-def test_spatial_leiden():
-    my_analysis._do_spatial_leiden()
-    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
-
 def test_launch_combat_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_combat_window()
     window.do_combat()
@@ -368,7 +371,11 @@ def test_launch_combat_window():
     window.destroy()
 
 def test_launch_scatterplot():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()   ##>>##
+    window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
+    window.antigen1.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
+    window.antigen2.configure(variable = ctk.StringVar(value = "HistoneH3"))
+    window.hue.configure(variable = ctk.StringVar(value = "None"))
+    window.button_plot.invoke()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -411,6 +418,14 @@ def test_launch_UMAP_window():
     assert isinstance(my_analysis.PCA_embedding, anndata.AnnData), "do PCA did not create an anndata embedding"
     assert (my_analysis.UMAP_embedding is not None), "do UMAP did not create an anndata embedding"
     assert isinstance(my_analysis.UMAP_embedding, anndata.AnnData), "do UMAP did not create an anndata embedding"
+
+def test_do_regions():
+    my_analysis.do_regions(region_folder = proj_directory + "/masks/expanded_deepcell_masks")
+    assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
+
+def test_spatial_leiden():
+    my_analysis._do_spatial_leiden()
+    assert ('spatial_leiden' in my_analysis.data.obs.columns), "Do spatial_leiden did not generate a 'spatial_leiden' column in obs!"
 
 def test_launch_cluster_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_window()
@@ -476,7 +491,7 @@ def test_launch_distrib_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_distrib_window()
     figure = window.plot_clusterV(clustering_column = 'sample_id', 
                       type_of_graph = 'violin', 
-                      type_of_comp = 'Raw Group values (no substraction of rest of dataset)', 
+                      type_of_comp = 'cluster vs. other clusters', 
                       filename = "clusterV_distrib_etc", 
                       marker_class = "type")
     assert isinstance(window, ctk.CTkToplevel)
@@ -561,6 +576,14 @@ def test_launch_abundance_ANOVAs_window():
     assert len(df) == len(my_analysis.data.obs['merging'].unique()), "abundance ANOVA dataframe did not have the expected length"
     assert isinstance(window, ctk.CTkToplevel)
     table_launch.destroy()
+    window.GLM.configure(variable = ctk.StringVar(value = "GLM:Gaussian"))
+    window.filename.configure(textvariable = ctk.StringVar(value = "Gaussian_GLM_table"))
+    df, table_launch = window.run_ANOVAs()
+    assert isinstance(table_launch, ctk.CTkToplevel)
+    assert isinstance(df, pd.DataFrame), "count_GLM method (gaussian) did not return a pandas DataFrame"
+    assert len(df) == len(my_analysis.data.obs['merging'].unique()), "GLM statistics dataframe (gaussian) did not have the expected length"
+    assert isinstance(window, ctk.CTkToplevel)
+    table_launch.destroy()
     window.destroy()
 
 def test_run_state_ANOVAs_window():
@@ -593,6 +616,13 @@ def test_launch_cluster_save_load():
     window.load_identifier.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory + "/clusterings")[0]))
     window.loader_button.invoke()
     assert isinstance(window, ctk.CTkToplevel)
+
+    list_of_saved_classifiers = ["".join([window.classy_dir,"/",i,"/",f'{i}_cell_classes.csv']) for i in sorted(os.listdir(window.classy_dir)) if i.find(".") == -1]
+    list_of_classifications = [i for i in list_of_saved_classifiers if os.path.exists(i)]
+    list_of_classifications = [i[((i[:i.rfind("/")]).rfind("/") + 1):] for i in list_of_classifications] 
+    window.load_identifier_from_px.configure(variable = ctk.StringVar(value = list_of_classifications[0]))
+    window.load_from_px.invoke()
+    assert 'classification' in my_analysis.data.obs.columns
     window.destroy()
 
 def test_launch_data_table_exportation_window():
@@ -604,18 +634,32 @@ def test_launch_data_table_exportation_window():
     df = window.export_table()
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.data.obs), "data export did not have the same length as the source data!"
+    window.subset_or_whole = ctk.StringVar(value = "subset")
+    window.groupby_or_plain = ctk.StringVar(value = "groupby")
+    column = my_analysis.data.obs.columns[0]
+    value = list(my_analysis.data.obs[column].unique())[0]
+    window.subset_frame_class.columns_keep_or_no[0].select()
+    window.subset_frame_class.column_values_list[0].insert("0.0", f'{value},')
+    window.file_name_entry.configure(textvariable = ctk.StringVar(value = "subset_grouped_data_table"))
+    df = window.export_table()
+    assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
     df = window.umap_pca_button.invoke()
     assert isinstance(df, pd.DataFrame), "DR export did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.UMAP_embedding), "DR export did not have the same length as the source embedding!"
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
+def test_facetted_heatmap():
+    path_to_svg = my_analysis._plot_facetted_heatmap("facetted_heatmap", "condition")
+    assert path_to_svg.rfind(".svg") != -1
+    assert os.path.isdir(path_to_svg)
+
 def test_launch_regionprop():
     window = app.Tabs.py_exploratory.analysiswidg.launch_regionprop()
     #assert isinstance(window, ctk.CTkToplevel)
 
 
-##>>## GUI Spatial tests
+### GUI Spatial tests
 def test_plot_cell_maps_window():
     window = app.Tabs.Spatial.widgets.plot_cell_maps_window()
     list_of_file_names = [(i[:i.rfind(".ome.fcs")]) for i in sorted(list(window.master.master_exp.data.obs['file_name'].unique()))]
