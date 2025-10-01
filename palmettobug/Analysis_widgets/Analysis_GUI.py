@@ -131,6 +131,7 @@ class Analysis_py_widgets(ctk.CTkFrame):
         if regions:
             self.master.master.Spatial.widgets.add_Analysis(self.cat_exp)      ## this method in spatial also handles the proper activation of widgets in the spatial frame
             self.master.master.Spatial.widgets.setup_dir_disp(directory)
+            self.region.configure(state = 'normal')
         else:
             self.master.master.Spatial.widgets.add_Analysis(self.cat_exp)
 
@@ -636,10 +637,10 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.load_identifier_from_px.grid(column = 4, row = 3, padx = 5, pady = 5)
         self.load_identifier_from_px.bind("<Enter>", refresh2)
 
-        load_from_px = ctk.CTkButton(self,
+        self.load_from_px = ctk.CTkButton(self,
                                     text = "Load Classification from px classifier", 
                                     command = lambda: self.load_class_from_px_classifier(self.load_identifier_from_px.get()))
-        load_from_px.grid(column = 4, row = 4, padx = 5, pady = 5)
+        self.load_from_px.grid(column = 4, row = 4, padx = 5, pady = 5)
 
         self.after(200, lambda: self.focus())
 
@@ -3177,13 +3178,13 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.filename = ctk.CTkEntry(self, textvariable = ctk.StringVar(value ="scatter"))
         self.filename.grid(column = 1, row = 7, padx = 5, pady = 5)
 
-        button_plot = ctk.CTkButton(self, text = "Plot", command = lambda: self.plot_scatter(antigen1 = self.antigen1.get(), 
+        self.button_plot = ctk.CTkButton(self, text = "Plot", command = lambda: self.plot_scatter(antigen1 = self.antigen1.get(), 
                                                                                              antigen2 = self.antigen2.get(),
                                                                                              hue = self.hue.get(),
                                                                                              size = self.size.get(),
                                                                                              alpha = self.alpha.get(),
                                                                                              filename = self.filename.get().strip()))
-        button_plot.grid(column = 0, row = 10, padx = 5, pady = 5)
+        self.button_plot.grid(column = 0, row = 10, padx = 5, pady = 5)
 
         self.pop_up = ctk.CTkCheckBox(master = self, text = "Make detailed Plot Editing Pop-up?", onvalue = True, offvalue = False)
         self.pop_up.grid(column = 0, row = 11, padx = 3, pady = 3)

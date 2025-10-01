@@ -31,6 +31,7 @@ Changes:
     -- replaced assert --> if not...raise 
     -- add __all__ for docs
     -- Remove roundit, round_unc, and round_sf functions at the end of the file -- these were unused / deprecated. This is mainly to improve code coverage, but also declutters the file a bit
+    -- add spaces between function/method ends & next function/method
 
 Note on linting: Like with most of the libraries I semi-vendorized, I have the `ruff: noqa` comment at the top to block linting. Howveer, also like the other vendorizing files,
 I did see the results of an initial linting by ruff (3-28-25) --> however, unlike the other vendorized files, there were questionable patterns that might deserve editing at some point:
@@ -144,6 +145,7 @@ class _Number:
         self.map = SortedDict()
         self.zero = False
         self.nan = False
+        
     def set_sign(self, sign='+'):
         '''sets the number's sign'''
         if sign == '+':
@@ -159,18 +161,22 @@ class _Number:
             self.negative = False
             self.positive = True
             self.set_sign('+')
+
     def max_power(self):
         '''returns integer corresponding to number's highest populated 10's power'''
         return max(self.map)
+
     def min_power(self):
         '''returns integer corresponding to number's lowest populated 10's power'''
         return min(self.map)
+
     def increment_power_by(self, n):
         '''(de)increments all keys in .map'''
         tmp = SortedDict()
         for key in self.map:
             tmp[key + n] = self.map[key]
         self.map = tmp
+
     def round_by_decimals(self, decimals):
         '''performs rounding operation to the given 10's power'''
         last_power = -decimals
@@ -247,15 +253,18 @@ class _Number:
                 elif p % format['spacing'] == 0:
                     output.append(format['spacer'])
         return ''.join(output) + units
+
     @staticmethod
     def _int(num):
         return int(float(num))
+
     def output(self, output_type):
         '''returns number in given type'''
         no_formatting = {'decimal': '', 'spacer': '', 'spacing': 0.1}
         num = self.decimate(no_formatting, zeropadding=False) or "0"
         output_type = self._int if output_type == int else output_type
         return output_type(f"{num}E{self.min_power()}")
+
     def __gt__(self, other):
         if self.max_power() > other.max_power():
             return True
@@ -271,6 +280,7 @@ class _Number:
         if other.min_power() > self.min_power():
             return False
         return False
+
     def prefixify(self, prefix, exponent):
         '''converts to Engineering/Scientific notation with optional SI prefix'''
         #self.prefix = 'XXX'
@@ -598,6 +608,7 @@ def _num_parse(num):
             B(num[1:])
         else:
             raise ValueError(f'parsing failed: invalid Character "{num[0]}" (position {i}, state B)')
+
     def C(num):
         global number, i, n
         i += 1
@@ -611,6 +622,7 @@ def _num_parse(num):
             C(num[1:])
         else:
             raise ValueError(f'parsing failed: invalid Character "{num[0]}" (position {i}, state C)')
+
     def D(num):
         global i, negative_exp, exp
         
@@ -630,6 +642,7 @@ def _num_parse(num):
             E(num[1:])
         else:
             raise ValueError(f'invalid Character "{num[0]}" (position {i}, state D)')
+
     def E(num):
         global number, i, exp
         i += 1

@@ -687,7 +687,7 @@ class Analysis:
         If regionprops_panel is left as None, will read in the Regionprops_panel from self.directory/Regionprops_panel.csv
         '''
         length_check = (len(self.regionprops_data) != len(self.data.obs))
-        drop_check = (len(self.data.obs) < np.max(self.data.obs.index.astype('int')))
+        #drop_check = (len(self.data.obs) < np.max(self.data.obs.index.astype('int')))
         if length_check and not drop_check:
             if self._in_gui: 
                 tk.messagebox.showwarning("Warning!", message = "Region property data and currently loaded .fcs data do not match in length!" +
@@ -703,9 +703,6 @@ class Analysis:
                 self.regionprops_panel = regionprops_panel
             else:
                 self.regionprops_panel = pd.read_csv(str(regionprops_panel))
-        if drop_check:
-            self.regionprops_data = self.regionprops_data.reset_index().drop('Object', axis = 1)
-            self.regionprops_data = self.regionprops_data.loc[self.data.obs.index,:]
 
         self.regionprops_panel.index = self.regionprops_panel['antigen']
         self.panel = pd.concat([self.panel, self.regionprops_panel], axis = 0)
@@ -2178,7 +2175,7 @@ class Analysis:
             main_df = pd.DataFrame()
             grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
             for ii,i in zip(grouped.index, grouped):
-                slicer = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
+                slicer = pd.DataFrame(i, index = for_fs.drop(["index", groupby], axis = 1).columns, columns = [ii])
                 main_df = pd.concat([main_df,slicer], axis = 1)
             cluster_centers = main_df.T
         else:
