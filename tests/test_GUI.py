@@ -232,17 +232,6 @@ def test_bio_label_launch():
     window.plot_heatmap()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
-    
-def test_load_project_classifier():
-    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
-    loading_window.load("Unsupervised_unsupervised1")
-    ### additionally check unsupervised details display
-    window = app.Tabs.px_classification.create.px_widg.detail_display()
-    assert isinstance(window, ctk.CTkToplevel)
-    window.destroy()
-    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
-    loading_window.load("lumen_epithelia_laminapropria")
-    assert True 
 
 def test_save_classifier():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
@@ -262,10 +251,21 @@ def test_load_assets_classifier():
     reference_window.destroy()
     check_channels_window.channel_corrector.save_changes()
 
+def test_load_project_classifier():
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
+    loading_window.load("Unsupervised_unsupervised1")
+    ### additionally check unsupervised details display
+    window = app.Tabs.px_classification.create.px_widg.detail_display()
+    assert isinstance(window, ctk.CTkToplevel)
+    window.destroy()
+    loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
+    loading_window.load("lumen_epithelia_laminapropria")
+    assert True 
+
 def test_segmentation():
     app.Tabs.px_classification.create.px_widg.segment_frame.input_folder.configure(variable = ctk.StringVar(value = "classification_maps"))
     app.Tabs.px_classification.create.px_widg.segment_frame.run_seg()
-    assert True 
+    assert len(os.listdir(proj_directory + "/masks/lumen_epithelia_laminapropria_direct_segmentation")) == 10, "Wrong number of images in sliced images folder!" 
 
 
 ### GUI Pixel classification tests (px class use)
@@ -282,6 +282,8 @@ def test_launch_classes_as_png():
     window.convert_to_png("pixel classification", options[0])
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
+    output_dir = f"{window.master.master.active_classifier_dir}/{options[0]}_PNG_conversion"
+    assert len(os.listdir(output_dir)) == 10, "Wrong number of PNGs exported!"
 
 def test_launch_bio_labels():
     window = px_use_widgets.load_and_display.launch_bio_labels()
@@ -292,12 +294,16 @@ def test_launch_bio_labels():
 def test_filter():
     px_use_widgets.filter.filter_list.checkbox_list[0].select()
     px_use_widgets.filter.filter_images()
-    assert True
+    assert len(os.listdir(proj_directory + "/images/img_filtered_on_")) == 10, "Wrong number of images in sliced images folder!"
 
 def test_classify_masks_on_mode():
+    name = "lumen_epithelia_laminapropria"
+    run_folder = proj_directory + f"/classy_masks/{name}"
+    output_folder = run_folder + f"/{name}"  
     px_use_widgets.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     px_use_widgets.classify_cells.do_classy_masks()
-    assert True
+    assert len(os.listdir(output_folder)) == 10, "Wrong number of classy masks exported!"
+    assert len(pd.read_csv(run_folder + f"/{name}.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
 
 def test_classify_masks_on_flowsom():
     px_use_widgets.classify_cells.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
@@ -889,5 +895,5 @@ def test_smooth_folder():
 
 def test_plot_class_centers():
     figure, df = palmettobug.plot_class_centers(fs)
-    assert isinstance(figure, matplotlib.figure.Figure)
+    assert isinstance(df, pd.DataFrame)
 
