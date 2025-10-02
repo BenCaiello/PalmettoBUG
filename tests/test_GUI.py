@@ -62,11 +62,9 @@ def test_launchExampleDataWindow():     ## now also handles the loading of the e
     loader_window.load_IMC()
     shutil.move(proj_directory + "/panel.csv", fetch_dir + "/panel.csv")   ## test load without panel file
     app.entrypoint.img_entry_func(proj_directory) 
-    ## delete auto-gen panel, restore example panel, & reload to restore
-    os.remove(proj_directory + "/panel.csv")
+    ## restore example panel & reload
     shutil.move(fetch_dir + "/panel.csv", proj_directory + "/panel.csv")  
     app.entrypoint.img_entry_func(proj_directory) 
-    # number = app.entrypoint.img_entry_func(proj_directory) 
 
 def test_bead_norm_window():   ## can only test GUI elements, and with fake 'data', since nothing in sample data to use
     window = palmettobug.Entrypoint.app_and_entry.Channel_normalization_window(master = app, channels = np.array(['fake1','fake2','fake3','fake4']), directory = "Not/really/here")
