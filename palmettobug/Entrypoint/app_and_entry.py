@@ -298,7 +298,7 @@ class EntryPoint(ctk.CTkFrame):
             extensions = [i[(i.rfind(".") + 1):].lower() for i in example_files]
             if ("mcd" in extensions) and ("tif" not in extensions) and ("tiff" not in extensions):
                 from_mcds = True
-            elif ("tiff" in extensions) or ("tif" in extensions):
+            elif (("tiff" in extensions) or ("tif" in extensions)) and ("mcd" not in extensions):
                 from_mcds = False
             else:
                 tk.messagebox.showwarning("Warning!", message = "The /raw sub-folder must contain .mcd or .tiff files, and ONLY .mcd or ONLY .tiff files (not a mixture)!")

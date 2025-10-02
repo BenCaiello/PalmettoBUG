@@ -2225,8 +2225,7 @@ class edt_reload_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.after(200, self.focus())
 
     def reload(self):
-
-
+        ''''''
         if self.choice.get() == "":
             message = 'Please select an EDT to load!'
             tk.messagebox.showwarning("Warning!", message = message)
