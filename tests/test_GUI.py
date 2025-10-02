@@ -299,7 +299,7 @@ def test_filter():
 def test_classify_masks_on_mode():
     name = "lumen_epithelia_laminapropria"
     run_folder = proj_directory + f"/classy_masks/{name}"
-    output_folder = run_folder + f"/{name}"  
+    output_folder = run_folder + f"/primary_masks"  
     px_use_widgets.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     px_use_widgets.classify_cells.do_classy_masks()
     assert len(os.listdir(output_folder)) == 10, "Wrong number of classy masks exported!"
