@@ -3,6 +3,7 @@ import shutil
 
 import numpy as np
 import pandas as pd
+import tifffile as tf
 import anndata
 import matplotlib
 import customtkinter as ctk
@@ -798,7 +799,7 @@ def test_launch_edt():
 def test_edt_reload_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_reload_window()
     options = [i for i in sorted(os.listdir(window.folder)) if i.lower().find(".csv") != -1]
-    window.choice.configure(variable = ctk.StringVar(value = proj_directory + "/Analyses/test_analysis/spatial_edts/lumen_epithelia_laminapropria.csv"))
+    window.choice.configure(variable = ctk.StringVar(value = "lumen_epithelia_laminapropria.csv"))
     window.reload()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
