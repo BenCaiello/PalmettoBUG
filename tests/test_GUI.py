@@ -58,10 +58,13 @@ def test_launchExampleDataWindow():     ## now also handles the loading of the e
     global loader_window
     loader_window = app.entrypoint.launchExampleDataWindow()
     assert isinstance(loader_window, ctk.CTkToplevel)
-    
-
+    shutil.move(proj_directory + "/panel.csv", fetch_dir + "/panel.csv")   ## first load without panel file
     loader_window.entry.configure(textvariable = ctk.StringVar(value = fetch_dir))
     loader_window.load_IMC()
+    ## delete auto-gen panel, restore example panel, & load again
+    os.remove(proj_directory + "/panel.csv")
+    shutil.move(fetch_dir + "/panel.csv", proj_directory + "/panel.csv")  
+    app.entrypoint.img_entry_func(proj_directory) 
     # number = app.entrypoint.img_entry_func(proj_directory) 
 
 def test_bead_norm_window():   ## can only test GUI elements, and with fake 'data', since nothing in sample data to use
@@ -162,8 +165,8 @@ def test_unsupervised():
     app.Tabs.px_classification.create.px_widg.predictions_frame.one_img.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.px_classification.create.px_widg.image_directory + "/img")[0]))
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     # app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
-    assert True 
-
+    assert True
+    
 def test_accept_classifier_name():   ## supervised window
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
     window = loading_window.accept_classifier_name("lumen_epithelia_laminapropria", app.Tabs.px_classification.create.px_widg)
@@ -182,7 +185,10 @@ def test_accept_classifier_name():   ## supervised window
     window.class_dict_maker.row_list[1][1].configure(textvariable = ctk.StringVar(value = 'epithelia'))
     window.class_dict_maker.row_list[2][1].configure(textvariable = ctk.StringVar(value = 'laminapropria'))
     window.set_up_classifier_details()
-    assert True 
+    global pixel_class_object
+    pixel_class_object = app.Tabs.px_classification.create.px_widg.PxQuPy_class   
+    assert pixel_class_object.details_dict["number_of_input_neurons"] == 1 * (len(window.features_list.checkbox_list) - 7) * 2, "Number of input neurons not the expected amount"
+
 
 def test_training():
     training_dir = app.Tabs.px_classification.create.px_widg.classifier_dir + "/lumen_epithelia_laminapropria/training_labels"
@@ -198,7 +204,14 @@ def test_prediction():
     #app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     app.Tabs.px_classification.create.px_widg.predictions_frame.all.select()
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
-    assert True 
+
+    images_dir = proj_directory + "/images/img"
+    prediction_paths = ["".join([pixel_class_object.output_directory,"/",i]) for i in sorted(os.listdir(pixel_class_object.output_directory))]  
+    image_paths = ["".join([images_dir,"/",i]) for i in sorted(os.listdir(images_dir))]  
+    assert len(prediction_paths) == 10, "There are not 10 px class predictions (one for each image)!"
+    assert (tf.imread(prediction_paths[0]).shape == tf.imread(image_paths[0]).shape[1:]), "The X/Y dimensions of the source images and output class maps should be the same!"
+    assert (tf.imread(prediction_paths[1]).astype('int') != tf.imread(prediction_paths[1])).sum() == 0, "The pixel class maps shoul be integers!"
+    assert tf.imread(prediction_paths[2]).max() <= 3, "There should be no pixels >3 (the number of prediction classes)"
 
 def test_detail_display():
     window = app.Tabs.px_classification.create.px_widg.detail_display()
@@ -670,7 +683,7 @@ def test_directoy_display():
     app.Tabs.py_exploratory.analysiswidg.directory_display.switch_deleter()
     app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].invoke()
     app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].invoke()
-    
+
 
 ### GUI Spatial tests
 def test_plot_cell_maps_window():
@@ -786,8 +799,8 @@ def test_launch_edt():
 def test_edt_reload_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_reload_window()
     options = [i for i in sorted(os.listdir(window.folder)) if i.lower().find(".csv") != -1]
-    window.choice.configure(variable = ctk.StringVar(value = options[0]))
-    #window.reload()
+    window.choice.configure(variable = ctk.StringVar(value = proj_directory + "/Analyses/test_analysis/spatial_edts/lumen_epithelia_laminapropria.csv"))
+    window.reload()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -821,6 +834,12 @@ def test_reload():    ### do after spatial, to repserve merging, etc.
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
 
+def test_load_from_TIFFs():     ## now also handles the loading of the example data
+    tiff_proj_dir = fetch_dir + "/tiff"
+    os.mkdir(tiff_proj_dir)
+    shutil.copytree(proj_directory + "/images/img", tiff_proj_dir + "/raw")
+    app.entrypoint.img_entry_func(tiff_proj_dir) 
+
 def test_non_GUI_TableLaunch():
     path_to_df = proj_directory + "/panel.csv"
     panel_df = pd.read_csv(path_to_df)
@@ -835,3 +854,19 @@ def test_salamification():
     salami = my_analysis.space_analysis.do_salamification()
     figure = my_analysis.space_analysis.plot_salami(condition = "SSA", radii = 25)
     assert isinstance(figure, matplotlib.figure.Figure)
+
+def test_Spatial_Analysis():
+    global spatial_analysis
+    spatial_analysis = palmettobug.SpatialAnalysis()
+    spatial_analysis.add_Analysis(my_analysis)
+    spatial_analysis.add_Analysis(my_analysis)
+    integer = spatial_analysis.estimate_SpaceANOVA_min_radii()
+    assert isinstance(integer, int)
+
+def test_smooth_folder():
+    palmettobug.smooth_folder(input_folder = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria/classification_maps", 
+                  output_folder = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria/smoothed_classification_maps", 
+                  class_num = 3, 
+                  threshold = 3, 
+                  search_radius = 1,
+                  )
