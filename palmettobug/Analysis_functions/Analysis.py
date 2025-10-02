@@ -688,7 +688,7 @@ class Analysis:
         '''
         length_check = (len(self.regionprops_data) != len(self.data.obs))
         #drop_check = (len(self.data.obs) < np.max(self.data.obs.index.astype('int')))
-        if length_check and not drop_check:
+        if length_check:
             if self._in_gui: 
                 tk.messagebox.showwarning("Warning!", message = "Region property data and currently loaded .fcs data do not match in length!" +
                                            "\nAborting regionprops load")

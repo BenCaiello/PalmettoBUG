@@ -58,10 +58,11 @@ def test_launchExampleDataWindow():     ## now also handles the loading of the e
     global loader_window
     loader_window = app.entrypoint.launchExampleDataWindow()
     assert isinstance(loader_window, ctk.CTkToplevel)
-    shutil.move(proj_directory + "/panel.csv", fetch_dir + "/panel.csv")   ## first load without panel file
     loader_window.entry.configure(textvariable = ctk.StringVar(value = fetch_dir))
     loader_window.load_IMC()
-    ## delete auto-gen panel, restore example panel, & load again
+    shutil.move(proj_directory + "/panel.csv", fetch_dir + "/panel.csv")   ## test load without panel file
+    app.entrypoint.img_entry_func(proj_directory) 
+    ## delete auto-gen panel, restore example panel, & reload to restore
     os.remove(proj_directory + "/panel.csv")
     shutil.move(fetch_dir + "/panel.csv", proj_directory + "/panel.csv")  
     app.entrypoint.img_entry_func(proj_directory) 
