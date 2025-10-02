@@ -297,7 +297,7 @@ def test_filter():
     assert len(os.listdir(proj_directory + "/images/img_filtered_on_")) == 10, "Wrong number of images in sliced images folder!"
 
 def test_classify_masks_on_mode():
-    name = "lumen_epithelia_laminapropria"
+    name = "lumen_epithelia_laminapropria_expanded_deepcell_masks"
     run_folder = proj_directory + f"/classy_masks/{name}"
     output_folder = run_folder + f"/primary_masks"  
     px_use_widgets.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
