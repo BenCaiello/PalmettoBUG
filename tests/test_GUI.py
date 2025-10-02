@@ -683,7 +683,7 @@ def test_directoy_display():
     app.Tabs.py_exploratory.analysiswidg.directory_display.switch_deleter()
     app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].invoke()
     app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].invoke()
-
+    
 
 ### GUI Spatial tests
 def test_plot_cell_maps_window():
