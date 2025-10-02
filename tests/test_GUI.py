@@ -853,6 +853,7 @@ def test_load_from_TIFFs():     ## now also handles the loading of the example d
     image_proc = app.entrypoint.img_entry_func(tiff_proj_dir) 
     image_proc.raw_to_img(0.85)
 
+
 def test_non_GUI_TableLaunch():
     path_to_df = proj_directory + "/panel.csv"
     panel_df = pd.read_csv(path_to_df)
@@ -888,3 +889,4 @@ def test_smooth_folder():
 def test_plot_class_centers():
     figure, df = palmettobug.plot_class_centers(fs)
     assert isinstance(figure, matplotlib.figure.Figure)
+
