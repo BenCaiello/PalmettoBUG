@@ -101,6 +101,7 @@ def test_call_intersection_difference():
     intersect = app.entrypoint.image_proc_widg.call_intersection_difference()
     intersect.masks_folder1.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     intersect.masks_folder2.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
+    intersect.kind2.configure(variable = ctk.StringVar(value = "two-way"))
     intersect.read_values()
     assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks")) == 10), "Mask intersection function failed!"
     intersect.destroy()
@@ -481,7 +482,7 @@ def test_launch_plot_UMAP_window():     ### this window handles UMAP, PCA, and f
     figure = window.plot_UMAP(subsetting_column = 'condition', color_column = "HistoneH3", filename = 'UMAP_condition', kind = 'UMAP')
     assert isinstance(figure, matplotlib.figure.Figure), "Facetted UMAP plot did not return a matplotlib figure"
 
-    figure = window.plot_UMAP(subsetting_column = 'condition', color_column = "patient_id", filename = 'UMAP_condition', kind = 'PCA')
+    figure = window.plot_UMAP(subsetting_column = 'condition', color_column = "patient_id", filename = 'PCA_facet', kind = 'PCA')
     assert isinstance(figure, matplotlib.figure.Figure), "Facetted PCA plot did not return a matplotlib figure"
 
     figure = window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'UMAP_single', kind = 'UMAP')
