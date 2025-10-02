@@ -864,7 +864,7 @@ def test_Spatial_Analysis():
     assert isinstance(integer, int)
 
 def test_smooth_folder():
-    palmettobug.smooth_folder(input_folder = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria/classification_maps", 
+    palmettobug.Pixel_Classification.Classifiers.smooth_folder(input_folder = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria/classification_maps", 
                   output_folder = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria/smoothed_classification_maps", 
                   class_num = 3, 
                   threshold = 3, 
