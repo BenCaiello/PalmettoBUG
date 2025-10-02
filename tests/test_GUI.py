@@ -110,6 +110,12 @@ def test_call_region_measurement():
     region_meas.output_folder.configure(textvariable = ctk.StringVar(value = "test_analysis"))
     region_meas.masks_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     region_meas.accept_values.invoke()
+    ## now without re_do selected
+    region_meas = app.entrypoint.image_proc_widg.call_region_measurement()
+    region_meas.re_do.deselect()
+    region_meas.output_folder.configure(textvariable = ctk.StringVar(value = "test_analysis2"))
+    region_meas.masks_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
+    region_meas.accept_values.invoke()
     analysis_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analyses_dir + "/test_analysis"
     intensities_dir = analysis_dir + "/intensities"
     assert(len(os.listdir(analysis_dir + "/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
@@ -119,9 +125,10 @@ def test_call_to_Analysis():
     ## pre load metadata / analysis panel into analysis directory so that Analysis loads properly
     Analysis_panel = proj_directory + "/Analyses/Analysis_panel.csv"
     metadata = proj_directory + "/Analyses/metadata.csv"
-    shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
-    shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
+    #shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
+    #shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
     analysis_loader = app.entrypoint.image_proc_widg.call_to_Analysis()
+    analysis_loader.checkbox.select()
     analysis_loader.analysis_choice.configure(variable = ctk.StringVar(value = 'test_analysis'))
     analysis_loader.run()
     app.Tabs.tables.tablewidget.toggle_delete_column("disabled")
@@ -439,6 +446,7 @@ def test_spatial_leiden():
 
 def test_launch_cluster_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_window()
+    global fs
     w_window, fs = window.run_clustering()
     w_window.destroy()
     figure = my_analysis._plot_stars_CNs(fs)
@@ -472,6 +480,9 @@ def test_launch_plot_UMAP_window():     ### this window handles UMAP, PCA, and f
 
     figure = window.plot_UMAP(subsetting_column = 'condition', color_column = "HistoneH3", filename = 'UMAP_condition', kind = 'UMAP')
     assert isinstance(figure, matplotlib.figure.Figure), "Facetted UMAP plot did not return a matplotlib figure"
+
+    figure = window.plot_UMAP(subsetting_column = 'condition', color_column = "patient_id", filename = 'UMAP_condition', kind = 'PCA')
+    assert isinstance(figure, matplotlib.figure.Figure), "Facetted PCA plot did not return a matplotlib figure"
 
     figure = window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'UMAP_single', kind = 'UMAP')
     assert isinstance(figure, matplotlib.figure.Figure), "UMAP plot did not return a matplotlib figure"
@@ -659,6 +670,7 @@ def test_launch_data_table_exportation_window():
     window.subset_frame.columns_keep_or_no[0].select()
     window.subset_frame.column_values_list[0].insert("0.0", f'{value},')
     window.grouping.checkbox_list[3].select()
+    window.grouping.checkbox_list[2].select()
     window.file_name_entry.configure(textvariable = ctk.StringVar(value = "subset_grouped_data_table"))
     df = window.export_table()
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
@@ -669,7 +681,7 @@ def test_launch_data_table_exportation_window():
     window.destroy()
 
 def test_facetted_heatmap():
-    path_to_svg = my_analysis._plot_facetted_heatmap("facetted_heatmap", "condition")
+    path_to_svg = my_analysis._plot_facetted_heatmap("facetted_heatmap", "sample_id")
     assert path_to_svg.rfind(".svg") != -1
     assert os.path.exists(path_to_svg)
 
@@ -838,7 +850,8 @@ def test_load_from_TIFFs():     ## now also handles the loading of the example d
     tiff_proj_dir = fetch_dir + "/tiff"
     os.mkdir(tiff_proj_dir)
     shutil.copytree(proj_directory + "/images/img", tiff_proj_dir + "/raw")
-    app.entrypoint.img_entry_func(tiff_proj_dir) 
+    image_proc = app.entrypoint.img_entry_func(tiff_proj_dir) 
+    image_proc.raw_to_img(0.85)
 
 def test_non_GUI_TableLaunch():
     path_to_df = proj_directory + "/panel.csv"
@@ -871,3 +884,7 @@ def test_smooth_folder():
                   threshold = 3, 
                   search_radius = 1,
                   )
+
+def test_plot_class_centers():
+    figure, df = palmettobug.plot_class_centers(fs)
+    assert isinstance(figure, matplotlib.figure.Figure)

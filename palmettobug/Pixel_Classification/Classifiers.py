@@ -1735,7 +1735,6 @@ def classify_one(img: np.ndarray[float],
 
 ### Now, how to use px classification once done....:
 def plot_class_centers(flowsom: FlowSOM, 
-                       panel: pd.DataFrame,
                        **kwargs) -> tuple[plt.figure, pd.DataFrame]: 
     ''' 
     This plots the heatmap of the centroids of the metaclusters of a flowsom. It is useful to identifying what each 
@@ -1749,9 +1748,6 @@ def plot_class_centers(flowsom: FlowSOM,
         flowsom (flowsom.FlowSOM):
             Contains the information to be plotted.
 
-        panel (pd.Dataframe):
-            The panel of antigens (note -- may be deprecate-able and use cluster_data.var.index)
-
     Returns:
         a matplotlib figure and a pandas dataframe 
     '''
@@ -1761,7 +1757,7 @@ def plot_class_centers(flowsom: FlowSOM,
     obs = pd.DataFrame(fs.obs)
     cluster_data["metaclustering"] = list(obs["metaclustering"])   
     cluster_centers = cluster_data.groupby("metaclustering").mean()
-    cluster_centers.columns = panel.index
+    cluster_centers.columns = fs.var.index
     percentile = [f''' ({np.round(obs.groupby("metaclustering").sum()["percentages"].iloc[i] * 100, 2)})%''' for i in range(0, len(obs.groupby("metaclustering").sum()))]
     cluster_centers.index = (obs.groupby("metaclustering").sum().index + 1).astype('string') + percentile
     try:

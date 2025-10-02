@@ -330,7 +330,7 @@ class EntryPoint(ctk.CTkFrame):
         project_log = Project_logger(self.master.directory).return_log()
         project_log.info(f"Start log in directory {self.master.directory}/Logs after loading from MCD files")
         self.master.set('MCD / Image Processing')
-        return
+        return Experiment
 
     def normalize_fcs_choice(self, directory: Union[None, str] = None) -> None:
         self.master.py_exploratory.X = self.X_Y_entry.entry_X.get()
