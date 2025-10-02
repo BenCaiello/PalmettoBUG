@@ -932,17 +932,13 @@ class ImageAnalysis:
                 if (temp == k).sum() > pixel_threshold:
                     object_counter += 1
 
-            if kind == "intersection1":
+            if (kind == "intersection1") or (kind == "intersection2"):
                 if object_counter < object_threshold:
                     mask1[mask1 == j] = 0   ## delete masks from mask1 that do not have sufficient overlap with objects from mask2
 
-            if kind == 'difference1':
+            if (kind == 'difference1') or (kind == "difference2"):
                 if object_counter > object_threshold:
                     mask1[mask1 == j] = 0   ## delete masks from mask1 that have sufficient overlap with objects from mask2
-
-            if kind == "difference2":
-                if object_counter > object_threshold:
-                    mask1[mask1 == j] = 0
                 
         if (kind =="difference2") or (kind =="intersection2"):
             mask_values = [i for i in np.unique(mask2) if i > 0]     ## if two-way difference, repeat the process but look from mask2 --> mask1 instead, then add kept mask2 to output
