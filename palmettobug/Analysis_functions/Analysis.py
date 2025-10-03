@@ -560,11 +560,11 @@ class Analysis:
         ## Load spatial information, if available
         try:
             self.data.uns['areas'] = data['areas'] 
-            self.data = self.data[self.data.var['antigen'] != 'areas']  ### drop spatial columns from self.data.X as they are loaded for spatial analysis
+            self.data = self.data[:,self.data.var['antigen'] != 'areas']  ### drop spatial columns from self.data.X as they are loaded for spatial analysis
             cent_X = np.asarray(data['centroid_X'])
-            self.data = self.data[self.data.var['antigen'] != 'centroid_X']
+            self.data = self.data[:,self.data.var['antigen'] != 'centroid_X']
             cent_Y = np.asarray(data['centroid_Y'])
-            self.data = self.data[self.data.var['antigen'] != 'centroid_Y']
+            self.data = self.data[:,self.data.var['antigen'] != 'centroid_Y']
             obsm = np.zeros([2, len(cent_X)])
             obsm[0] = cent_X
             obsm[1] = cent_Y
@@ -1709,7 +1709,7 @@ class Analysis:
             data.obsm['X_scatter'] = data.X[:,np.array((data.var['antigen'] == antigen1) + (data.var['antigen'] == antigen2))]
             sc.tl.embedding_density(data, basis = 'scatter')
             sc.pl.embedding_density(data, basis = 'scatter', color_map = 'jet', size = size, alpha = alpha, ax = ax)
-        sc.pl.scatter(data, antigen1, antigen2, color = hue, alpha = alpha, size = size, ax = ax)
+        sc.pl.scatter(data, antigen1, antigen2, color = hue, alpha = alpha, size = size, ax = ax, show = False)
 
         if filename is not None:
             figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
