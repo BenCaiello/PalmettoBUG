@@ -76,7 +76,7 @@ def test_bead_norm_window():   ## can only test GUI elements, and with fake 'dat
 
 ### GUI Image Analysis tests
 def test_call_raw_to_img_part_1_hpf():
-    app.entrypoint.image_proc_widg.buttonframe.Region_Measurements.event_generate("<Event>")
+    app.entrypoint.image_proc_widg.buttonframe.Region_Measurements.event_generate("<Enter>")
     hpf_window = app.entrypoint.image_proc_widg.call_raw_to_img_part_1_hpf()
     hpf_window.read_values()
     images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
@@ -84,8 +84,8 @@ def test_call_raw_to_img_part_1_hpf():
 
 def test_call_instanseg_segmentor():
     instanseg_window = app.entrypoint.image_proc_widg.call_instanseg_segmentor()
-    instanseg_window.image_folder.event_generate("<Event>")
-    instanseg_window.single_image.event_generate("<Event>")
+    instanseg_window.image_folder.event_generate("<Enter>")
+    instanseg_window.single_image.event_generate("<Enter>")
     instanseg_window.single_image.configure(variable = ctk.StringVar(value = os.listdir(proj_directory + "/images/img")[0]))
     w_window = instanseg_window.read_values()
     w_window.destroy()
@@ -94,7 +94,7 @@ def test_call_instanseg_segmentor():
 
 def test_call_mask_expand():
     expander = app.entrypoint.image_proc_widg.call_mask_expand()
-    expander.image_folder.event_generate("<Event>")
+    expander.image_folder.event_generate("<Enter>")
     expander.image_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     expander.output_folder.configure(textvariable = ctk.StringVar(value = "expanded_deepcell_masks"))
     expander.read_values()
@@ -103,8 +103,8 @@ def test_call_mask_expand():
 
 def test_call_intersection_difference():
     intersect = app.entrypoint.image_proc_widg.call_intersection_difference()
-    intersect.masks_folder1.event_generate("<Event>")
-    intersect.masks_folder2.event_generate("<Event>")
+    intersect.masks_folder1.event_generate("<Enter>")
+    intersect.masks_folder2.event_generate("<Enter>")
     intersect.masks_folder1.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     intersect.masks_folder2.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     intersect.kind2.configure(variable = ctk.StringVar(value = "two-way"))
@@ -114,8 +114,8 @@ def test_call_intersection_difference():
 
 def test_call_region_measurement():
     region_meas = app.entrypoint.image_proc_widg.call_region_measurement()
-    region_meas.image_folder.event_generate("<Event>")
-    region_meas.masks_folder.event_generate("<Event>")
+    region_meas.image_folder.event_generate("<Enter>")
+    region_meas.masks_folder.event_generate("<Enter>")
     region_meas.output_folder.configure(textvariable = ctk.StringVar(value = "test_analysis"))
     region_meas.masks_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     region_meas.accept_values.invoke()
@@ -137,7 +137,7 @@ def test_call_to_Analysis():
     #shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
     #shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
     analysis_loader = app.entrypoint.image_proc_widg.call_to_Analysis()
-    analysis_loader.analysis_choice.event_generate("<Event>")
+    analysis_loader.analysis_choice.event_generate("<Enter>")
     analysis_loader.checkbox.select()
     analysis_loader.analysis_choice.configure(variable = ctk.StringVar(value = 'test_analysis'))
     analysis_loader.run()
