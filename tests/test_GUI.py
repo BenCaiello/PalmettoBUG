@@ -351,7 +351,7 @@ def test_classify_masks_on_mode():
     px_use_widgets.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     px_use_widgets.classify_cells.do_classy_masks()
     assert len(os.listdir(output_folder)) == 10, "Wrong number of classy masks exported!"
-    assert len(pd.read_csv(run_folder + f"/{name}.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
+    assert len(pd.read_csv(run_folder + f"/{name}_cell_classes.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
 
 def test_classify_masks_on_flowsom():
     px_use_widgets.classify_cells.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
