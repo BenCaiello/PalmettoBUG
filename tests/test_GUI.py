@@ -606,7 +606,7 @@ def test_launch_cluster_merging():
     window.destroy()
 
 def test_launch_classy_masker():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()\
+    window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
     window.clustering.event_generate("<Enter>")
     data_df = window.classy_mask(clustering = "metaclustering")
     assert isinstance(window, ctk.CTkToplevel)
