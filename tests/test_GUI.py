@@ -265,7 +265,7 @@ def test_load_assets_classifier():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
     loading_window.load_project.project_options.event_generate("<Enter>")
     load_from_assets = loading_window.launch_load_window(app.Tabs.px_classification.create.px_widg)
-    load_from_assets.load_project.optionmenu.event_generate("<Enter>")
+    load_from_assets.optionmenu.event_generate("<Enter>")
     assert isinstance(load_from_assets, ctk.CTkToplevel)
     load_from_assets.choice("lumen_epithelia_laminapropria")
     check_channels_window = load_from_assets.load_classifier(name = "lumen_epithelia_laminapropria2", classifier_load_name = "lumen_epithelia_laminapropria")
@@ -370,7 +370,7 @@ def test_mask_extend():
     px_use_widgets.merge_class_masks.run_merging()
     after_extend = os.listdir(proj_directory + "/masks")
     output_directory_folder = [i for i in after_extend if i not in before_extend][0]
-    assert len(os.listdir(output_directory_folder)) == 10, "Wrong number of extended masks exported!"
+    assert len(os.listdir(proj_directory + "/masks/" + output_directory_folder)) == 10, "Wrong number of extended masks exported!"
 
 def test_whole_class_analysis_1():
     px_use_widgets.whole_class.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
