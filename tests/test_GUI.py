@@ -173,7 +173,7 @@ def test_unsupervised():
     app.Tabs.px_classification.create.px_widg.predictions_frame.one_img.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.px_classification.create.px_widg.image_directory + "/img")[0]))
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     # app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
-    assert True
+    assert len(os.listdir(app.Tabs.px_classification.create.px_widg.unsupervised.output_dir)) == 1, "Wrong number of classification maps generated!"
     
 def test_accept_classifier_name():   ## supervised window
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
@@ -237,7 +237,7 @@ def test_save_classifier():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
     app.Tabs.px_classification.create.px_widg.save_classifier()
     loading_window.destroy()
-    assert True 
+    assert len(os.listdir(palmetto.Pixel_Classification.Classifiers_GUI.PALMETTO_BUG_assets_classifier_folder)) == 1
 
 def test_load_assets_classifier():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
@@ -323,13 +323,16 @@ def test_secondary_FlowSOM_merge():
     secondary_FlowSOM_window.run_labeling()
 
 def test_mask_extend():
+    before_extend  = os.listdir(proj_directory + "/masks")
     px_use_widgets.merge_class_masks.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     options = [i for i in sorted(os.listdir(px_use_widgets.merge_class_masks.master.main_directory + "/classy_masks")) if i.find(".") == -1]  
     px_use_widgets.merge_class_masks.classy_mask_option_menu.configure(variable = ctk.StringVar(value = options[0]))
     px_use_widgets.merge_class_masks.output_name.configure(textvariable = ctk.StringVar(value = "extended_masks"))
     px_use_widgets.merge_class_masks.select_table.checkbox_list[1].select()
     px_use_widgets.merge_class_masks.run_merging()
-    assert True
+    after_extend = os.listdir(proj_directory + "/masks")
+    output_directory_folder = [i for i in after_extend if i not in before_extend]
+    assert len(os.listdir(output_directory_folder)) == 10, "Wrong number of extended masks exported!"
 
 def test_whole_class_analysis_1():
     px_use_widgets.whole_class.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
@@ -396,6 +399,9 @@ def test_launch_combat_window():
 
 def test_launch_scatterplot():
     window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
+    window.antigen1.event_generate("<Enter>")
+    window.antigen2.event_generate("<Enter>")
+    window.hue.event_generate("<Enter>")
     window.antigen1.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
     window.antigen2.configure(variable = ctk.StringVar(value = "HistoneH3"))
     window.hue.configure(variable = ctk.StringVar(value = "None"))
@@ -405,6 +411,8 @@ def test_launch_scatterplot():
 
 def test_launch_Plot_Counts_per_ROI_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_Counts_per_ROI_window()
+    window.group.event_generate("<Enter>")
+    window.color.event_generate("<Enter>")
     figure = window.plot_Counts_per_ROI()
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(figure, matplotlib.figure.Figure), "Count plot did not return a matplotlib figure"
@@ -412,6 +420,7 @@ def test_launch_Plot_Counts_per_ROI_window():
 
 def test_launch_MDS_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_MDS_window()
+    window.color.event_generate("<Enter>")
     figure, df = window.plot_MDS()
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(figure, matplotlib.figure.Figure), "MDS plot did not return a matplotlib figure"
@@ -427,6 +436,7 @@ def test_launch_NRS_window():
 
 def test_launch_Plot_histograms_per_ROI_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_histograms_per_ROI_window()
+    window.color.event_generate("<Enter>")
     figure = window.plot_ROI_histograms()
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(figure, matplotlib.figure.Figure), "ROI histogram plot did not return a matplotlib figure"
@@ -482,6 +492,11 @@ def test_launch_leiden():
 
 def test_launch_plot_UMAP_window():     ### this window handles UMAP, PCA, and facetted varieties of both
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_UMAP_window()
+    ## invoke events:
+    window.UMAP_or_PCA.event_generate("<Enter>")
+    window.sub_column.event_generate("<Enter>")
+    window.cluster_marker.event_generate("<Enter>")
+
     figure = window.plot_UMAP(subsetting_column = 'antigens', color_column = "HistoneH3", filename = 'UMAP_antigens', kind = 'UMAP')
     assert isinstance(figure, matplotlib.figure.Figure), "UMAP facetted by antigen plot did not return a matplotlib figure"
 
@@ -497,7 +512,7 @@ def test_launch_plot_UMAP_window():     ### this window handles UMAP, PCA, and f
     figure = window.plot_UMAP(subsetting_column = 'Do not Facet', color_column = "HistoneH3", filename = 'PCA_single', kind = 'PCA')
     assert isinstance(figure, matplotlib.figure.Figure), "PCA plot did not return a matplotlib figure"
 
-    assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(window, ctk.CTkToplevel)    
     window.destroy()
 
 def test_launch_Exprs_Heatmap_window():
@@ -509,6 +524,7 @@ def test_launch_Exprs_Heatmap_window():
 
 def test_launch_cluster_heatmap_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_heatmap_window()
+    window.k.event_generate("<Enter>")
     #window.pop_up.select()
     figure = window.plot_cluster_heatmap()
     assert isinstance(window, ctk.CTkToplevel)
@@ -528,6 +544,7 @@ def test_launch_distrib_window():
 
 def test_launch_ClusterVGroup():
     window = app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
+    window.clustering.event_generate("<Enter>")
     figure = window.plot_clusterV(clustering_column = 'metaclustering', 
                       type_of_graph = 'bar', 
                       type_of_comp = 'Raw Cluster values (no substraction of rest of dataset)', 
@@ -539,6 +556,8 @@ def test_launch_ClusterVGroup():
 
 def test_launch_plot_cluster_expression_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
+    window.clustering_option.event_generate("<Enter>")
+    window.antigen.event_generate("<Enter>")
     window.clustering_option.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.antigen.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
     figure = window.run_py_plot_cluster_histograms()
@@ -548,6 +567,7 @@ def test_launch_plot_cluster_expression_window():
 
 def test_launch_abundance_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_abundance_window()
+    window.k.event_generate("<Enter>")
     figure = window.plot_abundance(k = "metaclustering", by = "stacked barplot", filename = "Plot_12")
     assert isinstance(figure, matplotlib.figure.Figure), "abundance 1 plot did not return a matplotlib figure"
     figure = window.plot_abundance(k = "metaclustering", by = "cluster boxplot", filename = "Plot_112")
@@ -559,6 +579,9 @@ def test_launch_abundance_window():
 
 def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
+    window.column_type.event_generate("<Enter>")
+    window.cluster_to_table.event_generate("<Enter>")
+
     window.column_type.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.button.invoke()
     output_dict, table_launch = window.launch_stat_table("1", True, "metaclustering")
@@ -572,6 +595,7 @@ def test_launch_cluster_stats_window():
 
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
+    window.new.reload_merge.event_generate("<Enter>")
     for ii,i in enumerate(window.new.table.widgetframe['1']):
         value = ii % 4   ## generate 4 fake clusters
         i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
@@ -582,14 +606,19 @@ def test_launch_cluster_merging():
     window.destroy()
 
 def test_launch_classy_masker():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
+    window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()\
+    window.clustering.event_generate("<Enter>")
     data_df = window.classy_mask(clustering = "metaclustering")
     assert isinstance(window, ctk.CTkToplevel)
     #assert len(data_df) == len(my_analysis.back_up_data)
     window.destroy()
 
 def test_launch_abundance_ANOVAs_window():
+    app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.N_switch.event_generate("<Enter>")
     window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_abundance_ANOVAs_window()
+    window.column.event_generate("<Enter>")
+    window.condition1.event_generate("<Enter>")
+
     window.column.configure(variable = ctk.StringVar(value = "merging"))
     df, table_launch = window.run_ANOVAs()
     assert isinstance(table_launch, ctk.CTkToplevel)
@@ -616,6 +645,7 @@ def test_launch_abundance_ANOVAs_window():
 
 def test_run_state_ANOVAs_window():
     window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_state_ANOVAs_window()
+    window.clustering_column.event_generate("<Enter>")
     window.marker_class.configure(variable = ctk.StringVar(value = "type"))
     df, table_launch = window.run_state_ANOVAs()
     assert isinstance(window, ctk.CTkToplevel)
@@ -631,6 +661,8 @@ def test_plot_state_p_value_heatmap():
 
 def test_state_distribution_window():
     window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_state_distribution()
+    window.clustering.event_generate("<Enter>")
+    window.colorby.event_generate("<Enter>")
     window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     figure = window.plot()
     assert isinstance(window, ctk.CTkToplevel)
@@ -639,6 +671,11 @@ def test_state_distribution_window():
 
 def test_launch_cluster_save_load():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()
+    window.load_type.event_generate("<Enter>")
+    window.saver_button.event_generate("<Enter>")
+    window.load_identifier.event_generate("<Enter>")
+    window.load_identifier_from_px.event_generate("<Enter>")
+
     window.load_type.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.saver_button.invoke()
     window.load_identifier.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory + "/clusterings")[0]))
@@ -655,6 +692,7 @@ def test_launch_cluster_save_load():
 
 def test_launch_drop_restore():           ## filtering
     window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
+    window.choice_menu.event_generate("<Enter>")
     window.switch_column('sample_id')
     window.drop.checkbox_list[0].select()
     window.button1.invoke()
@@ -663,6 +701,7 @@ def test_launch_drop_restore():           ## filtering
 
 def test_launch_data_table_exportation_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window()
+    window.subset_frame.column_choice.event_generate("<Enter>")
     window.subset_command()
     window.grouping_command()
     window.plain_command()
@@ -697,7 +736,7 @@ def test_launch_regionprop():
     assert isinstance(window, ctk.CTkToplevel)
     window.accept_and_return(app.Tabs.py_exploratory.analysiswidg.cat_exp)
 
-def test_directoy_display():
+def test_directory_display():
     app.Tabs.py_exploratory.analysiswidg.directory_display.switch_deleter()
     app.Tabs.py_exploratory.analysiswidg.directory_display.switch_deleter()
     app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].invoke()
@@ -852,6 +891,7 @@ def test_reload():    ### do after spatial, to repserve merging, etc.
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
+    assert not palmettobug.ImageProcessing.ImageAnalysisClass._in_gui 
 
 def test_load_from_TIFFs():     ## now also handles the loading of the example data
     tiff_proj_dir = fetch_dir + "/tiff"
@@ -859,6 +899,7 @@ def test_load_from_TIFFs():     ## now also handles the loading of the example d
     shutil.copytree(proj_directory + "/images/img", tiff_proj_dir + "/raw")
     image_proc = app.entrypoint.img_entry_func(tiff_proj_dir) 
     image_proc.raw_to_img(0.85)
+    assert len(os.listdir(tiff_proj_dir + "/images/img")) == 10
 
 
 def test_non_GUI_TableLaunch():
@@ -885,13 +926,15 @@ def test_Spatial_Analysis():
     assert isinstance(integer, int)
 
 def test_smooth_folder():
-    os.mkdir(proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria/smoothed_classification_maps")
+    output_dir = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria/smoothed_classification_maps"
+    os.mkdir(output_dir)
     palmettobug.Pixel_Classification.Classifiers.smooth_folder(input_folder = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria/classification_maps", 
-                  output_folder = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria/smoothed_classification_maps", 
+                  output_folder = output_dir, 
                   class_num = 3, 
                   threshold = 3, 
                   search_radius = 1,
                   )
+    assert len(os.listdir(output_dir)) == 10
 
 def test_plot_class_centers():
     figure, df = palmettobug.plot_class_centers(fs)
