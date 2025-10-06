@@ -2698,10 +2698,10 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
             self.columns_keep_or_no = []
 
             allowed_columns_list = CLUSTER_NAMES + COLNAMES
-            to_list = [i for i in data_table.obs.columns if i in allowed_columns_list]
+            self.to_list = [i for i in data_table.obs.columns if i in allowed_columns_list]
 
             for ii,i in enumerate(data_table.obs.columns):
-                if i in to_list:
+                if i in self.to_list:
                     leader_checkbox = ctk.CTkCheckBox(master = self, text = f'column: {i}', onvalue = True, offvalue = False)
                     leader_checkbox.grid(row = ii + 2, column = 0, padx = 2, pady = 2)
                     self.columns_keep_or_no.append(leader_checkbox)
@@ -2709,7 +2709,7 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
                     column = data_table.obs[i].astype('str')
                     self.column_choice = self.special_optionmenu(master = self, values = column.unique(), row_number = ii)
                     self.column_choice.grid(row = ii + 2, column = 1, padx = 2, pady = 2)
-                    self.column_choice.bind("<Enter>", lambda enter: self.refresh_export_column_choice(i, data_table))
+                    self.column_choice.bind("<Enter>", lambda enter: self.refresh_export_column_choice(i))
 
                     text_box_of_choices = ctk.CTkTextbox(master = self, activate_scrollbars = True, wrap = 'none')
                     text_box_of_choices.grid(row = ii + 2, column = 2, padx = 2, pady = 2)
@@ -2722,8 +2722,8 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
                     self.column_values_list.append(text_box_of_choices)
 
 
-        def refresh_export_column_choice(self, i, data_table):
-            column = data_table.obs[i].astype('str')
+        def refresh_export_column_choice(self, i):
+            column = self.data_table.obs[i].astype('str')
             if list(column.unique()) == []:
                 self.column_choice.configure(values = "")
                 return
@@ -3214,8 +3214,9 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                             alpha = {str(alpha)},
                                             filename = {str(filename)}""")
         if self.pop_up.get() is True:
-            Plot_window_display(figure)
+            display_window = Plot_window_display(figure)
             self.withdraw()
+            return display_window ## for testing
         else:
             self.destroy()
 

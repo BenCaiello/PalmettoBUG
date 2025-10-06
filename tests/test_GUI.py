@@ -438,8 +438,22 @@ def test_launch_scatterplot():
     window.antigen1.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
     window.antigen2.configure(variable = ctk.StringVar(value = "HistoneH3"))
     window.hue.configure(variable = ctk.StringVar(value = "None"))
-    window.button_plot.invoke()
+    display_window = window.plot_scatter(antigen1 = window.antigen1.get(), 
+                    antigen2 = window.antigen2.get(),
+                    hue = window.hue.get(),
+                    size = window.size.get(),
+                    alpha = window.alpha.get(),
+                    filename = window.filename.get().strip()))
     assert isinstance(window, ctk.CTkToplevel)
+    assert isinstance(display_window, ctk.CTkToplevel)
+    display_window.move_legend_x(1)
+    display_window.move_legend_y(1)
+    display_window.change_aspect(1.1)
+    display_window.change_aspect(0.9)
+    display_window.change_aspect(1.0)
+    display_window.resize_widget(7)
+    display_window.resize_text(7)
+    display_window.destroy()
     window.destroy()
 
 def test_launch_Plot_Counts_per_ROI_window():
@@ -730,7 +744,7 @@ def test_launch_drop_restore():           ## filtering
 
 def test_launch_data_table_exportation_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window()
-    window.subset_frame.refresh_export_column_choice()
+    window.subset_frame.refresh_export_column_choice(to_list[0])
     window.subset_command()
     window.grouping_command()
     window.plain_command()

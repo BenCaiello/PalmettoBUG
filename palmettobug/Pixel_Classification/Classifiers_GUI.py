@@ -390,7 +390,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
                 pass
 
         def update_folder(self, image_folder: str) -> None:
-            self.refresh2()
+            self.refresh2(image_folder)
             self.choose_an_image.bind("<Enter>", lambda enter: self.refresh2(image_folder))
 
         def activate_buttons(self) -> None:
