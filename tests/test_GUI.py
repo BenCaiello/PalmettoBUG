@@ -434,6 +434,7 @@ def test_launch_scatterplot():
     window.refresh_scatter_antigen1()
     window.refresh_scatter_antigen2()
     window.refresh_scatter_hue()
+    #window.pop_up.select()
     window.antigen1.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
     window.antigen2.configure(variable = ctk.StringVar(value = "HistoneH3"))
     window.hue.configure(variable = ctk.StringVar(value = "None"))
@@ -556,7 +557,6 @@ def test_launch_Exprs_Heatmap_window():
 def test_launch_cluster_heatmap_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_heatmap_window()
     window.refresh_cluster_heatmap_k()
-    #window.pop_up.select()
     figure = window.plot_cluster_heatmap()
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(figure, matplotlib.figure.Figure), "Cluster medians Heatmap plot did not return a matplotlib figure"

@@ -240,7 +240,6 @@ class Spatial_py(ctk.CTkFrame):
                 label_1 = ctk.CTkLabel(self, text = "Conditions to Compare:")
                 label_1.grid(column = 0, row = 3)
 
-                condition_list = self.master.master.master_exp.data.obs['condition'].unique()
                 comparison_list = self.comparisons_return()
 
                 self.C1 = ctk.CTkOptionMenu(self, values = comparison_list, variable = ctk.StringVar(value = comparison_list[0]))
@@ -294,6 +293,7 @@ class Spatial_py(ctk.CTkFrame):
                 self.celltype.configure(values = options)
 
             def comparisons_return():
+                condition_list = self.master.master.master_exp.data.obs['condition'].unique()
                 comparison_list = ["All (multicomparison)"]
                 already_used_list = []
                 for i in condition_list:

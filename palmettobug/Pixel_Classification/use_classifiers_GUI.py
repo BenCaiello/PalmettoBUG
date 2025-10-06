@@ -160,10 +160,6 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 return
             return bio_labels_window(self.master)
 
-        def refresh1(self) -> None:
-            classifier_folders = [i for i in sorted(os.listdir(self.master.classifier_dir)) if i.find(".") == -1]
-            self.classifier_option_menu.configure(values = classifier_folders)
-
     class filter_frame(ctk.CTkFrame):
         def __init__(self, master):
             super().__init__(master)
@@ -331,13 +327,13 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.add_panel_button.grid(padx = 3, pady = 3, column = 0, row = 5)
 
             self.add_panel_button.bind("<Enter>", self.refresh_panel_button)
-            refresh_panel_button()
+            self.refresh_panel_button()
 
             self.launch = ctk.CTkButton(master = self, text = "Launch Analysis!", command = self.launch_analysis)
             self.launch.grid(padx = 3, pady = 3, column = 0, row = 6)
 
             self.launch.bind("<Enter>", self.refresh_launch_button)
-            refresh_launch_button()
+            self.refresh_launch_button()
 
         def refresh_panel_button(self, enter = ""):
             try:

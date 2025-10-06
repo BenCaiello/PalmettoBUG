@@ -356,7 +356,7 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
                                             values = os.listdir(self.master.Experiment_object.directory_object.masks_dir), 
                                             variable = ctk.StringVar(value = ""))
         self.masks_folder2.grid(column = 1, row = 1, padx = 5, pady = 5)
-        self.masks_folder2.bind("<Enter>", refresh1)
+        self.masks_folder2.bind("<Enter>", self.refresh1)
 
         label3 = ctk.CTkLabel(master = self, text = "Pixel Threshold (integer > 1):")
         label3.grid(column = 0, row = 2, padx = 10, pady = 10)
@@ -673,8 +673,6 @@ class go_to_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.checkbox = ctk.CTkCheckBox(self, text = "Load metadata / panel file \n from save:", onvalue = True, offvalue = False)
         self.checkbox.grid(column = 0, row = 2)
 
-        analyses_dir = self.master.Experiment_object.directory_object.Analyses_dir
-
         self.analysis_choice = ctk.CTkOptionMenu(self, values = [""], variable = ctk.StringVar(value = ""))
         self.analysis_choice.grid(column = 1, row = 1, padx = 5, pady = 5)
         self.analysis_choice.bind("<Enter>", self.refresh10)
@@ -684,6 +682,7 @@ class go_to_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.after(200, lambda: self.focus())
 
     def refresh10(self, enter = ""):
+        analyses_dir = self.master.Experiment_object.directory_object.Analyses_dir
         self.analysis_options = [i for i in sorted(os.listdir(analyses_dir)) if i.find(".csv") == -1]
         self.analysis_choice.configure(values = self.analysis_options)
 
