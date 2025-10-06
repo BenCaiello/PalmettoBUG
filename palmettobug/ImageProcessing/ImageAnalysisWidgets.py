@@ -125,18 +125,20 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             self.Region_Measurements = ctk.CTkButton(self, text = "Do Region Measurements")
             self.Region_Measurements.grid(column = 2, row = 1, padx= 5, pady = 5)
             self.Region_Measurements.configure(state = "disabled")
-            def activate_region_measure(enter = ""):
+            
+            self.Region_Measurements.bind("<Enter>", self.activate_region_measure)
+
+            self.Convert_towards_analysis = ctk.CTkButton(self, text = "Load an existing Analysis")
+            self.Convert_towards_analysis.grid(column = 2, row = 4, padx= 5, pady = 5)
+            self.Convert_towards_analysis.configure(state = "disabled")
+
+        def activate_region_measure(enter = ""):
                 try:
                     masks_dir_list = [i for i in os.listdir(self.master.Experiment_object.directory_object.masks_dir) if i.find(".") == -1]  ## only want to list directories
                     if (len(masks_dir_list) > 0) and (self.Region_Measurements.cget("state") == "disabled"):
                         self.Region_Measurements.configure(state = "normal", command = self.master.call_region_measurement)
                 except Exception:
                     pass
-            self.Region_Measurements.bind("<Enter>", activate_region_measure)
-
-            self.Convert_towards_analysis = ctk.CTkButton(self, text = "Load an existing Analysis")
-            self.Convert_towards_analysis.grid(column = 2, row = 4, padx= 5, pady = 5)
-            self.Convert_towards_analysis.configure(state = "disabled")
 
         def initialize_buttons(self):
             ###This function allow the set up of the commands to coordinated by only activating buttons that 
@@ -270,24 +272,18 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label_8.grid(column = 0, row = 3, padx = 5, pady = 5)
 
         self.img_dir = self.master.Experiment_object.directory_object.img_dir
-        def refresh1(enter = ""):
-            self.image_folders = [i for i in sorted(os.listdir(self.img_dir)) if i.find(".") == -1]
-            self.image_folder.configure(values = self.image_folders)
+        
 
         self.image_folder = ctk.CTkOptionMenu(self, values = ["img"], variable = ctk.StringVar(value = "img"))
         self.image_folder.grid(column = 1, row = 3, padx = 5, pady = 5)
-        self.image_folder.bind("<Enter>", refresh1)
-
-        def refresh2(enter = ""):
-            self.filenames = [i for i in sorted(os.listdir(self.img_dir + '/' + self.image_folder.get())) if i.find(".tif") != -1]
-            self.single_image.configure(values = [""] + self.filenames)
+        self.image_folder.bind("<Enter>", self.refresh1)
 
         label_8 = ctk.CTkLabel(self, text = "Select a single image to segment:")
         label_8.grid(column = 0, row = 4, padx = 5, pady = 5)
 
         self.single_image = ctk.CTkOptionMenu(self, values = [""], variable = ctk.StringVar(value = ""))
         self.single_image.grid(column = 1, row = 4, padx = 5, pady = 5)
-        self.single_image.bind("<Enter>", refresh2)
+        self.single_image.bind("<Enter>", self.refresh2)
 
         self.re_do = ctk.CTkCheckBox(master = self, 
                     text = "Check to redo previous segmentations." 
@@ -297,6 +293,14 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         accept_values = ctk.CTkButton(master = self, text = "Accept choices and proceed", command = self.read_values)
         accept_values.grid(padx = 10, pady = 10)
+
+    def refresh1(enter = ""):
+        self.image_folders = [i for i in sorted(os.listdir(self.img_dir)) if i.find(".") == -1]
+        self.image_folder.configure(values = self.image_folders)
+
+    def refresh2(enter = ""):
+        self.filenames = [i for i in sorted(os.listdir(self.img_dir + '/' + self.image_folder.get())) if i.find(".tif") != -1]
+        self.single_image.configure(values = [""] + self.filenames)
 
     def read_values(self):
         ''''''
@@ -339,18 +343,12 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
 
         label1 = ctk.CTkLabel(master = self, text = "Choose First folder of Masks:")
         label1.grid(column = 0, row = 0, padx = 10, pady = 10)
-        def refresh1(enter = ""):
-            created_mask_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.masks_dir)) if i.find(".") == -1]
-            created_px_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir)) if i.find(".") == -1]
-            folders1 = created_mask_classifiers + created_px_classifiers
-            self.masks_folder1.configure(values = created_mask_classifiers)  ## don't really want pixel classifiers available as "first" masks
-            self.masks_folder2.configure(values = folders1)
 
         self.masks_folder1 = ctk.CTkOptionMenu(master = self, 
                                             values = [""], 
                                             variable = ctk.StringVar(value = ""))
         self.masks_folder1.grid(column = 1, row = 0, padx = 5, pady = 5)
-        self.masks_folder1.bind("<Enter>", refresh1)
+        self.masks_folder1.bind("<Enter>", self.refresh1)
 
         label2 = ctk.CTkLabel(master = self, text = "Choose Second folder of Masks  \n (or pixel classifier merged output):")
         label2.grid(column = 0, row = 1, padx = 10, pady = 10)
@@ -382,6 +380,13 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
 
         accept_values = ctk.CTkButton(master = self, text = "Transform!", command = self.read_values)
         accept_values.grid(padx = 10, pady = 10)
+
+    def refresh1(enter = ""):
+        created_mask_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.masks_dir)) if i.find(".") == -1]
+        created_px_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir)) if i.find(".") == -1]
+        folders1 = created_mask_classifiers + created_px_classifiers
+        self.masks_folder1.configure(values = created_mask_classifiers)  ## don't really want pixel classifiers available as "first" masks
+        self.masks_folder2.configure(values = folders1)
 
     def read_values(self):
         ''''''
@@ -458,25 +463,19 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label_8.grid(column = 0, row = 2)
 
         self.img_dir = self.master.Experiment_object.directory_object.img_dir
-        def refresh1(enter = ""):
-            self.image_folders = [i for i in sorted(os.listdir(self.img_dir)) if i.find(".") == -1]
-            self.image_folder.configure(values = self.image_folders)
 
         self.image_folder = ctk.CTkOptionMenu(self, values = ["img"], variable = ctk.StringVar(value = "img"))
         self.image_folder.grid(column = 1, row = 2, padx = 5, pady = 5)
-        self.image_folder.bind("<Enter>", refresh1)
+        self.image_folder.bind("<Enter>", self.refresh1)
 
         label_8 = ctk.CTkLabel(self, text = "Select a masks folder that will define the regions being measured:")
         label_8.grid(column = 0, row = 3)
 
         self.masks_dir = self.master.Experiment_object.directory_object.masks_dir
-        def refresh2(enter = ""):
-            self.masks_folders = [i for i in sorted(os.listdir(self.masks_dir)) if i.find(".") == -1]
-            self.masks_folder.configure(values = self.masks_folders)
 
         self.masks_folder = ctk.CTkOptionMenu(self, values = [""], variable = ctk.StringVar(value = ""))
         self.masks_folder.grid(column = 1, row = 3, padx = 5, pady = 5)
-        self.masks_folder.bind("<Enter>", refresh2)
+        self.masks_folder.bind("<Enter>", self.refresh2)
 
         label_9 = ctk.CTkLabel(self, text = "Name an Analysis folder where the csv / fcs files will be saved ready for analysis:")   
         label_9.grid(column = 0, row = 4)
@@ -493,7 +492,15 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         # self.advanced_region.grid(column = 1, row = 5, padx = 5, pady = 5)  ## TODO: fix branch point calculation error (in NAVis?) and reactivate
 
         self.after(200, lambda: self.focus())
-        
+
+    def refresh1(enter = ""):
+        self.image_folders = [i for i in sorted(os.listdir(self.img_dir)) if i.find(".") == -1]
+        self.image_folder.configure(values = self.image_folders)
+
+    def refresh2(enter = ""):
+        self.masks_folders = [i for i in sorted(os.listdir(self.masks_dir)) if i.find(".") == -1]
+        self.masks_folder.configure(values = self.masks_folders)
+
     def read_values(self, experiment_class):
         output_folder = self.output_folder.get()
         if folder_checker(output_folder):
@@ -624,13 +631,10 @@ class Expander_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
 
         self.masks_dir = self.master.Experiment_object.directory_object.masks_dir
-        def refresh3(enter = ""):
-            self.image_folders = [i for i in sorted(os.listdir(self.masks_dir)) if i.find(".") == -1]
-            self.image_folder.configure(values = self.image_folders)
 
         self.image_folder = ctk.CTkOptionMenu(self, values = [""], variable = ctk.StringVar(value = ""))
         self.image_folder.grid(column = 1, row = 1, padx = 5, pady = 5)
-        self.image_folder.bind("<Enter>", refresh3)
+        self.image_folder.bind("<Enter>", self.refresh3)
 
         label_9 = ctk.CTkLabel(self, text = "Name folder where the expanded masks will be save to:")
         label_9.grid(column = 0, row = 2)
@@ -643,6 +647,10 @@ class Expander_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
         
+    def refresh3(enter = ""):
+        self.image_folders = [i for i in sorted(os.listdir(self.masks_dir)) if i.find(".") == -1]
+        self.image_folder.configure(values = self.image_folders)
+
     def read_values(self):
         ### Read in the values and return it to the experiment
         self.master.call_mask_expand_part_2(int(self.value.get()), 
@@ -667,17 +675,17 @@ class go_to_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         analyses_dir = self.master.Experiment_object.directory_object.Analyses_dir
 
-        def refresh10(enter = ""):
-            self.analysis_options = [i for i in sorted(os.listdir(analyses_dir)) if i.find(".csv") == -1]
-            self.analysis_choice.configure(values = self.analysis_options)
-
         self.analysis_choice = ctk.CTkOptionMenu(self, values = [""], variable = ctk.StringVar(value = ""))
         self.analysis_choice.grid(column = 1, row = 1, padx = 5, pady = 5)
-        self.analysis_choice.bind("<Enter>", refresh10)
+        self.analysis_choice.bind("<Enter>", self.refresh10)
 
         button = ctk.CTkButton(self, text = "Go to Analysis!", command = self.run)
         button.grid(column = 1, row = 2, padx = 5, pady = 5)
         self.after(200, lambda: self.focus())
+
+    def refresh10(enter = ""):
+        self.analysis_options = [i for i in sorted(os.listdir(analyses_dir)) if i.find(".csv") == -1]
+        self.analysis_choice.configure(values = self.analysis_options)
 
     def run(self):
         choice = self.analysis_choice.get()

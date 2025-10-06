@@ -75,9 +75,7 @@ def test_bead_norm_window():   ## can only test GUI elements, and with fake 'dat
 
 ### GUI Image Analysis tests
 def test_call_raw_to_img_part_1_hpf():
-    app.update()
-    app.entrypoint.image_proc_widg.buttonframe.Region_Measurements.event_generate("<Enter>")
-    app.update()
+    app.entrypoint.image_proc_widg.buttonframe.activate_region_measure()
     hpf_window = app.entrypoint.image_proc_widg.call_raw_to_img_part_1_hpf()
     hpf_window.read_values()
     images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
@@ -85,10 +83,8 @@ def test_call_raw_to_img_part_1_hpf():
 
 def test_call_instanseg_segmentor():
     instanseg_window = app.entrypoint.image_proc_widg.call_instanseg_segmentor()
-    app.update()
-    instanseg_window.image_folder.event_generate("<Enter>")
-    instanseg_window.single_image.event_generate("<Enter>")
-    app.update()
+    instanseg_window.refresh1()
+    instanseg_window.refresh2()
     instanseg_window.single_image.configure(variable = ctk.StringVar(value = os.listdir(proj_directory + "/images/img")[0]))
     w_window = instanseg_window.read_values()
     w_window.destroy()
@@ -97,9 +93,7 @@ def test_call_instanseg_segmentor():
 
 def test_call_mask_expand():
     expander = app.entrypoint.image_proc_widg.call_mask_expand()
-    app.update()
-    expander.image_folder.event_generate("<Enter>")
-    app.update()
+    expander.refresh3()
     expander.image_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     expander.output_folder.configure(textvariable = ctk.StringVar(value = "expanded_deepcell_masks"))
     expander.read_values()
@@ -108,10 +102,8 @@ def test_call_mask_expand():
 
 def test_call_intersection_difference():
     intersect = app.entrypoint.image_proc_widg.call_intersection_difference()
-    app.update()
-    intersect.masks_folder1.event_generate("<Enter>")
-    intersect.masks_folder2.event_generate("<Enter>")
-    app.update()
+    intersect.refresh1()
+    intersect.refresh2()
     intersect.masks_folder1.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     intersect.masks_folder2.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     intersect.kind2.configure(variable = ctk.StringVar(value = "two-way"))
@@ -121,10 +113,8 @@ def test_call_intersection_difference():
 
 def test_call_region_measurement():
     region_meas = app.entrypoint.image_proc_widg.call_region_measurement()
-    app.update()
-    region_meas.image_folder.event_generate("<Enter>")
-    region_meas.masks_folder.event_generate("<Enter>")
-    app.update()
+    region_meas.refresh1()
+    region_meas.refresh2()
     region_meas.output_folder.configure(textvariable = ctk.StringVar(value = "test_analysis"))
     region_meas.masks_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     region_meas.accept_values.invoke()
@@ -146,9 +136,7 @@ def test_call_to_Analysis():
     #shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
     #shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
     analysis_loader = app.entrypoint.image_proc_widg.call_to_Analysis()
-    app.update()
-    analysis_loader.analysis_choice.event_generate("<Enter>")
-    app.update()
+    analysis_loader.refresh10()
     analysis_loader.checkbox.select()
     analysis_loader.analysis_choice.configure(variable = ctk.StringVar(value = 'test_analysis'))
     analysis_loader.run()
@@ -178,9 +166,7 @@ def test_setup_for_FCS():
 def test_unsupervised():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
     window = loading_window.unsupervised("unsupervised1", app.Tabs.px_classification.create.px_widg)
-    app.update()
-    window.image_choice.event_generate("<Enter>")
-    app.update()
+    window.image_choice.refresh7()
     window.training_number.configure(textvariable = ctk.StringVar(value = "25000"))
     window.image_choice.configure(variable = ctk.StringVar(value = 'img'))
     window.smoothing_choice.configure(variable = ctk.StringVar(value = '2'))
@@ -230,18 +216,13 @@ def test_training():
     assert True 
 
 def test_events_create_px():   ## do at least after a classifier has been loaded to limit risk of errors
-    app.update()
-    app.Tabs.px_classification.create.px_widg.start_frame.save_current_classifier_to_assets.event_generate("<Enter>")
-    app.Tabs.px_classification.create.px_widg.start_frame.pixel_heatmap.event_generate("<Enter>")
-
-    app.Tabs.px_classification.create.px_widg.Napari_frame.choose_folder.event_generate("<Enter>")
-    app.Tabs.px_classification.create.px_widg.Napari_frame.choose_an_image.event_generate("<Enter>")
-
-    app.Tabs.px_classification.create.px_widg.predictions_frame.folder.event_generate("<Enter>")
-    app.Tabs.px_classification.create.px_widg.predictions_frame.one_img.event_generate("<Enter>")
-
-    app.Tabs.px_classification.create.px_widg.segment_frame.input_folder.event_generate("<Enter>")
-    app.update()
+    app.Tabs.px_classification.create.px_widg.start_frame.refresh_exclusive_buttons()
+    app.Tabs.px_classification.create.px_widg.start_frame.refresh_exclusive_buttons()
+    app.Tabs.px_classification.create.px_widg.Napari_frame.refresh1()
+    app.Tabs.px_classification.create.px_widg.Napari_frame.refresh2()
+    app.Tabs.px_classification.create.px_widg.predictions_frame.refresh3()
+    app.Tabs.px_classification.create.px_widg.predictions_frame.refresh4()
+    app.Tabs.px_classification.create.px_widg.segment_frame.refresh5()
 
 def test_prediction():
     app.Tabs.px_classification.create.px_widg.predictions_frame.update_one("img")
@@ -278,12 +259,9 @@ def test_save_classifier():
 
 def test_load_assets_classifier():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
-    app.update()
-    loading_window.load_project.project_options.event_generate("<Enter>")
+    loading_window.load_project.refresh6()
     load_from_assets = loading_window.launch_load_window(app.Tabs.px_classification.create.px_widg)
-    app.update()
-    load_from_assets.optionmenu.event_generate("<Enter>")
-    app.update()
+    load_from_assets.refresh8()
     assert isinstance(load_from_assets, ctk.CTkToplevel)
     load_from_assets.choice("lumen_epithelia_laminapropria")
     check_channels_window = load_from_assets.load_classifier(name = "lumen_epithelia_laminapropria2", classifier_load_name = "lumen_epithelia_laminapropria")
@@ -318,20 +296,13 @@ def test_load_classifier():
     assert True 
 
 def test_events_use_px():   ## do at least after a classifier has been loaded to limit risk of errors
-    app.update()
-    px_use_widgets.load_and_display.classifier_option_menu.event_generate("<Enter>")
-
-    px_use_widgets.filter.select_image_folder.event_generate("<Enter>")
-
-    px_use_widgets.whole_class.add_panel_button.event_generate("<Enter>")
-    px_use_widgets.whole_class.launch.event_generate("<Enter>")
-
-    px_use_widgets.merge_class_masks.mask_option_menu.event_generate("<Enter>")
-    px_use_widgets.merge_class_masks.classy_mask_option_menu.event_generate("<Enter>")
-
-    px_use_widgets.classify_cells.mask_option_menu.event_generate("<Enter>")
-    app.update()
-    
+    px_use_widgets.load_and_display.refresh1()
+    px_use_widgets.filter.refresh2()
+    px_use_widgets.whole_class.refresh_panel_button()
+    px_use_widgets.whole_class.refresh_launch_button()
+    px_use_widgets.merge_class_masks.refresh3()
+    px_use_widgets.merge_class_masks.refresh4()
+    px_use_widgets.classify_cells.mask_option_menu.refresh5()  
 
 def test_launch_classes_as_png():
     window = px_use_widgets.load_and_display.launch_classes_as_png()
@@ -396,7 +367,7 @@ def test_whole_class_analysis_1():
     px_use_widgets.whole_class.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
     region_window = px_use_widgets.whole_class.create()
     app.update()
-    region_window.image_folder.event_generate("<Enter>")
+    region_window.refresh7()
     app.update()
     assert isinstance(region_window, ctk.CTkToplevel)
     region_window.read_values(px_use_widgets.whole_class.master.Experiment_object)
@@ -460,11 +431,9 @@ def test_launch_combat_window():
 
 def test_launch_scatterplot():
     window = app.Tabs.py_exploratory.analysiswidg.launch_scatterplot()
-    app.update()
-    window.antigen1.event_generate("<Enter>")
-    window.antigen2.event_generate("<Enter>")
-    window.hue.event_generate("<Enter>")
-    app.update()
+    window.refresh_scatter_antigen1()
+    window.refresh_scatter_antigen2()
+    window.refresh_scatter_hue()
     window.antigen1.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
     window.antigen2.configure(variable = ctk.StringVar(value = "HistoneH3"))
     window.hue.configure(variable = ctk.StringVar(value = "None"))
@@ -474,10 +443,8 @@ def test_launch_scatterplot():
 
 def test_launch_Plot_Counts_per_ROI_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_Counts_per_ROI_window()
-    app.update()
-    window.group.event_generate("<Enter>")
-    window.color.event_generate("<Enter>")
-    app.update()
+    window.refresh5()
+    window.refresh6()
     figure = window.plot_Counts_per_ROI()
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(figure, matplotlib.figure.Figure), "Count plot did not return a matplotlib figure"
@@ -485,9 +452,7 @@ def test_launch_Plot_Counts_per_ROI_window():
 
 def test_launch_MDS_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_MDS_window()
-    app.update()
-    window.color.event_generate("<Enter>")
-    app.update()
+    window.refresh8()
     figure, df = window.plot_MDS()
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(figure, matplotlib.figure.Figure), "MDS plot did not return a matplotlib figure"
@@ -503,9 +468,7 @@ def test_launch_NRS_window():
 
 def test_launch_Plot_histograms_per_ROI_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_histograms_per_ROI_window()
-    app.update()
-    window.color.event_generate("<Enter>")
-    app.update()
+    window.refresh7()
     figure = window.plot_ROI_histograms()
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(figure, matplotlib.figure.Figure), "ROI histogram plot did not return a matplotlib figure"
@@ -562,11 +525,9 @@ def test_launch_leiden():
 def test_launch_plot_UMAP_window():     ### this window handles UMAP, PCA, and facetted varieties of both
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_UMAP_window()
     ## invoke events:
-    app.update()
-    window.UMAP_or_PCA.event_generate("<Enter>")
-    window.sub_column.event_generate("<Enter>")
-    window.cluster_marker.event_generate("<Enter>")
-    app.update()
+    window.refresh2z()
+    window.refresh2zz()
+    window.refresh3()
 
     figure = window.plot_UMAP(subsetting_column = 'antigens', color_column = "HistoneH3", filename = 'UMAP_antigens', kind = 'UMAP')
     assert isinstance(figure, matplotlib.figure.Figure), "UMAP facetted by antigen plot did not return a matplotlib figure"
@@ -595,9 +556,7 @@ def test_launch_Exprs_Heatmap_window():
 
 def test_launch_cluster_heatmap_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_heatmap_window()
-    app.update()
-    window.k.event_generate("<Enter>")
-    app.update()
+    window.refresh_cluster_heatmap_k()
     #window.pop_up.select()
     figure = window.plot_cluster_heatmap()
     assert isinstance(window, ctk.CTkToplevel)
@@ -617,9 +576,7 @@ def test_launch_distrib_window():
 
 def test_launch_ClusterVGroup():
     window = app.Tabs.py_exploratory.analysiswidg.launch_ClusterVGroup()
-    app.update()
-    window.clustering.event_generate("<Enter>")
-    app.update()
+    window.refresh_ClusterVgroup_clusters()
     figure = window.plot_clusterV(clustering_column = 'metaclustering', 
                       type_of_graph = 'bar', 
                       type_of_comp = 'Raw Cluster values (no substraction of rest of dataset)', 
@@ -631,10 +588,8 @@ def test_launch_ClusterVGroup():
 
 def test_launch_plot_cluster_expression_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
-    app.update()
-    window.clustering_option.event_generate("<Enter>")
-    window.antigen.event_generate("<Enter>")
-    app.update()
+    window.refresh_cluster_exp_clusters()
+    window.refresh11()
     window.clustering_option.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.antigen.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
     figure = window.run_py_plot_cluster_histograms()
@@ -644,9 +599,7 @@ def test_launch_plot_cluster_expression_window():
 
 def test_launch_abundance_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_abundance_window()
-    app.update()
-    window.k.event_generate("<Enter>")
-    app.update()
+    window.refresh_abund_k()
     figure = window.plot_abundance(k = "metaclustering", by = "stacked barplot", filename = "Plot_12")
     assert isinstance(figure, matplotlib.figure.Figure), "abundance 1 plot did not return a matplotlib figure"
     figure = window.plot_abundance(k = "metaclustering", by = "cluster boxplot", filename = "Plot_112")
@@ -658,11 +611,8 @@ def test_launch_abundance_window():
 
 def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
-    app.update()
-    window.column_type.event_generate("<Enter>")
-    window.cluster_to_table.event_generate("<Enter>")
-    app.update()
-
+    window.refresh_cluster_stats_clusters()
+    window.update_option_menu()
     window.column_type.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.button.invoke()
     output_dict, table_launch = window.launch_stat_table("1", True, "metaclustering")
@@ -676,9 +626,7 @@ def test_launch_cluster_stats_window():
 
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
-    app.update()
-    window.new.reload_merge.event_generate("<Enter>")
-    app.update()
+    window.new.refreshOption()
     for ii,i in enumerate(window.new.table.widgetframe['1']):
         value = ii % 4   ## generate 4 fake clusters
         i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
@@ -690,23 +638,17 @@ def test_launch_cluster_merging():
 
 def test_launch_classy_masker():
     window = app.Tabs.py_exploratory.analysiswidg.launch_classy_masker()
-    app.update()
-    window.clustering.event_generate("<Enter>")
-    app.update()
+    window.refresher1()
     data_df = window.classy_mask(clustering = "metaclustering")
     assert isinstance(window, ctk.CTkToplevel)
     #assert len(data_df) == len(my_analysis.back_up_data)
     window.destroy()
 
 def test_launch_abundance_ANOVAs_window():
-    app.update()
-    app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.N_switch.event_generate("<Enter>")
+    app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.filter_N()
     window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_abundance_ANOVAs_window()
-    app.update()
-    window.column.event_generate("<Enter>")
-    window.condition1.event_generate("<Enter>")
-    app.update()
-
+    window.refresh_abund_ANOVA_cluster()
+    window.refresh12()
     window.column.configure(variable = ctk.StringVar(value = "merging"))
     df, table_launch = window.run_ANOVAs()
     assert isinstance(table_launch, ctk.CTkToplevel)
@@ -733,9 +675,7 @@ def test_launch_abundance_ANOVAs_window():
 
 def test_run_state_ANOVAs_window():
     window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_state_ANOVAs_window()
-    app.update()
-    window.clustering_column.event_generate("<Enter>")
-    app.update()
+    window.refresh_state_ANOVA_clusters()
     window.marker_class.configure(variable = ctk.StringVar(value = "type"))
     df, table_launch = window.run_state_ANOVAs()
     assert isinstance(window, ctk.CTkToplevel)
@@ -751,10 +691,8 @@ def test_plot_state_p_value_heatmap():
 
 def test_state_distribution_window():
     window = app.Tabs.py_exploratory.analysiswidg.hypothesis_widget.launch_state_distribution()
-    app.update()
-    window.clustering.event_generate("<Enter>")
-    window.colorby.event_generate("<Enter>")
-    app.update()
+    window.refresher1()
+    window.refresher2()
     window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     figure = window.plot()
     assert isinstance(window, ctk.CTkToplevel)
@@ -763,12 +701,10 @@ def test_state_distribution_window():
 
 def test_launch_cluster_save_load():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_save_load()
-    app.update()
-    window.load_type.event_generate("<Enter>")
-    window.saver_button.event_generate("<Enter>")
-    window.load_identifier.event_generate("<Enter>")
-    window.load_identifier_from_px.event_generate("<Enter>")
-    app.update()
+    window.refresh_load_options()
+    window.refresh_button()
+    window.refresh1()
+    window.refresh2()
 
     window.load_type.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.saver_button.invoke()
@@ -786,9 +722,7 @@ def test_launch_cluster_save_load():
 
 def test_launch_drop_restore():           ## filtering
     window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
-    app.update()
-    window.choice_menu.event_generate("<Enter>")
-    app.update()
+    window.refresh_list()
     window.switch_column('sample_id')
     window.drop.checkbox_list[0].select()
     window.button1.invoke()
@@ -797,9 +731,7 @@ def test_launch_drop_restore():           ## filtering
 
 def test_launch_data_table_exportation_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window()
-    app.update()
-    window.subset_frame.column_choice.event_generate("<Enter>")
-    app.update()
+    window.subset_frame.refresh_export_column_choice()
     window.subset_command()
     window.grouping_command()
     window.plain_command()
@@ -844,9 +776,7 @@ def test_directory_display():
 ### GUI Spatial tests
 def test_plot_cell_maps_window():
     window = app.Tabs.Spatial.widgets.plot_cell_maps_window()
-    app.update()
-    window.clustering.event_generate("<Enter>")
-    app.update()
+    window.refresh_cell_maps_clustering()
     list_of_file_names = [(i[:i.rfind(".ome.fcs")]) for i in sorted(list(window.master.master_exp.data.obs['file_name'].unique()))]
     window.python_run_cell_maps(multi_or_single = list_of_file_names[0], clustering = 'metaclustering', masks = "masks")
     window.python_run_cell_maps(multi_or_single = list_of_file_names[1], clustering = 'metaclustering', masks = "points")
@@ -855,11 +785,9 @@ def test_plot_cell_maps_window():
 
 def test_SpaceANOVA():
     window = app.Tabs.Spatial.widgets.widgets.launch()
-    app.update()
-    window.celltype.event_generate("<Enter>")
-    window.C1.event_generate("<Enter>")
-    window.N.event_generate("<Enter>")
-    app.update()
+    window.refresh_SpaceANOVA_clusters()
+    window.refresh_comparisons()
+    window.filter_N()
     window.load_and_run_spatial_analysis(min_radius = 10, 
                                          max_radii = 80, 
                                          step = 5, 
@@ -878,9 +806,7 @@ def test_SpaceANOVA_stats_and_heatmap():
 
 def test_SpaceANOVA_function_plots():
     window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
-    app.update()
-    window.comparison.event_generate("<Enter>")
-    app.update()
+    window.refresh_fxn_plot_comparisons()
     window.plot_pairwise_comparison(comparison = "Run All", stat = 'g', plot_f_vals = True)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
@@ -891,9 +817,7 @@ def test_do_neighbors():
 
 def test_sq_centrality():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_centrality_window()
-    app.update()
-    window.clustering.event_generate("<Enter>")
-    app.update()
+    window.refresh_centrality_cluster()
     window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
@@ -901,10 +825,8 @@ def test_sq_centrality():
 
 def test_sq_inter_mat():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_interaction_matrix_window()
-    app.update()
-    window.clustering.event_generate("<Enter>")
-    window.facet.event_generate("<Enter>")
-    app.update()
+    window.refresh_interaction_mat_cluster()
+    window.refresh_facet_options()
     window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     window.facet.configure(variable = ctk.StringVar(value = "condition"))
     window.plot()
@@ -913,10 +835,8 @@ def test_sq_inter_mat():
 
 def test_sq_neigh_enrich():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_neigh_enrich_window()
-    app.update()
-    window.clustering.event_generate("<Enter>")
-    window.facet.event_generate("<Enter>")
-    app.update()
+    window.refresh_neighbor_clustering()
+    window.refresh_facet_options()
     window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     window.facet.configure(variable = ctk.StringVar(value = "condition"))
     window.plot()
@@ -925,9 +845,7 @@ def test_sq_neigh_enrich():
 
 def test_CN_window():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_CN_window()
-    app.update()
-    window.celltype.event_generate("<Enter>")
-    app.update()
+    window.refresh_CN_cluster()
     window.celltype.configure(variable = ctk.StringVar(value = "merging"))
     window.run_cellular_neighborhoods()
     assert isinstance(window, ctk.CTkToplevel)
@@ -935,9 +853,7 @@ def test_CN_window():
 
 def test_CN_save_load():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_save_load()
-    app.update()
-    window.path.event_generate("<Enter>")
-    app.update()
+    window.refresh()
     window.save()
     saved_clusterings = [i for i in sorted(os.listdir(window.master.master.master_exp.clusterings_dir)) if (i.find("cellular_neighborhood") != -1)]
     window.path.configure(variable = ctk.StringVar(value = saved_clusterings[0]))
@@ -947,9 +863,7 @@ def test_CN_save_load():
 
 def test_CN_annot():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
-    app.update()
-    window.new.reload_merge.event_generate("<Enter>")
-    app.update()
+    window.new.refreshOption()
     for ii,i in enumerate(window.new.table.widgetframe['1']):
         value = ii % 4   ## generate 4 fake clusters
         i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
@@ -959,9 +873,7 @@ def test_CN_annot():
 
 def test_CN_heatmap():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_heatmap_window()
-    app.update()
-    window.clustering.event_generate("<Enter>")
-    app.update()
+    window.refresh_edt_heatmap_cluster()
     window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
@@ -969,9 +881,7 @@ def test_CN_heatmap():
 
 def test_CN_abundance():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_abundance_window()
-    app.update()
-    window.clustering.event_generate("<Enter>")
-    app.update()
+    window.refresh_CN_abund_cluster()
     window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
@@ -991,9 +901,7 @@ def test_launch_edt():
 
 def test_edt_reload_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_reload_window()
-    app.update()
-    window.choice.event_generate("<Enter>")
-    app.update()
+    window.refresh_edt_reload()
     options = [i for i in sorted(os.listdir(window.folder)) if i.lower().find(".csv") != -1]
     window.choice.configure(variable = ctk.StringVar(value = "lumen_epithelia_laminapropria.csv"))
     window.reload()
@@ -1002,9 +910,7 @@ def test_edt_reload_window():
 
 def test_edt_stats_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_stat_window()
-    app.update()
-    window.groupby_column.event_generate("<Enter>")
-    app.update()
+    window.refresh_edt_options()
     window.groupby_column.configure(variable = ctk.StringVar(value = "merging"))
     window.do_stats()
     assert isinstance(window, ctk.CTkToplevel)
@@ -1012,10 +918,8 @@ def test_edt_stats_window():
 
 def test_edt_distrib_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_distrib_window()
-    app.update()
-    window.var_column.event_generate("<Enter>")
-    window.subset_col.event_generate("<Enter>")
-    app.update()
+    window.refresh_edt_dist_cluster()
+    window.refresh_edt_dist_var()
     window.var_column.configure(variable = ctk.StringVar(value = "HistoneH3"))
     window.subset_col.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
@@ -1024,9 +928,7 @@ def test_edt_distrib_window():
 
 def test_edt_heatmap_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_heatmap_window()
-    app.update()
-    window.groupby_column.event_generate("<Enter>")
-    app.update()
+    window.refresh_CN_heatmap_cluster()
     window.groupby_column.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
