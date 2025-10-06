@@ -103,7 +103,7 @@ def test_call_mask_expand():
 def test_call_intersection_difference():
     intersect = app.entrypoint.image_proc_widg.call_intersection_difference()
     intersect.refresh1()
-    intersect.refresh2()
+    intersect.refresh1()
     intersect.masks_folder1.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     intersect.masks_folder2.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     intersect.kind2.configure(variable = ctk.StringVar(value = "two-way"))
@@ -166,7 +166,7 @@ def test_setup_for_FCS():
 def test_unsupervised():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
     window = loading_window.unsupervised("unsupervised1", app.Tabs.px_classification.create.px_widg)
-    window.image_choice.refresh7()
+    window.refresh7()
     window.training_number.configure(textvariable = ctk.StringVar(value = "25000"))
     window.image_choice.configure(variable = ctk.StringVar(value = 'img'))
     window.smoothing_choice.configure(variable = ctk.StringVar(value = '2'))
@@ -302,7 +302,7 @@ def test_events_use_px():   ## do at least after a classifier has been loaded to
     px_use_widgets.whole_class.refresh_launch_button()
     px_use_widgets.merge_class_masks.refresh3()
     px_use_widgets.merge_class_masks.refresh4()
-    px_use_widgets.classify_cells.mask_option_menu.refresh5()  
+    px_use_widgets.classify_cells.refresh5()  
 
 def test_launch_classes_as_png():
     window = px_use_widgets.load_and_display.launch_classes_as_png()
@@ -872,7 +872,7 @@ def test_CN_annot():
 
 def test_CN_heatmap():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_heatmap_window()
-    window.refresh_edt_heatmap_cluster()
+    window.refresh_CN_heatmap_cluster()
     window.clustering.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
@@ -927,7 +927,7 @@ def test_edt_distrib_window():
 
 def test_edt_heatmap_window():
     window = app.Tabs.Spatial.widgets.test_edt.launch_heatmap_window()
-    window.refresh_CN_heatmap_cluster()
+    window.refresh_edt_heatmap_cluster()
     window.groupby_column.configure(variable = ctk.StringVar(value = "merging"))
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
