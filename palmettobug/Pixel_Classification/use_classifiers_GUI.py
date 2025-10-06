@@ -509,7 +509,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.select_table.grid(padx = 3, pady = 3, column = 0, row = 8) 
 
         def refresh3(self, enter = ""):
-            masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.lower().find(".tif") != -1]
+            masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.find(".") == -1]
             self.mask_option_menu.configure(values = masks_options)
 
         def refresh4(self, enter = ""):
@@ -1424,6 +1424,7 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         
         self.option1 = ctk.CTkOptionMenu(master = self, values = ["pixel classification", "classy masks"])
         self.option1.grid(padx = 3, pady = 3)
+        self.option1.configure(command = self.refresh_option2)
 
         label3 = ctk.CTkLabel(master = self, text = "Select folder to convert")
         label3.grid(padx = 3, pady = 3)
@@ -1432,14 +1433,7 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.option2 = ctk.CTkOptionMenu(master = self, values = [""])
         self.option2.grid(padx = 3, pady = 3)
-
-        def refresh_option2(choice):
-            if choice == "pixel classification":
-                self.option2.configure(values = [i for i in if_pixel_classifier if i in os.listdir(self.master.master.active_classifier_dir)])
-            elif choice == "classy masks":
-                self.option2.configure(values = [i for i in sorted(os.listdir(f"{self.master.master.main_directory}/classy_masks")) if i.find(".") == -1])
-
-        self.option1.configure(command = refresh_option2)
+        self.refresh_option2("pixel classification")
 
         ## output folder will be automatically parallel to the selected folder (just append "_PNG_conversion" or something like that)
         button = ctk.CTkButton(master = self, text = "Plot / Convert!", command = lambda: self.convert_to_png(self.option1.get(),
@@ -1450,6 +1444,12 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.checkbox.grid(padx = 3, pady = 3)
 
         self.after(200, self.focus())
+
+    def refresh_option2(choice):
+        if choice == "pixel classification":
+            self.option2.configure(values = [i for i in if_pixel_classifier if i in os.listdir(self.master.master.active_classifier_dir)])
+        elif choice == "classy masks":
+            self.option2.configure(values = [i for i in sorted(os.listdir(f"{self.master.master.main_directory}/classy_masks")) if i.find(".") == -1])
 
     def convert_to_png(self, map_type = "pixel classification", choice = "classification_maps"):
         ''''''

@@ -221,7 +221,7 @@ def test_events_create_px():   ## do at least after a classifier has been loaded
     app.Tabs.px_classification.create.px_widg.Napari_frame.refresh1()
     app.Tabs.px_classification.create.px_widg.Napari_frame.refresh2(image_folder = proj_directory + "images/img")
     app.Tabs.px_classification.create.px_widg.predictions_frame.refresh3()
-    app.Tabs.px_classification.create.px_widg.predictions_frame.refresh4()
+    app.Tabs.px_classification.create.px_widg.predictions_frame.refresh4(image_folder = proj_directory + "images/img")
     app.Tabs.px_classification.create.px_widg.segment_frame.refresh5()
 
 def test_prediction():
@@ -308,6 +308,7 @@ def test_launch_classes_as_png():
     window = px_use_widgets.load_and_display.launch_classes_as_png()
     if_pixel_classifier = ["classification_maps", "merged_classification_maps"]
     options = [i for i in if_pixel_classifier if i in os.listdir(window.master.master.active_classifier_dir)]
+    window.refresh_option2("pixel classification")
     window.convert_to_png("pixel classification", options[0])
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
@@ -433,7 +434,6 @@ def test_launch_scatterplot():
     window.refresh_scatter_antigen1()
     window.refresh_scatter_antigen2()
     window.refresh_scatter_hue()
-    window.pop_up.select()
     window.antigen1.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
     window.antigen2.configure(variable = ctk.StringVar(value = "HistoneH3"))
     window.hue.configure(variable = ctk.StringVar(value = "None"))
@@ -445,6 +445,7 @@ def test_launch_Plot_Counts_per_ROI_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_Counts_per_ROI_window()
     window.refresh5()
     window.refresh6()
+    window.pop_up.select()
     figure, display_window = window.plot_Counts_per_ROI()
     assert isinstance(display_window, ctk.CTkToplevel)
     display_window.move_legend_x(1)
