@@ -145,7 +145,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.plot_classes = ctk.CTkButton(master = self, text = "Plot Classes as PNG files", command = self.launch_classes_as_png)
             self.plot_classes.grid(padx = 3, pady = 3, column = 1, row = 4, columnspan = 2)
 
-        def refresh1(enter = ""):
+        def refresh1(self, enter = ""):
             classifier_folders = [i for i in sorted(os.listdir(self.master.classifier_dir)) if i.find(".") == -1]
             self.classifier_option_menu.configure(values = classifier_folders)
 
@@ -215,7 +215,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.execute_button = ctk.CTkButton(master = self, text = "Run Filtering!", command = self.filter_images)
             self.execute_button.grid(column = 1, row = 9, padx = 3, pady = 3)
 
-        def refresh2(enter = ""):
+        def refresh2(self, enter = ""):
             images_folders = [i for i in sorted(os.listdir(self.master.image_directory)) if i.find(".") == -1]
             self.select_image_folder.configure(values = images_folders)
 
@@ -339,7 +339,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.launch.bind("<Enter>", self.refresh_launch_button)
             refresh_launch_button()
 
-        def refresh_panel_button(enter = ""):
+        def refresh_panel_button(self, enter = ""):
             try:
                 if (not os.path.exists(str(self.master.active_classifier_dir) + "/Whole_class_analysis")) and (self.add_panel_button.cget('state') == "normal"):
                     self.add_panel_button.configure(state = "disabled")
@@ -348,7 +348,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             except AttributeError:
                 self.add_panel_button.configure(state = "disabled")
 
-        def refresh_launch_button(enter = ""):
+        def refresh_launch_button(self, enter = ""):
             try:
                 if (not os.path.exists(str(self.master.active_classifier_dir) + "/Whole_class_analysis/Analysis_panel.csv")) and \
                     (not os.path.exists(str(self.master.active_classifier_dir) + "/Whole_class_analysis/metadata.csv")) and \
@@ -512,11 +512,11 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.select_table = self.ignore_frame(self)
             self.select_table.grid(padx = 3, pady = 3, column = 0, row = 8) 
 
-        def refresh3(enter = ""):
+        def refresh3(self, enter = ""):
             masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.lower().find(".tif") != -1]
             self.mask_option_menu.configure(values = masks_options)
 
-        def refresh4(enter = ""):
+        def refresh4(self, enter = ""):
             classy_masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/classy_masks")) if i.find(".") == -1]
             self.classy_mask_option_menu.configure(values = classy_masks_options)
 
@@ -649,7 +649,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.accept_button = ctk.CTkButton(master = self, text = "Do Mask Classification!", command = self.do_classy_masks)
             self.accept_button.grid(row = 6, column = 1, padx = 3, pady = 3)
 
-        def refresh5(enter = ""):
+        def refresh5(self, enter = ""):
             masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.find(".") == -1]
             self.mask_option_menu.configure(values = masks_options)
 
@@ -905,7 +905,7 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
 
-    def refresh7(enter = ""):
+    def refresh7(self, enter = ""):
         self.image_folders = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.img_dir)) if i.find(".") == -1]
         self.image_folder.configure(values = self.image_folders)
         

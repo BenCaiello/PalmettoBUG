@@ -614,22 +614,22 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
 
-    def refresh_load_options(enter = ""):
+    def refresh_load_options(self, enter = ""):
         list_of_columns = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
         self.load_type.configure(values = list_of_columns)
 
-    def refresh_button(enter = ""):
+    def refresh_button(self, enter = ""):
         obs_col = (self.master.cat_exp.data.obs.columns)
         if ("metaclustering" not in obs_col) and ("merging" not in obs_col) and ("classification" not in obs_col) and ("leiden" not in obs_col) and (button_run_clustering1.cget('state') == "normal"):
             button_run_clustering1.configure(state = "disabled")
         else:
             button_run_clustering1.configure(state = "normal")
 
-    def refresh1(enter = ""):
+    def refresh1(self, enter = ""):
         list_of_saved_clusterings = [i for i in sorted(os.listdir(self.master.cat_exp.directory + "/clusterings")) if i.lower().find(".csv") != -1]
         self.load_identifier.configure(values = list_of_saved_clusterings)
 
-    def refresh2(enter = ""):
+    def refresh2(self, enter = ""):
         try:
             list_of_saved_classifiers = [i for i in sorted(os.listdir(self.classy_dir)) if i.find(".") == -1]
             all_classifications = []
@@ -944,12 +944,12 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
 
-    def refresh2z(enter = ""):
+    def refresh2z(self, enter = ""):
         option_list = [i for i, ii in zip(["UMAP","PCA"],
                                             [self.master.cat_exp.UMAP_embedding, self.master.cat_exp.PCA_embedding]) if ii is not None]
         self.UMAP_or_PCA.configure(values = option_list)
 
-    def refresh2zz(enter = ""):
+    def refresh2zz(self, enter = ""):
         if self.UMAP_or_PCA.get() == "UMAP":
             option_list = ( [i for i in CLUSTER_NAMES if i in self.master.cat_exp.UMAP_embedding.obs.columns] + COLNAMES
                             + list(self.master.cat_exp.UMAP_embedding.var['antigen']) )
@@ -960,7 +960,7 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] + COLNAMES
         self.cluster_marker.configure(values = option_list) 
 
-    def refresh3(enter = ""):
+    def refresh3(self, enter = ""):
         allowed_columns_list = CLUSTER_NAMES
         if self.UMAP_or_PCA.get() == 'UMAP':
             option_list = [i for i in self.master.cat_exp.UMAP_embedding.obs.columns if i in allowed_columns_list] + COLNAMES + ['antigens']
@@ -1121,11 +1121,11 @@ class Plot_Counts_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow
 
         self.after(200, lambda: self.focus())
 
-    def refresh5(enter = ""):
+    def refresh5(self, enter = ""):
         colData_list = COLNAMES
         self.group.configure(values = colData_list)
 
-    def refresh6(enter = ""):
+    def refresh6(self, enter = ""):
         colData_list_null = colData_list + ["NULL"]
         self.color.configure(values = colData_list_null)
 
@@ -1175,7 +1175,7 @@ class Plot_histograms_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
 
         self.after(200, lambda: self.focus())
 
-    def refresh7(enter = ""):
+    def refresh7(self, enter = ""):
         colData_list = COLNAMES
         self.color.configure(values = colData_list)
 
@@ -1244,7 +1244,7 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
 
-    def refresh8(enter = ""):
+    def refresh8(self, enter = ""):
         colData_list = COLNAMES
         self.color.configure(values = colData_list)
 
@@ -1334,7 +1334,7 @@ class ClusterVGroup(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
 
-    def refresh_ClusterVgroup_clusters(enter = ""):
+    def refresh_ClusterVgroup_clusters(self, enter = ""):
         option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] # + COLNAMES   
         self.clustering.configure(values = option_list)
 
@@ -1475,7 +1475,7 @@ class plot_cluster_abundances_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
 
         self.after(200, lambda: self.focus())
 
-    def refresh_abund_k(enter = ""):
+    def refresh_abund_k(self, enter = ""):
         self.k.configure(values = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns])
 
     def plot_abundance(self, k: str = "merging1", by: str = "sample_id", filename: str = "Plot_12") -> None:
@@ -1583,7 +1583,7 @@ class plot_cluster_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
 
         self.after(200, lambda: self.focus())
 
-    def refresh_cluster_heatmap_k(eenter = ""):
+    def refresh_cluster_heatmap_k(self, enter = ""):
         option_list =  [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
         self.k.configure(values = option_list)
 
@@ -1662,11 +1662,11 @@ class plot_cluster_expression_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
 
         self.after(200, self.focus())
     
-    def refresh_cluster_exp_clusters(enter = ""):
+    def refresh_cluster_exp_clusters(self, enter = ""):
         clustering_options = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
         self.clustering_option.configure(values = clustering_options)
 
-    def refresh11(enter = ""):
+    def refresh11(self, enter = ""):
         antigen_options = list(self.master.cat_exp.data.var.index)
         self.antigen.configure(values = antigen_options)
 
@@ -1789,7 +1789,7 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                         command = lambda: self.master.do_cluster_merging(self.id_new.get().strip(), self.master.leiden_or_meta))
             self.button.grid(column = 3, row = 7, padx = 5, pady = 5)
 
-        def refreshOption(enter = ""):
+        def refreshOption(self, enter = ""):
             made_mergings = ["blank"] + [i for i in sorted(os.listdir(self.master.master.directory + "/mergings/")) if i.lower().find(".csv") != -1] 
             self.reload_merge.configure(values = made_mergings)
 
@@ -1923,7 +1923,7 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.N_switch.configure(state = "normal")
         self.N_switch.bind("<Enter>", self.filter_N)  
 
-    def filter_N(enter = ""):
+    def filter_N(self, enter = ""):
         output = []
         magic_names = ["index", "metaclustering", "clustering", "merging", "classification", 
                     # "sample_id",     ## these are expected as possible experimental N's
@@ -2001,11 +2001,11 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
 
         self.after(200, self.focus())
 
-    def refresh_abund_ANOVA_cluster(enter = ""):
+    def refresh_abund_ANOVA_cluster(self, enter = ""):
         self.options = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
         self.column.configure(values = self.options)
 
-    def refresh12(enter = ""):
+    def refresh12(self, enter = ""):
         self.condition_pairs = []
         self.conditions = list(self.master.cat_exp.data.obs['condition'].astype('str').unique())
         for i in self.conditions:
@@ -2121,7 +2121,7 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, self.focus())
 
-    def refresh_state_ANOVA_clusters(enter = ""):
+    def refresh_state_ANOVA_clusters(self, enter = ""):
         self.options = ["whole dataset"] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
         self.clustering_column.configure(values = self.options)
 
@@ -2224,7 +2224,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
 
         self.after(200, lambda: self.focus()) 
 
-    def refresh_cluster_stats_clusters(enter = ""):
+    def refresh_cluster_stats_clusters(self, enter = ""):
         option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] 
         self.column_type.configure(values = option_list)
 
@@ -2369,7 +2369,7 @@ class image_drop_restore_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.button1.configure(state = "disabled")
         self.after(200, lambda: self.focus()) 
 
-    def refresh_list(enter = ""):
+    def refresh_list(self, enter = ""):
         values = [i for i in values_list if i in self.master.cat_exp.data.obs.columns]
         self.choice_menu.configure(values = values)
 
@@ -2730,7 +2730,7 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
                     self.column_values_list.append(text_box_of_choices)
 
 
-        def refresh_export_column_choice(enter = ""):
+        def refresh_export_column_choice(self, enter = ""):
             column = data_table.obs[i].astype('str')
             if list(column.unique()) == []:
                 self.column_choice.configure(values = "")
@@ -3170,13 +3170,13 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
 
-    def refresh_scatter_antigen1(enter = ""):
+    def refresh_scatter_antigen1(self, enter = ""):
         self.antigen1.configure(values = list(self.master.cat_exp.data.var['antigen'].unique()))
 
-    def refresh_scatter_antigen2(enter = ""):
+    def refresh_scatter_antigen2(self, enter = ""):
         self.antigen2.configure(values = list(self.master.cat_exp.data.var['antigen'].unique()))
 
-    def refresh_scatter_hue(enter = ""):
+    def refresh_scatter_hue(self, enter = ""):
         color_list = ["None", ] + COLNAMES  # "Density",
         color_list_obs = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns.unique())]
         color_list_antigens = list(self.master.cat_exp.data.var['antigen'].unique())
@@ -3255,7 +3255,7 @@ class classy_masker_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         button_plot.grid(column = 0, row = 4, padx = 5, pady = 5)
         self.after(200, lambda: self.focus())
 
-    def refresher1(enter = ""):
+    def refresher1(self, enter = ""):
         self.clustering.configure(values = [""] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns])
 
     def classy_mask(self, clustering = "merging", identifier = "") -> None:
@@ -3312,10 +3312,10 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.pop_up.grid(column = 0, row = 5, padx = 3, pady = 3)
         self.after(200, lambda: self.focus())
 
-    def refresher1(enter = ""):
+    def refresher1(self, enter = ""):
         self.clustering.configure(values = [""] + [i for i in CLUSTER_NAMES if i in self.master.master.cat_exp.data.obs.columns])
 
-    def refresher2(enter = ""):
+    def refresher2(self, enter = ""):
         self.colorby.configure(values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns])
 
     def plot(self) -> None:

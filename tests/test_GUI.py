@@ -937,7 +937,6 @@ def test_reload():    ### do after spatial, to repserve merging, etc.
     app.Tabs.py_exploratory.analysiswidg.reload_experiment()
     app.Tabs.py_exploratory.analysiswidg.launch_data_table_importation_window(directory = my_analysis.data_table_dir + "/data_table_1.csv")
 
-
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
     assert not palmettobug.ImageProcessing.ImageAnalysisClass._in_gui 

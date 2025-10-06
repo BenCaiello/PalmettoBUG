@@ -289,7 +289,7 @@ class Spatial_py(ctk.CTkFrame):
                 button_run_uni.grid(column = 0, row = 9, padx = 5, pady = 5)
                 self.after(200, lambda: self.focus())
 
-            def refresh_SpaceANOVA_clusters(enter = ""):
+            def refresh_SpaceANOVA_clusters(self, enter = ""):
                 options = [i for i in CLUSTER_NAMES if i in self.master.master.master_exp.data.obs.columns]
                 self.celltype.configure(values = options)
 
@@ -303,11 +303,11 @@ class Spatial_py(ctk.CTkFrame):
                     already_used_list.append(i)
                 return comparison_list
 
-            def refresh_comparisons(enter = ""):
+            def refresh_comparisons(self, enter = ""):
                 comparison_list = self.comparisons_return()
                 self.C1.configure(values = comparison_list)
 
-            def filter_N(enter = ""):
+            def filter_N(self, enter = ""):
                 output = []
                 magic_names = ["index", "metaclustering", "clustering", "merging", "classification", 
                             # "sample_id",     ## these are expected as possible experimental N's
@@ -573,7 +573,7 @@ class Spatial_py(ctk.CTkFrame):
 
                 self.after(200, lambda: self.focus())
 
-            def refresh_fxn_plot_comparisons(enter = ""):
+            def refresh_fxn_plot_comparisons(self, enter = ""):
                 self.comparison.configure(values = ["Run All"] + self.master.master._all_comparison_list)
 
             def plot_pairwise_comparison(self, comparison: str, stat: str, plot_f_vals: bool) -> None:
@@ -712,7 +712,7 @@ class plot_cell_maps_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
 
-    def refresh_cell_maps_clustering(enter = ""):
+    def refresh_cell_maps_clustering(self, enter = ""):
         options = [i for i in CLUSTER_NAMES if i in self.master.master_exp.data.obs.columns]
         self.clustering.configure(values = options)
 
@@ -917,11 +917,11 @@ class NeigborhoodEnrichmentWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindo
 
         self.after(200, self.focus())
 
-    def refresh_neighbor_clustering(enter = ""):
+    def refresh_neighbor_clustering(self, enter = ""):
         options = [i for i in CLUSTER_NAMES if i in self.master.spatial.exp.data.obs.columns]
         self.clustering.configure(values = options)
 
-    def refresh_facet_options(enter = ""):
+    def refresh_facet_options(self, enter = ""):
         try:
             facet_options = [i for i in self.master.spatial.exp.data.obs.columns if i in COLNAMES]
             self.facet.configure(values = ["None"] + list(facet_options))
@@ -1009,7 +1009,7 @@ class CentralityWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, self.focus())
 
-    def refresh_centrality_cluster(enter = ""):
+    def refresh_centrality_cluster(self, enter = ""):
         options = [i for i in CLUSTER_NAMES if i in self.master.spatial.exp.data.obs.columns]
         self.clustering.configure(values = options)
 
@@ -1079,11 +1079,11 @@ class InteractionMatrixWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, self.focus())
 
-    def refresh_interaction_mat_cluster(enter = ""):
+    def refresh_interaction_mat_cluster(self, enter = ""):
         options = [i for i in CLUSTER_NAMES if i in self.master.spatial.exp.data.obs.columns]
         self.clustering.configure(values = options)
 
-    def refresh_facet_options(enter = ""):
+    def refresh_facet_options(self, enter = ""):
         try:
             facet_options = [i for i in self.master.spatial.exp.data.obs.columns if i in COLNAMES]
             self.facet.configure(values = ["None"] + list(facet_options))
@@ -1277,7 +1277,7 @@ class CNabundanceWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
 
-    def refresh_CN_abund_cluster(enter = ""):
+    def refresh_CN_abund_cluster(self, enter = ""):
         options = [i for i in ["merging", "metaclustering", "leiden", "classification"] if i in self.master.spatial.exp.data.obs.columns]
         self.clustering.configure(values = options)
 
@@ -1335,7 +1335,7 @@ class CNheatmapWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
 
-    def refresh_CN_heatmap_cluster(enter = ""):
+    def refresh_CN_heatmap_cluster(self, enter = ""):
         options = [i for i in ["merging", "metaclustering", "leiden", "classification"] if i in self.master.spatial.exp.data.obs.columns]
         self.clustering.configure(values = options)
 
@@ -1426,7 +1426,7 @@ class CNannotationWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                         command = lambda: self.master.annotate(self.id_new.get().strip()))
             self.button.grid(column = 3, row = 7, padx = 5, pady = 5)
 
-        def refreshOption(enter = ""):
+        def refreshOption(self, enter = ""):
             made_mergings = ["blank"] + [i for i in sorted(os.listdir(self.master.directory + "/mergings/")) if i.find("CN") != -1] 
             self.reload_merge.configure(values = made_mergings)
 
@@ -1548,7 +1548,7 @@ class CNwindowSaveLoad(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, self.focus())
 
-    def refresh(enter = ""):
+    def refresh(self, enter = ""):
         saved_clusterings =  [i for i in sorted(os.listdir(self.master.master.master_exp.clusterings_dir)) if (i.find("cellular_neighborhood") != -1)]
         self.path.configure(values = saved_clusterings)
 
@@ -1663,7 +1663,7 @@ class CellularNeighborhoodWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow
 
         self.after(1000, self.focus())
 
-    def refresh_CN_cluster(enter = ""):
+    def refresh_CN_cluster(self, enter = ""):
         options = [i for i in ["merging", "metaclustering", "leiden", "classification"] if i in self.master.spatial.exp.data.obs.columns]
         self.celltype.configure(values = options)
 
@@ -1857,7 +1857,7 @@ class edt_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, self.focus())
 
-    def refresh_edt_heatmap_cluster(enter = ""):
+    def refresh_edt_heatmap_cluster(self, enter = ""):
         options = [i for i in CLUSTER_NAMES if i in self.master.edt_object.exp.data.obs.columns]
         self.groupby_column.configure(values = options)
 
@@ -1934,11 +1934,11 @@ class edt_dist_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, self.focus())
 
-    def refresh_edt_dist_var(enter = ""):
+    def refresh_edt_dist_var(self, enter = ""):
         options = list(self.experiment.data.var['antigen'].iloc[np.array(self.experiment.data.var['marker_class'] == "spatial_edt")])
         self.var_column.configure(values = options)
 
-    def refresh_edt_dist_cluster(enter = ""):
+    def refresh_edt_dist_cluster(self, enter = ""):
         options = [i for i in CLUSTER_NAMES if i in self.master.edt_object.exp.data.obs.columns]
         self.subset_col.configure(values = options)
 
@@ -2017,7 +2017,7 @@ class edt_stat_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, self.focus())
 
-    def refresh_edt_options(enter = ""):
+    def refresh_edt_options(self, enter = ""):
         options = [i for i in CLUSTER_NAMES if i in self.master.edt_object.exp.data.obs.columns]
         self.groupby_column.configure(values = options)
 
@@ -2205,7 +2205,7 @@ class edt_reload_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, self.focus())
 
-    def refresh_edt_reload(enter = ""):
+    def refresh_edt_reload(self, enter = ""):
         self.choice.configure(values = [i for i in sorted(os.listdir(self.folder)) if i.lower().find(".csv") != -1])
 
     def reload(self):

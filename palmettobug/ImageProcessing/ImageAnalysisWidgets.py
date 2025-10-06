@@ -132,7 +132,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             self.Convert_towards_analysis.grid(column = 2, row = 4, padx= 5, pady = 5)
             self.Convert_towards_analysis.configure(state = "disabled")
 
-        def activate_region_measure(enter = ""):
+        def activate_region_measure(self, enter = ""):
                 try:
                     masks_dir_list = [i for i in os.listdir(self.master.Experiment_object.directory_object.masks_dir) if i.find(".") == -1]  ## only want to list directories
                     if (len(masks_dir_list) > 0) and (self.Region_Measurements.cget("state") == "disabled"):
@@ -294,11 +294,11 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         accept_values = ctk.CTkButton(master = self, text = "Accept choices and proceed", command = self.read_values)
         accept_values.grid(padx = 10, pady = 10)
 
-    def refresh1(enter = ""):
+    def refresh1(self, enter = ""):
         self.image_folders = [i for i in sorted(os.listdir(self.img_dir)) if i.find(".") == -1]
         self.image_folder.configure(values = self.image_folders)
 
-    def refresh2(enter = ""):
+    def refresh2(self, enter = ""):
         self.filenames = [i for i in sorted(os.listdir(self.img_dir + '/' + self.image_folder.get())) if i.find(".tif") != -1]
         self.single_image.configure(values = [""] + self.filenames)
 
@@ -381,7 +381,7 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         accept_values = ctk.CTkButton(master = self, text = "Transform!", command = self.read_values)
         accept_values.grid(padx = 10, pady = 10)
 
-    def refresh1(enter = ""):
+    def refresh1(self, enter = ""):
         created_mask_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.masks_dir)) if i.find(".") == -1]
         created_px_classifiers = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir)) if i.find(".") == -1]
         folders1 = created_mask_classifiers + created_px_classifiers
@@ -493,11 +493,11 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
 
-    def refresh1(enter = ""):
+    def refresh1(self, enter = ""):
         self.image_folders = [i for i in sorted(os.listdir(self.img_dir)) if i.find(".") == -1]
         self.image_folder.configure(values = self.image_folders)
 
-    def refresh2(enter = ""):
+    def refresh2(self, enter = ""):
         self.masks_folders = [i for i in sorted(os.listdir(self.masks_dir)) if i.find(".") == -1]
         self.masks_folder.configure(values = self.masks_folders)
 
@@ -647,7 +647,7 @@ class Expander_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, lambda: self.focus())
         
-    def refresh3(enter = ""):
+    def refresh3(self, enter = ""):
         self.image_folders = [i for i in sorted(os.listdir(self.masks_dir)) if i.find(".") == -1]
         self.image_folder.configure(values = self.image_folders)
 
@@ -683,7 +683,7 @@ class go_to_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         button.grid(column = 1, row = 2, padx = 5, pady = 5)
         self.after(200, lambda: self.focus())
 
-    def refresh10(enter = ""):
+    def refresh10(self, enter = ""):
         self.analysis_options = [i for i in sorted(os.listdir(analyses_dir)) if i.find(".csv") == -1]
         self.analysis_choice.configure(values = self.analysis_options)
 
