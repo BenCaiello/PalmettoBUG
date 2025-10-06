@@ -443,7 +443,7 @@ def test_launch_scatterplot():
                     hue = window.hue.get(),
                     size = window.size.get(),
                     alpha = window.alpha.get(),
-                    filename = window.filename.get().strip()))
+                    filename = window.filename.get().strip())
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(display_window, ctk.CTkToplevel)
     display_window.move_legend_x(1)
