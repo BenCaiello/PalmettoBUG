@@ -1139,7 +1139,7 @@ class Plot_Counts_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow
             self.withdraw()
         else:
             display_window = None
-           self.destroy()
+            self.destroy()
         return figure
 
 class Plot_histograms_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
