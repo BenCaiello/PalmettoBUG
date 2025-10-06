@@ -434,7 +434,7 @@ def test_launch_scatterplot():
     window.refresh_scatter_antigen1()
     window.refresh_scatter_antigen2()
     window.refresh_scatter_hue()
-    #window.pop_up.select()
+    window.pop_up.select()
     window.antigen1.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
     window.antigen2.configure(variable = ctk.StringVar(value = "HistoneH3"))
     window.hue.configure(variable = ctk.StringVar(value = "None"))
