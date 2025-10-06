@@ -552,11 +552,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.load_type = ctk.CTkOptionMenu(master = self, values = list_of_columns, variable = ctk.StringVar(value = ""))
         self.load_type.grid(column= 0, row = 3, padx = 5, pady = 5)
 
-        def refresh_load_options(enter = ""):
-            list_of_columns = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
-            self.load_type.configure(values = list_of_columns)
-
-        self.load_type.bind("<Enter>", refresh_load_options)
+        self.load_type.bind("<Enter>", self.refresh_load_options)
 
         label_1 = ctk.CTkLabel(self, 
             text = "Save Identifier / filename \n" +
@@ -566,12 +562,11 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.save_identifier = ctk.CTkEntry(self, textvariable = ctk.StringVar(value = "Seed_1234"))
         self.save_identifier.grid(column= 0, row = 5, padx = 5, pady = 5)
 
-        button_run_clustering1 = ctk.CTkButton(self,
+        self.saver_button = ctk.CTkButton(self,
                                             text = "Save metaclustering / merging / classification to this Analysis", 
                                             command = lambda: self.save_clustering(self.load_type.get(), 
                                                                                    self.save_identifier.get().strip()))
-        button_run_clustering1.grid(column = 0, row = 6, padx = 5, pady = 5)
-        self.saver_button = button_run_clustering1
+        self.saver_button.grid(column = 0, row = 6, padx = 5, pady = 5)
 
         divider_button = ctk.CTkButton(master = self, text = "")
         divider_button.configure(height = 350, width = 5, fg_color = "blue", hover_color = "blue", state = "disabled")
@@ -582,27 +577,17 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         divider_button.grid(column = 3, rowspan = 6, row = 2, padx = 5, sticky = "ns")
 
         ## If there is no clustering in the current experiment, block the button
-        def refresh_button(enter = ""):
-            obs_col = (self.master.cat_exp.data.obs.columns)
-            if ("metaclustering" not in obs_col) and ("merging" not in obs_col) and ("classification" not in obs_col) and ("leiden" not in obs_col) and (button_run_clustering1.cget('state') == "normal"):
-                button_run_clustering1.configure(state = "disabled")
-            else:
-                button_run_clustering1.configure(state = "normal")
-        button_run_clustering1.bind("<Enter>", refresh_button)
-        refresh_button()
+        self.saver_button.bind("<Enter>", self.refresh_button)
+        self.refresh_button()
 
         label_2 = ctk.CTkLabel(self, 
             text = "Name of saved clustering to load: \n (these are all the metaclustering / merging / classification \n" +
                 "that you have previously saved in this analysis)")
         label_2.grid(column = 2, row = 2)
-        
-        def refresh1(enter = ""):
-            list_of_saved_clusterings = [i for i in sorted(os.listdir(self.master.cat_exp.directory + "/clusterings")) if i.lower().find(".csv") != -1]
-            self.load_identifier.configure(values = list_of_saved_clusterings)
 
         self.load_identifier = ctk.CTkOptionMenu(master = self, values = [""], variable = ctk.StringVar(value = ""))
         self.load_identifier.grid(column = 2, row = 3, padx = 5, pady = 5)
-        self.load_identifier.bind("<Enter>", refresh1)
+        self.load_identifier.bind("<Enter>", self.refresh1)
 
         self.loader_button = ctk.CTkButton(self,
                                             text = "Load a metaclustering / merging / classification \n from those saved to this Analysis", 
@@ -617,25 +602,9 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         master_dir = self.master.directory[:self.master.directory.rfind("/Analyses")]
         self.classy_dir = master_dir + "/classy_masks"
 
-        def refresh2(enter = ""):
-            try:
-                list_of_saved_classifiers = [i for i in sorted(os.listdir(self.classy_dir)) if i.find(".") == -1]
-                all_classifications = []
-                for i in list_of_saved_classifiers:
-                    list_of_classifications = ["".join([self.classy_dir,"/",i,"/",f'{i}_cell_classes.csv']),
-                                               "".join([self.classy_dir,"/",i,"/",'secondary_cell_classification.csv'])]
-                    list_of_classifications = [i for i in list_of_classifications if os.path.exists(i)]
-                    list_of_classifications = [i[((i[:i.rfind("/")]).rfind("/") + 1):] for i in list_of_classifications]  
-                                                                                    ## grab the first folder and the file name for display
-                    all_classifications = all_classifications + list_of_classifications
-
-                self.load_identifier_from_px.configure(values = all_classifications)
-            except Exception:
-                pass
-
         self.load_identifier_from_px = ctk.CTkOptionMenu(master = self, values = [""], variable = ctk.StringVar(value = ""))
         self.load_identifier_from_px.grid(column = 4, row = 3, padx = 5, pady = 5)
-        self.load_identifier_from_px.bind("<Enter>", refresh2)
+        self.load_identifier_from_px.bind("<Enter>", self.refresh2)
 
         self.load_from_px = ctk.CTkButton(self,
                                     text = "Load Classification from px classifier", 
@@ -643,6 +612,37 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.load_from_px.grid(column = 4, row = 4, padx = 5, pady = 5)
 
         self.after(200, lambda: self.focus())
+
+    def refresh_load_options(self, enter = ""):
+        list_of_columns = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
+        self.load_type.configure(values = list_of_columns)
+
+    def refresh_button(self, enter = ""):
+        obs_col = (self.master.cat_exp.data.obs.columns)
+        if ("metaclustering" not in obs_col) and ("merging" not in obs_col) and ("classification" not in obs_col) and ("leiden" not in obs_col) and (self.saver_button.cget('state') == "normal"):
+            self.saver_button.configure(state = "disabled")
+        else:
+            self.saver_button.configure(state = "normal")
+
+    def refresh1(self, enter = ""):
+        list_of_saved_clusterings = [i for i in sorted(os.listdir(self.master.cat_exp.directory + "/clusterings")) if i.lower().find(".csv") != -1]
+        self.load_identifier.configure(values = list_of_saved_clusterings)
+
+    def refresh2(self, enter = ""):
+        try:
+            list_of_saved_classifiers = [i for i in sorted(os.listdir(self.classy_dir)) if i.find(".") == -1]
+            all_classifications = []
+            for i in list_of_saved_classifiers:
+                list_of_classifications = ["".join([self.classy_dir,"/",i,"/",f'{i}_cell_classes.csv']),
+                                            "".join([self.classy_dir,"/",i,"/",'secondary_cell_classification.csv'])]
+                list_of_classifications = [i for i in list_of_classifications if os.path.exists(i)]
+                list_of_classifications = [i[((i[:i.rfind("/")]).rfind("/") + 1):] for i in list_of_classifications]  
+                                                                                ## grab the first folder and the file name for display
+                all_classifications = all_classifications + list_of_classifications
+
+            self.load_identifier_from_px.configure(values = all_classifications)
+        except Exception:
+            pass
 
     def save_clustering(self, save_type: str, identifier: str) -> None:
         if save_type not in list(self.master.cat_exp.data.obs.columns):
@@ -908,50 +908,23 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label_0 = ctk.CTkLabel(self, text = "Kind of Dimensionality Reduction:")
         label_0.grid(column = 0, row = 1) 
 
-        def refresh2z(enter = ""):
-            option_list = [i for i, ii in zip(["UMAP","PCA"],
-                                              [self.master.cat_exp.UMAP_embedding, self.master.cat_exp.PCA_embedding]) if ii is not None]
-            self.UMAP_or_PCA.configure(values = option_list)
-
         self.UMAP_or_PCA = ctk.CTkOptionMenu(master = self, values = [""], variable = ctk.StringVar(value = ""))
         self.UMAP_or_PCA.grid(column= 1, row= 1, padx = 5, pady = 5)
-        self.UMAP_or_PCA.bind("<Enter>", refresh2z)  
+        self.UMAP_or_PCA.bind("<Enter>", self.refresh2z)  
 
         label_1 = ctk.CTkLabel(self, text = "Facet By __ Column of data:")
         label_1.grid(column = 0, row = 2) 
 
-        def refresh3(enter = ""):
-            allowed_columns_list = CLUSTER_NAMES
-            if self.UMAP_or_PCA.get() == 'UMAP':
-                option_list = [i for i in self.master.cat_exp.UMAP_embedding.obs.columns if i in allowed_columns_list] + COLNAMES + ['antigens']
-            elif self.UMAP_or_PCA.get() == 'PCA':
-                option_list = [i for i in self.master.cat_exp.PCA_embedding.obs.columns if i in allowed_columns_list] + COLNAMES + ['antigens']
-            else:
-                option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] + COLNAMES + ['antigens']
-            option_list = ["Do not Facet"] + option_list   
-            self.sub_column.configure(values = option_list)
-
         self.sub_column = ctk.CTkOptionMenu(master = self, values = ["Do not Facet"], variable = ctk.StringVar(value = "Do not Facet"))
         self.sub_column.grid(column= 1, row= 2, padx = 5, pady = 5)
-        self.sub_column.bind("<Enter>", refresh3)
+        self.sub_column.bind("<Enter>", self.refresh3)
 
         label_2 = ctk.CTkLabel(self, text = "Color Plot by:")
         label_2.grid(column = 0, row = 3)
 
-        def refresh2zz(enter = ""):
-            if self.UMAP_or_PCA.get() == "UMAP":
-                option_list = ( [i for i in CLUSTER_NAMES if i in self.master.cat_exp.UMAP_embedding.obs.columns] + COLNAMES
-                                + list(self.master.cat_exp.UMAP_embedding.var['antigen']) )
-            elif self.UMAP_or_PCA.get() == "PCA":
-                option_list = ( [i for i in CLUSTER_NAMES if i in self.master.cat_exp.PCA_embedding.obs.columns] + COLNAMES
-                                + list(self.master.cat_exp.PCA_embedding.var['antigen']) )
-            else:
-                option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] + COLNAMES
-            self.cluster_marker.configure(values = option_list) 
-
         self.cluster_marker = ctk.CTkOptionMenu(master = self, values = [""], variable = ctk.StringVar(value = ""))
         self.cluster_marker.grid(column = 1, row = 3, pady = 5, padx = 5)
-        self.cluster_marker.bind("<Enter>", refresh2zz) 
+        self.cluster_marker.bind("<Enter>", self.refresh2zz) 
 
         label_3 = ctk.CTkLabel(self, text = "Filename:")
         label_3.grid(column = 0, row = 4)
@@ -969,6 +942,33 @@ class Plot_UMAP_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.pop_up.grid(column = 0, row = 6, padx = 3, pady = 3)
 
         self.after(200, lambda: self.focus())
+
+    def refresh2z(self, enter = ""):
+        option_list = [i for i, ii in zip(["UMAP","PCA"],
+                                            [self.master.cat_exp.UMAP_embedding, self.master.cat_exp.PCA_embedding]) if ii is not None]
+        self.UMAP_or_PCA.configure(values = option_list)
+
+    def refresh2zz(self, enter = ""):
+        if self.UMAP_or_PCA.get() == "UMAP":
+            option_list = ( [i for i in CLUSTER_NAMES if i in self.master.cat_exp.UMAP_embedding.obs.columns] + COLNAMES
+                            + list(self.master.cat_exp.UMAP_embedding.var['antigen']) )
+        elif self.UMAP_or_PCA.get() == "PCA":
+            option_list = ( [i for i in CLUSTER_NAMES if i in self.master.cat_exp.PCA_embedding.obs.columns] + COLNAMES
+                            + list(self.master.cat_exp.PCA_embedding.var['antigen']) )
+        else:
+            option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] + COLNAMES
+        self.cluster_marker.configure(values = option_list) 
+
+    def refresh3(self, enter = ""):
+        allowed_columns_list = CLUSTER_NAMES
+        if self.UMAP_or_PCA.get() == 'UMAP':
+            option_list = [i for i in self.master.cat_exp.UMAP_embedding.obs.columns if i in allowed_columns_list] + COLNAMES + ['antigens']
+        elif self.UMAP_or_PCA.get() == 'PCA':
+            option_list = [i for i in self.master.cat_exp.PCA_embedding.obs.columns if i in allowed_columns_list] + COLNAMES + ['antigens']
+        else:
+            option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] + COLNAMES + ['antigens']
+        option_list = ["Do not Facet"] + option_list   
+        self.sub_column.configure(values = option_list)
 
     def plot_UMAP(self, subsetting_column: str, color_column: str, filename: str, kind: str = 'UMAP') -> None:
         if filename_checker(filename, self):
@@ -1091,26 +1091,17 @@ class Plot_Counts_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow
 
         label_1 = ctk.CTkLabel(self, text = "Group ROIs by:")
         label_1.grid(column = 0, row = 1)
-
-        def refresh5(enter = ""):
-            colData_list = COLNAMES
-            self.group.configure(values = colData_list)
         
-        colData_list = COLNAMES
-        self.group = ctk.CTkOptionMenu(master = self, values = colData_list, variable = ctk.StringVar(value = "sample_id"))
+        self.group = ctk.CTkOptionMenu(master = self, values = COLNAMES, variable = ctk.StringVar(value = "sample_id"))
         self.group.grid(column= 1, row= 1, padx = 5, pady = 5)
-        self.group.bind("<Enter>", refresh5)
+        self.group.bind("<Enter>", self.refresh5)
 
         label_2 = ctk.CTkLabel(self, text = "color ROIs by:")
         label_2.grid(column = 0, row = 2)
 
-        def refresh6(enter = ""):
-            colData_list_null = colData_list + ["NULL"]
-            self.color.configure(values = colData_list_null)
-
-        self.color = ctk.CTkOptionMenu(master = self, values = colData_list + ["NULL"], variable = ctk.StringVar(value = "condition"))
+        self.color = ctk.CTkOptionMenu(master = self, values = COLNAMES + ["NULL"], variable = ctk.StringVar(value = "condition"))
         self.color.grid(column = 1, row = 2, padx = 5, pady = 5)
-        self.color.bind("<Enter>", refresh6)
+        self.color.bind("<Enter>", self.refresh6)
 
         label_3 = ctk.CTkLabel(self, text = "Filename:")
         label_3.grid(column = 0, row = 3)
@@ -1128,6 +1119,13 @@ class Plot_Counts_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow
 
         self.after(200, lambda: self.focus())
 
+    def refresh5(self, enter = ""):
+        self.group.configure(values = COLNAMES)
+
+    def refresh6(self, enter = ""):
+        colData_list_null = COLNAMES + ["NULL"]
+        self.color.configure(values = colData_list_null)
+
     def plot_Counts_per_ROI(self, group_by: str = "sample_id", color_by: str = "condition", filename: str = "Plot_1") -> None:
         if filename_checker(filename, self):
             return
@@ -1137,11 +1135,12 @@ class Plot_Counts_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow
         Analysis_widget_logger.info(f"Plotted Counts per ROI with: group_by = {group_by}, color_by = {color_by}, filename = {filename}.png")
         self.master.save_and_display(filename = filename,sizeX = 550, sizeY = 550)
         if self.pop_up.get() is True:
-            Plot_window_display(figure)
+            display_window = Plot_window_display(figure)
             self.withdraw()
         else:
-           self.destroy()
-        return figure
+            display_window = None
+            self.destroy()
+        return figure, display_window
 
 class Plot_histograms_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1154,15 +1153,9 @@ class Plot_histograms_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         label_1 = ctk.CTkLabel(self, text = "Color KDE traces by:")
         label_1.grid(column = 0, row = 1)
 
-        def refresh7(enter = ""):
-            colData_list = COLNAMES
-            self.color.configure(values = colData_list)
-
-        colData_list = COLNAMES
-
-        self.color =  ctk.CTkOptionMenu(master = self, values = colData_list, variable = ctk.StringVar(value = "condition"))
+        self.color =  ctk.CTkOptionMenu(master = self, values = COLNAMES, variable = ctk.StringVar(value = "condition"))
         self.color.grid(column= 1, row= 1, padx = 5, pady = 5)
-        self.color.bind("<Enter>", refresh7)
+        self.color.bind("<Enter>", self.refresh7)
 
         label_2 = ctk.CTkLabel(self, text = "Filename:")
         label_2.grid(column = 0, row = 2)
@@ -1178,6 +1171,9 @@ class Plot_histograms_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         self.pop_up.grid(column = 0, row = 4, padx = 3, pady = 3)
 
         self.after(200, lambda: self.focus())
+
+    def refresh7(self, enter = ""):
+        self.color.configure(values = COLNAMES)
 
     def plot_ROI_histograms(self, color_by: str = "condition", filename: str = "Plot_2") -> None:
         if filename_checker(filename, self):
@@ -1212,14 +1208,9 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label_2 = ctk.CTkLabel(self, text = "Color by:")
         label_2.grid(column = 0, row = 2)
 
-        def refresh8(enter = ""):
-            colData_list = COLNAMES
-            self.color.configure(values = colData_list)
-        colData_list = COLNAMES
-
-        self.color = ctk.CTkOptionMenu(master = self, values = colData_list, variable = ctk.StringVar(value = "condition"))
+        self.color = ctk.CTkOptionMenu(master = self, values = COLNAMES, variable = ctk.StringVar(value = "condition"))
         self.color.grid(column = 1, row = 3, padx = 5, pady = 5)
-        self.color.bind("<Enter>", refresh8)
+        self.color.bind("<Enter>", self.refresh8)
 
         label_3 = ctk.CTkLabel(self, text = "Seed:")
         label_3.grid(column = 0, row = 3)
@@ -1246,6 +1237,9 @@ class Plot_MDS_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.print_stat.grid(column = 1, row = 6, padx = 3, pady = 3)
 
         self.after(200, lambda: self.focus())
+
+    def refresh8(self, enter = ""):
+        self.color.configure(values = COLNAMES)
 
     def plot_MDS(self, features: str = "type", color_by: str = "condition", filename: str = "Plot_3") -> None:
         seed = self.seed.get()
@@ -1288,12 +1282,7 @@ class ClusterVGroup(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] # + COLNAMES   
         self.clustering = ctk.CTkOptionMenu(master = self, variable = ctk.StringVar(value = ""), values = option_list)
         self.clustering.grid(column = 1, row = 0, padx = 3, pady = 3)
-
-        def refresh_ClusterVgroup_clusters(enter = ""):
-            option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] # + COLNAMES   
-            self.clustering.configure(values = option_list)
-
-        self.clustering.bind("<Enter>", refresh_ClusterVgroup_clusters)
+        self.clustering.bind("<Enter>", self.refresh_ClusterVgroup_clusters)
 
         label_1 = ctk.CTkLabel(self, text = "Choose Marker Class:")
         label_1.grid(column = 0, row = 1, padx = 3, pady = 3)
@@ -1337,6 +1326,10 @@ class ClusterVGroup(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.pop_up.grid(column = 1, row = 6, padx = 3, pady = 3)
 
         self.after(200, lambda: self.focus())
+
+    def refresh_ClusterVgroup_clusters(self, enter = ""):
+        option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] # + COLNAMES   
+        self.clustering.configure(values = option_list)
 
     def plot_clusterV(self, clustering_column: str, 
                       type_of_graph, 
@@ -1439,12 +1432,8 @@ class plot_cluster_abundances_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         label_1.grid(column = 0, row = 1)
 
         self.k = ctk.CTkOptionMenu(master = self, values = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns], variable = ctk.StringVar())
-        self.k.grid(column = 1, row = 1, pady = 5, padx = 5)
-
-        def refresh_abund_k(enter = ""):
-            self.k.configure(values = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns])
-        
-        self.k.bind("<Enter>", refresh_abund_k)
+        self.k.grid(column = 1, row = 1, pady = 5, padx = 5)        
+        self.k.bind("<Enter>", self.refresh_abund_k)
 
         label_2 = ctk.CTkLabel(self, text = "Type of Plot:")
         label_2.grid(column = 0, row = 2)
@@ -1478,6 +1467,9 @@ class plot_cluster_abundances_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         self.pop_up.grid(column = 0, row = 6, padx = 3, pady = 3)
 
         self.after(200, lambda: self.focus())
+
+    def refresh_abund_k(self, enter = ""):
+        self.k.configure(values = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns])
 
     def plot_abundance(self, k: str = "merging1", by: str = "sample_id", filename: str = "Plot_12") -> None:
         '''
@@ -1555,12 +1547,7 @@ class plot_cluster_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         option_list =  [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
         self.k = ctk.CTkOptionMenu(master = self, values = option_list, variable = ctk.StringVar())
         self.k.grid(column = 1, row = 1, pady = 5, padx = 5)
-
-        def refresh_cluster_heatmap_k(eenter = ""):
-            option_list =  [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
-            self.k.configure(values = option_list)
-
-        self.k.bind("<Enter>", refresh_cluster_heatmap_k)
+        self.k.bind("<Enter>", self.refresh_cluster_heatmap_k)
 
         label_7 = ctk.CTkLabel(self, text = "Filename:")
         label_7.grid(column = 0, row = 7)
@@ -1588,6 +1575,10 @@ class plot_cluster_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         self.pop_up.grid(column = 0, row = 11, padx = 3, pady = 3)
 
         self.after(200, lambda: self.focus())
+
+    def refresh_cluster_heatmap_k(self, enter = ""):
+        option_list =  [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
+        self.k.configure(values = option_list)
 
     def plot_cluster_heatmap(self, features: str = "type", k: str = "metaclustering", filename: str = "Plot_6") -> None:
         if filename_checker(filename, self):
@@ -1640,24 +1631,15 @@ class plot_cluster_expression_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         clustering_options = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
         self.clustering_option = ctk.CTkOptionMenu(master = self, values = clustering_options, variable = ctk.StringVar())
         self.clustering_option.grid(padx = 3, pady = 3)
-
-        def refresh_cluster_exp_clusters(enter = ""):
-            clustering_options = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
-            self.clustering_option.configure(values = clustering_options)
-
-        self.clustering_option.bind("<Enter>", refresh_cluster_exp_clusters)
+        self.clustering_option.bind("<Enter>", self.refresh_cluster_exp_clusters)
 
         label2 = ctk.CTkLabel(master = self, text = "Choose Antigen to plot expression of:")
         label2.grid(padx = 3, pady = 3)
 
-        def refresh11(enter = ""):
-            antigen_options = list(self.master.cat_exp.data.var.index)
-            self.antigen.configure(values = antigen_options)
-
         antigen_options = list(self.master.cat_exp.data.var.index)
         self.antigen = ctk.CTkOptionMenu(master = self, values = antigen_options, variable = ctk.StringVar())
         self.antigen.grid(padx = 3, pady = 3)
-        self.antigen.bind("<Enter>", refresh11)
+        self.antigen.bind("<Enter>", self.refresh11)
 
         label3 = ctk.CTkLabel(master = self, text = "Choose Filename:")
         label3.grid(padx = 3, pady = 3)
@@ -1672,6 +1654,15 @@ class plot_cluster_expression_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
         self.pop_up.grid()
 
         self.after(200, self.focus())
+    
+    def refresh_cluster_exp_clusters(self, enter = ""):
+        clustering_options = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
+        self.clustering_option.configure(values = clustering_options)
+
+    def refresh11(self, enter = ""):
+        antigen_options = list(self.master.cat_exp.data.var.index)
+        self.antigen.configure(values = antigen_options)
+
 
     def run_py_plot_cluster_histograms(self) -> None:
         filename = self.filename.get().strip()
@@ -1777,15 +1768,11 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.label3 = ctk.CTkLabel(self, text = "Load a previously made \n Merging Table:")
             self.label3.grid(column = 4, row = 0)
 
-            def refreshOption(enter = ""):
-                made_mergings = ["blank"] + [i for i in sorted(os.listdir(self.master.master.directory + "/mergings/")) if i.lower().find(".csv") != -1] 
-                self.reload_merge.configure(values = made_mergings)
-
             self.reload_merge = ctk.CTkOptionMenu(self, 
                                     values = ["blank"], 
                                     command = lambda choice: self.repopulate_table(choice))
             self.reload_merge.grid(column = 4, row = 1)
-            self.reload_merge.bind("<Enter>", refreshOption)
+            self.reload_merge.bind("<Enter>", self.refreshOption)
             
             self.table = TableWidget_merging(self,width = 1, directory = self.master.directory + "/mergings", maxK = self.master.number)
             self.table.grid(column = 3, row = 2, columnspan = 4, padx = 5, pady = 5)
@@ -1794,6 +1781,10 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                         text = "Accept Table Entry & Run Cluster Merging", 
                                         command = lambda: self.master.do_cluster_merging(self.id_new.get().strip(), self.master.leiden_or_meta))
             self.button.grid(column = 3, row = 7, padx = 5, pady = 5)
+
+        def refreshOption(self, enter = ""):
+            made_mergings = ["blank"] + [i for i in sorted(os.listdir(self.master.master.directory + "/mergings/")) if i.lower().find(".csv") != -1] 
+            self.reload_merge.configure(values = made_mergings)
 
         def repopulate_table(self, choice):
             self.table.repopulate_table(self.master.master.directory + "/mergings/" + choice)
@@ -1922,30 +1913,30 @@ class Hypothesis_widget(ctk.CTkFrame):
         self.DA_button.configure(state = "normal", command = self.launch_state_ANOVAs_window)
         self.plot_state.configure(state = "normal", command = self.launch_state_distribution)
 
-        def filter_N(enter = ""):
-            output = []
-            magic_names = ["index", "metaclustering", "clustering", "merging", "classification", 
-                        # "sample_id",     ## these are expected as possible experimental N's
-                        # "patient_id", 
-                        "condition", "file_name", "leiden", "spatial_leiden", "scaling", "masks_folder"]
-            data_obs = self.master.cat_exp.data.obs
-            columns_of_interest = [i for i in data_obs.columns if i not in magic_names]
-            for i in columns_of_interest:
-                categories = data_obs[i].unique()
-                sample_ids = data_obs['sample_id'].unique()
-                if len(categories) > len(sample_ids):
-                    pass    #### don't want to offer columns with more divisions to the data than the sample_id's
-                else:       ## block columns shared between conditions
-                    for j in categories:
-                        num_conditions = len(data_obs[data_obs[i] == j]['condition'].unique())
-                        if num_conditions > 1:
-                            break
-                    else:
-                        output.append(i)
-            self.N_switch.configure(values = output)
-
         self.N_switch.configure(state = "normal")
-        self.N_switch.bind("<Enter>", filter_N)  
+        self.N_switch.bind("<Enter>", self.filter_N)  
+
+    def filter_N(self, enter = ""):
+        output = []
+        magic_names = ["index", "metaclustering", "clustering", "merging", "classification", 
+                    # "sample_id",     ## these are expected as possible experimental N's
+                    # "patient_id", 
+                    "condition", "file_name", "leiden", "spatial_leiden", "scaling", "masks_folder"]
+        data_obs = self.master.cat_exp.data.obs
+        columns_of_interest = [i for i in data_obs.columns if i not in magic_names]
+        for i in columns_of_interest:
+            categories = data_obs[i].unique()
+            sample_ids = data_obs['sample_id'].unique()
+            if len(categories) > len(sample_ids):
+                pass    #### don't want to offer columns with more divisions to the data than the sample_id's
+            else:       ## block columns shared between conditions
+                for j in categories:
+                    num_conditions = len(data_obs[data_obs[i] == j]['condition'].unique())
+                    if num_conditions > 1:
+                        break
+                else:
+                    output.append(i)
+        self.N_switch.configure(values = output)
 
     def launch_abundance_ANOVAs_window(self) -> None:
         return run_abundance_ANOVAs_window(self.master)
@@ -1968,12 +1959,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         self.options = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
         self.column = ctk.CTkOptionMenu(master = self, values = self.options, variable = ctk.StringVar())
         self.column.grid(padx = 3, pady = 3, row = 1, column = 0)
-
-        def refresh_abund_ANOVA_cluster(enter = ""):
-            self.options = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
-            self.column.configure(values = self.options)
-
-        self.column.bind("<Enter>", refresh_abund_ANOVA_cluster)
+        self.column.bind("<Enter>", self.refresh_abund_ANOVA_cluster)
 
         label1 = ctk.CTkLabel(master = self, text = "Choose comparison:")
         label1.grid(padx = 3, pady = 3, row = 2, column = 0)
@@ -1985,22 +1971,10 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
                 if i != j:
                     self.condition_pairs.append(f"{i} %vs.% {j}")   ## want the spacer to be unique enough that it is very unlikely to accidently 
                                                                             ## exist in a users' choice of condition name
-
-        def refresh12(enter = ""):
-            self.condition_pairs = []
-            self.conditions = list(self.master.cat_exp.data.obs['condition'].astype('str').unique())
-            for i in self.conditions:
-                for j in self.conditions:
-                    if i != j:
-                        self.condition_pairs.append(f"{i} %vs.% {j}")   ## want the spacer to be unique enough that it is very unlikely to accidently 
-                                                                         ## exist in a users' choice of condition name
-            self.options1 = ["multicomparison"] + self.condition_pairs
-            self.condition1.configure(values = self.options1)
-
         self.options1 = [""]
         self.condition1 = ctk.CTkOptionMenu(master = self, values = self.options1, variable = ctk.StringVar(value = "multicomparison"))
         self.condition1.grid(padx = 3, pady = 3, row = 3, column = 0)
-        self.condition1.bind("<Enter>", refresh12)
+        self.condition1.bind("<Enter>", self.refresh12)
 
         label10 = ctk.CTkLabel(master = self, text = "Choose Filename of exported table:")
         label10.grid(padx = 3, pady = 3, row = 6, column = 0)
@@ -2019,6 +1993,21 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         self.GLM.grid(padx = 3, pady = 3, row = 3, column = 1)
 
         self.after(200, self.focus())
+
+    def refresh_abund_ANOVA_cluster(self, enter = ""):
+        self.options = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
+        self.column.configure(values = self.options)
+
+    def refresh12(self, enter = ""):
+        self.condition_pairs = []
+        self.conditions = list(self.master.cat_exp.data.obs['condition'].astype('str').unique())
+        for i in self.conditions:
+            for j in self.conditions:
+                if i != j:
+                    self.condition_pairs.append(f"{i} %vs.% {j}")   ## want the spacer to be unique enough that it is very unlikely to accidently 
+                                                                        ## exist in a users' choice of condition name
+        self.options1 = ["multicomparison"] + self.condition_pairs
+        self.condition1.configure(values = self.options1)
 
     def run_ANOVAs(self) -> None:
         filename = self.filename.get().strip()
@@ -2088,12 +2077,7 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.options = ["whole dataset"] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
         self.clustering_column = ctk.CTkOptionMenu(master = self, values = self.options, variable = ctk.StringVar(value = "whole dataset"))
         self.clustering_column.grid(padx = 3, pady = 3)
-
-        def refresh_state_ANOVA_clusters(enter = ""):
-            self.options = ["whole dataset"] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
-            self.clustering_column.configure(values = self.options)
-
-        self.clustering_column.bind("<Enter>", refresh_state_ANOVA_clusters)
+        self.clustering_column.bind("<Enter>", self.refresh_state_ANOVA_clusters)
 
         label2 = ctk.CTkLabel(master = self, text = "Choose marker class to analyze:")
         label2.grid(padx = 3, pady = 3)
@@ -2129,6 +2113,10 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.heatmap.grid(padx = 3, pady = 3)
 
         self.after(200, self.focus())
+
+    def refresh_state_ANOVA_clusters(self, enter = ""):
+        self.options = ["whole dataset"] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns]
+        self.clustering_column.configure(values = self.options)
 
     def run_state_ANOVAs(self) -> None:
         filename = self.filename.get().strip()
@@ -2195,12 +2183,7 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                                              variable = ctk.StringVar(), 
                                              command = self.update_option_menu) 
         self.column_type.grid(column = 1, row = 1, pady = 5, padx = 5)
-
-        def refresh_cluster_stats_clusters(enter = ""):
-            option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] 
-            self.column_type.configure(values = option_list)
-
-        self.column_type.bind("<Enter>", refresh_cluster_stats_clusters)
+        self.column_type.bind("<Enter>", self.refresh_cluster_stats_clusters)
 
         label4 = ctk.CTkLabel(master = self, text = "Heatmap Filename:")
         label4.grid(column = 0, row = 4, pady = 5, padx = 5)
@@ -2233,6 +2216,10 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.pop_up.grid(column = 1, row = 6, padx = 3, pady = 3)
 
         self.after(200, lambda: self.focus()) 
+
+    def refresh_cluster_stats_clusters(self, enter = ""):
+        option_list = [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns] 
+        self.column_type.configure(values = option_list)
 
     def run_stat(self, filename: str, obs_column: str) -> None:
         '''
@@ -2362,17 +2349,10 @@ class image_drop_restore_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         label1 = ctk.CTkLabel(master = self, text = "Choose a metadata column to Filter your analysis on:")
         label1.grid(column = 0, row = 0, pady = 5, padx = 5)
 
-        values_list = COLNAMES + CLUSTER_NAMES
-
-        def refresh_list():
-            values = [i for i in values_list if i in self.master.cat_exp.data.obs.columns]
-            self.choice_menu.configure(values = values)
-
-
         self.choice_menu = ctk.CTkOptionMenu(master = self, variable = ctk.StringVar(value = "Select column to filter dataset on"),
                                              values = [""], 
                                              command = lambda choice: self.switch_column(choice))
-        self.choice_menu.bind("<Enter>", lambda event: refresh_list())
+        self.choice_menu.bind("<Enter>", self.refresh_list)
         
         self.choice_menu.grid(column = 0, row = 1, pady = 5, padx = 5)
 
@@ -2380,6 +2360,11 @@ class image_drop_restore_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.button1.grid(column = 0, row = 4, padx = 5, pady = 5)
         self.button1.configure(state = "disabled")
         self.after(200, lambda: self.focus()) 
+
+    def refresh_list(self, enter = ""):
+        values_list = COLNAMES + CLUSTER_NAMES
+        values = [i for i in values_list if i in self.master.cat_exp.data.obs.columns]
+        self.choice_menu.configure(values = values)
 
     def switch_column(self, column: str) -> None:
         if self.label is not None:
@@ -2714,10 +2699,10 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
             self.columns_keep_or_no = []
 
             allowed_columns_list = CLUSTER_NAMES + COLNAMES
-            to_list = [i for i in data_table.obs.columns if i in allowed_columns_list]
+            self.to_list = [i for i in data_table.obs.columns if i in allowed_columns_list]
 
             for ii,i in enumerate(data_table.obs.columns):
-                if i in to_list:
+                if i in self.to_list:
                     leader_checkbox = ctk.CTkCheckBox(master = self, text = f'column: {i}', onvalue = True, offvalue = False)
                     leader_checkbox.grid(row = ii + 2, column = 0, padx = 2, pady = 2)
                     self.columns_keep_or_no.append(leader_checkbox)
@@ -2725,15 +2710,7 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
                     column = data_table.obs[i].astype('str')
                     self.column_choice = self.special_optionmenu(master = self, values = column.unique(), row_number = ii)
                     self.column_choice.grid(row = ii + 2, column = 1, padx = 2, pady = 2)
-
-                    def refresh_export_column_choice(enter = ""):
-                        column = data_table.obs[i].astype('str')
-                        if list(column.unique()) == []:
-                            self.column_choice.configure(values = "")
-                            return
-                        self.column_choice.configure(values = list(column.unique()))
-
-                    self.column_choice.bind("<Enter>", refresh_export_column_choice)
+                    self.column_choice.bind("<Enter>", lambda enter: self.refresh_export_column_choice(i))
 
                     text_box_of_choices = ctk.CTkTextbox(master = self, activate_scrollbars = True, wrap = 'none')
                     text_box_of_choices.grid(row = ii + 2, column = 2, padx = 2, pady = 2)
@@ -2744,6 +2721,14 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
                     self.columns_keep_or_no.append(leader_checkbox)
                     text_box_of_choices = ctk.CTkTextbox(master = self, activate_scrollbars = True, wrap = 'none')
                     self.column_values_list.append(text_box_of_choices)
+
+
+        def refresh_export_column_choice(self, i):
+            column = self.data_table.obs[i].astype('str')
+            if list(column.unique()) == []:
+                self.column_choice.configure(values = "")
+                return
+            self.column_choice.configure(values = list(column.unique()))
 
         def recover(self) -> tuple[list[str], list[str]]:
             subsetter_silcer = np.array([i.get() for i in self.columns_keep_or_no])
@@ -3124,10 +3109,7 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.antigen1 = ctk.CTkOptionMenu(master = self, values = list(self.master.cat_exp.data.var['antigen'].unique()))
         self.antigen1.grid(column= 1, row = 2, padx = 5, pady = 5)
 
-        def refresh_scatter_antigen1(enter = ""):
-            self.antigen1.configure(values = list(self.master.cat_exp.data.var['antigen'].unique()))
-
-        self.antigen1.bind("<Enter>", refresh_scatter_antigen1)
+        self.antigen1.bind("<Enter>", self.refresh_scatter_antigen1)
 
         label_2 = ctk.CTkLabel(self, text = "Antigen Y:")
         label_2.grid(column = 0, row = 3)
@@ -3135,10 +3117,7 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.antigen2 = ctk.CTkOptionMenu(master = self, values = list(self.master.cat_exp.data.var['antigen'].unique()))
         self.antigen2.grid(column= 1, row = 3, padx = 5, pady = 5)
 
-        def refresh_scatter_antigen2(enter = ""):
-            self.antigen2.configure(values = list(self.master.cat_exp.data.var['antigen'].unique()))
-
-        self.antigen2.bind("<Enter>", refresh_scatter_antigen2)
+        self.antigen2.bind("<Enter>", self.refresh_scatter_antigen2)
 
         label_3 = ctk.CTkLabel(self, text = "Color points by:")
         label_3.grid(column = 0, row = 4)
@@ -3151,14 +3130,7 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.hue = ctk.CTkOptionMenu(master = self, values = color_list)
         self.hue.grid(column= 1, row = 4, padx = 5, pady = 5)
 
-        def refresh_scatter_hue(enter = ""):
-            color_list = ["None", ] + COLNAMES  # "Density",
-            color_list_obs = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns.unique())]
-            color_list_antigens = list(self.master.cat_exp.data.var['antigen'].unique())
-            color_list = color_list + color_list_obs + color_list_antigens
-            self.hue.configure(values = color_list)
-
-        self.hue.bind("<Enter>", refresh_scatter_hue)
+        self.hue.bind("<Enter>", self.refresh_scatter_hue)
 
         label_4 = ctk.CTkLabel(self, text = "Point Size: \n (automatically determined if not a number)")
         label_4.grid(column = 0, row = 5)
@@ -3190,6 +3162,19 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.pop_up.grid(column = 0, row = 11, padx = 3, pady = 3)
 
         self.after(200, lambda: self.focus())
+
+    def refresh_scatter_antigen1(self, enter = ""):
+        self.antigen1.configure(values = list(self.master.cat_exp.data.var['antigen'].unique()))
+
+    def refresh_scatter_antigen2(self, enter = ""):
+        self.antigen2.configure(values = list(self.master.cat_exp.data.var['antigen'].unique()))
+
+    def refresh_scatter_hue(self, enter = ""):
+        color_list = ["None", ] + COLNAMES  # "Density",
+        color_list_obs = [i for i in CLUSTER_NAMES if i in list(self.master.cat_exp.data.obs.columns.unique())]
+        color_list_antigens = list(self.master.cat_exp.data.var['antigen'].unique())
+        color_list = color_list + color_list_obs + color_list_antigens
+        self.hue.configure(values = color_list)
 
     def plot_scatter(self, 
                     antigen1: str, 
@@ -3230,8 +3215,9 @@ class scatterplot_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                             alpha = {str(alpha)},
                                             filename = {str(filename)}""")
         if self.pop_up.get() is True:
-            Plot_window_display(figure)
+            display_window = Plot_window_display(figure)
             self.withdraw()
+            return display_window ## for testing
         else:
             self.destroy()
 
@@ -3250,10 +3236,7 @@ class classy_masker_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.clustering = ctk.CTkOptionMenu(master = self, 
                                             values = [""] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns])
         self.clustering.grid(column= 1, row = 2, padx = 5, pady = 5)
-
-        def refresher1(enter = ""):
-            self.clustering.configure(values = [""] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns])
-        self.clustering.bind("<Enter>", refresher1)
+        self.clustering.bind("<Enter>", self.refresher1)
 
         label_5 = ctk.CTkLabel(self, text = "Identifier:")
         label_5.grid(column = 0, row = 3)
@@ -3266,6 +3249,9 @@ class classy_masker_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         button_plot.grid(column = 0, row = 4, padx = 5, pady = 5)
         self.after(200, lambda: self.focus())
 
+    def refresher1(self, enter = ""):
+        self.clustering.configure(values = [""] + [i for i in CLUSTER_NAMES if i in self.master.cat_exp.data.obs.columns])
+
     def classy_mask(self, clustering = "merging", identifier = "") -> None:
         '''  '''
         data = self.master.cat_exp.export_clustering_classy_masks(clustering = clustering, identifier = identifier)
@@ -3277,7 +3263,6 @@ class classy_masker_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
 
 class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
-
     def __init__(self, master):
         super().__init__(master)
         self.title("Plot Marker Expression Boxplots")
@@ -3297,10 +3282,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                                             values = [""] + [i for i in CLUSTER_NAMES if i in self.master.master.cat_exp.data.obs.columns],
                                             variable = ctk.StringVar(value = ""))
         self.clustering.grid(column= 1, row = 1, padx = 5, pady = 5)
-
-        def refresher1(enter = ""):
-            self.clustering.configure(values = [""] + [i for i in CLUSTER_NAMES if i in self.master.master.cat_exp.data.obs.columns])
-        self.clustering.bind("<Enter>", refresher1)
+        self.clustering.bind("<Enter>", self.refresher1)
 
         label_1 = ctk.CTkLabel(self, text = "Color By:")
         label_1.grid(column = 0, row = 2)
@@ -3309,10 +3291,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
                                             values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns],
                                             variable = ctk.StringVar(value = "condition"))
         self.colorby.grid(column= 1, row = 2, padx = 5, pady = 5)
-
-        def refresher2(enter = ""):
-            self.colorby.configure(values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns])
-        self.colorby.bind("<Enter>", refresher2)
+        self.colorby.bind("<Enter>", self.refresher2)
 
         label_7 = ctk.CTkLabel(self, text = "Filename:")
         label_7.grid(column = 0, row = 3)
@@ -3326,6 +3305,12 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         self.pop_up = ctk.CTkCheckBox(master = self, text = "Make detailed Plot Editing Pop-up?", onvalue = True, offvalue = False)
         self.pop_up.grid(column = 0, row = 5, padx = 3, pady = 3)
         self.after(200, lambda: self.focus())
+
+    def refresher1(self, enter = ""):
+        self.clustering.configure(values = [""] + [i for i in CLUSTER_NAMES if i in self.master.master.cat_exp.data.obs.columns])
+
+    def refresher2(self, enter = ""):
+        self.colorby.configure(values = [""] + [i for i in COLNAMES if i in self.master.master.cat_exp.data.obs.columns])
 
     def plot(self) -> None:
         '''  '''

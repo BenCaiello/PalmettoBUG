@@ -124,17 +124,13 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.label = ctk.CTkLabel(master = self, text = "Load a Classifier's masks to Use:")
             self.label.grid(padx = 3, pady = 3, column = 0, row = 0, sticky = "ew", columnspan = 2)
 
-            def refresh1():
-                classifier_folders = [i for i in sorted(os.listdir(self.master.classifier_dir)) if i.find(".") == -1]
-                self.classifier_option_menu.configure(values = classifier_folders)
-
             classifier_options = sorted((self.master.classifier_dir))
             self.classifier_option_menu = ctk.CTkOptionMenu(master = self, 
                                                             values = classifier_options, 
                                                             variable = ctk.StringVar(value = ""), 
                                                             command = self.master.load_classifier)
             self.classifier_option_menu.grid(padx = 3, pady = 3, column = 0, row = 1, columnspan = 2)
-            self.classifier_option_menu.bind("<Enter>", lambda enter: refresh1())
+            self.classifier_option_menu.bind("<Enter>", self.refresh1)
 
             self.quick_display = display_image_button(self, PALMETTO_BUG_homedir + "/Assets/Capture2.png")
             self.quick_display.grid(row = 2, column = 0, padx = 3, pady = 3,  columnspan = 2) 
@@ -149,6 +145,10 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.plot_classes = ctk.CTkButton(master = self, text = "Plot Classes as PNG files", command = self.launch_classes_as_png)
             self.plot_classes.grid(padx = 3, pady = 3, column = 1, row = 4, columnspan = 2)
 
+        def refresh1(self, enter = ""):
+            classifier_folders = [i for i in sorted(os.listdir(self.master.classifier_dir)) if i.find(".") == -1]
+            self.classifier_option_menu.configure(values = classifier_folders)
+
         def launch_classes_as_png(self):
             ''''''
             return classes_as_png_window(self)
@@ -159,10 +159,6 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 tk.messagebox.showwarning("No Classifier Loaded!", message = message)
                 return
             return bio_labels_window(self.master)
-
-        def refresh1(self) -> None:
-            classifier_folders = [i for i in sorted(os.listdir(self.master.classifier_dir)) if i.find(".") == -1]
-            self.classifier_option_menu.configure(values = classifier_folders)
 
     class filter_frame(ctk.CTkFrame):
         def __init__(self, master):
@@ -187,15 +183,12 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             label2 = ctk.CTkLabel(master = self, text = "Name of image folder to filter from:")
             label2.grid(padx = 3, pady = 3, column = 1, row = 2)
 
-            def refresh2():
-                images_folders = [i for i in sorted(os.listdir(self.master.image_directory)) if i.find(".") == -1]
-                self.select_image_folder.configure(values = images_folders)
             images_folders = [i for i in sorted(os.listdir(self.master.image_directory)) if i.find(".") == -1]
             self.select_image_folder = ctk.CTkOptionMenu(master = self, 
                                                          variable = ctk.StringVar(value = "img"), 
                                                          values = images_folders) 
             self.select_image_folder.grid(column = 1, row = 3, padx = 3, pady = 3)
-            self.select_image_folder.bind("<Enter>", lambda enter: refresh2())
+            self.select_image_folder.bind("<Enter>", self.refresh2)
 
             label2 = ctk.CTkLabel(master = self, text = "Name of output folder:")
             label2.grid(padx = 3, pady = 3, column = 1, row = 4)
@@ -217,6 +210,10 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
             self.execute_button = ctk.CTkButton(master = self, text = "Run Filtering!", command = self.filter_images)
             self.execute_button.grid(column = 1, row = 9, padx = 3, pady = 3)
+
+        def refresh2(self, enter = ""):
+            images_folders = [i for i in sorted(os.listdir(self.master.image_directory)) if i.find(".") == -1]
+            self.select_image_folder.configure(values = images_folders)
 
         def filter_images(self) -> None:
             if folder_checker(self.name_output.get()):
@@ -329,37 +326,35 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.add_panel_button = ctk.CTkButton(master = self, text = "Add Panel / Metadata!", command = self.add_panel)
             self.add_panel_button.grid(padx = 3, pady = 3, column = 0, row = 5)
 
-            def refresh_panel_button(enter = ""):
-                try:
-                    if (not os.path.exists(str(self.master.active_classifier_dir) + "/Whole_class_analysis")) and (self.add_panel_button.cget('state') == "normal"):
-                        self.add_panel_button.configure(state = "disabled")
-                    elif self.add_panel_button.cget("state") == "disabled":
-                        self.add_panel_button.configure(state = "normal")
-                except AttributeError:
-                    self.add_panel_button.configure(state = "disabled")
-
-            self.add_panel_button.bind("<Enter>", refresh_panel_button)
-            refresh_panel_button()
-
+            self.add_panel_button.bind("<Enter>", self.refresh_panel_button)
+            self.refresh_panel_button()
 
             self.launch = ctk.CTkButton(master = self, text = "Launch Analysis!", command = self.launch_analysis)
             self.launch.grid(padx = 3, pady = 3, column = 0, row = 6)
 
-            def refresh_launch_button(enter = ""):
-                try:
-                    if (not os.path.exists(str(self.master.active_classifier_dir) + "/Whole_class_analysis/Analysis_panel.csv")) and \
-                       (not os.path.exists(str(self.master.active_classifier_dir) + "/Whole_class_analysis/metadata.csv")) and \
-                        (self.launch.cget('state') == "normal"):
-                        
-                        self.launch.configure(state = "disabled")
-                    elif self.launch.cget('state') == "disabled":
-                        self.launch.configure(state = "normal")
-                except AttributeError:
+            self.launch.bind("<Enter>", self.refresh_launch_button)
+            self.refresh_launch_button()
+
+        def refresh_panel_button(self, enter = ""):
+            try:
+                if (not os.path.exists(str(self.master.active_classifier_dir) + "/Whole_class_analysis")) and (self.add_panel_button.cget('state') == "normal"):
+                    self.add_panel_button.configure(state = "disabled")
+                elif self.add_panel_button.cget("state") == "disabled":
+                    self.add_panel_button.configure(state = "normal")
+            except AttributeError:
+                self.add_panel_button.configure(state = "disabled")
+
+        def refresh_launch_button(self, enter = ""):
+            try:
+                if (not os.path.exists(str(self.master.active_classifier_dir) + "/Whole_class_analysis/Analysis_panel.csv")) and \
+                    (not os.path.exists(str(self.master.active_classifier_dir) + "/Whole_class_analysis/metadata.csv")) and \
+                    (self.launch.cget('state') == "normal"):
+                    
                     self.launch.configure(state = "disabled")
-
-
-            self.launch.bind("<Enter>", refresh_launch_button)
-            refresh_launch_button()
+                elif self.launch.cget('state') == "disabled":
+                    self.launch.configure(state = "normal")
+            except AttributeError:
+                self.launch.configure(state = "disabled")
 
         def load_classifier_activate_buttons(self):
             ''''''
@@ -475,14 +470,10 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             label = ctk.CTkLabel(master = self, text = "Select Masks folder:")
             label.grid(row = 1, column = 0, padx = 3, pady = 3)
 
-            def refresh3():
-                masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.lower().find(".tif") != -1]
-                self.mask_option_menu.configure(values = masks_options)
-
             masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.lower().find(".tif") != -1]
             self.mask_option_menu = ctk.CTkOptionMenu(master = self, values = masks_options, variable = ctk.StringVar(value = ""))
             self.mask_option_menu.grid(padx = 3, pady = 3, column = 1, row = 1)
-            self.mask_option_menu.bind("<Enter>", lambda enter: refresh3())
+            self.mask_option_menu.bind("<Enter>", self.refresh3)
 
             ## default to only using the merged maps (since merging REQUIRES classy masks, and classy masks do the merging simultaneously 
             # --> just use the merging labels for everything
@@ -490,14 +481,10 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             label3 = ctk.CTkLabel(master = self, text = "Select Classy Masks folder:")
             label3.grid(row = 3, column = 0, padx = 3, pady = 3)
 
-            def refresh4():
-                classy_masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/classy_masks")) if i.find(".") == -1]
-                self.classy_mask_option_menu.configure(values = classy_masks_options)
-
             classy_masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/classy_masks")) if i.find(".") == -1]                                                                                       
             self.classy_mask_option_menu = ctk.CTkOptionMenu(master = self, values = classy_masks_options, variable = ctk.StringVar(value = ""))
             self.classy_mask_option_menu.grid(padx = 3, pady = 3, column = 1, row = 3)
-            self.classy_mask_option_menu.bind("<Enter>", lambda enter: refresh4())
+            self.classy_mask_option_menu.bind("<Enter>", self.refresh4)
 
             label3 = ctk.CTkLabel(master = self, 
                             text = "Choose Output folder name \n (will be generated in the masks folder \n as a derived mask):")
@@ -520,6 +507,14 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
             self.select_table = self.ignore_frame(self)
             self.select_table.grid(padx = 3, pady = 3, column = 0, row = 8) 
+
+        def refresh3(self, enter = ""):
+            masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.find(".") == -1]
+            self.mask_option_menu.configure(values = masks_options)
+
+        def refresh4(self, enter = ""):
+            classy_masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/classy_masks")) if i.find(".") == -1]
+            self.classy_mask_option_menu.configure(values = classy_masks_options)
 
         def loaded_classifier(self, classifier_type) -> None:
             self.classifier_type = classifier_type
@@ -627,14 +622,10 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             label = ctk.CTkLabel(master = self, text = "Choose Masks folder to classify:")
             label.grid(padx = 3, pady = 3, column = 0, row = 1)
 
-            def refresh5():
-                masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.find(".") == -1]
-                self.mask_option_menu.configure(values = masks_options)
-
             masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.find(".") == -1]
             self.mask_option_menu = ctk.CTkOptionMenu(master = self, values = masks_options, variable = ctk.StringVar(value = ""))
             self.mask_option_menu.grid(padx = 3, pady = 3, column = 1, row = 1)
-            self.mask_option_menu.bind("<Enter>", lambda enter: refresh5())
+            self.mask_option_menu.bind("<Enter>", self.refresh5)
 
             label2 = ctk.CTkLabel(master = self, text = "Select Classifier's ouput to use \n (only for FlowSOM method):")
             label2.grid(row = 2, column = 0, padx = 3, pady = 3)              
@@ -653,6 +644,10 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
             self.accept_button = ctk.CTkButton(master = self, text = "Do Mask Classification!", command = self.do_classy_masks)
             self.accept_button.grid(row = 6, column = 1, padx = 3, pady = 3)
+
+        def refresh5(self, enter = ""):
+            masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.find(".") == -1]
+            self.mask_option_menu.configure(values = masks_options)
 
         def loaded_classifier(self) -> None:
             try:
@@ -896,19 +891,19 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label_8 = ctk.CTkLabel(self, text = "Select an image folder from which measurements will be taken:")
         label_8.grid(column = 0, row = 2)
 
-        def refresh7():
-            self.image_folders = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.img_dir)) if i.find(".") == -1]
-            self.image_folder.configure(values = self.image_folders)
-
         self.image_folders = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.img_dir)) if i.find(".") == -1]
         self.image_folder = ctk.CTkOptionMenu(self, values = self.image_folders, variable = ctk.StringVar(value = "img"))
         self.image_folder.grid(column = 1, row = 2, padx = 5, pady = 5)
-        self.image_folder.bind("<Enter>", lambda enter: refresh7())
+        self.image_folder.bind("<Enter>", self.refresh7)
 
         accept_values = ctk.CTkButton(master = self, text = "Accept choices and proceed", command = lambda: self.read_values(experiment))
         accept_values.grid(padx = 10, pady = 10)
 
         self.after(200, lambda: self.focus())
+
+    def refresh7(self, enter = ""):
+        self.image_folders = [i for i in sorted(os.listdir(self.master.Experiment_object.directory_object.img_dir)) if i.find(".") == -1]
+        self.image_folder.configure(values = self.image_folders)
         
     def read_values(self, experiment_class) -> None:
         ### Read in the values and return it to the experiment
@@ -1429,22 +1424,14 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         
         self.option1 = ctk.CTkOptionMenu(master = self, values = ["pixel classification", "classy masks"])
         self.option1.grid(padx = 3, pady = 3)
+        self.option1.configure(command = self.refresh_option2)
 
         label3 = ctk.CTkLabel(master = self, text = "Select folder to convert")
         label3.grid(padx = 3, pady = 3)
 
-        if_pixel_classifier = ["classification_maps", "merged_classification_maps"]
-
         self.option2 = ctk.CTkOptionMenu(master = self, values = [""])
         self.option2.grid(padx = 3, pady = 3)
-
-        def refresh_option2(choice):
-            if choice == "pixel classification":
-                self.option2.configure(values = [i for i in if_pixel_classifier if i in os.listdir(self.master.master.active_classifier_dir)])
-            elif choice == "classy masks":
-                self.option2.configure(values = [i for i in sorted(os.listdir(f"{self.master.master.main_directory}/classy_masks")) if i.find(".") == -1])
-
-        self.option1.configure(command = refresh_option2)
+        self.refresh_option2("pixel classification")
 
         ## output folder will be automatically parallel to the selected folder (just append "_PNG_conversion" or something like that)
         button = ctk.CTkButton(master = self, text = "Plot / Convert!", command = lambda: self.convert_to_png(self.option1.get(),
@@ -1455,6 +1442,13 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.checkbox.grid(padx = 3, pady = 3)
 
         self.after(200, self.focus())
+
+    def refresh_option2(self, choice):
+        if_pixel_classifier = ["classification_maps", "merged_classification_maps"]
+        if choice == "pixel classification":
+            self.option2.configure(values = [i for i in if_pixel_classifier if i in os.listdir(self.master.master.active_classifier_dir)])
+        elif choice == "classy masks":
+            self.option2.configure(values = [i for i in sorted(os.listdir(f"{self.master.master.main_directory}/classy_masks")) if i.find(".") == -1])
 
     def convert_to_png(self, map_type = "pixel classification", choice = "classification_maps"):
         ''''''
