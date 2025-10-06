@@ -477,10 +477,10 @@ class Spatial_py(ctk.CTkFrame):
                 self.pop_up = ctk.CTkCheckBox(master = self, text = "Make detailed Plot Editing Pop-up?", onvalue = True, offvalue = False)
                 self.pop_up.grid(column = 1, row = 6, padx = 3, pady = 3)
 
-                tablebutton = ctk.CTkButton(self,
+                self.tablebutton = ctk.CTkButton(self,
                                             text = "Export Table", 
                                             command = lambda: self.export_table(self.table_selection.get()))
-                tablebutton.grid(column = 0, row = 5, padx = 5, pady = 5)
+                self.tablebutton.grid(column = 0, row = 5, padx = 5, pady = 5)
 
                 self.after(200, lambda: self.focus())
 
@@ -517,7 +517,7 @@ class Spatial_py(ctk.CTkFrame):
 
                 data_table.to_csv(output_directory, index = False)
                 space_logger.info(f"Exported spatial statistics table {table_type}, with filename = {filename}.csv")
-                TableLaunch(dataframe = data_table, 
+                return TableLaunch(dataframe = data_table, 
                             directory = filename, 
                             width = 1, 
                             height = 1, 

@@ -809,6 +809,9 @@ def test_SpaceANOVA():
 def test_SpaceANOVA_stats_and_heatmap():
     window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
     window.plot_heatmap("adjusted p values")
+    t_launch = window.export_table(window.table_selection.get())
+    assert isinstance(t_launch, ctk.CTkToplevel) 
+    t_launch.destroy()
     assert isinstance(window, ctk.CTkToplevel) 
     window.destroy()
 
@@ -816,11 +819,12 @@ def test_SpaceANOVA_function_plots():
     window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
     window.refresh_fxn_plot_comparisons()
     window.plot_pairwise_comparison(comparison = "Run All", stat = 'g', plot_f_vals = True)
+    #window.plot_pairwise_comparison(comparison = "Run All", stat = 'g', plot_f_vals = False)  ## set to only run 1 image each, instead of run all to check both + / - f_vals
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
 def test_do_neighbors():
-    app.Tabs.Spatial.widgets.squidpy_spatial.do_neighbors()
+    app.Tabs.Spatial.widgets.load_spatial()
     assert True
 
 def test_sq_centrality():
