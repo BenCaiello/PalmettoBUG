@@ -1429,8 +1429,6 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label3 = ctk.CTkLabel(master = self, text = "Select folder to convert")
         label3.grid(padx = 3, pady = 3)
 
-        if_pixel_classifier = ["classification_maps", "merged_classification_maps"]
-
         self.option2 = ctk.CTkOptionMenu(master = self, values = [""])
         self.option2.grid(padx = 3, pady = 3)
         self.refresh_option2("pixel classification")
@@ -1445,7 +1443,8 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         self.after(200, self.focus())
 
-    def refresh_option2(choice):
+    def refresh_option2(self, choice):
+        if_pixel_classifier = ["classification_maps", "merged_classification_maps"]
         if choice == "pixel classification":
             self.option2.configure(values = [i for i in if_pixel_classifier if i in os.listdir(self.master.master.active_classifier_dir)])
         elif choice == "classy masks":
