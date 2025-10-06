@@ -524,7 +524,6 @@ def test_launch_leiden():
 
 def test_launch_plot_UMAP_window():     ### this window handles UMAP, PCA, and facetted varieties of both
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_UMAP_window()
-    ## invoke events:
     window.refresh2z()
     window.refresh2zz()
     window.refresh3()
