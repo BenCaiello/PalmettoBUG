@@ -292,7 +292,7 @@ class Spatial_py(ctk.CTkFrame):
                 options = [i for i in CLUSTER_NAMES if i in self.master.master.master_exp.data.obs.columns]
                 self.celltype.configure(values = options)
 
-            def comparisons_return():
+            def comparisons_return(self):
                 condition_list = self.master.master.master_exp.data.obs['condition'].unique()
                 comparison_list = ["All (multicomparison)"]
                 already_used_list = []
