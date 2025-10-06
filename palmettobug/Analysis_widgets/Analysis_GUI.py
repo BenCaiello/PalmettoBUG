@@ -1135,9 +1135,10 @@ class Plot_Counts_per_ROI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow
         Analysis_widget_logger.info(f"Plotted Counts per ROI with: group_by = {group_by}, color_by = {color_by}, filename = {filename}.png")
         self.master.save_and_display(filename = filename,sizeX = 550, sizeY = 550)
         if self.pop_up.get() is True:
-            Plot_window_display(figure)
+            display_window = Plot_window_display(figure)
             self.withdraw()
         else:
+            display_window = None
            self.destroy()
         return figure
 

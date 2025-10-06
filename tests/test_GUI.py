@@ -219,7 +219,7 @@ def test_events_create_px():   ## do at least after a classifier has been loaded
     app.Tabs.px_classification.create.px_widg.start_frame.refresh_exclusive_buttons()
     app.Tabs.px_classification.create.px_widg.start_frame.refresh_exclusive_buttons()
     app.Tabs.px_classification.create.px_widg.Napari_frame.refresh1()
-    app.Tabs.px_classification.create.px_widg.Napari_frame.refresh2()
+    app.Tabs.px_classification.create.px_widg.Napari_frame.refresh2(image_folder = proj_directory + "images/img")
     app.Tabs.px_classification.create.px_widg.predictions_frame.refresh3()
     app.Tabs.px_classification.create.px_widg.predictions_frame.refresh4()
     app.Tabs.px_classification.create.px_widg.segment_frame.refresh5()
@@ -389,7 +389,6 @@ def test_wca_3():
     value = list(wca_window.analysis_exp_whole.data.obs[column].unique())[0]
     export_window.subset_frame.columns_keep_or_no[0].select()
     export_window.subset_frame.column_values_list[0].insert("0.0", f'{value},')
-    print(export_window.grouping.to_list)
     export_window.grouping.checkbox_list[2].select()
     export_window.file_name_entry.configure(textvariable = ctk.StringVar(value = "subset_grouped_data_table"))
     df = export_window.export_table()
@@ -438,13 +437,15 @@ def test_launch_scatterplot():
     window.antigen1.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
     window.antigen2.configure(variable = ctk.StringVar(value = "HistoneH3"))
     window.hue.configure(variable = ctk.StringVar(value = "None"))
-    display_window = window.plot_scatter(antigen1 = window.antigen1.get(), 
-                    antigen2 = window.antigen2.get(),
-                    hue = window.hue.get(),
-                    size = window.size.get(),
-                    alpha = window.alpha.get(),
-                    filename = window.filename.get().strip())
+    window.button_plot.invoke()
     assert isinstance(window, ctk.CTkToplevel)
+    window.destroy()
+
+def test_launch_Plot_Counts_per_ROI_window():
+    window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_Counts_per_ROI_window()
+    window.refresh5()
+    window.refresh6()
+    figure, display_window = window.plot_Counts_per_ROI()
     assert isinstance(display_window, ctk.CTkToplevel)
     display_window.move_legend_x(1)
     display_window.move_legend_y(1)
@@ -454,13 +455,6 @@ def test_launch_scatterplot():
     display_window.resize_widget(7)
     display_window.resize_text(7)
     display_window.destroy()
-    window.destroy()
-
-def test_launch_Plot_Counts_per_ROI_window():
-    window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_Counts_per_ROI_window()
-    window.refresh5()
-    window.refresh6()
-    figure = window.plot_Counts_per_ROI()
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(figure, matplotlib.figure.Figure), "Count plot did not return a matplotlib figure"
     window.destroy()
@@ -744,7 +738,7 @@ def test_launch_drop_restore():           ## filtering
 
 def test_launch_data_table_exportation_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_data_table_exportation_window()
-    window.subset_frame.refresh_export_column_choice(to_list[0])
+    window.subset_frame.refresh_export_column_choice(window.subset_frame.to_list[0])
     window.subset_command()
     window.grouping_command()
     window.plain_command()
