@@ -792,6 +792,7 @@ def test_launch_data_table_exportation_window():
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
     df = window.umap_pca_button.invoke()
     window.umap_pca.configure(variable = ctk.StringVar(value = "pca"))
+    window.umap_pca_filename.configure(textvariable = ctk.StringVar(value = "pca_export"))
     df = window.umap_pca_button.invoke()
     assert isinstance(df, pd.DataFrame), "DR export did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.UMAP_embedding), "DR export did not have the same length as the source embedding!"
