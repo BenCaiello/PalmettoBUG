@@ -66,13 +66,6 @@ def test_launchExampleDataWindow():     ## now also handles the loading of the e
     shutil.move(fetch_dir + "/panel.csv", proj_directory + "/panel.csv")  
     app.entrypoint.img_entry_func(proj_directory) 
 
-def test_bead_norm_window():   ## can only test GUI elements, and with fake 'data', since nothing in sample data to use
-    window = palmettobug.Entrypoint.app_and_entry.Channel_normalization_window(master = app, channels = np.array(['fake1','fake2','fake3','fake4']), directory = "Not/really/here")
-    assert isinstance(window, ctk.CTkToplevel)
-    window.retrieve_channels()
-    window.destroy()
-
-
 ### GUI Image Analysis tests
 def test_call_raw_to_img_part_1_hpf():
     app.entrypoint.image_proc_widg.buttonframe.activate_region_measure()
@@ -160,7 +153,34 @@ def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows
 
 def test_setup_for_FCS():
     palmettobug.setup_for_FCS(fetch_dir + "/Example_CyTOF")
+    shutil.move(fetch_dir + "/Example_CyTOF/main/Analysis_panel.csv", fetch_dir + "/Example_CyTOF/Analysis_panel.csv")   ## test load without panel file
+    shutil.move(fetch_dir + "/Example_CyTOF/main/metadata.csv", fetch_dir + "/Example_CyTOF/metadata.csv") 
+    palmettobug.setup_for_FCS(fetch_dir + "/Example_CyTOF")
     assert True
+
+def test_fake_bead_norm():
+    fake_bead_norm_dir = fetch_dir + "/bead_norm_fakery"
+    os.mkdir(fake_bead_norm_dir)
+    beads_dir = fake_bead_norm_dir + "/beads"
+    os.mkdir(beads_dir)
+    no_beads_dir = fake_bead_norm_dir + "/no_beads"
+    os.mkdir(no_beads_dir)
+    real_FCS_files_dir = fetch_dir + "/Example_CyTOF/main/Analysis_fcs"
+    real_FCS_files = [i for i in os.listdir(real_FCS_files_dir) if i.lower().find(".fcs") != -1]
+
+    ### will use the example data .fcs files for the bead norm tests (HOWEVER! remember that the example is already normalized / non-bead cells so like many of these
+    # tests, this is just confirms that the code can run, not that it produces accurate / useful results)
+    for i,ii in enumerate(real_FCS_files):
+        if i % 2 == 0:
+            shutil.copyfile(f'{real_FCS_files_dir}/{ii}', f'{beads_dir}/{ii}')
+        else:
+            shutil.copyfile(f'{real_FCS_files_dir}/{ii}', f'{no_beads_dir}/{ii}')
+    channel_norm_window = app.entrypoint.normalize_fcs_choice(directory = fake_bead_norm_dir)
+    assert isinstance(channel_norm_window, ctk.CTkToplevel)
+    for i in channel_norm_window.checkbox_beads_list[:5]:
+        i.select()
+    channel_norm_window.run_button.invoke()
+    
     
 ### GUI Pixel classification tests (px class creation)
 def test_unsupervised():
@@ -809,6 +829,9 @@ def test_SpaceANOVA():
 def test_SpaceANOVA_stats_and_heatmap():
     window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
     window.plot_heatmap("adjusted p values")
+    t_launch = window.export_table(window.table_selection.get())
+    assert isinstance(t_launch, ctk.CTkToplevel) 
+    t_launch.destroy()
     assert isinstance(window, ctk.CTkToplevel) 
     window.destroy()
 
@@ -816,11 +839,12 @@ def test_SpaceANOVA_function_plots():
     window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
     window.refresh_fxn_plot_comparisons()
     window.plot_pairwise_comparison(comparison = "Run All", stat = 'g', plot_f_vals = True)
+    #window.plot_pairwise_comparison(comparison = "Run All", stat = 'g', plot_f_vals = False)  ## set to only run 1 image each, instead of run all to check both + / - f_vals
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
 def test_do_neighbors():
-    app.Tabs.Spatial.widgets.squidpy_spatial.do_neighbors()
+    app.Tabs.Spatial.widgets.load_spatial()
     assert True
 
 def test_sq_centrality():
@@ -957,7 +981,8 @@ def test_load_from_TIFFs():     ## now also handles the loading of the example d
     image_proc = app.entrypoint.img_entry_func(tiff_proj_dir) 
     image_proc.raw_to_img(0.85)
     assert len(os.listdir(tiff_proj_dir + "/images/img")) == 10
-
+    image_proc.directory_object.make_analysis_dirs("test_panel_and_meta_gen")
+    image_proc.to_analysis(gui_switch = False)
 
 def test_non_GUI_TableLaunch():
     path_to_df = proj_directory + "/panel.csv"
@@ -996,4 +1021,7 @@ def test_smooth_folder():
 def test_plot_class_centers():
     figure, df = palmettobug.plot_class_centers(fs)
     assert isinstance(df, pd.DataFrame)
+
+def test_app_destroy():
+    app.destroy()
 
