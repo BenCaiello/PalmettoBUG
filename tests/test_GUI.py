@@ -982,7 +982,7 @@ def test_load_from_TIFFs():     ## now also handles the loading of the example d
     image_proc.raw_to_img(0.85)
     assert len(os.listdir(tiff_proj_dir + "/images/img")) == 10
     image_proc.directory_object.make_analysis_dirs("test_panel_and_meta_gen")
-    image_proc.to_analysis()
+    image_proc.to_analysis(gui_switch = False)
 
 def test_non_GUI_TableLaunch():
     path_to_df = proj_directory + "/panel.csv"

@@ -1228,7 +1228,7 @@ class ImageAnalysis:
             df['cycles'] = cycle_list
             df.to_csv(ii, index = False)    
 
-    def to_analysis(self, Analysis_tab = None, metadata_from_save: bool = False) -> None:
+    def to_analysis(self, Analysis_tab = None, metadata_from_save: bool = False, gui_switch = None) -> None:
         '''
         This function prepares / sets up an Analysis folder, by converting intensity csv files to fcs files and generating preliminary / semi-empty metadata / panel 
         pandas dataframes, which require editing before writing to the disk at the newly prepared self.Analysis_panel_dir and self.metadata_dir filepaths.
@@ -1244,8 +1244,10 @@ class ImageAnalysis:
                 IGNORED outside of GUI. in the GUI they assist in coordinating the widgets & choosing to load the Analysis_panel/metadata files 
                 from the directory_object.Analyses_dir (if someone makes a second analysis in one project, instead of requiring a fresh panel/metadata 
                 set up each time a new analysis is made). 
+            gui_switch (Boolean or None) -- only needed if an error is making palmettobug think it is in the gui. Needed for a testing error
         '''
-        #print(_in_gui)
+        if gui_switch is not None:
+            _in_gui = gui_switch
         if not _in_gui:
             self._intense_to_fcs()
             if (not os.path.exists(self.directory_object.Analyses_dir + "/Analysis_panel.csv")):
