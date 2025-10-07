@@ -27,10 +27,6 @@ def test_print_licenses():
     palmettobug.print_3rd_party_license_info()
     assert True
 
-# Helpful discussion for how to unit-test tkinter applications with event bindings: https://stackoverflow.com/questions/27581864/tkinters-event-generate-command-ignored
-# particularly Bryan Oakley's responses about calling .update() before (and not after, as suggested by Co-Pilot) invoking an event. This is 
-# because the widgets need to be drawn by tkinter before an event can be successfully simulated for them.
-
 ### GUI App & entrypoint tests
 def test_setup_app():
     global app
@@ -712,6 +708,7 @@ def test_run_state_ANOVAs_window():
     assert len(df) == (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
     table_launch.accept_and_return(None)
     window.stat.configure(variable = ctk.StringVar(value = "median"))
+    window.filename.configure(textvariable = ctk.StringVar(value = 'state_exprs_ANOVA_table2'))
     df, table_launch = window.run_state_ANOVAs()
     assert isinstance(table_launch, ctk.CTkToplevel)
     assert isinstance(df, pd.DataFrame), "state expression statistics (median) did not return a pandas DataFrame"
