@@ -49,7 +49,7 @@ def test_call_configGUI():
     window.toggle_light_dark()
     window.toggle_light_dark()
     window.slider_moved(1.0)
-    window = window.change_theme('blue')
+    window = window.change_theme('Sweetkind')
     window = window.change_theme('green') ### reset so local tests change less for git versioning (assets theme file)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
@@ -64,7 +64,7 @@ def test_launchExampleDataWindow():     ## now also handles the loading of the e
     app.entrypoint.img_entry_func(proj_directory) 
     ## restore example panel & reload
     shutil.move(fetch_dir + "/panel.csv", proj_directory + "/panel.csv")  
-    app.entrypoint.img_entry_func(proj_directory) 
+    app.entrypoint.img_entry_func(proj_directory, resolutions = [1.0,1.0]) 
 
 ### GUI Image Analysis tests
 def test_call_raw_to_img_part_1_hpf():
@@ -764,7 +764,9 @@ def test_launch_data_table_exportation_window():
     window.grouping_command()
     window.plain_command()
     window.whole_command()
+    window.export_marker_class.select()
     df = window.export_table()
+    window.export_marker_class.deselect()
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.data.obs), "data export did not have the same length as the source data!"
     window.subset_or_whole = ctk.StringVar(value = "subset")
@@ -773,11 +775,21 @@ def test_launch_data_table_exportation_window():
     value = list(my_analysis.data.obs[column].unique())[0]
     window.subset_frame.columns_keep_or_no[0].select()
     window.subset_frame.column_values_list[0].insert("0.0", f'{value},')
-    window.grouping.checkbox_list[3].select()
+    window.grouping.checkbox_list[1].select()
     window.grouping.checkbox_list[2].select()
     window.file_name_entry.configure(textvariable = ctk.StringVar(value = "subset_grouped_data_table"))
     df = window.export_table()
+    window.grouping.stat_option.configure(variable = ctk.StringVar(value = "count"))
+    df = window.export_table()
+    window.grouping.stat_option.configure(variable = ctk.StringVar(value = "std"))
+    df = window.export_table()
+    window.grouping.stat_option.configure(variable = ctk.StringVar(value = "median"))
+    df = window.export_table()
+    window.grouping.stat_option.configure(variable = ctk.StringVar(value = "sum"))
+    df = window.export_table()
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
+    df = window.umap_pca_button.invoke()
+    window.umap_pca.configure(variable = ctk.StringVar(value = "pca"))
     df = window.umap_pca_button.invoke()
     assert isinstance(df, pd.DataFrame), "DR export did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.UMAP_embedding), "DR export did not have the same length as the source embedding!"
