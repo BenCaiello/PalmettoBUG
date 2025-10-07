@@ -984,7 +984,6 @@ def test_load_from_TIFFs():     ## now also handles the loading of the example d
     image_proc.directory_object.make_analysis_dirs(proj_directory + "/tiff/Analyses/test_panel_and_meta_gen")
     image_proc.to_analysis()
 
-
 def test_non_GUI_TableLaunch():
     path_to_df = proj_directory + "/panel.csv"
     panel_df = pd.read_csv(path_to_df)

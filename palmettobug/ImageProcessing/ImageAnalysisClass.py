@@ -1385,16 +1385,16 @@ def setup_for_FCS(directory):
     '''
     directory_name = directory[:directory.rfind("/")]
 
-    self.directory_object = DirSetup(directory, kind = "Analysis")
-    self.directory_object.make_analysis_dirs(directory_name)
-    Analysis_panel_dir = self.directory_object.Analysis_internal_dir + "/Analysis_panel.csv"
-    metadata_dir = self.directory_object.Analysis_internal_dir + "/metadata.csv"
-    fcs_files = [i for i in sorted(os.listdir(self.directory_object.fcs_dir)) if i.lower().find(".fcs") != -1]
+    directory_object = DirSetup(directory, kind = "Analysis")
+    directory_object.make_analysis_dirs(directory_name)
+    Analysis_panel_dir = directory_object.Analysis_internal_dir + "/Analysis_panel.csv"
+    metadata_dir = directory_object.Analysis_internal_dir + "/metadata.csv"
+    fcs_files = [i for i in sorted(os.listdir(directory_object.fcs_dir)) if i.lower().find(".fcs") != -1]
     try:
         Analysis_panel = pd.read_csv(Analysis_panel_dir)
     except FileNotFoundError:
         warnings.filterwarnings("ignore", message = "The default channel names")
-        _, dataframe1 = fcsparser.parse(self.directory_object.fcs_dir + "/" + fcs_files[0])
+        _, dataframe1 = fcsparser.parse(directory_object.fcs_dir + "/" + fcs_files[0])
         warnings.filterwarnings("default", message = "The default channel names")
         Analysis_panel = pd.DataFrame()
         Analysis_panel['fcs_colnames'] = dataframe1.columns
