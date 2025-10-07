@@ -1247,6 +1247,7 @@ class ImageAnalysis:
             gui_switch (Boolean or None) -- only needed if an error is making palmettobug think it is in the gui. Needed for a testing error
         '''
         if gui_switch is not None:
+            global _in_gui
             _in_gui = gui_switch
         if not _in_gui:
             self._intense_to_fcs()
