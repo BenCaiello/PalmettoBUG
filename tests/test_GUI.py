@@ -711,6 +711,11 @@ def test_run_state_ANOVAs_window():
     assert isinstance(df, pd.DataFrame), "state expression statistics did not return a pandas DataFrame"
     assert len(df) == (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
     table_launch.accept_and_return(None)
+    window.stat.configure(variable = ctk.StringVar(value = "median"))
+    df, table_launch = window.run_state_ANOVAs()
+    assert isinstance(table_launch, ctk.CTkToplevel)
+    assert isinstance(df, pd.DataFrame), "state expression statistics (median) did not return a pandas DataFrame"
+    table_launch.accept_and_return(None)
     window.destroy()
 
 def test_plot_state_p_value_heatmap():
@@ -933,7 +938,7 @@ def test_CN_abundance():
 
 def test_CN_UMAP_or_MST():
     window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
-    #window.plot()
+    window.plot()
     assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_edt():
