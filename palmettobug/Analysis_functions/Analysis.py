@@ -570,8 +570,9 @@ class Analysis:
             obsm[1] = cent_Y
             self.data.obsm['spatial'] = obsm.T
             self.input_mask_folder = data.loc[0,'masks_folder']
-        except Exception:
-            pass
+        except Exception as e:
+            print("Loading the CSV did not successfully load spatial information (this could be normal depending on the experiment), \nwith the following erorr message\n")
+            print(e))
 
     def load_regionprops(self, 
                          regionprops_directory: Union[Path, str, None] = None, 
