@@ -66,13 +66,6 @@ def test_launchExampleDataWindow():     ## now also handles the loading of the e
     shutil.move(fetch_dir + "/panel.csv", proj_directory + "/panel.csv")  
     app.entrypoint.img_entry_func(proj_directory) 
 
-def test_bead_norm_window():   ## can only test GUI elements, and with fake 'data', since nothing in sample data to use
-    window = palmettobug.Entrypoint.app_and_entry.Channel_normalization_window(master = app, channels = np.array(['fake1','fake2','fake3','fake4']), directory = "Not/really/here")
-    assert isinstance(window, ctk.CTkToplevel)
-    window.retrieve_channels()
-    window.destroy()
-
-
 ### GUI Image Analysis tests
 def test_call_raw_to_img_part_1_hpf():
     app.entrypoint.image_proc_widg.buttonframe.activate_region_measure()
@@ -163,7 +156,7 @@ def test_setup_for_FCS():
     assert True
 
 def test_fake_bead_norm():
-    fake_bead_norm_dir = fetch_dir "/bead_norm_fakery"
+    fake_bead_norm_dir = fetch_dir + "/bead_norm_fakery"
     os.mkdir(fake_bead_norm_dir)
     beads_dir = fake_bead_norm_dir + "/beads"
     os.mkdir(beads_dir)
@@ -180,6 +173,7 @@ def test_fake_bead_norm():
         else:
             shutil.copyfile(f'{real_FCS_files_dir}/{ii}', f'{no_beads_dir}/{ii}')
     channel_norm_window = app.entrypoint.normalize_fcs_choice(directory = fake_bead_norm_dir)
+    assert isinstance(channel_norm_window, ctk.CTkToplevel)
     for i in channel_norm_window.checkbox_beads_list[:5]:
         i.select()
     channel_norm_window.run_button.invoke()
