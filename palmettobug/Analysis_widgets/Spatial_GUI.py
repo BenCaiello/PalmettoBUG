@@ -816,9 +816,6 @@ class SquidpySpatialWidgets(ctk.CTkFrame):
             except Exception:
                 pass
 
-    def launch_CN_window(self):
-        return CellularNeighborhoodWindow(self)
-
     def launch_interaction_matrix_window(self):
         return InteractionMatrixWindow(self)
 
@@ -1174,7 +1171,10 @@ class cellularNeighborhoodsFrame(SquidpySpatialWidgets):
     def clustermap_window(self):
         if self.CN_type is None:
             return
-        return CNUMAPMSTwindow(self)      
+        return CNUMAPMSTwindow(self) 
+
+    def launch_CN_window(self):
+        return CellularNeighborhoodWindow(self)     
 
     def launch_abundance_window(self):
         return CNabundanceWindow(self)

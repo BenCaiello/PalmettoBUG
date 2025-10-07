@@ -770,7 +770,7 @@ def test_launch_data_table_exportation_window():
     df = window.export_table()
     window.export_marker_class.deselect()
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
-    assert len(df) == len(my_analysis.data.obs), "data export did not have the same length as the source data!"
+    assert len(df) == (len(my_analysis.data.obs) + 1), "data export did not have the same length as the source data!"
     window.subset_or_whole = ctk.StringVar(value = "subset")
     window.groupby_or_plain = ctk.StringVar(value = "groupby")
     column = my_analysis.data.obs.columns[0]

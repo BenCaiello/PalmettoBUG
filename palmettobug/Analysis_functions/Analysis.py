@@ -453,6 +453,12 @@ class Analysis:
         ## If not present, then the antigen marker_class information will need to be inputted manually by the user
         marker_class_included = False
         marker_class = data.copy().iloc[-1,:]
+        
+        try:
+            data = data.drop('distance_to_bmu', axis = 1)
+        except KeyError:
+            pass
+
         if np.array(marker_class == "na").sum() != 0: 
             marker_class_dict_rev = {"0.0" : 'none', "1.0" : 'type', "2.0" : ' state', "3.0" : "spatial_edt", "4.0":"other"}
             marker_class = marker_class[marker_class != "na"].astype('str').replace(marker_class_dict_rev)
@@ -461,10 +467,6 @@ class Analysis:
 
         # Prepare the X and obs portions of the eventual annData object, dropping 'distance_to_bmu' if present 
         ## (this is a column from FlowSOM clustering that PalmettoBUG does not interact with)
-        try:
-            data = data.drop('distance_to_bmu', axis = 1)
-        except KeyError:
-            pass
         possible_metadata_columns = ["index",
                                      "metaclustering", 
                                      "clustering", 
