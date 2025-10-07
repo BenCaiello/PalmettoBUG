@@ -451,14 +451,13 @@ class Analysis:
         ## if present, we want to save this information, but also remove the last row of the data table
         ## The presence of this row can be triggered when PalmettoBUG exports a CSV, simplifying re-load.
         ## If not present, then the antigen marker_class information will need to be inputted manually by the user
-        marker_class_included = False
-        marker_class = data.copy().iloc[-1,:]
-        
         try:
             data = data.drop('distance_to_bmu', axis = 1)
         except KeyError:
             pass
 
+        marker_class_included = False
+        marker_class = data.copy().iloc[-1,:]
         if np.array(marker_class == "na").sum() != 0: 
             marker_class_dict_rev = {"0.0" : 'none', "1.0" : 'type', "2.0" : ' state', "3.0" : "spatial_edt", "4.0":"other"}
             marker_class = marker_class[marker_class != "na"].astype('str').replace(marker_class_dict_rev)

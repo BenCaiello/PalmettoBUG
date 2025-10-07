@@ -791,11 +791,11 @@ def test_launch_data_table_exportation_window():
     df = window.export_table()
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
     df = window.umap_pca_button.invoke()
+    assert isinstance(df, pd.DataFrame), "DR export did not return a pandas DataFrame"
+    assert len(df) == len(my_analysis.UMAP_embedding), "DR export did not have the same length as the source embedding!"
     window.umap_pca.configure(variable = ctk.StringVar(value = "pca"))
     window.umap_pca_filename.configure(textvariable = ctk.StringVar(value = "pca_export"))
     df = window.umap_pca_button.invoke()
-    assert isinstance(df, pd.DataFrame), "DR export did not return a pandas DataFrame"
-    assert len(df) == len(my_analysis.UMAP_embedding), "DR export did not have the same length as the source embedding!"
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -898,6 +898,11 @@ def test_CN_window():
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
+def test_CN_UMAP_or_MST():
+    window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
+    window.plot()
+    assert isinstance(window, ctk.CTkToplevel)
+
 def test_CN_save_load():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_save_load()
     window.refresh()
@@ -933,11 +938,6 @@ def test_CN_abundance():
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
-
-def test_CN_UMAP_or_MST():
-    window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
-    window.plot()
-    assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_edt():
     window = app.Tabs.Spatial.widgets.test_edt.launch_load_window()

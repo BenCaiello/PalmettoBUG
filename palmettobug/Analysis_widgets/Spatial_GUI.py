@@ -1171,6 +1171,9 @@ class cellularNeighborhoodsFrame(SquidpySpatialWidgets):
     def clustermap_window(self):
         if self.CN_type is None:
             return
+        if self.figure is None:
+            print("Figure for FlowSOM MST / Leiden UMAP is missing! Was this a reloaded Cellular Neighborhoods run?")
+            return
         return CNUMAPMSTwindow(self) 
 
     def launch_CN_window(self):
