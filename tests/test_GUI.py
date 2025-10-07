@@ -161,6 +161,29 @@ def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows
 def test_setup_for_FCS():
     palmettobug.setup_for_FCS(fetch_dir + "/Example_CyTOF")
     assert True
+
+def test_fake_bead_norm():
+    fake_bead_norm_dir = fetch_dir "/bead_norm_fakery"
+    os.mkdir(fake_bead_norm_dir)
+    beads_dir = fake_bead_norm_dir + "/beads"
+    os.mkdir(beads_dir)
+    no_beads_dir = fake_bead_norm_dir + "/no_beads"
+    os.mkdir(no_beads_dir)
+    real_FCS_files_dir = fetch_dir + "/Example_CyTOF/main/Analysis_fcs"
+    real_FCS_files = [i for i in os.listdir(real_FCS_files_dir) if i.lower().find(".fcs") != -1]
+
+    ### will use the example data .fcs files for the bead norm tests (HOWEVER! remember that the example is already normalized / non-bead cells so like many of these
+    # tests, this is just confirms that the code can run, not that it produces accurate / useful results)
+    for i,ii in enumerate(real_FCS_files):
+        if i % 2 == 0:
+            shutil.copyfile(f'{real_FCS_files_dir}/{ii}', f'{beads_dir}/{ii}')
+        else:
+            shutil.copyfile(f'{real_FCS_files_dir}/{ii}', f'{no_beads_dir}/{ii}')
+    channel_norm_window = app.entrypoint.normalize_fcs_choice(directory = fake_bead_norm_dir)
+    for i in channel_norm_window.checkbox_beads_list[:5]:
+        i.select()
+    channel_norm_window.run_button.invoke()
+    
     
 ### GUI Pixel classification tests (px class creation)
 def test_unsupervised():

@@ -361,6 +361,7 @@ class EntryPoint(ctk.CTkFrame):
         channels = beads_1.columns
         # print(channels)
         self.channels_to_use = Channel_normalization_window(self, channels, self.master.directory)
+        return self.channels_to_use
 
     def FCS_choice(self, directory: Union[None, str] = None) -> None:
         self.master.py_exploratory.X = self.X_Y_entry.entry_X.get()
@@ -576,11 +577,11 @@ class Channel_normalization_window(ctk.CTkToplevel, metaclass = CtkSingletonWind
         self.straight_to_analysis = ctk.CTkCheckBox(master = self, text = "", onvalue = True, offvalue = False)
         self.straight_to_analysis.grid(column = 3)
 
-        button = ctk.CTkButton(master = self, 
+        self.run_button = ctk.CTkButton(master = self, 
                             text = "Perform Normalization!", 
                             command = lambda: self.accept_and_normalize(channels = self.retrieve_channels(),
                                                                     to_analysis = self.straight_to_analysis.get()))
-        button.grid(row = ii + 3, column = 2, pady = 3, padx = 3)
+        self.run_button.grid(row = ii + 3, column = 2, pady = 3, padx = 3)
         self.after(200, self.focus())
 
     def retrieve_channels(self) -> tuple[list, list]:
