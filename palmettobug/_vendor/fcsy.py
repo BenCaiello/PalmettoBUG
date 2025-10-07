@@ -32,9 +32,9 @@ Changes:
     -- merged all necessary files into this one
     -- Removing bespoke typing hints (._typing import commented out, all uses of them deleted in main text)
     -- removed now unused / duplicate imports
-
-
-
+    -- Removed code that had to do with S3Buffer read / writing & boto3 import check (not used) -- including inside bufferize class
+    -- commented out more code that appeared useless (unused in testing coverage & no calls to the function/class in this file -- 
+        only DataFrame class and its .to_fcs() method called inside palmettobug itself). Examples: from_string methods, writer methods
 '''
 __all__ = []
 
@@ -58,97 +58,6 @@ import pandas as pd
 
 __all__ = ["DataFrame"]
 
-try:
-    import boto3  # type: ignore
-except ImportError:
-    boto3 = None
-
-class ReadFcsBuffer(ABC):
-    @abstractmethod
-    def seek(self, position: int):
-        pass
-
-    @abstractmethod
-    def read(self, number: int):
-        pass
-
-    @abstractmethod
-    def close(self):
-        pass
-
-
-class WriteFcsBuffer(ABC):
-    @abstractmethod
-    def seek(self, position: int):
-        pass
-
-    @abstractmethod
-    def write(self, __b: str):
-        pass
-
-    @abstractmethod
-    def tell(self):
-        pass
-
-    @abstractmethod
-    def close(self):
-        pass
-
-
-class S3ReadBuffer(ReadFcsBuffer):
-    def __init__(self, path, bucket):
-        if boto3 is None:
-            raise ImportError(
-                "This module requires boto3. Please use 'pip install fcsy[boto3] or install boto3 manually"
-            )
-        super().__init__()
-        self.path = path
-        self.bucket = bucket
-        self.position = 0
-        self.s3 = boto3.client("s3")
-
-    def seek(self, position: int):
-        self.position = position
-
-    def read(self, number: int):
-        resp = self.s3.get_object(
-            Bucket=self.bucket,
-            Key=self.path,
-            Range=f"bytes={self.position}-{self.position+number}",
-        )
-        self.position += number
-        return resp["Body"].read(number)
-
-    def close(self):
-        pass
-
-
-class S3WriteBuffer(WriteFcsBuffer):
-    def __init__(self, path, bucket):
-        if boto3 is None:
-            raise ImportError(
-                "This module requires boto3. Please use 'pip install fcsy[boto3] or install boto3 manually"
-            )
-        super().__init__()
-        self.path = path
-        self.bucket = bucket
-        self.s3 = boto3.client("s3")
-        self.buffer = BytesIO()
-
-    def seek(self, position: int):
-        self.buffer.seek(position)
-
-    def tell(self):
-        return self.buffer.tell()
-
-    def write(self, bytes):
-        self.buffer.write(bytes)
-
-    def close(self):
-        self.seek(0)
-        self.s3.upload_fileobj(self.buffer, self.bucket, self.path)
-
-
 def read_path(path):
     if path.startswith("s3://"):
         match = re.match(r"s3://(.*?)/(.*?)$", path)
@@ -158,23 +67,6 @@ def read_path(path):
         }
     else:
         return {"mode": "local", "contents": {"path": path}}
-
-
-def create_open_func(
-    parser_class,
-    *args,
-    **kwargs,
-):
-    @contextmanager
-    def func(path, *func_args, **func_kwargs):
-        obj = parser_class(path, *args, **kwargs)
-        try:
-            yield obj
-        finally:
-            obj.close()
-
-    return func
-
 
 class Bufferize:
     def __init__(self, func, mode="rb") -> None:
@@ -188,22 +80,8 @@ class Bufferize:
     def __call__(self, obj, filepath_or_buffer, *args, **kwargs):
         if type(filepath_or_buffer) is str:
             path = read_path(filepath_or_buffer)
-            if path["mode"] == "s3":
-                if self.mode == "rb":
-                    buffer_class = S3ReadBuffer
-                elif self.mode == "wb":
-                    buffer_class = S3WriteBuffer
-                else:
-                    raise ValueError("invalid s3 buffer mode")
-
-                open_func = create_open_func(
-                    buffer_class, bucket=path["contents"]["bucket"]
-                )
-                with open_func(path["contents"]["key"], self.mode) as fp:
-                    return self.func(obj, fp, *args, **kwargs)
-            else:
-                with open(filepath_or_buffer, self.mode) as fp:
-                    return self.func(obj, fp, *args, **kwargs)
+            with open(filepath_or_buffer, self.mode) as fp:
+                return self.func(obj, fp, *args, **kwargs)
         else:
             return self.func(obj, filepath_or_buffer, *args, **kwargs)
 
@@ -257,25 +135,25 @@ class HeaderSegment:
             "analysis_end": self.analysis_end,
         }
 
-    @classmethod
-    def from_string(cls, s: bytes):
-        s = s.decode("UTF-8")
-        v = dict()
-        for key, value in cls.ranges.items():
-            v[key] = s[value[0] : value[1] + 1].strip()
-            if key != "version":
-                v[key] = int(v[key])
+    #@classmethod
+    #def from_string(cls, s: bytes):
+    #    s = s.decode("UTF-8")
+    #    v = dict()
+    #    for key, value in cls.ranges.items():
+    #        v[key] = s[value[0] : value[1] + 1].strip()
+    #        if key != "version":
+    #            v[key] = int(v[key])
 
-        ver = v.pop("version")
-        return HeaderSegment(
-            v["text_start"],
-            v["text_end"],
-            v["data_start"],
-            v["data_end"],
-            v["analysis_start"],
-            v["analysis_end"],
-            ver=ver,
-        )
+    #    ver = v.pop("version")
+    #    return HeaderSegment(
+    #        v["text_start"],
+    #        v["text_end"],
+    #        v["data_start"],
+    #        v["data_end"],
+    #        v["analysis_start"],
+    #        v["analysis_end"],
+    #        ver=ver,
+    #    )
 
     def _write_locations(self, sp: StringIO, type: str):
         sp.seek(self.ranges[f"{type}_start"][0])
@@ -414,58 +292,58 @@ class TextSegment:
     def to_string(self):
         return self.dict_to_string(self.text, self.delim)
 
-    def update_pns(self, mappings):
-        for k, v in mappings.items():
-            self.pns[self.pns.index(k)] = v
-        self.text = self.build()
+    #def update_pns(self, mappings):
+    #    for k, v in mappings.items():
+    #        self.pns[self.pns.index(k)] = v
+    #    self.text = self.build()
 
-    def update_pnn(self, mappings):
-        for k, v in mappings.items():
-            self.pnn[self.pnn.index(k)] = v
-        self.text = self.build()
+    #def update_pnn(self, mappings):
+    #    for k, v in mappings.items():
+    #        self.pnn[self.pnn.index(k)] = v
+    #    self.text = self.build()
 
-    @classmethod
-    def from_string(self, s):
-        delim = s[:1]
-        keyvalarray = s[1:].split(delim)
-        for num, i in enumerate(keyvalarray):
-            try:
-                keyvalarray[num] = i.decode("UTF-8")
-            except UnicodeDecodeError:
-                # print(num, i)
-                pass
+    #@classmethod
+    #def from_string(self, s):
+    #    delim = s[:1]
+    #    keyvalarray = s[1:].split(delim)
+    #    for num, i in enumerate(keyvalarray):
+    #        try:
+    #            keyvalarray[num] = i.decode("UTF-8")
+    #        except UnicodeDecodeError:
+    #            # print(num, i)
+    #            pass
 
-        vars = {}
-        for k, v in zip(keyvalarray[::2], keyvalarray[1::2]):
-            vars[k[1:]] = v
+    #    vars = {}
+    #    for k, v in zip(keyvalarray[::2], keyvalarray[1::2]):
+    #        vars[k[1:]] = v
 
-        long_channels = list()
-        short_channels = list()
-        max_values = list()
-        for n in range(int(vars.pop("PAR"))):
-            short_channels.append(vars.pop("P%dN" % (n + 1)))
-            long_channels.append(
-                vars.pop("P%dS" % (n + 1)) if "P%dS" % (n + 1) in vars else " "
-            )
-            max_values.append(int(vars.pop("P%dR" % (n + 1))))
+    #    long_channels = list()
+    #    short_channels = list()
+    #    max_values = list()
+    #    for n in range(int(vars.pop("PAR"))):
+    #        short_channels.append(vars.pop("P%dN" % (n + 1)))
+    #        long_channels.append(
+    #            vars.pop("P%dS" % (n + 1)) if "P%dS" % (n + 1) in vars else " "
+    #        )
+    #        max_values.append(int(vars.pop("P%dR" % (n + 1))))
 
-        return TextSegment(
-            int(vars["TOT"]),
-            short_channels,
-            long_channels,
-            max_values,
-            mode=vars["MODE"],
-            next_data=vars["NEXTDATA"],
-            byte_order=vars["BYTEORD"],
-            delim=delim.decode("UTF-8"),
-            datatype=vars["DATATYPE"],
-            data_start=vars["BEGINDATA"],
-            data_end=vars["ENDDATA"],
-            analysis_start=vars["BEGINANALYSIS"],
-            analysis_end=vars["ENDANALYSIS"],
-            stext_start=vars["BEGINSTEXT"],
-            stext_end=vars["ENDSTEXT"],
-        )
+    #    return TextSegment(
+    #        int(vars["TOT"]),
+    #        short_channels,
+    #        long_channels,
+    #        max_values,
+    #        mode=vars["MODE"],
+    #        next_data=vars["NEXTDATA"],
+    #        byte_order=vars["BYTEORD"],
+    #        delim=delim.decode("UTF-8"),
+    #        datatype=vars["DATATYPE"],
+    #        data_start=vars["BEGINDATA"],
+    #        data_end=vars["ENDDATA"],
+    #        analysis_start=vars["BEGINANALYSIS"],
+    #        analysis_end=vars["ENDANALYSIS"],
+    #        stext_start=vars["BEGINSTEXT"],
+    #        stext_end=vars["ENDSTEXT"],
+    #    )
 
     @classmethod
     def dict_to_string(cls, dict_, delim):
@@ -512,18 +390,18 @@ class DataSegment:
         format_ = self.endian + self.datatype.lower()
         return self.values.astype(format_).tobytes()
 
-    @classmethod
-    def from_string(cls, s: str, datatype, num_dims, num_rows, endian):
-        data = BytesIO(s)
-        format_ = endian + str(num_dims) + datatype.lower()
-        datasize = struct.calcsize(format_)
-        events = []
-        for e in range(num_rows):
-            read_data = data.read(datasize)
-            event = struct.unpack(format_, read_data)
-            events.append(event)
-        values = np.array(events, dtype=np.float32 if datatype == "F" else np.float64)
-        return DataSegment(values, datatype, num_dims, num_rows, endian)
+    #@classmethod
+    #def from_string(cls, s: str, datatype, num_dims, num_rows, endian):
+    #    data = BytesIO(s)
+    #    format_ = endian + str(num_dims) + datatype.lower()
+    #    datasize = struct.calcsize(format_)
+    #    events = []
+    #    for e in range(num_rows):
+    #        read_data = data.read(datasize)
+    #        event = struct.unpack(format_, read_data)
+    #        events.append(event)
+    #    values = np.array(events, dtype=np.float32 if datatype == "F" else np.float64)
+    #    return DataSegment(values, datatype, num_dims, num_rows, endian)
 
 
 class Fcs:
@@ -571,57 +449,57 @@ class Fcs:
             values, datatype, values.shape[1], values.shape[0], self.tseg.endian
         )
 
-    @classmethod
-    @bufferize
-    def from_file(cls, filepath_or_buffer):
-        header = HeaderSegment.from_string(filepath_or_buffer.read(58))
-        filepath_or_buffer.seek(header.text_start)
-        fseg = TextSegment.from_string(
-            filepath_or_buffer.read(header.text_end - header.text_start + 1)
-        )
-        data_start = header.data_start if header.data_start != 0 else fseg.data_start
-        data_end = header.data_end if header.data_end != 0 else fseg.data_end
-        filepath_or_buffer.seek(data_start)
-        data = DataSegment.from_string(
-            filepath_or_buffer.read(data_end - data_start + 1),
-            fseg.datatype,
-            len(fseg.pnn),
-            fseg.tot,
-            fseg.endian,
-        )
+    #@classmethod
+    #@bufferize
+    #def from_file(cls, filepath_or_buffer):
+    #    header = HeaderSegment.from_string(filepath_or_buffer.read(58))
+    #    filepath_or_buffer.seek(header.text_start)
+    #    fseg = TextSegment.from_string(
+    #        filepath_or_buffer.read(header.text_end - header.text_start + 1)
+    #   )
+    #   data_start = header.data_start if header.data_start != 0 else fseg.data_start
+    #    data_end = header.data_end if header.data_end != 0 else fseg.data_end
+    #    filepath_or_buffer.seek(data_start)
+    #    data = DataSegment.from_string(
+    #        filepath_or_buffer.read(data_end - data_start + 1),
+    #        fseg.datatype,
+    #        len(fseg.pnn),
+    #        fseg.tot,
+    #        fseg.endian,
+    #    )
 
-        return Fcs(data.values, fseg.pnn, fseg.pns)
+    #    return Fcs(data.values, fseg.pnn, fseg.pns)
 
-    @classmethod
-    @bufferize
-    def read_data_segment(cls, filepath_or_buffer, hseg, tseg):
-        data_start = hseg.data_start if hseg.data_start != 0 else tseg.data_start
-        data_end = hseg.data_end if hseg.data_end != 0 else tseg.data_end
-        filepath_or_buffer.seek(data_start)
-        return DataSegment.from_string(
-            filepath_or_buffer.read(data_end - data_start + 1),
-            tseg.datatype,
-            len(tseg.pnn),
-            tseg.tot,
-            tseg.endian,
-        )
+    #@classmethod
+    #@bufferize
+    #def read_data_segment(cls, filepath_or_buffer, hseg, tseg):
+    #    data_start = hseg.data_start if hseg.data_start != 0 else tseg.data_start
+    #    data_end = hseg.data_end if hseg.data_end != 0 else tseg.data_end
+    #    filepath_or_buffer.seek(data_start)
+    #    return DataSegment.from_string(
+    #        filepath_or_buffer.read(data_end - data_start + 1),
+    #        tseg.datatype,
+    #        len(tseg.pnn),
+    #        tseg.tot,
+    #        tseg.endian,
+    #    )
 
-    @classmethod
-    @bufferize
-    def read_header_segment(cls, filepath_or_buffer):
-        filepath_or_buffer.seek(0)
-        return HeaderSegment.from_string(filepath_or_buffer.read(58))
+    #@classmethod
+    #@bufferize
+    #def read_header_segment(cls, filepath_or_buffer):
+    #    filepath_or_buffer.seek(0)
+    #    return HeaderSegment.from_string(filepath_or_buffer.read(58))
 
-    @classmethod
-    @bufferize
-    def read_text_segment(cls, filepath_or_buffer):
-        header = HeaderSegment.from_string(filepath_or_buffer.read(58))
-        filepath_or_buffer.seek(header.text_start)
-        fseg = TextSegment.from_string(
-            filepath_or_buffer.read(header.text_end - header.text_start + 1)
-        )
+    #@classmethod
+    #@bufferize
+    #def read_text_segment(cls, filepath_or_buffer):
+    #    header = HeaderSegment.from_string(filepath_or_buffer.read(58))
+    #    filepath_or_buffer.seek(header.text_start)
+    #    fseg = TextSegment.from_string(
+    #        filepath_or_buffer.read(header.text_end - header.text_start + 1)
+    #    )
 
-        return fseg
+    #    return fseg
 
     @classmethod
     def write_bytes(cls, f, s):
@@ -656,9 +534,9 @@ class Fcs:
         self.write_text_segment(filepath_or_buffer, self.tseg)
         self.write_bytes(filepath_or_buffer, self.dseg.to_string())
 
-    @property
-    def count(self):
-        return self.tseg.tot
+    #@property
+    #def count(self):
+    #    return self.tseg.tot
 
 class DataFrame(pd.DataFrame):
     @property
@@ -686,33 +564,33 @@ class DataFrame(pd.DataFrame):
 
         Fcs(self.values, short_channels, long_channels).export(filepath_or_buffer)
 
-    @classmethod
-    def from_fcs(
-        cls, filepath_or_buffer: Union[str], channel_type: str = "short"
-    ):
-        """
-        Read dataframe from fcs.
+    #@classmethod
+    #def from_fcs(
+    #    cls, filepath_or_buffer: Union[str], channel_type: str = "short"
+    #):
+    #    """
+    #    Read dataframe from fcs.
 
-        :param filepath_or_buffer: str or file-like object.
-            String, or file-like object implementing a ``read()`` function.
-            The string could be a s3 url with the format:
-            ``s3://{bucket}/{key}``.
-        :type filepath_or_buffer: str or file-like object
-        :param channel_type: {"short", "long", "multi"}, defaults to "short".
-            "short" and "long" refer to short ($PnN) and long ($PnS) name of parameter n, respectively.
-            See FCS3.1 data standard for detailed explanation.
-        :type channel_type: str, optional
-        :return: the dataframe contains the fcs channels and data
-        :rtype: DataFrame
-        """
+    #    :param filepath_or_buffer: str or file-like object.
+    #        String, or file-like object implementing a ``read()`` function.
+    #        The string could be a s3 url with the format:
+    #        ``s3://{bucket}/{key}``.
+    #    :type filepath_or_buffer: str or file-like object
+    #    :param channel_type: {"short", "long", "multi"}, defaults to "short".
+    #        "short" and "long" refer to short ($PnN) and long ($PnS) name of parameter n, respectively.
+    #        See FCS3.1 data standard for detailed explanation.
+    #    :type channel_type: str, optional
+    #    :return: the dataframe contains the fcs channels and data
+    #    :rtype: DataFrame
+    #    """
 
-        fcs = Fcs.from_file(filepath_or_buffer)
-        colmap = {
-            "short": fcs.short_channels,
-            "long": fcs.long_channels,
-            "multi": pd.MultiIndex.from_tuples(
-                list(zip(fcs.short_channels, fcs.long_channels)),
-                names=["short", "long"],
-            ),
-        }
-        return DataFrame(fcs.values, columns=colmap[channel_type])
+    #    fcs = Fcs.from_file(filepath_or_buffer)
+    #    colmap = {
+    #        "short": fcs.short_channels,
+    #        "long": fcs.long_channels,
+    #        "multi": pd.MultiIndex.from_tuples(
+    #            list(zip(fcs.short_channels, fcs.long_channels)),
+    #            names=["short", "long"],
+    #        ),
+    #    }
+    #    return DataFrame(fcs.values, columns=colmap[channel_type])

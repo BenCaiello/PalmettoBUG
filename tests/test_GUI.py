@@ -1001,3 +1001,6 @@ def test_plot_class_centers():
     figure, df = palmettobug.plot_class_centers(fs)
     assert isinstance(df, pd.DataFrame)
 
+def test_app_destroy():
+    app.destroy()
+
