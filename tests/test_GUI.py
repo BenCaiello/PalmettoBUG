@@ -153,6 +153,9 @@ def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows
 
 def test_setup_for_FCS():
     palmettobug.setup_for_FCS(fetch_dir + "/Example_CyTOF")
+    shutil.move(fetch_dir + "/Example_CyTOF/main/Analysis_panel.csv", fetch_dir + "/Example_CyTOF/Analysis_panel.csv")   ## test load without panel file
+    shutil.move(fetch_dir + "/Example_CyTOF/main/metadata.csv", fetch_dir + "/Example_CyTOF/metadata.csv") 
+    palmettobug.setup_for_FCS(fetch_dir + "/Example_CyTOF")
     assert True
 
 def test_fake_bead_norm():
@@ -978,6 +981,8 @@ def test_load_from_TIFFs():     ## now also handles the loading of the example d
     image_proc = app.entrypoint.img_entry_func(tiff_proj_dir) 
     image_proc.raw_to_img(0.85)
     assert len(os.listdir(tiff_proj_dir + "/images/img")) == 10
+    image_proc.directory_object.make_analysis_dirs(proj_directory + "/tiff/Analyses/test_panel_and_meta_gen")
+    image_proc.to_analysis()
 
 
 def test_non_GUI_TableLaunch():

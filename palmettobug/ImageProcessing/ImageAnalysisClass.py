@@ -1004,12 +1004,12 @@ class ImageAnalysis:
                 the file path to the folder to export the intensity csv files (these 
                 csv files are effectively like fcs files with events ['Object'] each with intensity measurements / statistics for each channel). 
                 If None, then the self.directory_object.intensities_dir will be used -- this depends on having set up an analysis using 
-                the self.make_analysis_dirs(analysis_name) method beforehand
+                the self.directory_object.make_analysis_dirs(analysis_name) method beforehand
 
             output_intensities_folder (Path, string, None): 
                 the file path to the folder contianing the regionprops csv files for each mask. 
                 Like the intensities csv's these are structured with measurements for each object/event/cell, but are measurements like area, perimeter, etc.
-                If None, then will use the self.directory_object.regionprops_dir -- this depends on calling the self.make_analysis_dirs(analysis_name) method beforehand
+                If None, then will use the self.directory_object.regionprops_dir -- this depends on calling the self.directory_object.make_analysis_dirs(analysis_name) method beforehand
 
             statistic (string): 
                 The statistic to report for each cell/object for each channel in the instensity csv files.
@@ -1233,7 +1233,7 @@ class ImageAnalysis:
         This function prepares / sets up an Analysis folder, by converting intensity csv files to fcs files and generating preliminary / semi-empty metadata / panel 
         pandas dataframes, which require editing before writing to the disk at the newly prepared self.Analysis_panel_dir and self.metadata_dir filepaths.
 
-        Depends on self.make_analysis_dirs(analysis_name) being called first to set up the directory structure and direct the discovery
+        Depends on self.directory_object.make_analysis_dirs(analysis_name) being called first to set up the directory structure and direct the discovery
         of the intensity files which will be used to generate FCS files & the intial panel/metadata dataframes.
 
         DOES NOT export the panel / metadata files to the disk, but returns them, along with the file paths where they are expected to
@@ -1248,13 +1248,15 @@ class ImageAnalysis:
         #print(_in_gui)
         if not _in_gui:
             self._intense_to_fcs()
-            if ((not os.path.exists(self.directory_object.Analyses_dir + "/Analysis_panel.csv")) 
-                or (not os.path.exists(self.directory_object.Analyses_dir + "/metadata.csv"))):
-                print("""Panel / Metadata could not be loaded from save (in Analyses directory) -- generating these from scratch""")
+            if (not os.path.exists(self.directory_object.Analyses_dir + "/Analysis_panel.csv")):
+                print("""Analysis panel file generated from scratch""")
                 panel_file = self._initial_Analysis_panel()
-                metadata = self._initial_metadata_file()
             else:
                 panel_file = pd.read_csv(self.directory_object.Analyses_dir + "/Analysis_panel.csv")
+            if (not os.path.exists(self.directory_object.Analyses_dir + "/metadata.csv")):
+                print("""Metadata file generated from scratch""")
+                metadata = self._initial_metadata_file()
+            else:
                 metadata = pd.read_csv(self.directory_object.Analyses_dir + "/metadata.csv")
             self.Analysis_panel_dir = self.directory_object.Analysis_internal_dir + "/Analysis_panel.csv"
             self.metadata_dir = self.directory_object.Analysis_internal_dir + "/metadata.csv"
@@ -1308,13 +1310,13 @@ class ImageAnalysis:
         '''
         Helper method for self.to_Analysis --> writes .fcs files from .csv files in the intensities folder.
 
-        When called with default arguments, depends on self.make_analysis_dirs(analysis_name), however the input and output folders
+        When called with default arguments, depends on self.directory_object.make_analysis_dirs(analysis_name), however the input and output folders
         can be specified separately to allow its use in any context.
 
         Args:
             input_intensity_directory (Path, string, None): 
                 the path to a folder where the intensity csv files are (exported by self.make_segmentation_measurements)
-                If None, then a default path is presumed which requires a prior execution of the self.make_analysis_dirs(analysis_name) method
+                If None, then a default path is presumed which requires a prior execution of the self.directory_object.make_analysis_dirs(analysis_name) method
 
             ouput_fcs_folder (Path, string, None): 
                 the path to a folder where the FCS files will be written to, with the same behaviour as (input_intensity_directory) - if None, a 
@@ -1383,16 +1385,16 @@ def setup_for_FCS(directory):
     '''
     directory_name = directory[:directory.rfind("/")]
 
-    directory_object = DirSetup(directory, kind = "Analysis")
-    directory_object.make_analysis_dirs(directory_name)
-    Analysis_panel_dir = directory_object.Analysis_internal_dir + "/Analysis_panel.csv"
-    metadata_dir = directory_object.Analysis_internal_dir + "/metadata.csv"
-    fcs_files = [i for i in sorted(os.listdir(directory_object.fcs_dir)) if i.lower().find(".fcs") != -1]
+    self.directory_object = DirSetup(directory, kind = "Analysis")
+    self.directory_object.make_analysis_dirs(directory_name)
+    Analysis_panel_dir = self.directory_object.Analysis_internal_dir + "/Analysis_panel.csv"
+    metadata_dir = self.directory_object.Analysis_internal_dir + "/metadata.csv"
+    fcs_files = [i for i in sorted(os.listdir(self.directory_object.fcs_dir)) if i.lower().find(".fcs") != -1]
     try:
         Analysis_panel = pd.read_csv(Analysis_panel_dir)
     except FileNotFoundError:
         warnings.filterwarnings("ignore", message = "The default channel names")
-        _, dataframe1 = fcsparser.parse(directory_object.fcs_dir + "/" + fcs_files[0])
+        _, dataframe1 = fcsparser.parse(self.directory_object.fcs_dir + "/" + fcs_files[0])
         warnings.filterwarnings("default", message = "The default channel names")
         Analysis_panel = pd.DataFrame()
         Analysis_panel['fcs_colnames'] = dataframe1.columns
