@@ -477,6 +477,7 @@ class Analysis:
                                      "file_name", 
                                      "leiden", 
                                      "spatial_leiden",
+                                     "regions",
                                      "scaling",
                                      "masks_folder"] + additional_columns
         actual_metadata_columns = [i for i in data.columns if i in possible_metadata_columns]

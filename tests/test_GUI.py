@@ -712,7 +712,9 @@ def test_run_state_ANOVAs_window():
     df, table_launch = window.run_state_ANOVAs()
     assert isinstance(table_launch, ctk.CTkToplevel)
     assert isinstance(df, pd.DataFrame), "state expression statistics (median) did not return a pandas DataFrame"
-    table_launch.accept_and_return(None)
+    table_launch.table_list[0].delete_row[1]
+    table_launch.table_list[0].add_row(4)
+    table_launch.destroy()
     window.destroy()
 
 def test_plot_state_p_value_heatmap():
@@ -812,9 +814,10 @@ def test_launch_regionprop():
 def test_directory_display():
     app.Tabs.py_exploratory.analysiswidg.directory_display.switch_deleter()
     app.Tabs.py_exploratory.analysiswidg.directory_display.switch_deleter()
+    parent = app.Tabs.py_exploratory.analysiswidg.directory_display
+    t_launch = app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].file_click(parent, value = "Analysis_panel.csv")
+    t_launch.destroy()
     app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].invoke()
-    app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].invoke()
-    
 
 ### GUI Spatial tests
 def test_plot_cell_maps_window():
@@ -1002,11 +1005,13 @@ def test_load_from_TIFFs():     ## now also handles the loading of the example d
 def test_non_GUI_TableLaunch():
     path_to_df = proj_directory + "/panel.csv"
     panel_df = pd.read_csv(path_to_df)
-    t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'panel')
+    t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'panel', labels_editable = False)
     assert isinstance(t_launch, ctk.CTk)
     t_launch.tablewidget.add_row(3)
     t_launch.tablewidget.toggle_delete_column("disabled")
-    table = t_launch.tablewidget.recover_input()
+    t_launch.tablewidget.toggle_delete_column("normal")
+    t_launch.tablewidget._delete_row(1)
+    table = t_launch.accept_and_return()
     assert isinstance(table, pd.DataFrame)
 
 def test_salamification():
