@@ -477,11 +477,11 @@ class Analysis:
         marker_class = data.copy().iloc[-1,:]
         if np.array(marker_class == "na").sum() != 0: 
             marker_class_dict_rev = {"0.0" : 'none', "1.0" : 'type', "2.0" : ' state', "3.0" : "spatial_edt", "4.0":"other"}
-            antigen_columns = np.array(marker_class != "na")
+            antigen_columns = marker_class != "na"
             marker_class = marker_class[antigen_columns].astype('str').replace(marker_class_dict_rev)
             data = data.iloc[:-1, :]
             marker_class_included = True
-            additional_columns = [i for i in data.columns if i not in data[:,antigen_columns].columns]
+            additional_columns = [i for i in data.columns if i not in data.columns[antigen_columns.values]]
 
         # Prepare the X and obs portions of the eventual annData object, dropping 'distance_to_bmu' if present 
         ## (this is a column from FlowSOM clustering that PalmettoBUG does not interact with)
@@ -494,7 +494,7 @@ class Analysis:
                 data[i] = data[i].astype('float')
         data_X = data.drop(actual_metadata_columns, axis = 1).astype('float')
 
-        ## Apply arsinh transformation
+        ## Apply arcsinh transformation
         if arcsinh_cofactor > 0:
             data_arcsinh = np.arcsinh(np.array(data_X) / arcsinh_cofactor) 
         else:
