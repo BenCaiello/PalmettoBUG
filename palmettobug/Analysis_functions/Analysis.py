@@ -477,7 +477,7 @@ class Analysis:
         marker_class = data.copy().iloc[-1,:]
         if np.array(marker_class == "na").sum() != 0: 
             marker_class_dict_rev = {"0.0" : 'none', "1.0" : 'type', "2.0" : ' state', "3.0" : "spatial_edt", "4.0":"other"}
-            antigen_columns = (marker_class != "na")
+            antigen_columns = np.array(marker_class != "na")
             marker_class = marker_class[antigen_columns].astype('str').replace(marker_class_dict_rev)
             data = data.iloc[:-1, :]
             marker_class_included = True
