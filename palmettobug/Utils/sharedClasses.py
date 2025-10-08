@@ -825,6 +825,7 @@ class TableWidget(ctk.CTkScrollableFrame):
         '''
         super().__init__(master)
         self.widgetframe = pd.DataFrame()
+        self.delete_state = 'disabled'
 
     def setup_data_table(self, directory: str, dataframe: pd.DataFrame, table_type: str, favor_table: bool = False) -> None:
         ## decouple data loading from setup (to allow widgets to be displayed before directory is loaded in by user)

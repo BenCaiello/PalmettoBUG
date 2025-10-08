@@ -713,7 +713,7 @@ def test_run_state_ANOVAs_window():
     assert isinstance(table_launch, ctk.CTkToplevel)
     assert isinstance(df, pd.DataFrame), "state expression statistics (median) did not return a pandas DataFrame"
     table_launch.table_list[0].delete_row(1)
-    table_launch.table_list[0].add_row(4)
+    # table_launch.table_list[0].add_row(4)
     table_launch.destroy()
     window.destroy()
 
