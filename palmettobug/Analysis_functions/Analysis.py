@@ -481,7 +481,7 @@ class Analysis:
             marker_class = marker_class[antigen_columns].astype('str').replace(marker_class_dict_rev)
             data = data.iloc[:-1, :]
             marker_class_included = True
-            additional_columns = [i for i in data.columns if i not in data[antigen_columns].columns]
+            additional_columns = [i for i in data.columns if i not in data[:,antigen_columns].columns]
 
         # Prepare the X and obs portions of the eventual annData object, dropping 'distance_to_bmu' if present 
         ## (this is a column from FlowSOM clustering that PalmettoBUG does not interact with)
