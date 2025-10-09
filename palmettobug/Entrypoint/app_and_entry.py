@@ -471,7 +471,7 @@ class GPL_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             \t ctk_theme_builder (https://github.com/avalon60/ctk_theme_builder)
 
         Additionally, some packages' code is directly copied, with some modification inside PalmettoBUG itself ("vendored"):
-            Vendored packages == fcsparser, fcsy, pyometiff, qnorm, readimc, sigfig, and steinbock  (see _vendor folder inside PalmettoBUG package)
+            Vendored packages == fcsparser, fcsy, pyometiff, qnorm, readimc, and steinbock  (see _vendor folder inside PalmettoBUG package)
 
         The listed packages are noted because of their use beyond merely importation / use of API / use of documentation files for the many library dependencies of this project,
         and because of their extensive use in different parts of the program. See individual .py files for details & any other packages that parts of the program may have derived from.

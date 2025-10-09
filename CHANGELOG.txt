@@ -51,3 +51,13 @@ Changes to version (update log in development branch while that branch is being 
         - fixes to CSV load / reload methods
         - expand test suite to many of the recently added functions listed previously in this CHANGELOG
         - deleted alternate classifiers, and placed them in a separate branch for later use (maybe)
+
+    Changes to 0.2.8 (-> 0.2.9):
+        - Switch Dependencies to mostly follow the "strict" dependency set --> avoid installation error "resolution too deep" from pip
+
+    Changes to 0.2.9 (-> 0.2.10):
+        - Expand test suite massively, include testing GUI elements
+        - Debugging in the process of expanding the test suite, including:
+            - CSV reload bug (with type/state row at the end)
+            - Pixel Classifier use: extend mask GUI bug 
+        - de-vendorize sigfig

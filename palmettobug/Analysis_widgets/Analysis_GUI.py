@@ -29,8 +29,8 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import sigfig
 
-from .._vendor import sigfig
 from ..Analysis_functions.Analysis import Analysis
 from ..Utils.sharedClasses import DirectoryDisplay, CtkSingletonWindow, Analysis_logger, TableLaunch, filename_checker, overwrite_approval, warning_window
 

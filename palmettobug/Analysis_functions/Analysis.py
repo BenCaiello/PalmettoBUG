@@ -63,8 +63,8 @@ from sklearn.decomposition import PCA
 # from sklearn.neighbors import KernelDensity ## possibly superseded by scanpy version of this
 import skimage
 import tifffile as tf
+import sigfig
 
-from .._vendor import sigfig
 from .._vendor import fcsparser
 from flowsom import FlowSOM
 from flowsom.pl import plot_stars
