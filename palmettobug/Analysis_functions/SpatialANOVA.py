@@ -53,7 +53,7 @@ import seaborn.objects as so
 #import dask
 #from dask import delayed
 
-from .._vendor import sigfig
+import sigfig
 
 __all__ = []
 

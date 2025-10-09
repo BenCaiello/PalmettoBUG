@@ -31,7 +31,6 @@ Files (see file headers for more specifics / modifications of the packages):
                   - pyometiff also includes BSD-3 licensed code from:  https://github.com/CellProfiler/python-bioformats/blob/master/bioformats/omexml.py Copyright (c) 2009-2013 Broad Institute
             -- qnorm,          MIT, Copyright (c) 2020, Maarten van der Sande    https://github.com/Maarten-vd-Sande/qnorm
             -- readimc         MIT, Copyright (c) 2021 University of Zurich      https://github.com/BodenmillerGroup/readimc
-            -- sigfig          MIT, Copyright (c) 2022 drakegroup                https://github.com/drakegroup/sigfig
             -- steinbock       MIT, Copyright (c) 2021 University of Zurich      https://github.com/BodenmillerGroup/steinbock
 
     -- Packages used in parts of other files:

@@ -22,7 +22,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from .._vendor import sigfig
+import sigfig
 
 warnings.filterwarnings("ignore", message = "Transforming to str index")   ## anndata implicit modification warning that is not necessary
 warnings.filterwarnings("ignore", message = "Observation names are not unique")  ## anndata UserWarning that is not necessary
