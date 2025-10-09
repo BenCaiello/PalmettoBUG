@@ -43,12 +43,6 @@ homedir = homedir[:(homedir.rfind("/"))]
 homedir = homedir[:(homedir.rfind("/"))] 
 Theme_link = homedir + '/Assets/theme.txt'
 
-chosen_dir_file = homedir + "/Assets/dir_choice.txt"
-with open(chosen_dir_file) as file:
-    chosen_dir = file.read()
-if chosen_dir == 'None"' :
-    chosen_dir = homedir[:(homedir.find("/")) + 1]
-
 class App(ctk.CTk):
     '''
     This is the main window for the GUI. It also contains the Tabholder class, which coordinates the tabs of the program
@@ -67,7 +61,7 @@ class App(ctk.CTk):
         with open(Theme_link) as theme:
             self.theme = theme.read()
         if len(self.theme) == 0:
-            self.theme = "blue"   ## this is the default theme for ctk
+            self.theme = "green"   ## green, dark-mode is the theme setup I primarily used in development
         elif (self.theme == "green") or (self.theme == "blue"):
             ctk.set_default_color_theme(self.theme)       ## green and blue are themes bundled with customtkinter (don't require a link)
         else:
@@ -313,13 +307,10 @@ class EntryPoint(ctk.CTkFrame):
         self.master.px_classification.use_class.px_widg.add_experiment(experiment = Experiment)
 
         ## this removes any old widgets of a previously entered  MCD directory:
-        if self.image_proc_widg is not None:
-            self.image_proc_widg.destroy()
-            self.image_proc_widg = ImageProcessingWidgets(self.master.mcdprocessing)
-            self.image_proc_widg.grid(column = 0, row = 0)
-        else:
-            self.image_proc_widg = ImageProcessingWidgets(self.master.mcdprocessing)
-            self.image_proc_widg.grid(column = 0, row = 0)
+            ## edit 10-7-25 --> there should ALWAYS be a previously created image_proc_widg object
+        self.image_proc_widg.destroy()
+        self.image_proc_widg = ImageProcessingWidgets(self.master.mcdprocessing)
+        self.image_proc_widg.grid(column = 0, row = 0)
 
         self.image_proc_widg.add_Experiment(Experiment, from_mcds = from_mcds)
 

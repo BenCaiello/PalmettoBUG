@@ -562,10 +562,10 @@ class DirectoryDisplay(ctk.CTkFrame):
                     pass
             elif identifier == ".csv":
                 if (file_name.find("panel") != -1) or (file_name.find("metadata") != -1):   ## be sure to display full table if panel / metadata files
-                    TableLaunch(1, 1, parent.currentdir, None, (parent.out), parent.experiment)
+                    return TableLaunch(1, 1, parent.currentdir, None, (parent.out), parent.experiment)
                 else:
                     dataframe_head = pd.read_csv(filepath).head(35)
-                    TableLaunch(1, 1, parent.currentdir, dataframe_head, f"First 35 entries of {file_name}{identifier}", parent.experiment)
+                    return TableLaunch(1, 1, parent.currentdir, dataframe_head, f"First 35 entries of {file_name}{identifier}", parent.experiment)
             elif identifier == ".tiff":
                 image = tf.imread(filepath)
                 if image.dtype != 'int':
@@ -825,6 +825,7 @@ class TableWidget(ctk.CTkScrollableFrame):
         '''
         super().__init__(master)
         self.widgetframe = pd.DataFrame()
+        self.delete_state = 'disabled'
 
     def setup_data_table(self, directory: str, dataframe: pd.DataFrame, table_type: str, favor_table: bool = False) -> None:
         ## decouple data loading from setup (to allow widgets to be displayed before directory is loaded in by user)

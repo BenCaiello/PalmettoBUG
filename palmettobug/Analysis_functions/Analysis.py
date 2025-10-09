@@ -435,7 +435,8 @@ class Analysis:
             csv_path (str or Path): Full path to the CSV file containing single-cell data (can be from outside the Analysis directory).
 
             additional_columns (list): List of custom metadata columns to treat as metadata
-                (i.e., to include in `obs` rather than `X`). These must not conflict with antigen names.
+                (i.e., to include in `obs` rather than `X`). These must not conflict with antigen names. 
+                NOTE: Ignored if the csv contains information about type / state/ etc. in the final row (additional metadata columns are automatically identified)
 
             arcsinh_cofactor (int or float): If > 0, applies arcsinh transformation to expression data
                 using: arcsinh(data / cofactor). If 0 or less, no transformation is applied.
@@ -451,21 +452,12 @@ class Analysis:
         ## if present, we want to save this information, but also remove the last row of the data table
         ## The presence of this row can be triggered when PalmettoBUG exports a CSV, simplifying re-load.
         ## If not present, then the antigen marker_class information will need to be inputted manually by the user
-        marker_class_included = False
-        marker_class = data.copy().iloc[-1,:]
-        if np.array(marker_class == "na").sum() != 0: 
-            marker_class_dict_rev = {"0.0" : 'none', "1.0" : 'type', "2.0" : ' state', "3.0" : "spatial_edt", "4.0":"other"}
-            marker_class = marker_class[marker_class != "na"].astype('str').replace(marker_class_dict_rev)
-            data = data.iloc[:-1, :]
-            marker_class_included = True
-
-        # Prepare the X and obs portions of the eventual annData object, dropping 'distance_to_bmu' if present 
-        ## (this is a column from FlowSOM clustering that PalmettoBUG does not interact with)
         try:
             data = data.drop('distance_to_bmu', axis = 1)
         except KeyError:
             pass
-        possible_metadata_columns = ["index",
+
+        magic_metadata_columns = ["index",
                                      "metaclustering", 
                                      "clustering", 
                                      "merging", 
@@ -476,8 +468,24 @@ class Analysis:
                                      "file_name", 
                                      "leiden", 
                                      "spatial_leiden",
+                                     "regions",
+                                     "CN",
                                      "scaling",
-                                     "masks_folder"] + additional_columns
+                                     "masks_folder"]
+
+        marker_class_included = False
+        marker_class = data.copy().iloc[-1,:]
+        if np.array(marker_class == "na").sum() != 0: 
+            marker_class_dict_rev = {"0.0" : 'none', "1.0" : 'type', "2.0" : ' state', "3.0" : "spatial_edt", "4.0":"other"}
+            antigen_columns = marker_class != "na"
+            marker_class = marker_class[antigen_columns].astype('str').replace(marker_class_dict_rev)
+            data = data.iloc[:-1, :]
+            marker_class_included = True
+            additional_columns = [i for i in data.columns if i not in data.columns[antigen_columns.values]]
+
+        # Prepare the X and obs portions of the eventual annData object, dropping 'distance_to_bmu' if present 
+        ## (this is a column from FlowSOM clustering that PalmettoBUG does not interact with)
+        possible_metadata_columns = magic_metadata_columns + additional_columns
         actual_metadata_columns = [i for i in data.columns if i in possible_metadata_columns]
         for i in data.columns:
             if i in actual_metadata_columns:
@@ -486,7 +494,7 @@ class Analysis:
                 data[i] = data[i].astype('float')
         data_X = data.drop(actual_metadata_columns, axis = 1).astype('float')
 
-        ## Apply arsinh transformation
+        ## Apply arcsinh transformation
         if arcsinh_cofactor > 0:
             data_arcsinh = np.arcsinh(np.array(data_X) / arcsinh_cofactor) 
         else:
@@ -570,8 +578,9 @@ class Analysis:
             obsm[1] = cent_Y
             self.data.obsm['spatial'] = obsm.T
             self.input_mask_folder = data.loc[0,'masks_folder']
-        except Exception:
-            pass
+        except Exception as e:
+            print("Loading the CSV did not successfully load spatial information (this could be normal depending on the experiment), \nwith the following erorr message\n")
+            print(e)
 
     def load_regionprops(self, 
                          regionprops_directory: Union[Path, str, None] = None, 

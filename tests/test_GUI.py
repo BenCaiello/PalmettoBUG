@@ -27,10 +27,6 @@ def test_print_licenses():
     palmettobug.print_3rd_party_license_info()
     assert True
 
-# Helpful discussion for how to unit-test tkinter applications with event bindings: https://stackoverflow.com/questions/27581864/tkinters-event-generate-command-ignored
-# particularly Bryan Oakley's responses about calling .update() before (and not after, as suggested by Co-Pilot) invoking an event. This is 
-# because the widgets need to be drawn by tkinter before an event can be successfully simulated for them.
-
 ### GUI App & entrypoint tests
 def test_setup_app():
     global app
@@ -49,7 +45,7 @@ def test_call_configGUI():
     window.toggle_light_dark()
     window.toggle_light_dark()
     window.slider_moved(1.0)
-    window = window.change_theme('blue')
+    window = window.change_theme('Sweetkind')
     window = window.change_theme('green') ### reset so local tests change less for git versioning (assets theme file)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
@@ -64,7 +60,7 @@ def test_launchExampleDataWindow():     ## now also handles the loading of the e
     app.entrypoint.img_entry_func(proj_directory) 
     ## restore example panel & reload
     shutil.move(fetch_dir + "/panel.csv", proj_directory + "/panel.csv")  
-    app.entrypoint.img_entry_func(proj_directory) 
+    app.entrypoint.img_entry_func(proj_directory, resolutions = [1.0,1.0]) 
 
 ### GUI Image Analysis tests
 def test_call_raw_to_img_part_1_hpf():
@@ -711,6 +707,14 @@ def test_run_state_ANOVAs_window():
     assert isinstance(df, pd.DataFrame), "state expression statistics did not return a pandas DataFrame"
     assert len(df) == (my_analysis.data.var['marker_class'] == "type").sum(), "state expression statistics dataframe did not have the expected length"
     table_launch.accept_and_return(None)
+    window.stat.configure(variable = ctk.StringVar(value = "median"))
+    window.filename.configure(textvariable = ctk.StringVar(value = 'state_exprs_ANOVA_table2'))
+    df, table_launch = window.run_state_ANOVAs()
+    assert isinstance(table_launch, ctk.CTkToplevel)
+    assert isinstance(df, pd.DataFrame), "state expression statistics (median) did not return a pandas DataFrame"
+    table_launch.table_list[0].delete_row(1)
+    # table_launch.table_list[0].add_row(4)
+    table_launch.destroy()
     window.destroy()
 
 def test_plot_state_p_value_heatmap():
@@ -764,23 +768,36 @@ def test_launch_data_table_exportation_window():
     window.grouping_command()
     window.plain_command()
     window.whole_command()
+    window.export_marker_class.select()
     df = window.export_table()
+    window.export_marker_class.deselect()
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
-    assert len(df) == len(my_analysis.data.obs), "data export did not have the same length as the source data!"
+    assert len(df) == (len(my_analysis.data.obs) + 1), "data export did not have the same length as the source data!"
     window.subset_or_whole = ctk.StringVar(value = "subset")
     window.groupby_or_plain = ctk.StringVar(value = "groupby")
     column = my_analysis.data.obs.columns[0]
     value = list(my_analysis.data.obs[column].unique())[0]
     window.subset_frame.columns_keep_or_no[0].select()
     window.subset_frame.column_values_list[0].insert("0.0", f'{value},')
-    window.grouping.checkbox_list[3].select()
+    window.grouping.checkbox_list[1].select()
     window.grouping.checkbox_list[2].select()
     window.file_name_entry.configure(textvariable = ctk.StringVar(value = "subset_grouped_data_table"))
+    df = window.export_table()
+    window.grouping.stat_option.configure(variable = ctk.StringVar(value = "count"))
+    df = window.export_table()
+    window.grouping.stat_option.configure(variable = ctk.StringVar(value = "std"))
+    df = window.export_table()
+    window.grouping.stat_option.configure(variable = ctk.StringVar(value = "median"))
+    df = window.export_table()
+    window.grouping.stat_option.configure(variable = ctk.StringVar(value = "sum"))
     df = window.export_table()
     assert isinstance(df, pd.DataFrame), "data export did not return a pandas DataFrame"
     df = window.umap_pca_button.invoke()
     assert isinstance(df, pd.DataFrame), "DR export did not return a pandas DataFrame"
     assert len(df) == len(my_analysis.UMAP_embedding), "DR export did not have the same length as the source embedding!"
+    window.umap_pca.configure(variable = ctk.StringVar(value = "pca"))
+    window.umap_pca_filename.configure(textvariable = ctk.StringVar(value = "pca_export"))
+    df = window.umap_pca_button.invoke()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -797,9 +814,10 @@ def test_launch_regionprop():
 def test_directory_display():
     app.Tabs.py_exploratory.analysiswidg.directory_display.switch_deleter()
     app.Tabs.py_exploratory.analysiswidg.directory_display.switch_deleter()
+    parent = app.Tabs.py_exploratory.analysiswidg.directory_display
+    t_launch = app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].file_click(parent, value = "Analysis_panel.csv")
+    t_launch.destroy()
     app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].invoke()
-    app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].invoke()
-    
 
 ### GUI Spatial tests
 def test_plot_cell_maps_window():
@@ -883,6 +901,11 @@ def test_CN_window():
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
+def test_CN_UMAP_or_MST():
+    window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
+    window.plot()
+    assert isinstance(window, ctk.CTkToplevel)
+
 def test_CN_save_load():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_save_load()
     window.refresh()
@@ -918,11 +941,6 @@ def test_CN_abundance():
     window.plot()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
-
-def test_CN_UMAP_or_MST():
-    window = app.Tabs.Spatial.widgets.CN_widgets.clustermap_window()
-    #window.plot()
-    assert isinstance(window, ctk.CTkToplevel)
 
 def test_launch_edt():
     window = app.Tabs.Spatial.widgets.test_edt.launch_load_window()
@@ -987,11 +1005,13 @@ def test_load_from_TIFFs():     ## now also handles the loading of the example d
 def test_non_GUI_TableLaunch():
     path_to_df = proj_directory + "/panel.csv"
     panel_df = pd.read_csv(path_to_df)
-    t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'panel')
+    t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'panel', labels_editable = False)
     assert isinstance(t_launch, ctk.CTk)
     t_launch.tablewidget.add_row(3)
     t_launch.tablewidget.toggle_delete_column("disabled")
-    table = t_launch.tablewidget.recover_input()
+    t_launch.tablewidget.toggle_delete_column("normal")
+    t_launch.tablewidget._delete_row(1)
+    table = t_launch.accept_and_return()
     assert isinstance(table, pd.DataFrame)
 
 def test_salamification():
