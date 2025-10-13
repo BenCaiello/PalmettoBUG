@@ -614,11 +614,17 @@ def test_launch_plot_cluster_expression_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
     window.refresh_cluster_exp_clusters()
     window.refresh11()
+    window.switch_leiden() #switch back and forth from meta --> leiden --> meta 
+    window.switch_leiden()
     window.clustering_option.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.antigen.configure(variable = ctk.StringVar(value = "Pan-Keratin"))
     figure = window.run_py_plot_cluster_histograms()
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(figure, matplotlib.figure.Figure), "cluster histograms plot did not return a matplotlib figure"
+    window.destroy()
+    window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
+    window.new.repopulate_table("merging1")
+    assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
 def test_launch_abundance_window():
