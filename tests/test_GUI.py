@@ -1014,6 +1014,11 @@ def test_non_GUI_TableLaunch():
     table = t_launch.accept_and_return()
     assert isinstance(table, pd.DataFrame)
 
+def test_text_window():
+    window = palmettobug.sharedClasses.text_window(app, homedir + "/Assets/theme.txt")
+    assert isinstance(window, ctk.CTkToplevel)
+    window.destroy()
+
 def test_salamification():
     salami = my_analysis.space_analysis.do_salamification()
     figure = my_analysis.space_analysis.plot_salami(condition = "SSA", radii = 25)
