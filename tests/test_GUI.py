@@ -931,6 +931,10 @@ def test_CN_annot():
     window.annotate(id = 'CN_merge')
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
+    window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
+    window.new.repopulate_table()
+    assert isinstance(window, ctk.CTkToplevel)
+    window.destroy()
 
 def test_CN_heatmap():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_heatmap_window()
