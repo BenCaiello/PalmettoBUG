@@ -41,6 +41,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest   ## macos-latest  ## windows-latest ## ubuntu-latest
+    timeout-minutes: 60
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.10

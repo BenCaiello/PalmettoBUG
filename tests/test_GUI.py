@@ -31,7 +31,7 @@ def test_print_licenses():
 def test_setup_app():
     global app
     app = App(None)
-    assert True   ## non-failure is enough for me right now, as it implies successful setting up of the widgets of the GUI
+    assert isinstance(app, ctk.CTk)   ## non-failure is enough for me right now, as it implies successful setting up of the widgets of the GUI
 
 def test_GPL_window():
     window = app.entrypoint.show_GPL()
@@ -296,7 +296,7 @@ def test_load_project_classifier():
     window.destroy()
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
     loading_window.load("lumen_epithelia_laminapropria")
-    assert True 
+    assert app.Tabs.px_classification.create.px_widg.name == "lumen_epithelia_laminapropria" 
 
 def test_segmentation():
     app.Tabs.px_classification.create.px_widg.segment_frame.input_folder.configure(variable = ctk.StringVar(value = "classification_maps"))
@@ -309,7 +309,7 @@ def test_load_classifier():
     global px_use_widgets
     px_use_widgets = app.Tabs.px_classification.use_class.px_widg
     px_use_widgets.load_classifier("lumen_epithelia_laminapropria")
-    assert True 
+    assert app.Tabs.px_classification.create.px_widg.name == "lumen_epithelia_laminapropria" 
 
 def test_events_use_px():   ## do at least after a classifier has been loaded to limit risk of errors
     px_use_widgets.load_and_display.refresh1()
@@ -651,6 +651,8 @@ def test_launch_cluster_stats_window():
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
     window.new.refreshOption()
+    window.switch_leiden() #switch back and forth from meta --> leiden --> meta 
+    window.switch_leiden()
     for ii,i in enumerate(window.new.table.widgetframe['1']):
         value = ii % 4   ## generate 4 fake clusters
         i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
@@ -658,6 +660,10 @@ def test_launch_cluster_merging():
     assert isinstance(window, ctk.CTkToplevel)
     assert ('merging' in my_analysis.data.obs.columns), "do_merging did not add a merging!"
     assert len(my_analysis.data.obs['merging'].unique()) == 4, "do_merging did not add the expected number of merging categories!"
+    window.destroy()
+    window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
+    window.new.repopulate_table("merging1")
+    assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
 def test_launch_classy_masker():
@@ -925,6 +931,10 @@ def test_CN_annot():
     window.annotate(id = 'CN_merge')
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
+    window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
+    window.new.table.repopulate_table()
+    assert isinstance(window, ctk.CTkToplevel)
+    window.destroy()
 
 def test_CN_heatmap():
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_heatmap_window()
@@ -1013,6 +1023,23 @@ def test_non_GUI_TableLaunch():
     t_launch.tablewidget._delete_row(1)
     table = t_launch.accept_and_return()
     assert isinstance(table, pd.DataFrame)
+    t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'metadata', labels_editable = False)
+    assert isinstance(t_launch, ctk.CTk)
+    table = t_launch.accept_and_return()
+    assert isinstance(table, pd.DataFrame)
+    t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'Analysis_panel', labels_editable = False)
+    assert isinstance(t_launch, ctk.CTk)
+    table = t_launch.accept_and_return()
+    assert isinstance(table, pd.DataFrame)
+    t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'other', labels_editable = False)
+    assert isinstance(t_launch, ctk.CTk)
+    table = t_launch.accept_and_return()
+    assert isinstance(table, pd.DataFrame)
+
+def test_text_window():
+    window = palmettobug.sharedClasses.text_window(app, homedir + "/Assets/theme.txt")
+    assert isinstance(window, ctk.CTkToplevel)
+    window.destroy()
 
 def test_salamification():
     salami = my_analysis.space_analysis.do_salamification()
