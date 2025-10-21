@@ -1031,7 +1031,7 @@ def test_non_GUI_TableLaunch():
     assert isinstance(t_launch, ctk.CTk)
     table = t_launch.accept_and_return()
     assert isinstance(table, pd.DataFrame)
-     t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'other', labels_editable = False)
+    t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'other', labels_editable = False)
     assert isinstance(t_launch, ctk.CTk)
     table = t_launch.accept_and_return()
     assert isinstance(table, pd.DataFrame)
