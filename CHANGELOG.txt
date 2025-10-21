@@ -64,5 +64,6 @@ CHANGELOG:
     > Changes to 0.2.10 (-> 0.2.11):           {planned / ongoing}
         - minor changes to test suite
         - update / re-test docs tutorial notebooks, fixing bugs and adding state marker expression plots / mask transform to notebook examples
-            - debug: SpaceANOVA (alt_N / patient_id improper defaults)
-            - debug: CSV reload and classification load in Analysis
+            - debug: discrepancies between newly run notebooks nad prior notebook outputs:
+                - spaceANOVA (alt_N / patient_id improper defaults)
+                - CSV reload and classification load in Analysis
