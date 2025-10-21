@@ -662,7 +662,7 @@ def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
     window.switch_leiden("leiden") #switch back and forth from meta --> leiden --> meta 
     window.switch_leiden("metaclustering")
-    window.new.repopulate_table("merging1")
+    window.new.repopulate_table("merging1.csv")
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -929,11 +929,10 @@ def test_CN_annot():
         value = ii % 4   ## generate 4 fake clusters
         i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
     window.annotate(id = 'CN_merge')
-    window.new.button.invoke()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
-    window.new.table.repopulate_table(window.new.master.directory + "/mergings/CN_merge")
+    window.new.table.repopulate_table(window.new.master.directory + "/mergings/CN_merge.csv")
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -1038,7 +1037,10 @@ def test_non_GUI_TableLaunch():
     assert isinstance(table, pd.DataFrame)
 
 def test_text_window():
-    window = palmettobug.Utils.sharedClasses.text_window(app, homedir + "/Assets/theme.txt")
+    directory = homedir + "/Assets/theme.txt"
+    print(os.path.exists(directory))
+    print(directory)
+    window = palmettobug.Utils.sharedClasses.text_window(app, directory)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
