@@ -1037,9 +1037,7 @@ def test_non_GUI_TableLaunch():
     assert isinstance(table, pd.DataFrame)
 
 def test_text_window():
-    directory = homedir + "/Assets/theme.txt"
-    print(os.path.exists(directory))
-    print(directory)
+    directory = homedir + "/palmettobug/Assets/theme.txt"
     window = palmettobug.Utils.sharedClasses.text_window(app, directory)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
