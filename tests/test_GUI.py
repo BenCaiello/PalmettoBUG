@@ -651,8 +651,6 @@ def test_launch_cluster_stats_window():
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
     window.new.refreshOption()
-    window.switch_leiden() #switch back and forth from meta --> leiden --> meta 
-    window.switch_leiden()
     for ii,i in enumerate(window.new.table.widgetframe['1']):
         value = ii % 4   ## generate 4 fake clusters
         i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
@@ -662,6 +660,8 @@ def test_launch_cluster_merging():
     assert len(my_analysis.data.obs['merging'].unique()) == 4, "do_merging did not add the expected number of merging categories!"
     window.destroy()
     window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
+    window.switch_leiden("leiden") #switch back and forth from meta --> leiden --> meta 
+    window.switch_leiden("metaclustering")
     window.new.repopulate_table("merging1")
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
@@ -932,7 +932,7 @@ def test_CN_annot():
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
-    window.new.table.repopulate_table()
+    window.new.table.repopulate_table(window.new.master.directory + "/mergings/CN_merge")
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 

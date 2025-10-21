@@ -1,16 +1,15 @@
 This log started on 6-19-25 to track major changes in each development branch / merge cycle of PalmettoBUG
-    - DO NOT track changes to documentation between versions, only changes to the code itself
+    - generally, DO NOT track changes to documentation between versions, only changes to the code itself, unless changes to docs are core part of version update
 
 Plans / Possibilities:
-    - Possible: off pseudotime option in GUI's analysis module (via scanpy) 
-    - Probable: copy simple denoise from iSD to PalmettoBUG (or offer some other denoising option so iSD is only for cellpose and deepcell/Mesmer)
-    - Need to Do: test scatterplot option in Analysis, test density option (likely need to implement downsampling to make computationally tractable & perhaps less crowded)
+    - Need to Do: test scatterplot density option (likely need to implement downsampling to make computationally tractable & perhaps less crowded)
+    - Improve assert statements in new GUI-based test suite (if as precise as prior, non-GUI tests, then delete those old tests)
 
-present PyPI version -- 0.2.5.dev2
+present PyPI version -- 0.2.10
 
-Changes to version (update log in development branch while that branch is being edited before merging to create the next version):
+CHANGELOG:
 
-    Changes to 0.2.4.dev1:
+    > Changes to 0.2.4.dev1:
         - expose arcsinh cofactor (not in GUI) as an option when loading Analysis
         - add instanseg-torch / InstanSeg segmentation option
         - add back expand masks
@@ -22,7 +21,7 @@ Changes to version (update log in development branch while that branch is being 
             - Disadvantages: likely require substantial updates to documentation, no longer share features & supervised classifiers with QuPath / opencv
 
 
-    Changes to 0.2.5.dev1-2:
+    > Changes to 0.2.5.dev1-2:
         - Add cryptic functions to certain classes (spatial_leiden, region_identification, boolean_mask_transform) largely as a result of replication notebook work
             - Some of these functions are not available in the GUI (yet), but are available by scripting
 
@@ -39,25 +38,31 @@ Changes to version (update log in development branch while that branch is being 
           missing categories differently. Specifically, all unique combination of gropuby categories are included in the export, even if that unique combintation is not
           present in the Analysis, with one exception: only existing unique combination of categories from columns present in the metadata.csv are kept for those columns.
 
-    Changes to 0.2.6:
+    > Changes to 0.2.6:
         - Bugfixes (including panel / table widget handling)
         - Add boolean_mask_transform to GUI  (now "mask_intersection_difference" in ImageAnalysis object)
         - Add "cryptic" (non-GUI) functions to SpaceANOVA -- estimate minimum radius, "salami slicer" methods 
                     (visualize Ripley's stats at various distances as heatmaps)
         - Minor changes to code comments / docstrings / documentation 
 
-    Changes to 0.2.7:
+    > Changes to 0.2.7:
         - Add flexibility to the experimental unit for certain statistical tests (idea: allow aggregation by patient_id, not only sample_id)
         - fixes to CSV load / reload methods
         - expand test suite to many of the recently added functions listed previously in this CHANGELOG
         - deleted alternate classifiers, and placed them in a separate branch for later use (maybe)
 
-    Changes to 0.2.8 (-> 0.2.9):
+    > Changes to 0.2.8 (-> 0.2.9):
         - Switch Dependencies to mostly follow the "strict" dependency set --> avoid installation error "resolution too deep" from pip
 
-    Changes to 0.2.9 (-> 0.2.10):
+    > Changes to 0.2.9 (-> 0.2.10):
         - Expand test suite massively, include testing GUI elements
         - Debugging in the process of expanding the test suite, including:
             - CSV reload bug (with type/state row at the end)
             - Pixel Classifier use: extend mask GUI bug 
         - de-vendorize sigfig
+
+    > Changes to 0.2.10 (-> 0.2.11):           {planned / ongoing}
+        - minor changes to test suite
+        - update / re-test docs tutorial notebooks, fixing bugs and adding state marker expression plots / mask transform to notebook examples
+            - debug: SpaceANOVA 
+            - debug: CSV reload and classification load in Analysis
