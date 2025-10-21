@@ -111,7 +111,7 @@ The GUI is built mostly prominently on code from:
 
 Some packages are (semi)-vendored in PalmettoBUG -- specifically, I copied only the essential code (not entire packages into new python files), with minimal changes from a number of packages. See palmettobug/_vendor files for more details and links to the original packages' GitHub repositories.
 
-Packages that were "vendored": fcsparser, fcsy, pyometiff, qnorm, readimc, sigfig, and steinbock
+Packages that were "vendored": fcsparser, fcsy, pyometiff, qnorm, readimc, and steinbock
 
 ## LICENSE
 

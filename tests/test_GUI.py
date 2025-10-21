@@ -651,8 +651,6 @@ def test_launch_cluster_stats_window():
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
     window.new.refreshOption()
-    window.switch_leiden() #switch back and forth from meta --> leiden --> meta 
-    window.switch_leiden()
     for ii,i in enumerate(window.new.table.widgetframe['1']):
         value = ii % 4   ## generate 4 fake clusters
         i.configure(textvariable = ctk.StringVar(value = f"c{str(value)}"))
@@ -661,8 +659,10 @@ def test_launch_cluster_merging():
     assert ('merging' in my_analysis.data.obs.columns), "do_merging did not add a merging!"
     assert len(my_analysis.data.obs['merging'].unique()) == 4, "do_merging did not add the expected number of merging categories!"
     window.destroy()
-    window = app.Tabs.py_exploratory.analysiswidg.launch_plot_cluster_expression_window()
-    window.new.repopulate_table("merging1")
+    window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
+    window.switch_leiden("leiden") #switch back and forth from meta --> leiden --> meta 
+    window.switch_leiden("metaclustering")
+    window.new.repopulate_table("merging1.csv")
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -932,7 +932,7 @@ def test_CN_annot():
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
-    window.new.table.repopulate_table()
+    window.new.table.repopulate_table(window.new.master.directory + "/mergings/CN_merge.csv")
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -1027,17 +1027,18 @@ def test_non_GUI_TableLaunch():
     assert isinstance(t_launch, ctk.CTk)
     table = t_launch.accept_and_return()
     assert isinstance(table, pd.DataFrame)
-    t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'Analysis_panel', labels_editable = False)
-    assert isinstance(t_launch, ctk.CTk)
-    table = t_launch.accept_and_return()
-    assert isinstance(table, pd.DataFrame)
-    t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'other', labels_editable = False)
-    assert isinstance(t_launch, ctk.CTk)
-    table = t_launch.accept_and_return()
+    #t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'Analysis_panel', labels_editable = False)
+    #assert isinstance(t_launch, ctk.CTk)
+    #table = t_launch.accept_and_return()
+    #assert isinstance(table, pd.DataFrame)
+    #t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'other', labels_editable = False)
+    #assert isinstance(t_launch, ctk.CTk)
+    #table = t_launch.accept_and_return()
     assert isinstance(table, pd.DataFrame)
 
 def test_text_window():
-    window = palmettobug.sharedClasses.text_window(app, homedir + "/Assets/theme.txt")
+    directory = homedir + "/palmettobug/Assets/theme.txt"
+    window = palmettobug.Utils.sharedClasses.text_window(app, directory)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 

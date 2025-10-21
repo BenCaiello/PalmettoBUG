@@ -163,8 +163,8 @@ class EntryPoint(ctk.CTkFrame):
 
         ## widget set for the MCD entry point
         label = ctk.CTkLabel(master = self, text = "Directory structure options:" 
-                                    "\n\n 1). A Directory containing a /raw folder with .mcd files inside it"
-                                    "\n  or .tiff / .ome.tiff files inside it"
+                                    "\n\n 1). A Directory containing a /raw sub-folder with .mcd files inside it"
+                                    "\n  or with .tiff / .ome.tiff files inside it"
                                     "\n\n 2). a Directory containing a /main/Analysis_fcs folder \n with  .fcs files inside it")
 
         label.grid(column = 0, row = 0, padx = 2, pady = 2, rowspan = 3)

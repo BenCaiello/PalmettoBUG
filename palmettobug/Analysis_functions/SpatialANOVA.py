@@ -77,7 +77,7 @@ class SpatialANOVA():
                 contain information used for cell map plotting (areas used for size of dots, filenames for subsetting data & plot titles.). 
 
     '''
-    def __init__(self, alt_N: str = 'patient_id'):
+    def __init__(self, alt_N: str = 'sample_id'):
         self.max = None
         self.step = 1
         self.fixed_r = None
@@ -367,10 +367,10 @@ class SpatialANOVA():
                 piece = self.data_table[self.data_table[alt_N] == i]
                 conditions = piece['condition'].astype('str').unique()
                 if len(conditions) > 1:
-                    self.alt_N = 'patient_id'
-                    self._use_alt = True
+                    self.alt_N = 'sample_id'
+                    self._use_alt = False
                     print("Provided alternate experimental 'N' contains unique groups shared across more than one condition in the"
-                            "data! This is not allowed, reverting alternate N to 'patient_id'.")
+                            "data! This is not allowed, reverting alternate N to 'sample_id'.")
                     return
 
         self.threshold = threshold
