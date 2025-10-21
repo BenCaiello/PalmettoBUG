@@ -516,9 +516,9 @@ class Analysis:
                 patient_dict[i] = ii
                 condition_dict[i] = iii
                 sample_dict[i] = iv
-            self.metadata['sample_id'] = self.metadata['file_name'].replace(sample_dict).astype('int')
-            self.metadata['patient_id'] = self.metadata['file_name'].replace(patient_dict).astype('category')
-            self.metadata['condition'] = self.metadata['file_name'].replace(condition_dict).astype('str')
+            self.metadata['sample_id'] = self.metadata['file_name'].replace(sample_dict).astype(obs['sample_id'].dtype)
+            self.metadata['patient_id'] = self.metadata['file_name'].replace(patient_dict).astype(obs['patient_id'].dtype)
+            self.metadata['condition'] = self.metadata['file_name'].replace(condition_dict).astype(obs['condition'].dtype)
 
             self.metadata = self.metadata.sort_values('sample_id', ascending = True)
             self.metadata['sample_id'] = self.metadata['sample_id'].astype('category')
