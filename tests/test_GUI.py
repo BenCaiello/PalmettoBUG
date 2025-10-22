@@ -789,9 +789,9 @@ def test_launch_drop_restore():           ## filtering
     window = app.Tabs.py_exploratory.analysiswidg.launch_drop_restore()
     window.refresh_list()
     window.switch_column('sample_id')
-    window.drop.checkbox_list[1].select()
+    window.drop.checkbox_list[0].select()
     starting_length = len(my_analysis.data.obs)
-    length_sample_1 = len(my_analysis.data.obs[my_analysis.data.obs['sample_id'] == '1'])
+    length_sample_1 = len(my_analysis.data.obs[my_analysis.data.obs['sample_id'] == '0'])
     window.button1.invoke()
     assert (starting_length - length_sample_1) == len(my_analysis.data.obs), "Filtered data not the expected length!"
     assert isinstance(window, ctk.CTkToplevel)
@@ -941,7 +941,7 @@ def test_sq_centrality():
     plot2 = my_spatial.plot_neighbor_centrality(score = "degree_centrality")
     assert isinstance(plot2, matplotlib.figure.Figure), "Plot Centrality (degree) did not return a matplotlib figure"
     plot3 = my_spatial.plot_neighbor_centrality(score = "average_clustering")
-    assert isinstance(plot, matplotlib.figure.Figure), "Plot Centrality (average) did not return a matplotlib figure"
+    assert isinstance(plot3, matplotlib.figure.Figure), "Plot Centrality (average) did not return a matplotlib figure"
 
 def test_sq_inter_mat():
     window = app.Tabs.Spatial.widgets.squidpy_spatial.launch_interaction_matrix_window()
