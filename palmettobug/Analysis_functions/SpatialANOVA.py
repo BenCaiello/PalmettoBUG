@@ -59,7 +59,7 @@ __all__ = []
 
 class SpatialANOVA():
     '''
-    The primary coordinating class for the spatial analysis options. The __init__ method for this class does nothing, separating the 
+    The primary coordinating class for the spatial analysis options. The __init__ method for this class does almost nothing, separating the 
     creation of this class from needing to set it up with data. 
 
     Attributes:
@@ -77,7 +77,7 @@ class SpatialANOVA():
                 contain information used for cell map plotting (areas used for size of dots, filenames for subsetting data & plot titles.). 
 
     '''
-    def __init__(self, alt_N: str = 'sample_id'):
+    def __init__(self):
         self.max = None
         self.step = 1
         self.fixed_r = None
@@ -85,7 +85,7 @@ class SpatialANOVA():
         self.condition2 = None
         self.threshold = 10
         self.data_table = None
-        self.alt_N = alt_N
+        self.alt_N = 'patient_id'
         self._use_alt = False
 
     def init_data(self, 
@@ -358,16 +358,19 @@ class SpatialANOVA():
         elif self.fixed_r is None:
             self.set_fixed_r()
 
-        if alt_N is not None:
+        if alt_N == 'sample_id':  ## here should trigger default behavior (equivalent to alt_N == None)
+            alt_N = None
+        elif alt_N is not None:
             self.alt_N = alt_N
             self._use_alt = True
+
         space_anova_table = self._retrieve_data_table()
         if alt_N is not None:
             for i in self.data_table[alt_N].unique():
                 piece = self.data_table[self.data_table[alt_N] == i]
                 conditions = piece['condition'].astype('str').unique()
                 if len(conditions) > 1:
-                    self.alt_N = 'sample_id'
+                    self.alt_N = 'patient_id'
                     self._use_alt = False
                     print("Provided alternate experimental 'N' contains unique groups shared across more than one condition in the"
                             "data! This is not allowed, reverting alternate N to 'sample_id'.")
@@ -1495,30 +1498,24 @@ def _spatstat_Edge_Ripley(X: pd.DataFrame,
     dDown = windowYmax - X[:,1]
     corner = (_spatstat_small(dLeft) == 0) + (_spatstat_small(dRight) == 0)  + (_spatstat_small(dDown) == 0) + (_spatstat_small(dUp) == 0) >= 2   ### points in the corner will have 0-values for exactly two of the dRight/Left/Up/Down paramters
     
-    delayed_arctan = np.arctan2
+    angleLeftUp = np.arctan2(dUp, dLeft)
+    angleLeftDown = np.arctan2(dDown, dLeft)
+    angleRightUp = np.arctan2(dUp, dRight)
+    angleRightDown = np.arctan2(dDown, dRight)
+    angleUpLeft = np.arctan2(dLeft, dUp)
+    angleUpRight = np.arctan2(dRight, dUp)
+    angleDownLeft = np.arctan2(dLeft, dDown)
+    angleDownRight = np.arctan2(dRight, dDown)
 
-    angleLeftUp = delayed_arctan(dUp, dLeft)
-    angleLeftDown = delayed_arctan(dDown, dLeft)
-    angleRightUp = delayed_arctan(dUp, dRight)
-    angleRightDown = delayed_arctan(dDown, dRight)
-    angleUpLeft = delayed_arctan(dLeft, dUp)
-    angleUpRight = delayed_arctan(dRight, dUp)
-    angleDownLeft = delayed_arctan(dLeft, dDown)
-    angleDownRight = delayed_arctan(dRight, dDown)
+    angleLeft = _spatstat_hang(dLeft, r)
+    angleRight = _spatstat_hang(dRight, r)
+    angleDown = _spatstat_hang(dDown, r)
+    angleUp = _spatstat_hang(dUp, r)
 
-    delayed_hang = _spatstat_hang
-
-    angleLeft = delayed_hang(dLeft, r)
-    angleRight = delayed_hang(dRight, r)
-    angleDown = delayed_hang(dDown, r)
-    angleUp = delayed_hang(dUp, r)
-
-    delayed_fmin = np.fmin
-
-    mini_left = delayed_fmin(angleLeft.T, angleLeftUp).T + delayed_fmin(angleLeft.T, angleLeftDown).T
-    mini_right = delayed_fmin(angleRight.T, angleRightUp).T + delayed_fmin(angleRight.T, angleRightDown).T
-    mini_down = delayed_fmin(angleDown.T, angleDownLeft).T + delayed_fmin(angleDown.T, angleDownRight).T
-    mini_up = delayed_fmin(angleUp.T, angleUpLeft).T + delayed_fmin(angleUp.T, angleUpRight).T
+    mini_left = np.fmin(angleLeft.T, angleLeftUp).T + np.fmin(angleLeft.T, angleLeftDown).T
+    mini_right = np.fmin(angleRight.T, angleRightUp).T + np.fmin(angleRight.T, angleRightDown).T
+    mini_down = np.fmin(angleDown.T, angleDownLeft).T + np.fmin(angleDown.T, angleDownRight).T
+    mini_up = np.fmin(angleUp.T, angleUpLeft).T + np.fmin(angleUp.T, angleUpRight).T
     
     ## total exterior angle (? this is the note from spatstat itself --> I have not really followed the underlying math while copying the code)
     total = mini_left + mini_right + mini_down + mini_up
@@ -1551,7 +1548,6 @@ def _spatstat_hang(d: np.ndarray[float],
     final_matrix[hits] = np.arccos(distance[hits] / r[hits])
     return final_matrix
 
-EPS = np.finfo('float64').eps  ## np.finfo interferes with numba's njit decorator
 
 # @njit
 def _spatstat_small(array: np.ndarray[float]) -> np.ndarray[bool]:  # *** deriv_spatstat (direct translation)
@@ -1559,4 +1555,4 @@ def _spatstat_small(array: np.ndarray[float]) -> np.ndarray[bool]:  # *** deriv_
 
     This function is similarly a direct translation from spatstat, it is a helper function to the _spatstat_Edge_Ripley() function above:
             see: https://github.com/spatstat/spatstat.core/blob/master/R/edgeRipley.R'''
-    return np.absolute(array) < EPS
+    return abs(array) < np.finfo('float64').eps
