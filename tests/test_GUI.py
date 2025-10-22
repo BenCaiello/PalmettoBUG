@@ -255,7 +255,7 @@ def test_prediction():
     assert (tf.imread(prediction_paths[1]).astype('int') != tf.imread(prediction_paths[1])).sum() == 0, "The pixel class maps shoul be integers!"
     assert tf.imread(prediction_paths[2]).max() <= 3, "There should be no pixels >3 (the number of prediction classes)"
 
-    merging_dir = pixel_class_object.output_directory[:pixel_class_object.output_directory.rfind("/")] + "/merged_classification_maps""
+    merging_dir = pixel_class_object.output_directory[:pixel_class_object.output_directory.rfind("/")] + "/merged_classification_maps"
     assert len(os.listdir(merging_dir)) == 10, "Wrong number of merged class maps generated!"
 
 def test_detail_display():
