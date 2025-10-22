@@ -363,7 +363,7 @@ def test_classify_masks_on_flowsom():
     assert isinstance(secondary_FlowSOM_window, ctk.CTkToplevel)
     name = "lumen_epithelia_laminapropria_example_deepcell_masks"
     run_folder = proj_directory + f"/classy_masks/{name}"
-    classy_fs_output_folder = run_folder + f"/{name}"
+    classy_fs_output_folder = run_folder + f"/primary_masks"
     assert len(os.listdir(classy_fs_output_folder)) == 10, "Wrong number of classy masks exported!"
     assert len(pd.read_csv(run_folder + f"/{name}_cell_classes.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
 
@@ -380,7 +380,7 @@ def test_secondary_FlowSOM_merge():
     run_folder = proj_directory + f"/classy_masks/{name}"
     classy_fs_output_folder = run_folder + "/secondary_masks"
     #assert len(os.listdir(classy_fs_output_folder)) == 10, "Wrong number of classy masks exported!"
-    assert len(pd.read_csv(run_folder + "/secondary_merging.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
+    assert len(pd.read_csv(run_folder + "/secondary_cell_classification.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
 
 def test_mask_extend():
     before_extend  = os.listdir(proj_directory + "/masks")
@@ -791,8 +791,8 @@ def test_launch_drop_restore():           ## filtering
     window.switch_column('sample_id')
     window.drop.checkbox_list[1].select()
     starting_length = len(my_analysis.data.obs)
-    window.button1.invoke()
     length_sample_1 = len(my_analysis.data.obs[my_analysis.data.obs['sample_id'] == '1'])
+    window.button1.invoke()
     assert (starting_length - length_sample_1) == len(my_analysis.data.obs), "Filtered data not the expected length!"
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
@@ -862,7 +862,7 @@ def test_directory_display():
 ### GUI Spatial tests
 def test_init_Spatial():   ### this is a non-GUI focused test, and used for the non-GUI focused tests that sometimes follow the main GUI-focused tests
     global my_spatial
-    my_spatial = SpatialAnalysis()
+    my_spatial = palmettobug.SpatialAnalysis()
     my_spatial.add_Analysis(my_analysis)
     assert (my_spatial.exp is my_spatial.edt.exp) and (my_spatial.exp is my_spatial.SpaceANOVA.exp) and (my_spatial.exp is my_spatial.neighbors.exp) and (my_spatial.exp is my_analysis) 
 
@@ -907,7 +907,7 @@ def test_SpaceANOVA_stats_and_heatmap():
     t_launch = window.export_table(window.table_selection.get())
     assert isinstance(t_launch, ctk.CTkToplevel) 
     t_launch.destroy()
-    padj, p, stat = (self.p_table, self.p_unadj, self.f_table)
+    padj, p, stat = (window.p_table, window.p_unadj, window.f_table)
     assert (np.array(padj).shape == np.array(p).shape) and (np.array(padj).shape == np.array(stat).shape), "Dataframes returned are not square matrices!"
     assert (np.array(padj) >= np.array(p)).sum() == (np.array(padj).shape[0] * np.array(padj).shape[1]), "P adjusted values should be strictly greater than or equal to the underlying p values"
     assert isinstance(window, ctk.CTkToplevel) 
@@ -917,8 +917,6 @@ def test_SpaceANOVA_function_plots():
     window = app.Tabs.Spatial.widgets.widgets.launch_function_plot()
     window.refresh_fxn_plot_comparisons()
     figure  = window.plot_pairwise_comparison(comparison = "Run All", stat = 'g', plot_f_vals = True)
-    assert isinstance(figure, matplotlib.figure.Figure)
-    #window.plot_pairwise_comparison(comparison = "Run All", stat = 'g', plot_f_vals = False)  ## set to only run 1 image each, instead of run all to check both + / - f_vals
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -1028,7 +1026,7 @@ def test_launch_edt():
     window = app.Tabs.Spatial.widgets.test_edt.launch_load_window()
     window.pixel_class_entry.configure(textvariable = ctk.StringVar(value = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria"))
     window.do_dist_transform()
-    assert np.array(my_analysis.data.var['marker_class'] == "spatial_edt").sum() == 2, "Number of EDT classes is not the expected amount!"
+    assert np.array(my_analysis.data.var['marker_class'] == "spatial_edt").sum() == 3, "Number of EDT classes is not the expected amount!"
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 

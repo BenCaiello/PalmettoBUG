@@ -2277,7 +2277,7 @@ class Analysis:
         pre_heatmap_df.columns = analysis_anndata.var.index
         heatmap_df = pd.concat([pre_heatmap_df.reset_index(), analysis_anndata.obs.reset_index()], axis = 1)
         ## need to add columns
-        number_of_panels = len(heatmap_df[subsetting_column].unique()) + 1   ## plus one for the initial all together plot
+        number_of_panels = len(heatmap_df[subsetting_column].astype('str').unique()) + 1   ## plus one for the initial all together plot
         if number_of_panels > 15:
             number_of_columns = 4
 
@@ -2326,7 +2326,7 @@ class Analysis:
         except ValueError:
             pass
 
-        for i, ii in enumerate(heatmap_df[subsetting_column].sort_values().astype('str').unique()):
+        for ii in heatmap_df[subsetting_column].sort_values().astype('str').unique():
             if counter % number_of_columns == 0:    ## new row
                 if row_counter > 0:   ### must keep concatenating rows (not overwriting)
                     document.setLayout(row)
@@ -2345,17 +2345,18 @@ class Analysis:
                     row_counter += 1
 
             subset_df = pre_heatmap_df[heatmap_df[subsetting_column].astype('str') == ii]
-            subset_df = self.plot_medians_heatmap(filename = None, 
-                                                  marker_class = marker_class, 
-                                                  groupby = groupby_column, 
-                                                  subset_df = subset_df, 
-                                                  subset_obs = analysis_anndata.obs,
-                                                  **kwargs)
-            subset_df.figure.suptitle(f'{subsetting_column}: {ii}', size = 10, y = 1.05)
-            subset_df.savefig(temp_img_dir_svg, bbox_inches = "tight") 
-            counter += 1
-            plt.close()
-            row.addSVG(temp_img_dir_svg, alignment = svg_stack.AlignCenter)
+            if len(subset_df) > 0:
+                subset_df = self.plot_medians_heatmap(filename = None, 
+                                                    marker_class = marker_class, 
+                                                    groupby = groupby_column, 
+                                                    subset_df = subset_df, 
+                                                    subset_obs = analysis_anndata.obs,
+                                                    **kwargs)
+                subset_df.figure.suptitle(f'{subsetting_column}: {ii}', size = 10, y = 1.05)
+                subset_df.savefig(temp_img_dir_svg, bbox_inches = "tight") 
+                counter += 1
+                plt.close()
+                row.addSVG(temp_img_dir_svg, alignment = svg_stack.AlignCenter)
 
         document.setLayout(row)
         document.save(temp_img_dir_svg)
