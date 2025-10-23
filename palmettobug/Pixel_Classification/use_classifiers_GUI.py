@@ -1051,6 +1051,7 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
         plot.figure.savefig(self.master.output_path)
         pixel_logger.info(f"""Changed heatmap for 2ndary FlowSOM by channels-to-use array: {str(type_array)}""")
         self.disp.save_and_display(image = self.heatmap_path)
+        return plot
         
     def run_labeling(self) -> None:
         '''

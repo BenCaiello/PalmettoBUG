@@ -484,7 +484,7 @@ class Spatial_py(ctk.CTkFrame):
 
                 self.after(200, lambda: self.focus())
 
-            def plot_heatmap(self, table_type: str) -> None:
+            def plot_heatmap(self, table_type: str):
                 if table_type == "adjusted p values":
                     data_table = self.p_table
                 elif table_type == "unadjusted p values":
@@ -504,6 +504,7 @@ class Spatial_py(ctk.CTkFrame):
 
                 if self.pop_up.get() is True:
                     Plot_window_display(figure)
+                return figure
 
             def export_table(self, table_type: str) -> None:
                 filename = self.filename.get().strip()
@@ -576,7 +577,8 @@ class Spatial_py(ctk.CTkFrame):
             def refresh_fxn_plot_comparisons(self, enter = ""):
                 self.comparison.configure(values = ["Run All"] + self.master.master._all_comparison_list)
 
-            def plot_pairwise_comparison(self, comparison: str, stat: str, plot_f_vals: bool) -> None:
+            def plot_pairwise_comparison(self, comparison: str, stat: str, plot_f_vals: bool):
+                figure = None
                 output_dir = self.master.master.master_exp.space_analysis.output_dir
                 if comparison != "Run All":
                     if not overwrite_approval(f"{output_dir}/Functional_plots/{comparison}_{stat}",
@@ -642,6 +644,9 @@ class Spatial_py(ctk.CTkFrame):
                     self.master.master.master_exp.space_analysis.plot_all_spatial_with_stat(seed = 42, stat = stat, write = True)
                     log_update()
                     self.destroy()
+                
+                if figure is not None:
+                    return figure
 
     def save_and_display(self, filename: str, sizeX: int = 550, sizeY: int = 550, parent_folder: str = "gg_export") -> None:
         ##### This piece of code is currently repeated many times across each plotting function. Should probably be its own function...
@@ -716,7 +721,7 @@ class plot_cell_maps_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         options = [i for i in CLUSTER_NAMES if i in self.master.master_exp.data.obs.columns]
         self.clustering.configure(values = options)
 
-    def python_run_cell_maps(self, multi_or_single: str, clustering: str = 'merging', masks: str = "masks") -> None:
+    def python_run_cell_maps(self, multi_or_single: str, clustering: str = 'merging', masks: str = "masks"):
         '''
         multi_or_single (str) -- "RUN ALL" or the filename to be run
         '''
@@ -765,6 +770,8 @@ class plot_cell_maps_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
         space_logger.info(f"""Plotted cell maps: {multi_or_single}, masks = {masks}, clustering = {clustering}""")  
         self.withdraw()
+        if multi_or_single != "RUN ALL":
+            return figure
 
 class SquidpySpatialWidgets(ctk.CTkFrame):
     '''
@@ -967,6 +974,7 @@ class NeigborhoodEnrichmentWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             self.withdraw()
         else:
             self.destroy()
+        return figure
 
 class CentralityWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     '''
@@ -1038,6 +1046,7 @@ class CentralityWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.withdraw()
         else:
             self.destroy()
+        return figure
         
 class InteractionMatrixWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     '''
@@ -1114,6 +1123,7 @@ class InteractionMatrixWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.withdraw()
         else:
             self.destroy()
+        return figure
 
 class cellularNeighborhoodsFrame(SquidpySpatialWidgets):
     '''
@@ -1242,6 +1252,7 @@ class CNUMAPMSTwindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if self.pop_up.get() is True:
             Plot_window_display(figure)
         self.withdraw()
+        return figure
 
 class CNabundanceWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     '''
@@ -1300,6 +1311,7 @@ class CNabundanceWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             Plot_window_display(figure)
 
         self.withdraw()
+        return figure
 
 class CNheatmapWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     '''
@@ -1356,6 +1368,7 @@ class CNheatmapWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             Plot_window_display(figure)
 
         self.withdraw()
+        return figure
 
 class CNannotationWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     '''
@@ -1884,6 +1897,7 @@ class edt_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.withdraw()
         else:
             self.destroy()
+        return figure
 
 class edt_dist_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
@@ -1972,6 +1986,7 @@ class edt_dist_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.withdraw()
         else:
             self.destroy()
+        return figure
 
 
 class edt_stat_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
@@ -2044,7 +2059,7 @@ class edt_stat_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                         stat = {stat}
                         test = {test}""")
         
-        TableLaunch(dataframe = output, 
+        t_launch = TableLaunch(dataframe = output, 
                     directory = "",
                     width = 1, 
                     height = 1, 
@@ -2052,6 +2067,7 @@ class edt_stat_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                     experiment = None, 
                     favor_table = True, 
                     logger = space_logger)
+        return output, t_launch
 
 
 class dist_transform_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
