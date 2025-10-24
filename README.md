@@ -30,7 +30,7 @@ Example of a piece of the GUI (specifically some of the buttons in the main wind
 
 ## Installation:
 
-Its installation (in a clean, **Python 3.10 or 3.11** environment!) should be as simple as running:
+Its installation (in a clean, **Python 3.10** environment!) should be as simple as running:
 
     > pip install palmettobug
 
@@ -40,13 +40,11 @@ Then to launch PalmettoBUG, simply enter:
 
 in the conda environment where the package was installed. 
 
-### Strict Installation Options: Strictly defined dependencies & using Python 3.9 
+### Strict Dependencies in Installation 
 
-As the scientific python package ecosystem updates, the current dependencies defined for PalmettoBUG (and isoSegDenoise) in the pyproject.toml files may break. Additionaly, you may be interested in using the programs on Python 3.9 -- however, the dependency requirements in the mian branch DO NOT work for python 3.9. 
+PalmettoBUG depends on a large number of other packages to operate. Earlier version pinned mainly minimum versions for a number of packages, allowing updates over time. However, this ran into an issue with pip installation (resolution of dependencies was too difficult), even though it still was installable using uv. Now, the current verisons of PalmettoBUG enforce a strict and extremely specific set of dependencies to prevent that error, meaning that PalmettoBUg is unlikely to be easily co-installed with most other packages (at least while maintaining its dependency requirements). However, since the issue was mainly with poor dependency resolution by pip and not with genuine incompatibility for *most* packages, it is not entirely unreasonable to install alternative versions of packages *after* PalmettoBUG has been installed even if those versions are technically incompatible with PalmettoBUG.
 
-Therefore, I offer two versions of the program for strictly defining the version number of every dependency in the program -- version 0.1.4.dev39 (python 3.9) or 0.1.4.dev310 (Python 3.10). As in:
-
-    > pip install palmettobug==0.1.4.dev39
+Ideally, this strict dependency setup will be reverted, but so long as it is compatible with isoSegDenoise and its dependencies (note: this deserves re-testing), I'm uncertain if/when the reversion to a looser dependency set will ever be done.
 
 ## The isoSegDenoise sister-package
 
@@ -66,13 +64,11 @@ The decision on whether to include the [tensorflow] tag is because the popular D
 Without the [tensorflow] tag, the tensorflow / keras packages will not be installed and isosegdenoise with use an ONNX model version of Mesmer (generated using tf2onnx package) inside PyTorch (using onnx2torch). This makes GPU support easier and reduces the dependencies required by the program. However, the model is not 100% identical to the original tensorflow model! Its output does look very similar by eye -- but I have not (yet) benchmarked its accuracy vs. the original model in a thorough enough manner. More
 information about iSD, and the tensorflow vs. Torch models, can be found at its repository & documentation pages.
 
-## Instanseg option (*new feature / only in the development branch!*)
+## Instanseg option
 
 Modifying the installation command to:
 
     > pip install palmettobug[instanseg]  
-
-(since 0.2.5.dev1 version on PyPI)
 
 Will install instanseg with PalmettoBUG, allowing you to segment cells without needing isosegdenoise at all. Instanseg is a channel-invariant, fully open-source segmentation
 deep-learning model. As such, it can be a part of the main palmettobug package itself, and behaves somewhat differently than cellpose / deepcell (Mesmer) segmentation. Unlike those other two models, when selecting segmentation channels for Instanseg it does not matter the compartment label (nuclei / cytoplasm) you apply to the channels in the panel.csv -- both nuclei channels and cytoplasmic channels are treated equally. However, ONLY channels with some segmentation labels will be passed to Instanseg during segmentation -- so you do need select segmentation channels in the panel file still! 
@@ -119,7 +115,7 @@ This package is licensed under the GPL-3 license (See LICENSE.txt). However, muc
 /Assets folder). 
 
 Note:
-On Linux and MacOS, the opencv package ships with an open source, but non-GPL-compatible library (OpenSSL v1.1.1). As far as I am aware, PalmettoBUG does not use, depend on, or in any way interact with this library (and it is NOT shipped in Windows version of opencv, which kind of proves those points). So I am uncertain of how this affects the program itself, although makes it likely that a full / dependency-included version of PalmettoBUG (on linux / Mac) is currently not legally redistributable. This exact situation (a non-redistributable program because of dependency license conflicts) is already described for the very packages causing a problem in opencv: https://github.com/FFmpeg/FFmpeg. Hopefully the pending release of opencv 5.0 will also resolve this detail, as well, by providing a version of opencv without problematic libraries. 
+On Linux and MacOS, the opencv package ships with an open source, but non-GPL-compatible library (OpenSSL v1.1.1). As far as I am aware, PalmettoBUG does not use, depend on, or in any way interact with this library. So I am uncertain of how this affects the program itself, although makes it likely that a full / dependency-included version of PalmettoBUG (on linux / Mac) is currently not legally redistributable. This exact situation (a non-redistributable program because of dependency license conflicts) is already described for the very packages causing a problem in opencv: https://github.com/FFmpeg/FFmpeg. 
 
 ## Citation
 
