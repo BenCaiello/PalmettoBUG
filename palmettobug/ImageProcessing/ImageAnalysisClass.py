@@ -137,11 +137,11 @@ def imc_entrypoint(directory: Union[Path, str],
              
         elif not from_mcds:
             if _in_gui:
-                tk.messagebox.showwarning("Warning!", message = "Are you sure there are image files in the 'img' folder of your directory? \n" 
+                tk.messagebox.showwarning("Warning!", message = "Are you sure there are .tiff (or .tif) files in the 'raw' folder of your directory? \n" 
                         "Error in generating directory structure and preliminary panel file")
                 return
             else:
-                print("Are you sure there are image files in the 'img' folder of your directory? \n" 
+                print("Are you sure there are .tiff (or .tif) files in the 'raw' folder of your directory? \n" 
                     "Error in generating directory structure and preliminary panel file")
                 return      
     
