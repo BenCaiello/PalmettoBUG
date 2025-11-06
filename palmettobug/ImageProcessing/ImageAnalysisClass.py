@@ -798,9 +798,10 @@ class ImageAnalysis:
                             slicer = (channel_slice == kk)
                             new_image_array[k,:,:] = np.sum(image_array[slicer], axis = 0) / slicer.sum()
                         image_array = new_image_array.copy()
+                    image_array = image_array[channel_slice > 0,:,:]
                 else:
                     image_array = image_array[channel_slice > 0,:,:]
-                image_array = image_array[(channel_slice > 0), :, :]            
+                          
             prediction = model.eval_medium_image(image_array, mean_threshold = mean_threshold, target = target, pixel_size = pixel_size)
             tf.imwrite(f'{output_mask_folder}/{i}', np.squeeze(np.asarray(prediction[0])))
 
