@@ -270,7 +270,7 @@ class EntryPoint(ctk.CTkFrame):
         ### don't want the current directory to be searched (when entry field is blank)....
         if self.master.directory is None:
             self.master.directory = "not a directory"   ## if the directory remains None, odd behaviours can result 
-                                                            # because of default arguments in downstram functions ---> 
+                                                            # because of default arguments in downstream functions ---> 
                                                             # like the current directory being searched
         if len(self.master.directory) == 0:
             self.master.directory = tk.filedialog.askdirectory()
@@ -284,7 +284,7 @@ class EntryPoint(ctk.CTkFrame):
                 tk.messagebox.showwarning("Warning!", message = "There are no files in the raw folder!")
                 return
         except FileNotFoundError:
-            tk.messagebox.showwarning("Warning!", message = "This is not a valid directory!")
+            tk.messagebox.showwarning("Warning!", message = "This is not a valid directory! \n There must be a '/raw' folder immediately inside the directory you select, and inside that your MCDs or TIFFs.")
             return
         
         if from_mcds is None:
