@@ -21,13 +21,27 @@ From the manuscript: ( BioRXiv link here )
 Installation:
 ~~~~~~~~~~~~~
 
-To install, first setup a **Python 3.10** environment. 
+To install, first setup a **Python 3.10** environment. This should be a **clean** environment, with no other packages installed!
 
 I mainly used `conda <https://docs.conda.io/projects/conda/en/latest/index.html>`_ environments to develop and test PalmettoBUG,
-so it is recommended to get miniforge (or miniconda) and create an environment for palmettobug there. However, PalmettoBUG is a pure
-python package with exclusively pip-installable dependencies, so what environment manager you use is flexible & up to you and your needs.
+so I recommend getting miniforge or miniconda and creating an environment for palmettobug there. However, PalmettoBUG is a pure
+python package with exclusively pip-installable dependencies, so it should work in any typical python environment (be sure it is clean, and version 3.10 !) 
+regardless of the environment manager used. 
 
-Enter your environment and issue the command:
+In the example in this documentation, I will use conda to setup the python environment. If you have issues with conda, you can consult their thorough documentation!
+
+To use conda, install miniconda or miniforge from the link above, launch it, and then create a new environment in the terminal (the environment name, "pbug_env" can be something different):
+
+>>> conda create -n "pbug_env" python=3.10
+
+This creates your clean python 3.10 environment. Now, enter the environment with:
+
+>>> conda activate pbug_env
+
+You will need to be inside this environment, not only when installing palmettobug, but also every time you launch palmettobug in the future. 
+This means re-entering the environment with the 'conda activate' command everytime you close and re-open the miniconda/miniforge terminal. 
+
+Once you are in your environment, issue the command:
 
 >>> pip install palmettobug
 
@@ -36,19 +50,22 @@ To install PalmettoBUG in your environment.
 **Other versions of python:**
 Installing in Python 3.11 may also work, but not for the tensorflow version required by isosegdenoise (see below), although if you use the default installation of 
 isosegdenoise (which uses torch instead of tensorflow to run DeepCell), then this doesn't matter. Note that I have mainly developed the package in Python 3.10 so 
-using a different version like Python 3.11 is MUCH MORE RISK in terms of the possibility of encountering errors!
-For python 3.9, there is a version (0.1.4.dev39) that ought to work, but again may be more risky
+using a different version like Python 3.11 is MUCH MORE RISKY in terms of the possibility of encountering errors!
+For python 3.9, there is a version (0.1.4.dev39) that ought to work, but again using this may be more risky and that version is not nearly as well supported. Unless
+you have a good reason to, just use Python 3.10.
 
-**For strictly-defined dependencies / more stable installation, use one of the following two commands:**
+..
+   **For strictly-defined dependencies / more stable installation, use one of the following two commands:**
 
-For Python 3.10 with strictly defined dependencies:
+   For Python 3.10 with strictly defined dependencies:
 
->>> pip install palmettobug==0.1.4.dev310
+   >>> pip install palmettobug==0.1.4.dev310
 
-This version should have a more durable / stable installation by reducing the chance of the many dependencies of PalmettoBUG breaking or coming into conflict 
-as they update. If the normal installation fails due to a dependency conflict or error, then trying this "strict" version is a good idea.
-Note: currently the main branch of the program is mostly the same / uses strictly defined dependencies due to recent pip resolution depth errors (installation with uv
-did not have issues with the loosely defined dependencies though). I hope to revert the main branch to loosely defined dependencies eventually. 
+   This version should have a more durable / stable installation by reducing the chance of the many dependencies of PalmettoBUG breaking or coming into conflict 
+   as they update. If the normal installation fails due to a dependency conflict or error, then trying this "strict" version is a good idea.
+   Note: currently the main branch of the program is mostly the same / uses strictly defined dependencies due to recent pip resolution depth errors (installation with uv
+   did not have issues with the loosely defined dependencies though). I hope to revert the main branch to loosely defined dependencies eventually. 
+
 
 **Segmentation & Denoising sister-program**
 
@@ -56,7 +73,7 @@ To get PalmettoBUG's sister package, which handles image denoising and segmentat
 
 >>> pip install isosegdenoise 
 
-in the same environment. This package also has similar package versions with strictly-defined dependencies (like 0.1.4.dev310). These dependencies (where they overlap) 
+in the same environment. This package also has similar package versions with strictly-defined dependencies (like 0.1.4.dev39). These dependencies (where they overlap) 
 share similar version numbers, so installation in the same environment should be straightforward.
 See isoSegDenoise's documentation for more details: https://isosegdenoise.readthedocs.io/en/latest/ 
 
@@ -188,7 +205,7 @@ into html. Other packages used in this process include: nbsphinx (for jupyter no
 
 The media / images (and odp files) in the /docs folder of the GitHub repository were created in 
 Microsoft PowerPoint and LibreOffice from screenshots (using Windows Snipping Tool) of the PalmettoBUG program & its output files, as well as
-other programs (like Napari, & Windows File Explorer, etc.) that were used while analysing the example data  .
+other programs (like Napari, & Windows File Explorer, etc.) that were used while analysing the example data.
 
 
 .. |image1| image:: media/Welcome1.png
