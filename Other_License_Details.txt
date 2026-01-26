@@ -78,6 +78,9 @@ Files (see file headers for more specifics / modifications of the packages):
                     However, only Premessa was translated into PalmettoBUG, not the bead-normalization MatLab scripts. FCS files in the bead-normalization repository were used to generate
                     jupyter-notebook tutorial documentation.)
 
+        -- palmettobug/Entrypoint/app_and_entry.py
+            - customtkinter (MIT, Copyright (c) 2023 Tom Schimansky). This package is also one of PalmettoBUG's dependencies
+
         -- The GitLab / GitHub actions .yml files were modified from MIT-licensed templates
               link: https://github.com/actions/starter-workflows
               Copyright (c) 2020 GitHub

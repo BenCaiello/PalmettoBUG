@@ -4,8 +4,9 @@ It also contains the widgets for bead normalization, he license display button, 
 
 
 
-This file is licensed under the GPL3 license. No significant portion of the code here is known to be derived from another project 
-(in the sense of needing to be separately / simulataneously licensed)
+This file is licensed under the GPL3 license. No significant portion of the code here is known to be derived from another project, except
+the destroy method for the App object (search for ##>>##>>), which was modified from 
+customtkinter (MIT license [see Other_License_Details.txt], Copyright (c) 2023 Tom Schimansky)
 '''
 import os
 import sys
@@ -95,6 +96,7 @@ class App(ctk.CTk):
         self.entrypoint = EntryPoint(self.Tabs)
         self.entrypoint.grid(row = 0, column = 0, padx = 10, pady = 10)
 
+    ##>>##>>
     def destroy(self) -> None:   ## overwrite base class destroy method to ensure that matplotlib is closed
                          ## modified directly from the original customtkinter code for ctk.CTk.destroy()
         plt.close()
@@ -106,6 +108,7 @@ class App(ctk.CTk):
         ctk.windows.widgets.scaling.CTkScalingBaseClass.destroy(self)
 
     class Tabholder(ctk.CTkTabview):
+        '''As its name implies, this contains the Tabs & sub-tabs of the program'''
         def __init__(self, master):
             super().__init__(master)
             self.start = self.add('Start')
@@ -150,9 +153,9 @@ class App(ctk.CTk):
 
 class EntryPoint(ctk.CTkFrame):
     '''
-    This is the initial frame that helps the user provide the directory for data ingestion.
+    This is the initial frame (in the opening tab of the GUI) that helps the user provide the directory for data ingestion.
 
-    It can always be returned to by the user to re-start the data ingestion / processing. 
+    It can always be returned to by the user to re-start the process of data ingestion. 
     '''
     def __init__(self, Tabholder: App.Tabholder):
         super().__init__(Tabholder.start)
