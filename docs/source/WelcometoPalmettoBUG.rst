@@ -47,12 +47,14 @@ Once you are in your environment, issue the command:
 
 To install PalmettoBUG in your environment. 
 
-**Other versions of python:**
-Installing in Python 3.11 may also work, but not for the tensorflow version required by isosegdenoise (see below), although if you use the default installation of 
-isosegdenoise (which uses torch instead of tensorflow to run DeepCell), then this doesn't matter. Note that I have mainly developed the package in Python 3.10 so 
-using a different version like Python 3.11 is MUCH MORE RISKY in terms of the possibility of encountering errors!
-For python 3.9, there is a version (0.1.4.dev39) that ought to work, but again using this may be more risky and that version is not nearly as well supported. Unless
-you have a good reason to, just use Python 3.10.
+**Using other versions of python:**
+
+Summary: don't do it, just use python 3.10! Unless you really want to try it... then keep reading. But don't say I didn't warn you!
+
+Installing in Python 3.11 may also work, as long as you don't try to use the [tensorflow] version of isoSegDenoise in the same environment. HOWEVER this is risky!
+Installing in python 3.9 may work as well (with either version of iSD), using a branch of PalmettoBUG expressly made for the purpose. HOWEVER this is still risky because 
+that branch is not well supported! If you want a reliable installation, just use python 3.10.
+And definitely don't try older (<= 3.8) or newer (>=3.12) version of python, they shouldn't work. 
 
 ..
    **For strictly-defined dependencies / more stable installation, use one of the following two commands:**
@@ -73,13 +75,12 @@ To get PalmettoBUG's sister package, which handles image denoising and segmentat
 
 >>> pip install isosegdenoise 
 
-in the same environment. This package also has similar package versions with strictly-defined dependencies (like 0.1.4.dev39). These dependencies (where they overlap) 
-share similar version numbers, so installation in the same environment should be straightforward.
+in the same environment. This package is intended to operate with the same dependencies as PalmettoBUG.
 See isoSegDenoise's documentation for more details: https://isosegdenoise.readthedocs.io/en/latest/ 
 
 .. important::
    If you want segmentation and denoising to be available in the GUI as shown in the documentation, you MUST install isosegdenoise in the same environment as PalmettoBUG!
-   If you want to launch each program separately, then it does not matter, you can use different environments.
+   You can use them in different environments, but in that case will have to launch the programs entirely separately.
 
 .. important::
    By default, isoSegDenoise (iSD) uses a ONNX-converted model of the DeepCell / Mesmer segmentation algorithm. This allows one framework for deep learning
@@ -136,17 +137,17 @@ GPU support
 .. important::
 
    Your mileage using the steps I list here may vary! GPU support was not thoroughly tested on a variety of computer systems or setups, only
-   on Windows operating systems where I did development.
+   on Windows operating systems where I did development. GPU support was also not a critical priority - PalmettoBUG  was not designed with
+   high performance as a top priority, and it mainly counts on its dependencies to have handled questions of speed/performance on their own.
 
 GPU support is ONLY relevant for the denoising / segmentation steps (mainly in isoSegDenoise, the sister package to PalmettoBUG). The main PalmettoBUG package
 does not use GPU support - except for instanseg, which I have not yet tested GPU support for. However, instanseg uses PyTorch so it should be relatively 
 simple to set up. 
 
-GPU support can require PyTorch and/or tensorflow being set up for it.
-If you chose to use the ONNX / PyTorch model for DeepCell / Mesmer (see installation section) 
-instead of the original tensorflow version of Mesmer, then you only need to configure GPU support for
-PyTorch. Using the original tensorflow model is more complex & affects the dependencies of the program a lot more,
-but should be more faithful to the published DeepCell model. 
+GPU support is configured through the packages used for deep neural networks inside PalmettoBUG/isoSegDenoise, eitherr PyTorch and/or tensorflow. So if
+you are having trouble with this, you can also consult with the GPU documentation provided by those packages. If you chose to use the ONNX / PyTorch model for 
+DeepCell / Mesmer (the default, see installation section), then you only need to configure GPU support for PyTorch. 
+However, if you use the original tensorflow DeepCell model, then you will additionally want tensorflow GPU support. 
 
 **PyTorch GPU support:**
 
@@ -156,7 +157,7 @@ PyTorch support for GPUs is fairly straightforward -- follow the recommended pip
 **Tensorflow GPU support**
 
 This is slightly more complicated, as you will need to install tensorflow-gpu, cudnn, cudatoolkit, and zlib-wapi packages.
-Here is an example of commands that appeared to work for me on a windows computer. 
+Here is an example of commands that appeared to work for me at one point. 
 
  > pip install tensorflow-gpu==2.8.4
 
@@ -169,7 +170,7 @@ Here is an example of commands that appeared to work for me on a windows compute
 Licensing information:
 ~~~~~~~~~~~~~~~~~~~~~~
 
-PalmettoBUG is under the `GPL-3 <https://github.com/BenCaiello/PalmettoBUG?tab=License-1-ov-file>`_ opensource license. Much of the code &
+PalmettoBUG is under the `GPL-3 <https://github.com/BenCaiello/PalmettoBUG?tab=License-1-ov-file>`_ open source license. Much of the code &
 dependencies of PalmettoBUG came from GPL-2+ projects across a few different programming languages, necessitating that PalmettoBUG itself
 be under the same license. 
 
@@ -189,10 +190,6 @@ There is a good amount of copied / derived code in PalmettoBUG, which (if unmodi
    On Linux and MacOS only, the opencv package ships with an open source, but non-GPL-compatible library (OpenSSL v1.1.1). As far as I am aware, PalmettoBUG does not use, 
    depend on, or in any way interact with this library, although this makes it likely that a full / dependency-included version of PalmettoBUG (on linux / Mac) is currently not 
    redistributable if it contain OpenSSL.
-   A very similar situation (a non-redistributable program being created by the end-user because of GPL vs. other license conflict) is already described for the very packages 
-   leading to the issue in opencv: https://github.com/FFmpeg/FFmpeg?tab=License-1-ov-file -- so following their example -- this issue shouldn't affect standard installation and 
-   use of PalmettoBUG. 
-
 
 
 Details of Documentation creation
