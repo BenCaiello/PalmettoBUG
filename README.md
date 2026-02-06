@@ -16,21 +16,22 @@ Also please raise an issue if you do encounter a bug, so that it can be fixed!
 
 ![PaperFig](https://github.com/BenCaiello/PalmettoBUG/blob/main/docs/source/media/Welcome1.png)
 
-PalmettoBUG is a pure-python GUI in customtinker (https://github.com/tomschimansky/customtkinter) that, along with its sister package isoSegDenoise, can preprocess, segment, and analyze high-dimensional image or flow cytometry data, especially mass cytometry / imaging mass cytometry data. 
+PalmettoBUG is a pure-python GUI in customtinker (https://github.com/tomschimansky/customtkinter) that, along with its sister package isoSegDenoise, can preprocess, segment, and analyze solution mass cytometry and imaging mass cytometry data. 
 
 PalmettoBUG is intended to accomplish a few things:
 
-1. Be an easy starting point for scientists who do not necessarily have extensive background in computer science / coding but still want to be able to do basic data analysis & exploration of imaging mass cytometry data on their own. In particular, the GUI interface, extensive powerpoint documentation, easy installation, and integration of all the usually necessary steps in high-dimensional biological image analysis helps make analyzing data in PalmettoBUG much more approachable. This is particularly the focus of why the MUSC Flow (& mass) Cytometry Shared Resource wanted a package like this -- it could allow users of our instruments to _begin_ their analyses and get a _preliminary_ idea of their data without needing a collaborating bioinformatician to analyze the data for them.  
+1. Be an easy starting point for scientists who do not necessarily have extensive background in computer science / coding but still want to be able to do basic data analysis & exploration of imaging mass cytometry data on their own. In particular, the GUI interface, extensive powerpoint documentation, easy installation, and integration of all the core necessary steps of IMC image analysis helps make analyzing data in PalmettoBUG much more approachable. _Note: while PalmettoBUG is capable of performing some common statistical tests (like ANOVA) for a number of comparisons, consulting an expert statistician and/or exporting the data from PalmettoBUG for more rigorous statistical analysis is still recommended!_
 
-2. Be easily integrated into new or alternative workflows. Specfically, PalmettoBUG was designed so that most of its critical image / data intermediates as easily accessible by the user or automatically exported as common files types (.tiff for images, .csv for statistics/data/metadata, and .png for graphs/plots in most cases). Similar to the Steinbock package on which much of PalmettoBUG was based, as steps are performed in the analysis, PalmettoBUG frequently auto-exports the output of those steps to folders on the users' hard drive. This means that PalmettoBUG could be easily used for only some of its functions -- say only using it to convert files to MCDs, then segment cells -- with its outputs being re-directed into a separate analysis pipeline. This promotes maximum flexibility with how PalmettoBUG could be used!
+2. Be easily integrated into new or alternative workflows. Specfically, PalmettoBUG was designed so that most of its critical image / data intermediates as easily accessible by the user or automatically exported as common files types (.tiff for images/masks/pixel classification, .csv for statistics/data/metadata, and .png for graphs/plots in most cases). _Note that this is more of a easy integration with other tools through accesible and easy to work with **file** types, not as much integration within a single coding environment (PalmettoBUG is intentionally picky about its dependencies, and may or may not be installable with another package in the same python environment!)._
 
-Example of a piece of the GUI (specifically some of the buttons in the main window & the pop-up window for calculating UMAPs), and some of the plots that can be made with the program:
+Powerpoint documenting many of the available options in PalmettoBUG (converted to a .gif):
+![Gif of slides](https://github.com/BenCaiello/PalmettoBUG/blob/main/docs/slides/HowToUsePalmettoBUG.gif)
 
-![Example](https://github.com/BenCaiello/PalmettoBUG/blob/main/docs/source/media/SingleCellAnalysis/SCAnalysis9.png)
+This powerpoint is available from within this github repo at _/docs/slides/How to Use PalmettoBUG.odp_ as an alternate form of documentation to the readthedocs website.
 
 ## Installation:
 
-Its installation (in a clean, **Python 3.10 or 3.11** environment!) should be as simple as running:
+Its installation (in a clean, **Python 3.10** environment!) should be as simple as running:
 
     > pip install palmettobug
 
@@ -40,15 +41,15 @@ Then to launch PalmettoBUG, simply enter:
 
 in the conda environment where the package was installed. 
 
-### Strict Installation Options: Strictly defined dependencies & using Python 3.9 
+### Strict Dependencies in Installation (!!)
 
-As the scientific python package ecosystem updates, the current dependencies defined for PalmettoBUG (and isoSegDenoise) in the pyproject.toml files may break. Additionaly, you may be interested in using the programs on Python 3.9 -- however, the dependency requirements in the mian branch DO NOT work for python 3.9. 
+As of the present moment, PalmettoBUG is primarily developed for an extremely restricted python environment setup! While the package could _technically_ be compatible with a somewhat looser set of dependencies, the sheer number of dependencies it requires makes it simpler for reliability and reproducibility's sake to have a very rigid set of dependencies and requirements. 
 
-Therefore, I offer two versions of the program for strictly defining the version number of every dependency in the program -- version 0.1.4.dev39 (python 3.9) or 0.1.4.dev310 (Python 3.10). As in:
+This strictness does mean that if you install another set of python packages with it (which is generally NOT recommmended - except for its sister-poackage, iSD, see the next heading) you may get a lot warning about incompatible package versions, even though PalmettoBUG might ultimately still launch and operate normally.
 
-    > pip install palmettobug==0.1.4.dev39
+**If you want reliable installation of PalmettoBUG, ALWAYS install it in a FRESHLY made, Python 3.10 environment using the latest version of the software!** Trying to install older versions of PalmettoBUG or use other versions of Python are at best much more risky, and at worst impossible. Fortunately, if you are using an environment manager, like conda, setting up a fresh Python 3.10 environment if easy and only takes a few minutes.
 
-## The isoSegDenoise sister-package
+## The isoSegDenoise (iSD) sister-package
 
 You will also want to run either:
 
@@ -59,39 +60,35 @@ or
     > pip install isosegdenoise[tensorflow]
 
 This is because the overall workflow of PalmettoBUG depends on a semi-independent package "isoSegDenoise" / iSD (GitHub: https://github.com/BenCaiello/isoSegDenoise).
-This package was separated due to licensing reasons and both packages can theoretically be operated independent of each other, however the segmentation and denoising steps shown in the documentation are not possible without isoSegDenoise. These packages are best installed together in one Python environment, as then PalmettoBUG can launch isoSegDenoise from inisde its GUI using command-line call / subprocess, however this is not strictly necessary either, as iSD can be launched on its own.
+The packages are separated due to licensing reasons (certain algorithms in iSD are restricted to non-commercial use), but the two packages are still best installed together in one Python environment. When they are in the same environment, then PalmettoBUG can launch isoSegDenoise from inisde its GUI. If they are not in the same environment, then that button in PalmettoBUG with have no effect, although iseoSegDenoies can still be launched independently from PalmettoBUG and seemlessly perform segmentation/denoising steps within a PalmettoBUG project's directory even if they are not installed together. **If you install iSD in a separate environment from PalmettoBUG, also use a fresh python 3.10 environment!** 
 
-The decision on whether to include the [tensorflow] tag is because the popular Deepcell / Mesmer algorithm was originally implemented using tensorflow, so if you want an exact replication of the original Mesmer neural net model you should use the [tensorflow] tag. This will install the needd packges to run the model using tensorflow -- and when those packages are available, isoSegDenoise will use them by default. However, doing this does have a few practical downsides: 1). more, large dependencies are needed for installation (tensorflow, keras, etc.), 2). it makes it harder to configure GPU support and 3). the obsolete versions of tensorflow / keras that are needed to run the model generate large numbers of security warnings / have a large number of security vulnerablilities.
+More information about iSD, the [tensorflow] tag, etc. can be found at its repository & documentation pages (https://github.com/BenCaiello/isoSegDenoise and https://isosegdenoise.readthedocs.io/en/latest/).
 
-Without the [tensorflow] tag, the tensorflow / keras packages will not be installed and isosegdenoise with use an ONNX model version of Mesmer (generated using tf2onnx package) inside PyTorch (using onnx2torch). This makes GPU support easier and reduces the dependencies required by the program. However, the model is not 100% identical to the original tensorflow model! Its output does look very similar by eye -- but I have not (yet) benchmarked its accuracy vs. the original model in a thorough enough manner. More
-information about iSD, and the tensorflow vs. Torch models, can be found at its repository & documentation pages.
+**whether to use the [tensorflow] tag:**
 
-## Instanseg option (*new feature / only in the development branch!*)
+The decision on whether to include the [tensorflow] tag is specfic to the Mesmer / DeepCell segmentation algorithm. Including [tensorflow] in the installation command will attempt to install the original, tensorflow based version of DeepCell (with same version number for DeepCell as used in the Steinbock pipeline). This version's output will more closely reflect previous DeepCell publications. 
+
+Ommitting the tensorflow tag will cause iSD to use an ONNX/PyTorch version of the DeepCell neural network instead. This version simplifies some of the dependencies for PalmettoBUG/iSD, including making GPU support MUCH easier to configure. It also appears to generate masks that are visually similar to the tensorflow verison of DeepCell - but the masks are NOT identical to the tensorflow version, so if you need your DeepCell segmentation to exactly match the original neural network be sure to inlcude the tensorflow tag! 
+
+## Instanseg option
 
 Modifying the installation command to:
 
     > pip install palmettobug[instanseg]  
 
-(since 0.2.5.dev1 version on PyPI)
+Will attempt to install instanseg with PalmettoBUG, allowing you to segment cells without needing isosegdenoise at all. Instanseg is a channel-invariant, fully open-source  deep-learning model for segmentation. As such, it can be a part of the main palmettobug package itself. 
 
-Will install instanseg with PalmettoBUG, allowing you to segment cells without needing isosegdenoise at all. Instanseg is a channel-invariant, fully open-source segmentation
-deep-learning model. As such, it can be a part of the main palmettobug package itself, and behaves somewhat differently than cellpose / deepcell (Mesmer) segmentation. Unlike those other two models, when selecting segmentation channels for Instanseg it does not matter the compartment label (nuclei / cytoplasm) you apply to the channels in the panel.csv -- both nuclei channels and cytoplasmic channels are treated equally. However, ONLY channels with some segmentation labels will be passed to Instanseg during segmentation -- so you do need select segmentation channels in the panel file still! 
-
-In a future version of the program, this may become a non-optional part of the program.
+While this command should work smoothly, it does introduce a bit of risk to the installation because the instanseg add-on is not as strict in its requirements as the main package.
 
 ## Documentation & Scripting use (using the package outside the GUI)
 
 Documentation is hosted on readthedocs: https://palmettobug.readthedocs.io/en/latest/. 
 
-Additionally, step-by-step documentation of what can be done in the GUI will be found in the **animated** slideshow files inside PalmettoBUG itself inside the docs/slides/ folder of this github repo.
-
-Gif of the /docs/slides/How to Use PalmettoBUG.odp file:
-
-![Gif of slides](https://github.com/BenCaiello/PalmettoBUG/blob/main/docs/slides/HowToUsePalmettoBUG.gif)
+Additionally, step-by-step documentation of what can be done in the GUI will be found in the **animated** slideshow files inside PalmettoBUG itself inside the docs/slides/ folder of this github repo, at _/docs/slides/How to Use PalmettoBUG.odp_
 
 **non-GUI use of PalmettoBUG**
 Additionally, PalmettoBUG exposes many of the key analysis functions it uses in a normal Python package API. While this is not envisioned to be the primary use case for this package, jupyter notebooks showing tutorials of how to do this are available on the readthedocs site, specifically: https://palmettobug.readthedocs.io/en/latest/notebooks/index.html. 
-Using PalmettoBUB outside the GUI does have the advantage of making exactly reproducing the analysis of a user substantially more straightforward, as the data analysis method can then be conveyed directly through the code itself, instead of being trying to decipher the log file made by the GUI (or using a description of the steps performed).
+Using PalmettoBUB outside the GUI does make reproducibility easier as the code itself can be the documentation of the analysis performed.
 
 ## Packages that are used in or inspired parts of PalmettoBUG
 
@@ -119,7 +116,7 @@ This package is licensed under the GPL-3 license (See LICENSE.txt). However, muc
 /Assets folder). 
 
 Note:
-On Linux and MacOS, the opencv package ships with an open source, but non-GPL-compatible library (OpenSSL v1.1.1). As far as I am aware, PalmettoBUG does not use, depend on, or in any way interact with this library (and it is NOT shipped in Windows version of opencv, which kind of proves those points). So I am uncertain of how this affects the program itself, although makes it likely that a full / dependency-included version of PalmettoBUG (on linux / Mac) is currently not legally redistributable. This exact situation (a non-redistributable program because of dependency license conflicts) is already described for the very packages causing a problem in opencv: https://github.com/FFmpeg/FFmpeg. Hopefully the pending release of opencv 5.0 will also resolve this detail, as well, by providing a version of opencv without problematic libraries. 
+On Linux and MacOS, the opencv package ships with an open source, but non-GPL-compatible library (OpenSSL v1.1.1). As far as I am aware, PalmettoBUG does not use, depend on, or in any way interact with this library. So I am uncertain of how this affects the program itself, although makes it likely that a full / dependency-included version of PalmettoBUG (on linux / Mac) is currently not legally redistributable. This exact situation (a non-redistributable program because of dependency license conflicts) is already described for the very packages causing a problem in opencv: https://github.com/FFmpeg/FFmpeg. 
 
 ## Citation
 

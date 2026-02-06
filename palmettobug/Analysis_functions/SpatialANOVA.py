@@ -94,6 +94,7 @@ class SpatialANOVA():
                   plot_cell_maps: bool = True
                   ) -> None:
         '''
+        {deprecated} --> not in common use anymore (an old method of loading from a pandas table instead of attaching to a PalmettoBUG analysis object)
         Args:
             space_anova_table (pandas dataframe): this has a particular format / expected columns:
                     rows >>> each row represents a cell event in the dataset. 
@@ -247,24 +248,28 @@ class SpatialANOVA():
                     original grouping down the line. 
 
         '''
+        # retrieve data by conditions selected
         condition1 = self.condition1
         condition2 = self.condition2            
-        if not ((condition1 is None) and (condition2 is None)): 
+        if not ((condition1 is None) or (condition2 is None)):    ## if either condition is None, then use all the conditions
             slice1 = space_anova_table['condition'] == condition1
             slice2 = space_anova_table['condition'] == condition2
             final_slicer = (slice1 + slice2)
             space_anova_table = space_anova_table[final_slicer]
         
+        # recover data divded per image, as regardless of statistical 'N', the image is the fundamental, coherent spatial unit of analysis
         self._split_by_image = []
         for i in space_anova_table['sample_id'].unique():
             self._split_by_image.append(space_anova_table[space_anova_table['sample_id'] == i].drop(['condition', self.alt_N], axis = 1))
         
+        # associate the sample_ids / images with the proper metadata: condition, and statistical 'N' (alt_N) 
         for_group_img_dict = space_anova_table.drop(['x','y','cellType'], axis = 1).drop_duplicates()
         self._group_img_dict = {}
         self._patient_ids = {}
         for i,ii,iii in zip(for_group_img_dict['sample_id'], for_group_img_dict['condition'], for_group_img_dict[self.alt_N]):
             self._group_img_dict[i] = ii
             self._patient_ids[i] = iii
+
         return self._split_by_image, self._group_img_dict
 
     def do_spatial_analysis(self, 
@@ -343,6 +348,7 @@ class SpatialANOVA():
                     the same data frames from the self._do_all_K_L_g() function.
 
         '''
+        # load provided parameters, from function call or from saved values
         if condition1 is None:
             condition1 = self.condition1
         else:
@@ -356,14 +362,16 @@ class SpatialANOVA():
         if (max is not None) and (step is not None) and (min is not None):
             self.set_fixed_r(min = min, max = max, step = step)
         elif self.fixed_r is None:
-            self.set_fixed_r()
-
-        if alt_N == 'sample_id':  ## here should trigger default behavior (equivalent to alt_N == None)
+            self.set_fixed_r()  # will default to range(0,100,1) for the set of radii to test
+        if alt_N == 'sample_id':  ## default behavior (equivalent to alt_N = None in function call)
             alt_N = None
         elif alt_N is not None:
             self.alt_N = alt_N
             self._use_alt = True
+        self.threshold = threshold
+        self.seed = seed
 
+        # load data from pbug Analysis object / anndata (analysis.data) and check any alternate statistical 'N' before beginning to shape the data
         space_anova_table = self._retrieve_data_table()
         if alt_N is not None:
             for i in self.data_table[alt_N].unique():
@@ -373,15 +381,15 @@ class SpatialANOVA():
                     self.alt_N = 'patient_id'
                     self._use_alt = False
                     print("Provided alternate experimental 'N' contains unique groups shared across more than one condition in the"
-                            "data! This is not allowed, reverting alternate N to 'sample_id'.")
+                            "data! This is not allowed.")
                     return
-
-        self.threshold = threshold
-        self.seed = seed
-
         self._ingest_data(space_anova_table)
+
+        # get the matrix / list of valid comparisons:
         self._return_comparison_lists()
         self._comparison_dictionary = {}
+
+        ## Run the ripley's statistics calculations (silencing zero division warnings if selected - which is recommended):
         if silence_zero_warnings is True:
             import warnings
             warnings.filterwarnings("ignore", message = "divide by zero encountered in divide") 
@@ -398,21 +406,27 @@ class SpatialANOVA():
                                                     suppress_threshold_warnings = suppress_threshold_warnings)
 
             self._comparison_dictionary["___".join([type1,type2])] = {"K":all_K, "L":all_L, "g":all_g}
+
         if silence_zero_warnings is True:
             warnings.filterwarnings("default", message = "divide by zero encountered in divide")  ## undo prior warnings modifications
-            warnings.filterwarnings("default", message = "invalid value encountered in divide")                    
+            warnings.filterwarnings("default", message = "invalid value encountered in divide")   
+
         return self._comparison_list, self._all_comparison_list, self._comparison_dictionary
     
     def _return_comparison_lists(self):
-        ''''''
+        ''' this will collect the cell types that are valid to make comparisons with (as in, are present in > 1 condition) '''
         all_cell_types = []
-        bad_cell_types = []           ## this will collect the cell types that are valid to make comparisons with (as in, are present in > 1 condition)
+        bad_cell_types = []
+
+        # collect data           
         if self.exp is not None:
             obs = self.exp.data.obs.copy()
             cellType_key = self.cellType_key
         else:
             obs = self.data_table.copy()
             cellType_key = "cellType"
+
+        # check each cell type for validity
         for i in obs[cellType_key].unique():
             all_cell_types.append(str(i))
             cell_type_copy = obs[obs[cellType_key] == i]
@@ -427,6 +441,8 @@ class SpatialANOVA():
                     print(f"The celltype {str(i)} is only present in one condition -- ANOVAs and F-statistics will not be available for that celltype!")
                     break   
         bad_cell_types.append('dropped')
+
+        ## create matrix of pairwise celltype-to-celltype comparisons for comparisons that will be statistically testable (present in >1 condition)
         self.good_cell_types = [i for i in all_cell_types if i not in bad_cell_types]
         self._comparison_list = []
         all_types = np.array(self.good_cell_types)
@@ -437,6 +453,7 @@ class SpatialANOVA():
             comparison = "".join ([str(i),"___",str(ii)])
             self._comparison_list.append(comparison)
 
+        ## create matrix of pairwise celltype-to-celltype comparisons for all comparisons (may not be statistically testable, but ripley's plots can be made)
         self._all_comparison_list = []
         all_types = np.array(all_cell_types)
         all_types = all_types[:,np.newaxis]
@@ -444,7 +461,8 @@ class SpatialANOVA():
         tiled_T = tiled.T
         for i,ii in zip(tiled.flatten(), tiled_T.flatten()):
             comparison = "".join ([str(i),"___",str(ii)])
-            self._all_comparison_list.append(comparison)     ## plots of ripley's stats are still possible for the one condition
+            self._all_comparison_list.append(comparison) 
+
         return self._comparison_list, self._all_comparison_list
         
     def _do_all_K_L_g(self, 
@@ -664,7 +682,7 @@ class SpatialANOVA():
             #    to_adjust_list[] = (to_adjust_list[] + i) / 2     ## average p-values for symmetric comparisons?
         '''
 
-        ## uncertain how to handle FDR, since comparison are symetric, but are close to symmetric  (do combined comparison in all_g above? average p_values?)
+        ## uncertain how to handle FDR, since comparison are not symmetric, but are close to symmetric  (do combined comparison in all_g above? average p_values?)
         p_adj_list = scipy.stats.false_discovery_control(np.nan_to_num(np.array(p_list), nan = 1.0) + 1e-25, method = 'bh')    ##  to_adjust_list
         
         '''
