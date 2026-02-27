@@ -313,12 +313,29 @@ dependencies = [
 instanseg = ["instanseg-torch"]
 deprecated_extras = ["svg-stack", "navis"]
 
+
 [tool.ruff]
 extend-exclude = ["Assets", ".tiff", ".png", ".jpg", ".ico", ".txt", ".json"]
 
-[tool.poetry.scripts]
+[project.scripts]
 palmettobug = 'palmettobug.Executable:run_GUI'
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core","maturin>=1.6", "setuptools", "wheel"]
+build-backend = "maturin"
+
+
+[tool.maturin]
+bindings = "pyo3"
+# Path to the Rust crate that exports the PyO3 module:
+manifest-path = "crates/native/Cargo.toml"
+# Expose the compiled module at palmettobug._native
+module-name = "palmettobug._native"
+# Directory that contains your Python package
+python-source = "palmettobug"
+# Optional niceties:
+profile = "release"
+strip = true
+compatibilit
+
+
