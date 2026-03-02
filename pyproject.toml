@@ -338,6 +338,22 @@ profile = "release"
 strip = true
 compatibility = "pypi"
 features = []
+exclude = [
+  "target/**",
+  "crates/**/target/**",
+  "**/*.whl",
+  "**/*.zip",
+  "**/*.tar.gz",
+  ".venv/**",
+  ".tox/**",
+  ".mypy_cache/**",
+  ".pytest_cache/**",
+  # Optional, if you have large static assets/samples:
+  "Assets/**",
+  "samples/**",
+  "docs/_build/**",
+]
+
 
 
 

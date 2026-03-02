@@ -280,13 +280,13 @@ fn k_from_edges_counts(
             break;
         }
     }
-//##    let eff_last = match effective_last_index {
-//##        Some(i) => i,
-//##        None => {
-//##           // no usable bins
-//##            return vec![0.0; n_bins];
-//##        }
-//##     };
+    let _eff_last = match effective_last_index {
+        Some(i) => i,
+        None => {
+           // no usable bins
+            return vec![0.0; n_bins];
+        }
+     };
 
     let lo = min_r as f64;
     let hi = new_max; // numpy hist range upper is exclusive
