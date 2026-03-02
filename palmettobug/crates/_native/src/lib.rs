@@ -2,6 +2,10 @@
 /// This includes porting the translations of R code (primarily spatstat) that has their own license information -- see the original spaceanova.py file inside
 /// PalmettoBUG and/or the Other_License_Details.txt file for information about those packages & their licenses
 
+
+/// AI debugging: lines of code I commented out are marked with a unique comment ID -->     ///##
+/// search for this to find these lines for later fixing (if needed)
+
 use numpy::{PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 use rayon::prelude::*;
@@ -144,9 +148,9 @@ fn precompute_edges(
     y: &[f64],
     geom: &[PointGeom],
     xmin: f64,
-    xmax: f64,
+///##    xmax: f64,
     ymin: f64,
-    ymax: f64,
+///##    ymax: f64,
     new_max: f64,
 ) -> Vec<Edge> {
     if new_max <= 0.0 {
@@ -241,7 +245,7 @@ fn k_from_edges_counts(
     type1: i64,
     type2: i64,
     min_r: usize,
-    max_r: usize,
+///##    max_r: usize,
     step: usize,
     radii: &[f64],
     new_max: f64,
@@ -276,12 +280,12 @@ fn k_from_edges_counts(
             break;
         }
     }
-    let eff_last = match effective_last_index {
-        Some(i) => i,
-        None => {
-            // no usable bins
-            return vec![0.0; n_bins];
-        }
+///##    let eff_last = match effective_last_index {
+///##        Some(i) => i,
+///##        None => {
+///##           // no usable bins
+///##            return vec![0.0; n_bins];
+///##        }
     };
 
     let lo = min_r as f64;
@@ -442,7 +446,7 @@ fn k_cross_homogeneous<'py>(
         vec![0.0f64; radii.len()]
     } else {
         py.allow_threads(|| {
-            let mut rng = Pcg64Mcg::new(perm_seed);
+            let mut rng = Pcg64Mcg::seed_from_u64(perm_seed);
             // We'll average normalized K for each permutation.
             let mut acc = vec![0.0f64; radii.len()];
             let mut labels_perm: Vec<i64> = labels.to_vec();
