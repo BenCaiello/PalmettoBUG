@@ -328,7 +328,7 @@ build-backend = "maturin"
 [tool.maturin]
 bindings = "pyo3"
 # Path to the Rust crate that exports the PyO3 module:
-manifest-path = "crates/native/Cargo.toml"
+manifest-path = "palmettobug/crates/_native/Cargo.toml"
 # Expose the compiled module at palmettobug._native
 module-name = "palmettobug._native"
 # Directory that contains your Python package
@@ -336,6 +336,8 @@ python-source = "palmettobug"
 # Optional niceties:
 profile = "release"
 strip = true
-compatibilit
+compatibility = "pypi"
+features = []
+
 
 
