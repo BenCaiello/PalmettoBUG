@@ -286,7 +286,7 @@ fn k_from_edges_counts(
 ///##           // no usable bins
 ///##            return vec![0.0; n_bins];
 ///##        }
-    };
+///##     };
 
     let lo = min_r as f64;
     let hi = new_max; // numpy hist range upper is exclusive
