@@ -148,9 +148,9 @@ fn precompute_edges(
     y: &[f64],
     geom: &[PointGeom],
     xmin: f64,
-//##    xmax: f64,
+    xmax: f64,
     ymin: f64,
-//##    ymax: f64,
+    ymax: f64,
     new_max: f64,
 ) -> Vec<Edge> {
     if new_max <= 0.0 {
@@ -245,7 +245,7 @@ fn k_from_edges_counts(
     type1: i64,
     type2: i64,
     min_r: usize,
-//##    max_r: usize,
+    max_r: usize,
     step: usize,
     radii: &[f64],
     new_max: f64,
