@@ -1309,7 +1309,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
             x_arr, y_arr, labels_arr,
             type1, type2,
             int(fixed_r[0]), int(fixed_r[-1]), int(fixed_r.step),
-            int(self.threshold),
+            int(threshold),
             int(permutations), int(perm_state),
         )
         
