@@ -332,7 +332,7 @@ manifest-path = "palmettobug/crates/_native/Cargo.toml"
 # Expose the compiled module at palmettobug._native
 module-name = "palmettobug._native"
 # Directory that contains your Python package
-python-source = "palmettobug"
+# python-source = "palmettobug"
 # Optional niceties:
 profile = "release"
 strip = true
