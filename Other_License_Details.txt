@@ -91,8 +91,7 @@ Files (see file headers for more specifics / modifications of the packages):
             - Py03 --> MIT license OR Apache 2.0.   Copyright (c) 2023-present PyO3 Project and Contributors.  https://github.com/PyO3   
             - maturin --> MIT license OR Apache 2.0.  Copyright (c) 2018 konstin
             - rayon --> MIT license OR Apache 2.0.  Copyright (c) 2010 The Rust Project Developers
-            - rand --> MIT license OR Apache 2.0.  Copyright 2018 Developers of the Rand project    (and)
-                                                   Copyright (c) 2014 The Rust Project Developers
+            - rand and rand_pcg --> MIT license OR Apache 2.0.  Copyright 2018 Developers of the Rand project    (and for rand only)   Copyright (c) 2014 The Rust Project Developers
             - rust-numpy --> BSD-2.                Copyright (c) 2017, Toshiki Teramura
             
 
