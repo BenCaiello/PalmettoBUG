@@ -1500,7 +1500,7 @@ def _K_cross_homogeneous(df: pd.DataFrame,
 
     if ((N_points_1 < threshold) or (N_points_2 < threshold)):
         if not suppress_threshold_warnings:
-            print(f'One or both of {mark_type}s {type1} or {type2} has less than {threshold} cells in the image {image_name}!')
+            pass # print(f'One or both of {mark_type}s {type1} or {type2} has less than {threshold} cells in the image {image_name}!')
         return np.zeros(len(K_theo)), K_theo
     
     lambda1 = N_points_1  ### technically divided by window 1 area, but that gets canceled out by later multiplication when K is calculated

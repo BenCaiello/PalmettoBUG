@@ -896,7 +896,7 @@ def test_SpaceANOVA():
                                          seed = 42,
                                          use_rust = True)
     my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
-    rust_data_table = my_spatial.SpaceANOVA.data_table.copy()
+    rust_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
 
     window.load_and_run_spatial_analysis(min_radius = 10, 
                                          max_radii = 80, 
@@ -907,7 +907,7 @@ def test_SpaceANOVA():
                                          seed = 42,
                                          use_rust = False)
     my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
-    python_data_table = my_spatial.SpaceANOVA.data_table.copy()
+    python_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
     print(rust_data_table)
     print(python_data_table)
 

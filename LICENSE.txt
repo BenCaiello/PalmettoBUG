@@ -1,5 +1,5 @@
 Unless otherwise noted, contents of this repository is 
-      Copyright 2024-2025: Medical University of South Carolina
+      Copyright 2024-2026: Medical University of South Carolina
 
 Various other packages and code were used in the creation of this repository, this code naturally remains under their original licenses 
 (MIT, BSD-3, GPL >= 2 / 3) and copyrights, even though the entire repository is licensed under GPL-3. 
