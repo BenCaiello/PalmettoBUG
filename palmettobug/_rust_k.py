@@ -8,7 +8,8 @@ import numpy as np
 try:
     from ._native import k_cross_homogeneous as _k_cross_native
     _RUST_OK = True
-except Exception:
+except Exception as e:
+    print(e)
     _RUST_OK = False
 
 def has_rust() -> bool:

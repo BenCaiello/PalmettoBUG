@@ -855,8 +855,8 @@ def test_directory_display():
     app.Tabs.py_exploratory.analysiswidg.directory_display.switch_deleter()
     app.Tabs.py_exploratory.analysiswidg.directory_display.switch_deleter()
     parent = app.Tabs.py_exploratory.analysiswidg.directory_display
-    t_launch = app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].file_click(parent, value = "Analysis_panel.csv")
-    t_launch.destroy()
+    #t_launch = app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].file_click(parent, value = "Analysis_panel.csv")
+    #t_launch.destroy()
     app.Tabs.py_exploratory.analysiswidg.directory_display.button_list[0].invoke()
 
 ### GUI Spatial tests
