@@ -56,6 +56,24 @@ jobs:
         uv pip install .[instanseg] --system
         pip freeze
         pip install pytest pytest-cov pytest-xvfb
+    
+    - name: Assert native module exists
+      run: |
+          python - <<'PY'
+          import importlib, palmettobug, pathlib, sys
+          pkg = pathlib.Path(palmettobug.__file__).parent
+          so = list(pkg.glob("rust_spaceanova*.so")) + list(pkg.glob("rust_spaceanova*.pyd"))
+          print("Package dir:", pkg)
+          print("Native candidates:", [str(p) for p in so])
+          if not so:
+              sys.exit("ERROR: palmettobug/rust_spaceanova.*.so|.pyd not found")
+          mod = importlib.import_module("palmettobug.rust_spaceanova")
+          print("Imported OK:", mod)
+          # Optional: verify an exported function is present
+          assert hasattr(mod, "k_cross_homogeneous"), "missing k_cross_homogeneous"
+          print("Found k_cross_homogeneous")
+          PY
+
     - name: Lint with ruff
       run: |
         uvx ruff check palmettobug/ --exit-zero
