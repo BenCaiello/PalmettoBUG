@@ -883,6 +883,7 @@ def test_plot_cell_maps_window():
 
 def test_SpaceANOVA():
     window = app.Tabs.Spatial.widgets.widgets.launch()
+    assert isinstance(window, ctk.CTkToplevel)
     window.refresh_SpaceANOVA_clusters()
     window.refresh_comparisons()
     window.filter_N()
@@ -893,10 +894,25 @@ def test_SpaceANOVA():
                                          celltype_key = 'merging', 
                                          permutations = 2, 
                                          seed = 42,
-                                         use_rust = False)
-    assert isinstance(window, ctk.CTkToplevel)
-
+                                         use_rust = True)
     my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
+    rust_data_table = my_spatial.SpaceANOVA.data_table.copy()
+
+    window.load_and_run_spatial_analysis(min_radius = 10, 
+                                         max_radii = 80, 
+                                         step = 5, 
+                                         condition_comparison = "All (multicomparison)", 
+                                         celltype_key = 'merging', 
+                                         permutations = 2, 
+                                         seed = 42,
+                                         use_rust = False)
+    my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
+    python_data_table = my_spatial.SpaceANOVA.data_table.copy()
+    print(rust_data_table)
+    print(python_data_table)
+
+    assert False
+
     assert my_spatial.SpaceANOVA.data_table is not None, "spaceANOVA Ripley's statistics not calculated!"
     assert my_spatial.SpaceANOVA._comparison_dictionary is not None, "spaceANOVA Ripley's statistics not calculated!"
     window.destroy()
@@ -905,7 +921,7 @@ def test_SpaceANOVA_stats_and_heatmap():
     window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
     figure = window.plot_heatmap("unadjusted p values")
     assert isinstance(figure, matplotlib.figure.Figure)
-    t_launch = window.export_table(window.table_selection.get())
+    t_launch = window.export_table("adjusted p values")
     assert isinstance(t_launch, ctk.CTkToplevel) 
     t_launch.destroy()
     padj, p, stat = (window.p_table, window.p_unadj, window.f_table)

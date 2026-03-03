@@ -511,6 +511,7 @@ class Spatial_py(ctk.CTkFrame):
             def export_table(self, table_type: str) -> None:
                 filename = self.filename.get().strip()
                 if filename_checker(filename, self):
+                    print(1)
                     return
                 output_directory = f'{self.master.master.master_exp.directory}/Spatial_plots/{filename}.csv'
                 if table_type == "adjusted p values":
@@ -520,6 +521,7 @@ class Spatial_py(ctk.CTkFrame):
 
                 data_table.to_csv(output_directory, index = False)
                 space_logger.info(f"Exported spatial statistics table {table_type}, with filename = {filename}.csv")
+                print(2)
                 return TableLaunch(dataframe = data_table, 
                             directory = filename, 
                             width = 1, 
