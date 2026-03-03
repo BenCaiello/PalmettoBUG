@@ -1294,6 +1294,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     try:
         from .._rust_k import k_cross_homogeneous_py as _rust_k_cross, has_rust as _rust_available
     except Exception:
+        raise Exception
         def _rust_available(): return False
     if use_rust:  ## added manually -- this is so that the use of rust or not can be controlled outside of only whether it is available. 
                   ## If the rust implementation proves strictly & unequivocally superior, then this can be removed
