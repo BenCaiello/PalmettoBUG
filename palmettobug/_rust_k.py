@@ -6,7 +6,7 @@
 import numpy as np
 
 try:
-    from ._native import k_cross_homogeneous as _k_cross_native
+    from .rust_spaceanova import k_cross_homogeneous as _k_cross_native
     _RUST_OK = True
 except Exception as e:
     print(e)

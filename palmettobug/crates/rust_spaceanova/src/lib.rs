@@ -487,7 +487,7 @@ fn k_cross_homogeneous<'py>(
 }
 
 #[pymodule]
-fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn rust_spaceanova(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(k_cross_homogeneous, m)?)?;
     Ok(())
 }
