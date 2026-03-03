@@ -85,6 +85,17 @@ Files (see file headers for more specifics / modifications of the packages):
               link: https://github.com/actions/starter-workflows
               Copyright (c) 2020 GitHub
 
+
+        -- Rust crates (incorporated into eventual release binaries -- see respective Cargo.toml files to see which crates apply to which binaries. 
+                        Maturin & PyO3 were used in building the binaries and would apply to all):
+            - Py03 --> MIT license OR Apache 2.0.   Copyright (c) 2023-present PyO3 Project and Contributors.  https://github.com/PyO3   
+            - maturin --> MIT license OR Apache 2.0.  Copyright (c) 2018 konstin
+            - rayon --> MIT license OR Apache 2.0.  Copyright (c) 2010 The Rust Project Developers
+            - rand --> MIT license OR Apache 2.0.  Copyright 2018 Developers of the Rand project    (and)
+                                                   Copyright (c) 2014 The Rust Project Developers
+            - rust-numpy --> BSD-2.                Copyright (c) 2017, Toshiki Teramura
+            
+
 Additionally, much of the structure of PalmettoBUG folder directories is inspired / derived from CATALYST, steinbock.
 
 LICENSE TEXTS (except GPL-3, which is in the main license file):
@@ -134,6 +145,31 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BSD-2 license text:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 GPL-2 license text is not included here, because GPL-2 I DO NOT APPLY TO ANY OF THE CODE released in PalmettoBUG! 
 Even though some of the packages listed above are GPL>=2, GPL-2 cannot apply HERE, because some of the packages 
@@ -145,4 +181,9 @@ will stil be under GPL-2 (and >=2). To see information about GPL licenses you ca
 indicated by the GPL-3 license)
 
 For GPL-3 license text, see the main LICENSE.txt file.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Apache 2.0 License (this license isn't strictly necessary as the it is only used by the dual licensed rust packages
+where the already displayed MIT license applies)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

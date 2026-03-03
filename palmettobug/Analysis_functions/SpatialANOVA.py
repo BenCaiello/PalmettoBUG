@@ -286,6 +286,7 @@ class SpatialANOVA():
                             center_on_zero: bool = False, 
                             silence_zero_warnings: bool = True,
                             suppress_threshold_warnings: bool = False,
+                            use_rust: bool = True,
                             ) -> tuple[list[str], list[str], dict[str,pd.DataFrame]]:
         '''
         This function takes does all of the key analysis steps from the Data table, two conditions, & radii range object.
@@ -403,7 +404,8 @@ class SpatialANOVA():
             type2 = i[1]
             all_g, all_K, all_L = self._do_all_K_L_g(type1 = type1, type2 = type2, permutations = permutations, 
                                                     perm_state = seed, center_on_zero = center_on_zero, 
-                                                    suppress_threshold_warnings = suppress_threshold_warnings)
+                                                    suppress_threshold_warnings = suppress_threshold_warnings,
+                                                    use_rust = use_rust)
 
             self._comparison_dictionary["___".join([type1,type2])] = {"K":all_K, "L":all_L, "g":all_g}
 
@@ -471,7 +473,8 @@ class SpatialANOVA():
                       permutations: int = 0, 
                       perm_state: int = None, 
                       center_on_zero: bool = False,
-                      suppress_threshold_warnings = False
+                      suppress_threshold_warnings = False,
+                      use_rust: bool = True,
                     ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:
         '''
         This may end being more of a helper function for do_spatial_analysis(), but it can remain in the class.
@@ -537,7 +540,8 @@ class SpatialANOVA():
                                         permutations = permutations, 
                                         perm_state = perm_state, 
                                         center_on_zero = center_on_zero,
-                                        suppress_threshold_warnings = suppress_threshold_warnings) 
+                                        suppress_threshold_warnings = suppress_threshold_warnings,
+                                        use_rust = use_rust) 
             append_K_L_g(K_L_g_output_chunk)
 
         self.type1 = type1
@@ -1294,7 +1298,6 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     try:
         from .._rust_k import k_cross_homogeneous_py as _rust_k_cross, has_rust as _rust_available
     except Exception:
-        raise Exception
         def _rust_available(): return False
     if use_rust:  ## added manually -- this is so that the use of rust or not can be controlled outside of only whether it is available. 
                   ## If the rust implementation proves strictly & unequivocally superior, then this can be removed

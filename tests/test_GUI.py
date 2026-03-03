@@ -892,7 +892,8 @@ def test_SpaceANOVA():
                                          condition_comparison = "All (multicomparison)", 
                                          celltype_key = 'merging', 
                                          permutations = 2, 
-                                         seed = 42)
+                                         seed = 42,
+                                         use_rust = False)
     assert isinstance(window, ctk.CTkToplevel)
 
     my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
@@ -902,7 +903,7 @@ def test_SpaceANOVA():
 
 def test_SpaceANOVA_stats_and_heatmap():
     window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
-    figure = window.plot_heatmap("adjusted p values")
+    figure = window.plot_heatmap("unadjusted p values")
     assert isinstance(figure, matplotlib.figure.Figure)
     t_launch = window.export_table(window.table_selection.get())
     assert isinstance(t_launch, ctk.CTkToplevel) 

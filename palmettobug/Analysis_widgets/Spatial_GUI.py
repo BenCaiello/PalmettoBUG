@@ -363,7 +363,8 @@ class Spatial_py(ctk.CTkFrame):
                                               condition_comparison: str, 
                                               celltype_key: str, 
                                               permutations: int, 
-                                              seed: int = 42) -> None:
+                                              seed: int = 42,
+                                              use_rust: bool = True) -> None:
                 ''' If not All (multicomparison), this function splits condition_comparison by the string "_vs_" into the two conditions, and
                 then loads these conditions & the other provided parameters into the do_spatial_analysis method of the spatial class.
                 '''
@@ -415,7 +416,8 @@ class Spatial_py(ctk.CTkFrame):
                                                                                                                   seed = seed, 
                                                                                                                   alt_N = alt_N,
                                                                                                                   center_on_zero = False,
-                                                                                                                  threshold = threshold)
+                                                                                                                  threshold = threshold,
+                                                                                                                  use_rust = use_rust)
                 self.master.plot_button.configure(state = "normal")
                 self.master.plot_fx_button.configure(state = "normal")
                 self.master.stat.configure(state = "normal")
