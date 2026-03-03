@@ -56,6 +56,7 @@ jobs:
         uv pip install .[instanseg] --system
         pip freeze
         pip install pytest pytest-cov pytest-xvfb
+        cd palmettobug
         ls .
     
     - name: Assert native module exists
