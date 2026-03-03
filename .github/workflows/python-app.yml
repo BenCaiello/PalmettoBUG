@@ -50,7 +50,7 @@ jobs:
         python-version: "3.10"
     - name: Install dependencies
       run: |
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh  
+        curl -y --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh  
         python -m pip install --upgrade pip
         pip install uv pip-licenses svg-stack
         uv pip install maturin --system
