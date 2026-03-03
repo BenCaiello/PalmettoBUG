@@ -56,14 +56,15 @@ jobs:
         uv pip install .[instanseg] --system
         pip freeze
         pip install pytest pytest-cov pytest-xvfb
-        cd palmettobug
+        ls .
+        cd target
         ls .
     
     - name: Assert native module exists
       run: |
           python - <<'PY'
           import importlib, palmettobug, pathlib, sys
-          pkg = pathlib.Path(palmettobug.__file__).parent
+          pkg = pathlib.Path("/home/runner/work/PalmettoBUG").parent
           so = list(pkg.glob("rust_spaceanova*"))
           print("Package dir:", pkg)
           print("Native candidates:", [str(p) for p in so])
