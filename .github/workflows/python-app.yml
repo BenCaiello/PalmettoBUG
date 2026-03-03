@@ -57,7 +57,7 @@ jobs:
         pip freeze
         pip install pytest pytest-cov pytest-xvfb
         ls .
-        cd target
+        cd crates
         ls .
     
     - name: Assert native module exists
