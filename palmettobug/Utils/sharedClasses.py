@@ -201,6 +201,7 @@ class CtkSingletonWindow(type):
                     CtkSingletonWindow.__instances[cls].focus()   ## This focuses the window
                     ## This will throw an error if the window has been closed ("tkinter.TclError: bad window path name"), 
                     #       so if an error occurs in focusing --> just open a new window:
+                    return (None, CtkSingletonWindow.__instances[cls])   ## return two objects to retain errors where needed, but also return the isntance to allow closing
             
             except Exception:
                 CtkSingletonWindow.__instances[cls] = super().__call__(*args, **kwargs) 

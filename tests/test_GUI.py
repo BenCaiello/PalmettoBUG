@@ -908,8 +908,8 @@ def test_SpaceANOVA():
                                          use_rust = False)
     my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
     python_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
-    print(rust_data_table)
-    print(python_data_table)
+    print(rust_data_table['c2___c2'])
+    print(python_data_table['c2___c2'])
 
     assert False
 
