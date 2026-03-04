@@ -13,8 +13,8 @@ name = "rust_spaceanova"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.20", features = ["extension-module"] }
-numpy = "0.20"
+pyo3 = { version = "0.22", features = ["extension-module"] }
+numpy = "0.22"
 rayon = "1.8"
 rand = "0.8"
 rand_pcg = "0.3"
