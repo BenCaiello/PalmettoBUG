@@ -257,7 +257,7 @@ fn k_from_edges_counts(
         return Vec::new();
     }
 
-    // Counts of points per type for normalization
+    // Counts per type
     let mut n1: usize = 0;
     let mut n2: usize = 0;
     for &lab in labels {
@@ -270,8 +270,11 @@ fn k_from_edges_counts(
     if n1 < threshold || n2 < threshold || n1 == 0 || n2 == 0 {
         return vec![0.0; n_bins];
     }
+    if !(window_area.is_finite()) || window_area <= 0.0 {
+        return vec![0.0; n_bins];
+    }
 
-    // Determine effective new_max to be one of radii values or 0
+    // Effective last index (not strictly needed, but keeps parity with your intent)
     let mut effective_last_index: Option<usize> = None;
     for (idx, &r) in radii.iter().enumerate() {
         if r <= new_max {
@@ -280,41 +283,37 @@ fn k_from_edges_counts(
             break;
         }
     }
-    let _eff_last = match effective_last_index {
-        Some(i) => i,
-        None => {
-           // no usable bins
-            return vec![0.0; n_bins];
-        }
-     };
+    if effective_last_index.is_none() {
+        // No usable bins under new_max
+        return vec![0.0; n_bins];
+    }
 
     let lo = min_r as f64;
-    let hi = new_max; // numpy hist range upper is exclusive
+    let hi = new_max; // right-exclusive
 
-    // Number of histogram bins up to new_max, mirroring Python:
-    // if min==0: bins = int(new_max / step)
-    // else: bins = int((new_max - min) / step)
+    // Number of histogram bins up to new_max
     let eff_bins = if min_r == 0 {
         ((new_max / (step as f64)).floor() as isize).max(0) as usize
     } else {
         ((((new_max - (min_r as f64)) / (step as f64)).floor()) as isize).max(0) as usize
     };
 
-    // Edge case: eff_bins can be 0 if new_max <= min_r
+    // --- FIXED: Handle eff_bins == 0 correctly ---
     if eff_bins == 0 {
-        // Fill is sum of weights for distances < min; that becomes the first element;
-        // But K length must be n_bins, so prepend fill then zeros.
         let mut out = vec![0.0; n_bins];
-        // accumulate fill:
-        let mut fill = 0.0f64;
+        let mut sum = 0.0f64;
         for e in edges {
             if labels[e.left] == type1 && labels[e.right] == type2 {
-                if e.dist < lo && e.dist > 0.0 {
-                    fill += e.w;
+                let d = e.dist;
+                if d > 0.0 && d < hi {
+                    sum += e.w;
                 }
             }
         }
-        out[0] = fill / ((n1 as f64) * (n2 as f64 / window_area));
+        let norm = (n1 as f64) * (n2 as f64 / window_area);
+        if norm > 0.0 {
+            out[0] = sum / norm;
+        }
         return out;
     }
 
@@ -331,16 +330,12 @@ fn k_from_edges_counts(
             continue;
         }
         if d < lo {
-            // count towards "fill"
             fill += e.w;
         } else if d < hi {
-            // bin index
             let k = ((d - lo) / (step as f64)).floor() as isize;
             if k >= 0 && (k as usize) < eff_bins {
                 bins[k as usize] += e.w;
             }
-        } else {
-            // >= new_max: ignored here; zeros appended later
         }
     }
 
@@ -351,23 +346,26 @@ fn k_from_edges_counts(
         cum[i + 1] = cum[i] + bins[i];
     }
 
-    // Normalize by (lambda1 * lambda2) where lambda1=N1, lambda2=N2/window_area
     let norm = (n1 as f64) * (n2 as f64 / window_area);
-    for v in &mut cum {
-        *v /= norm;
+    if norm > 0.0 {
+        for v in &mut cum {
+            *v /= norm;
+        }
+    } else {
+        // degenerate; leave zeros
+        for v in &mut cum {
+            *v = 0.0;
+        }
     }
 
-    // Now create full K length == n_bins:
-    // We have cum length eff_bins+1; radii length n_bins; eff_last should equal eff_bins for usual cases.
     let mut out = vec![0.0f64; n_bins];
-    // Place cum into out[0..=eff_bins]
     let upto = (eff_bins).min(n_bins.saturating_sub(1));
     for i in 0..=upto {
         out[i] = cum[i];
     }
-    // remainder zeros as per truncated bins
     out
 }
+
 
 #[pyfunction]
 fn k_cross_homogeneous<'py>(
