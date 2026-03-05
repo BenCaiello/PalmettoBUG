@@ -1314,7 +1314,6 @@ def do_K_L_g(pointpattern: pd.DataFrame,
 
         K_calc, K_theo, K_perm_avg = _rust_k_cross(
             for_rust['x'], for_rust['y'], for_rust[type_column],
-            type1, type2,
             int(fixed_r[0]), int(fixed_r[-1]), int(fixed_r.step),
             int(threshold),
             int(permutations), int(perm_state),
