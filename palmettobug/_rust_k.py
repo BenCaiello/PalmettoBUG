@@ -42,8 +42,8 @@ def k_cross_homogeneous_py(
 
 
     K, K_theo, K_perm = _k_cross_native(
-        x, y, codes,
-        int(t1_code), int(t2_code),
+        x, y, labels_arr,
+        int(type1), int(type2),
         int(r_min), int(r_max), int(r_step),
         int(threshold),
         int(permutations), int(perm_seed),
