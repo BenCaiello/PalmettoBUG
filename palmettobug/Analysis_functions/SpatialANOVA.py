@@ -1306,11 +1306,14 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     if use_rust:  
         # Prepare arrays for Rust
         pp = pointpattern.copy()  # your per-image df
-        x_arr = np.asarray(pp['x'].values, dtype=np.float64)
-        y_arr = np.asarray(pp['y'].values, dtype=np.float64)
-        labels_arr = np.asarray(pp[type_column].values)  # strings or numbers ok (encoded in wrapper)
+        for_rust = pp[['x','y',type_column]]
+        types_to_keep = np.asarray(for_rust[type_column] == type1) + np.asarray(for_rust[type_column] == type2) 
+        for_rust = for_rust[types_to_keep] 
+
+        for_rust[type_column] = for_rust[type_column].astype('str').replace(type1, '1').replace(type2, '2').astype('int')
+
         K_calc, K_theo, K_perm_avg = _rust_k_cross(
-            x_arr, y_arr, labels_arr,
+            for_rust['x'], for_rust['y'], for_rust[type_column],
             type1, type2,
             int(fixed_r[0]), int(fixed_r[-1]), int(fixed_r.step),
             int(threshold),

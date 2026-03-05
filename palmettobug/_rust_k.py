@@ -15,23 +15,6 @@ except Exception as e:
 def has_rust() -> bool:
     return _RUST_OK
 
-def _encode_labels(labels: np.ndarray, type1, type2) -> tuple[np.ndarray, int, int]:
-    """
-    Map arbitrary labels (str/int/object) to contiguous int codes for Rust.
-    Returns (codes, type1_code, type2_code).
-    """
-    uniq, inv = np.unique(labels, return_inverse=True)
-    # type1/type2 might not be present; handle gracefully
-    try:
-        t1_code = int(np.where(uniq == type1)[0][0])
-    except IndexError:
-        t1_code = -1
-    try:
-        t2_code = int(np.where(uniq == type2)[0][0])
-    except IndexError:
-        t2_code = -1
-    return inv.astype(np.int64), t1_code, t2_code
-
 def k_cross_homogeneous_py(
     x: np.ndarray,
     y: np.ndarray,
@@ -56,14 +39,7 @@ def k_cross_homogeneous_py(
     x = np.asarray(x, dtype=np.float64)
     y = np.asarray(y, dtype=np.float64)
     labels_arr = np.asarray(labels)
-    codes, t1_code, t2_code = _encode_labels(labels_arr, type1, type2)
 
-    if t1_code < 0 or t2_code < 0:
-        # No valid points for one of the classes; return zeros of the right length
-        radii_len = int((r_max - r_min) / r_step) + 1
-        zeros = np.zeros(radii_len, dtype=np.float64)
-        theo = zeros.copy()
-        return zeros, theo, zeros
 
     K, K_theo, K_perm = _k_cross_native(
         x, y, codes,

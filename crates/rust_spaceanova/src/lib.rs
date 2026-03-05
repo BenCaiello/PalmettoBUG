@@ -227,15 +227,19 @@ fn make_radii_with_truncation(min_r: usize, max_r: usize, step: usize, diameter:
 }
 
 /// Build theoretical K as π r² with radii > new_max set to 0 (by making those radii 0).
-fn theoretical_k(radii: &[f64], new_max: f64) -> Vec<f64> {
-    radii
-        .iter()
+fn theoretical_k(radii: &[f64], new_max: f64, n1: usize, n2: usize, window_area: f64) -> Vec<f64> {
+    let scale = if window_area > 0.0 { (n1 as f64) * (n2 as f64) / window_area } else { 0.0 };
+    radii.iter()
         .map(|&r| {
-            let rr = if r <= new_max { r } else { 0.0 };
-            PI * rr * rr
+            if r <= new_max {
+                std::f64::consts::PI * r * r * scale
+            } else {
+                0.0
+            }
         })
         .collect()
 }
+
 
 /// Histogram+cumulate per Python's logic using bins as in numpy.histogram(range=(lo, hi), bins=...).
 /// Returns K counts (unnormalized), length == radii.len().
@@ -386,6 +390,17 @@ fn k_cross_homogeneous<'py>(
     let y = y.as_slice()?;
     let labels = labels.as_slice()?;
 
+    
+    let mut n1: usize = 0;
+    let mut n2: usize = 0;
+    for &lab in labels {
+        if lab == type1_code {
+            n1 += 1;
+        } else if lab == type2_code {
+            n2 += 1;
+        }
+    }
+
     if x.len() != y.len() || x.len() != labels.len() {
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
             "x, y, labels must have the same length",
@@ -410,7 +425,7 @@ fn k_cross_homogeneous<'py>(
 
     // Radii and truncation bound
     let (radii, new_max, _truncated) = make_radii_with_truncation(r_min, r_max, r_step, diameter);
-    let k_theo_vec = theoretical_k(&radii, new_max);
+    let k_theo_vec = theoretical_k(&radii, n1, n2, new_max);
 
     // Precompute point geometry for edge weights
     let geom: Vec<PointGeom> = x
