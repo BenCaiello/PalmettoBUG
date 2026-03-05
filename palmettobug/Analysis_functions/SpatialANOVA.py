@@ -1304,7 +1304,6 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         use_rust = _rust_available()
     
     if use_rust:  
-        print('using rust')
         # Prepare arrays for Rust
         pp = pointpattern.copy()  # your per-image df
         x_arr = np.asarray(pp['x'].values, dtype=np.float64)
