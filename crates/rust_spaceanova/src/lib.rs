@@ -425,7 +425,7 @@ fn k_cross_homogeneous<'py>(
 
     // Radii and truncation bound
     let (radii, new_max, _truncated) = make_radii_with_truncation(r_min, r_max, r_step, diameter);
-    let k_theo_vec = theoretical_k(&radii, n1, n2, new_max);
+    let k_theo_vec = theoretical_k(&radii, (n1 as f64), (n2 as f64), new_max);
 
     // Precompute point geometry for edge weights
     let geom: Vec<PointGeom> = x
