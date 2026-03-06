@@ -278,20 +278,6 @@ fn k_from_edges_counts(
         return vec![0.0; n_bins];
     }
 
-    // Effective last index (not strictly needed, but keeps parity with your intent)
-    let mut effective_last_index: Option<usize> = None;
-    for (idx, &r) in radii.iter().enumerate() {
-        if r <= new_max {
-            effective_last_index = Some(idx);
-        } else {
-            break;
-        }
-    }
-    if effective_last_index.is_none() {
-        // No usable bins under new_max
-        return vec![0.0; n_bins];
-    }
-
     let lo = min_r as f64;
     let hi = new_max; // right-exclusive
 
@@ -377,8 +363,6 @@ fn k_cross_homogeneous<'py>(
     x: PyReadonlyArray1<f64>,
     y: PyReadonlyArray1<f64>,
     labels: PyReadonlyArray1<i64>,  // integer-encoded labels
-    type1_code: i64,
-    type2_code: i64,
     r_min: usize,
     r_max: usize,
     r_step: usize,
@@ -386,6 +370,8 @@ fn k_cross_homogeneous<'py>(
     permutations: usize,
     perm_seed: u64,
 ) -> PyResult<(&'py PyArray1<f64>, &'py PyArray1<f64>, &'py PyArray1<f64>)> {
+    let type1_code: i64 = 1;
+    let type2_code: i64 = 2;
     let x = x.as_slice()?;
     let y = y.as_slice()?;
     let labels = labels.as_slice()?;
@@ -408,23 +394,19 @@ fn k_cross_homogeneous<'py>(
     }
 
     // Compute window & diameter
-    let (xmin, xmax) = match (x.iter().cloned().fold(f64::INFINITY, f64::min),
-                              x.iter().cloned().fold(f64::NEG_INFINITY, f64::max)) {
-        (a, b) if a.is_finite() && b.is_finite() => (a, b),
-        _ => (0.0, 0.0),
-    };
-    let (ymin, ymax) = match (y.iter().cloned().fold(f64::INFINITY, f64::min),
-                              y.iter().cloned().fold(f64::NEG_INFINITY, f64::max)) {
-        (a, b) if a.is_finite() && b.is_finite() => (a, b),
-        _ => (0.0, 0.0),
-    };
+    let xmin = x.into_iter().min();
+    let xmax = x.into_iter().max();
+    let ymin = y.into_iter().min();
+    let ymax = y.into_iter().max();
     let dx = xmax - xmin;
     let dy = ymax - ymin;
-    let diameter = (dx * dx + dy * dy).sqrt();
-    let window_area = (dx.max(0.0)) * (dy.max(0.0));
+    let diameter = ((dx * dx) + (dy * dy)).sqrt();
+    let window_area = dx * dy;
 
     // Radii and truncation bound
     let (radii, new_max, _truncated) = make_radii_with_truncation(r_min, r_max, r_step, diameter);
+
+    
     let k_theo_vec = theoretical_k(&radii, n1 as f64, n2 as f64, new_max, window_area);
 
     // Precompute point geometry for edge weights

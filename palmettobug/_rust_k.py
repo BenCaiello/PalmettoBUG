@@ -34,14 +34,16 @@ def k_cross_homogeneous_py(
     if not _RUST_OK:
         raise RuntimeError("Rust extension not available")
 
+    #if (len(x) != len(y)) or (len(x) != len(labels)):   ## the input arrays must all be the same length -- however this same eror is handled inside rust (hence commented out)
+    #    raise ValueError("Inputs arrays to rust spaceanova (x,y, labels) are not all the same length")
+
     x = np.asarray(x, dtype=np.float64)
     y = np.asarray(y, dtype=np.float64)
-    labels_arr = np.asarray(labels)
+    labels_arr = np.asarray(labels)    ### assumed to be an array with length equal ot x,y of 1's and 2's for type 1 and type 2
 
 
     K, K_theo, K_perm = _k_cross_native(
         x, y, labels_arr,
-        1, 2,
         int(r_min), int(r_max), int(r_step),
         int(threshold),
         int(permutations), int(perm_seed),

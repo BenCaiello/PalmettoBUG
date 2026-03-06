@@ -1311,7 +1311,6 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         for_rust = for_rust[types_to_keep] 
 
         for_rust[type_column] = for_rust[type_column].astype('str').replace(type1, '1').replace(type2, '2').astype('int')
-        print(for_rust[type_column])
 
         K_calc, K_theo, K_perm_avg = _rust_k_cross(
             for_rust['x'], for_rust['y'], np.asarray(for_rust[type_column]),
