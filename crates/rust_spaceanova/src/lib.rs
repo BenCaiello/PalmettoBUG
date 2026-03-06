@@ -394,10 +394,10 @@ fn k_cross_homogeneous<'py>(
     }
 
     // Compute window & diameter
-    let xmin = x.into_iter().min();
-    let xmax = x.into_iter().max();
-    let ymin = y.into_iter().min();
-    let ymax = y.into_iter().max();
+    let xmin = x.iter().fold(f64::INFINITY, |a, &b| a.min(b));
+    let xmax = x.iter().fold(f64::INFINITY, |a, &b| a.max(b));
+    let ymin = y.iter().fold(f64::INFINITY, |a, &b| a.min(b));
+    let ymax = xy.iter().fold(f64::INFINITY, |a, &b| a.max(b));
     let dx = xmax - xmin;
     let dy = ymax - ymin;
     let diameter = ((dx * dx) + (dy * dy)).sqrt();
