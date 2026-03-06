@@ -148,9 +148,7 @@ fn precompute_edges(
     y: &[f64],
     geom: &[PointGeom],
     xmin: f64,
-    xmax: f64,
     ymin: f64,
-    ymax: f64,
     new_max: f64,
 ) -> Vec<Edge> {
     if new_max <= 0.0 {
@@ -249,7 +247,7 @@ fn k_from_edges_counts(
     type1: i64,
     type2: i64,
     min_r: usize,
-    max_r: usize,
+    _max_r: usize,
     step: usize,
     radii: &[f64],
     new_max: f64,
@@ -397,7 +395,7 @@ fn k_cross_homogeneous<'py>(
     let xmin = x.iter().fold(f64::INFINITY, |a, &b| a.min(b));
     let xmax = x.iter().fold(f64::INFINITY, |a, &b| a.max(b));
     let ymin = y.iter().fold(f64::INFINITY, |a, &b| a.min(b));
-    let ymax = xy.iter().fold(f64::INFINITY, |a, &b| a.max(b));
+    let ymax = y.iter().fold(f64::INFINITY, |a, &b| a.max(b));
     let dx = xmax - xmin;
     let dy = ymax - ymin;
     let diameter = ((dx * dx) + (dy * dy)).sqrt();
@@ -417,7 +415,7 @@ fn k_cross_homogeneous<'py>(
         .collect();
 
     // Build edges once (for all points; we need both directions because weights differ by origin)
-    let edges = py.allow_threads(|| precompute_edges(x, y, &geom, xmin, xmax, ymin, ymax, new_max));
+    let edges = py.allow_threads(|| precompute_edges(x, y, &geom, xmin, ymin, new_max));
 
     // Compute K for current labeling
     let k_calc = py.allow_threads(|| {
@@ -474,9 +472,9 @@ fn k_cross_homogeneous<'py>(
     };
 
     // Convert to numpy
-    let k_calc_py = PyArray1::from_vec(py, k_calc);
-    let k_theo_py = PyArray1::from_vec(py, k_theo_vec);
-    let k_perm_py = PyArray1::from_vec(py, k_perm_avg);
+    let k_calc_py = PyArray1::from_vec_bound(py, k_calc);
+    let k_theo_py = PyArray1::from_vec_bound(py, k_theo_vec);
+    let k_perm_py = PyArray1::from_vec_bound(py, k_perm_avg);
 
     Ok((k_calc_py, k_theo_py, k_perm_py))
 }
