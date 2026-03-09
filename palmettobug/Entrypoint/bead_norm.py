@@ -49,7 +49,8 @@ def _median_500_window_df(dataframe: pd.DataFrame,
     '''
     dataframe = dataframe.copy()
     for i in columns_to_run_on:
-        dataframe[i] = dataframe[i].rolling(window, min_periods = int((window / 2) - 1), center = True, closed = 'neither').median()            
+        less_than_half = int((window / 2) - 1)
+        dataframe[i] = dataframe[i].rolling(window, min_periods = int(window/10), center = True, closed = 'neither').median()            
                                                                                                                          # min_periods = 99,
     return dataframe
 
@@ -99,11 +100,8 @@ def normalize_pipeline_one_fcs(bead_fcs: pd.DataFrame,
     median_smoothed_beads = _median_500_window_df(bead_fcs.sort_values('Time'), bead_channels).sort_values('Time')
     print(median_smoothed_beads)
     slopes = _find_slope(bead_fcs, median_smoothed_beads.loc[:,bead_channels], bead_channels)
-    print(slopes)
     norm_events = np.interp(to_normalize_fcs['Time'], median_smoothed_beads['Time'], slopes)
-    print(norm_events)
     norm_beads = np.interp(bead_fcs['Time'], median_smoothed_beads['Time'], slopes)
-    print(norm_beads)
     my_normed_events = pd.DataFrame((np.array(to_normalize_fcs.loc[:, channels_to_normalize]).T * norm_events).T, 
                                     columns = channels_to_normalize)
     my_normed_events['Time'] = to_normalize_fcs['Time']

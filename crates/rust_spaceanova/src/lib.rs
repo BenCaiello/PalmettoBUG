@@ -395,18 +395,15 @@ fn k_cross_homogeneous<'py>(
     }
 
     // Compute window & diameter
+    eprintln!("x, y = {}, {}", x, y);
     let xmin = x.iter().fold(f64::INFINITY, |a, &b| a.min(b));
-    let xmax = x.iter().fold(f64::INFINITY, |a, &b| a.max(b));
+    let xmax = x.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
     let ymin = y.iter().fold(f64::INFINITY, |a, &b| a.min(b));
-    let ymax = y.iter().fold(f64::INFINITY, |a, &b| a.max(b));
+    let ymax = y.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
     let dx = xmax - xmin;
     let dy = ymax - ymin;
     let diameter = ((dx * dx) + (dy * dy)).sqrt();
     let window_area = dx * dy;
-    eprintln!("xmin, xmax, ymin, ymax = {}, {}, {}, {}", xmin, xmax, ymin, ymax);
-    eprintln!("dx = {}", dx);
-    eprintln!("dy = {}", dy);
-    eprintln!("window_area = {}", window_area);
 
     // Radii and truncation bound
     let (radii, new_max, _truncated) = make_radii_with_truncation(r_min, r_max, r_step, diameter);
