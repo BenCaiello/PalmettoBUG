@@ -195,7 +195,6 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
         no_bead_label = ii[ii.rfind("/") + 1:]
         _, beads_df = fcsparser.parse(i, channel_naming = "$PnS")
         beads_df = DataFrame(beads_df.sort_values('Time'))
-        if len(bead_df) < 1000:
 
         bead_label = i[i.rfind("/") + 1:]
         if channels_to_normalize is None:
@@ -203,8 +202,7 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
         my_normed_events, my_normed_beads = normalize_pipeline_one_fcs(bead_fcs = beads_df, 
                                                             to_normalize_fcs = prenorms_df, 
                                                             bead_channels = bead_channels, 
-                                                            channels_to_normalize = channels_to_normalize,
-                                                            window = )
+                                                            channels_to_normalize = channels_to_normalize)
         DataFrame(my_normed_events).to_fcs(output_no_beads + "/" + no_bead_label)
         DataFrame(my_normed_beads).to_fcs(output_beads + "/" + bead_label)
         if include_figures is True:
