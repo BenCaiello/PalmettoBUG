@@ -275,7 +275,7 @@ fn k_from_edges_counts(
         return vec![0.0; n_bins];
     }
     if !(window_area.is_finite()) || window_area <= 0.0 {
-        eprintln!("window area error, with window_area = {}", window_area)
+        eprintln!("window area error, with window_area = {}", window_area);
         return vec![0.0; n_bins];
     }
 
@@ -291,7 +291,7 @@ fn k_from_edges_counts(
 
     // --- FIXED: Handle eff_bins == 0 correctly ---
     if eff_bins == 0 {
-        eprintln!("eff_bins error, with eff_bins = {}", eff_bins)
+        eprintln!("eff_bins error, with eff_bins = {}", eff_bins);
         let mut out = vec![0.0; n_bins];
         let mut sum = 0.0f64;
         for e in edges {
