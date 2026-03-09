@@ -74,7 +74,6 @@ def normalize_pipeline_one_fcs(bead_fcs: pd.DataFrame,
                                to_normalize_fcs: pd.DataFrame, 
                                bead_channels: list, 
                                channels_to_normalize: list,
-                               window: int = window,
                                ) -> tuple[pd.DataFrame, pd.DataFrame]:                          ## made as a translation of Premessa
     '''
     This function performs the Premessa-style (it was translated into python from Premessa, which is written in R) normalization of CyTOF data 
@@ -101,7 +100,7 @@ def normalize_pipeline_one_fcs(bead_fcs: pd.DataFrame,
         (pd.DataFrame, pd.DataFrame): the first output is the to_normalize_fcs dataframe, normalized on channels_to_normalize. 
         the second output is the bead_fcs dataframe, normalized on bead_channels
     '''
-    median_smoothed_beads = _median_500_window_df(bead_fcs.sort_values('Time'), bead_channels, window = window).sort_values('Time')
+    median_smoothed_beads = _median_500_window_df(bead_fcs.sort_values('Time'), bead_channels).sort_values('Time')
     slopes = _find_slope(bead_fcs, median_smoothed_beads.loc[:,bead_channels], bead_channels)
     norm_events = np.interp(to_normalize_fcs['Time'], median_smoothed_beads['Time'], slopes)
     norm_beads = np.interp(bead_fcs['Time'], median_smoothed_beads['Time'], slopes)
