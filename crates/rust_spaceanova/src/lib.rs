@@ -353,7 +353,6 @@ fn k_from_edges_counts(
     }
     out
 }
--> PyResult<(Bound<'py, PyArray1<f64>>
 
 #[pyfunction]
 fn k_cross_homogeneous<'py>(
