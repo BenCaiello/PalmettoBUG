@@ -270,7 +270,7 @@ fn k_from_edges_counts(
         }
     }
     if n1 < threshold || n2 < threshold || n1 == 0 || n2 == 0 {
-        eprintln!("threshold error, with threshold = {}", threshold);
+        // eprintln!("threshold error, with threshold = {}", threshold);
         return vec![0.0; n_bins];
     }
     if !(window_area.is_finite()) || window_area <= 0.0 {

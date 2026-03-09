@@ -1318,9 +1318,16 @@ def do_K_L_g(pointpattern: pd.DataFrame,
             int(threshold),
             int(permutations), int(perm_state),
         )
-        
+        print(K_calc, K_theo, K_perm_avg)
         result_array = K_calc.copy()
         theoretical_K = K_theo.copy()
+
+        if (result_array.sum() == 0):
+            '''This means that there are no cells / the number of cells is below the threshold '''
+            K_df = pd.DataFrame(result_array, columns = ["K"])
+            K_df['theoretical'] = theoretical_K
+            K_df['radii'] = radii_array
+            return K_df, np.zeros([len(fixed_r)]), np.zeros([len(fixed_r)])
 
         centerer = 1
         if permutations > 0:
