@@ -473,10 +473,10 @@ fn k_cross_homogeneous<'py>(
     // Convert to numpy
     
     eprintln!("DEBUG: k_calc.len()      = {}", k_calc.len());
-    eprintln!("DEBUG: k_theo_vec.len()  = {}", k_theo_vec.len());
-    eprintln!("DEBUG: k_perm_avg.len()  = {}", k_perm_avg.len());
     eprintln!("DEBUG: first few labels: {:?}", &labels[0..labels.len().min(5)]);
     eprintln!("DEBUG: first few k_calc: {:?}", &k_calc[0..k_calc.len().min(5)]);
+    eprintln!("DEBUG: first few k_theo_vec: {:?}", &k_theo_vec[0..k_theo_vec.len().min(5)]);
+    eprintln!("DEBUG: first few k_perm_avg: {:?}", &k_perm_avg[0..k_perm_avg.len().min(5)]);
 
     let k_calc_py = PyArray1::from_vec_bound(py, k_calc);
     let k_theo_py = PyArray1::from_vec_bound(py, k_theo_vec);

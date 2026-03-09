@@ -197,6 +197,7 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
                                                             to_normalize_fcs = prenorms_df, 
                                                             bead_channels = bead_channels, 
                                                             channels_to_normalize = channels_to_normalize)
+        print(my_normed_events)
         DataFrame(my_normed_events).to_fcs(output_no_beads + "/" + no_bead_label)
         DataFrame(my_normed_beads).to_fcs(output_beads + "/" + bead_label)
         if include_figures is True:
