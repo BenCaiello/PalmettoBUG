@@ -353,7 +353,7 @@ fn k_from_edges_counts(
     }
     out
 }
-
+-> PyResult<(Bound<'py, PyArray1<f64>>
 
 #[pyfunction]
 fn k_cross_homogeneous<'py>(
@@ -367,7 +367,7 @@ fn k_cross_homogeneous<'py>(
     threshold: usize,
     permutations: usize,
     perm_seed: u64,
-) -> PyResult<(&'py PyArray1<f64>, &'py PyArray1<f64>, &'py PyArray1<f64>)> {
+) -> PyResult<(Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>)> {
     let type1_code: i64 = 1;
     let type2_code: i64 = 2;
     let x = x.as_slice()?;
