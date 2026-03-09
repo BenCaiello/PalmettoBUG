@@ -395,7 +395,6 @@ fn k_cross_homogeneous<'py>(
     }
 
     // Compute window & diameter
-    eprintln!("x, y = {}, {}", x, y);
     let xmin = x.iter().fold(f64::INFINITY, |a, &b| a.min(b));
     let xmax = x.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
     let ymin = y.iter().fold(f64::INFINITY, |a, &b| a.min(b));
