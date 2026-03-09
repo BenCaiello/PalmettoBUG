@@ -48,9 +48,12 @@ def _median_500_window_df(dataframe: pd.DataFrame,
     This is a function that performs rolling median calculations on all the columns of a dataframe specified by columns_to_run_on
     '''
     dataframe = dataframe.copy()
+    df_length = len(dataframe)
+    default_min = int((window / 2) - 1)
+    if df_length < (default_min*4):
+        default_min = int(df_length / 4) - 1
     for i in columns_to_run_on:
-        less_than_half = int((window / 2) - 1)
-        dataframe[i] = dataframe[i].rolling(window, min_periods = int(window/10), center = True, closed = 'neither').median()            
+        dataframe[i] = dataframe[i].rolling(window, min_periods = default_min, center = True, closed = 'neither').median()            
                                                                                                                          # min_periods = 99,
     return dataframe
 
@@ -71,6 +74,7 @@ def normalize_pipeline_one_fcs(bead_fcs: pd.DataFrame,
                                to_normalize_fcs: pd.DataFrame, 
                                bead_channels: list, 
                                channels_to_normalize: list,
+                               window: int = window,
                                ) -> tuple[pd.DataFrame, pd.DataFrame]:                          ## made as a translation of Premessa
     '''
     This function performs the Premessa-style (it was translated into python from Premessa, which is written in R) normalization of CyTOF data 
@@ -97,8 +101,7 @@ def normalize_pipeline_one_fcs(bead_fcs: pd.DataFrame,
         (pd.DataFrame, pd.DataFrame): the first output is the to_normalize_fcs dataframe, normalized on channels_to_normalize. 
         the second output is the bead_fcs dataframe, normalized on bead_channels
     '''
-    median_smoothed_beads = _median_500_window_df(bead_fcs.sort_values('Time'), bead_channels).sort_values('Time')
-    print(median_smoothed_beads)
+    median_smoothed_beads = _median_500_window_df(bead_fcs.sort_values('Time'), bead_channels, window = window).sort_values('Time')
     slopes = _find_slope(bead_fcs, median_smoothed_beads.loc[:,bead_channels], bead_channels)
     norm_events = np.interp(to_normalize_fcs['Time'], median_smoothed_beads['Time'], slopes)
     norm_beads = np.interp(bead_fcs['Time'], median_smoothed_beads['Time'], slopes)
@@ -192,16 +195,16 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
         no_bead_label = ii[ii.rfind("/") + 1:]
         _, beads_df = fcsparser.parse(i, channel_naming = "$PnS")
         beads_df = DataFrame(beads_df.sort_values('Time'))
+        if len(bead_df) < 1000:
+
         bead_label = i[i.rfind("/") + 1:]
         if channels_to_normalize is None:
             channels_to_normalize = _identify_metal_columns(prenorms_df)
-        print(beads_df)
-        print(prenorms_df)
         my_normed_events, my_normed_beads = normalize_pipeline_one_fcs(bead_fcs = beads_df, 
                                                             to_normalize_fcs = prenorms_df, 
                                                             bead_channels = bead_channels, 
-                                                            channels_to_normalize = channels_to_normalize)
-        print(my_normed_events)
+                                                            channels_to_normalize = channels_to_normalize,
+                                                            window = )
         DataFrame(my_normed_events).to_fcs(output_no_beads + "/" + no_bead_label)
         DataFrame(my_normed_beads).to_fcs(output_beads + "/" + bead_label)
         if include_figures is True:
