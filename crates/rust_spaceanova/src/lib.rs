@@ -256,6 +256,7 @@ fn k_from_edges_counts(
 ) -> Vec<f64> {
     let n_bins = radii.len();
     if n_bins == 0 {
+        eprintln!("n_bins = 0 error");
         return Vec::new();
     }
 
@@ -270,9 +271,11 @@ fn k_from_edges_counts(
         }
     }
     if n1 < threshold || n2 < threshold || n1 == 0 || n2 == 0 {
+        eprintln!("threshold error, with threshold = {}", threshold);
         return vec![0.0; n_bins];
     }
     if !(window_area.is_finite()) || window_area <= 0.0 {
+        eprintln!("window area error, with window_area = {}", window_area)
         return vec![0.0; n_bins];
     }
 
@@ -288,6 +291,7 @@ fn k_from_edges_counts(
 
     // --- FIXED: Handle eff_bins == 0 correctly ---
     if eff_bins == 0 {
+        eprintln!("eff_bins error, with eff_bins = {}", eff_bins)
         let mut out = vec![0.0; n_bins];
         let mut sum = 0.0f64;
         for e in edges {
@@ -471,13 +475,6 @@ fn k_cross_homogeneous<'py>(
     };
 
     // Convert to numpy
-    
-    eprintln!("DEBUG: k_calc.len()      = {}", k_calc.len());
-    eprintln!("DEBUG: first few labels: {:?}", &labels[0..labels.len().min(5)]);
-    eprintln!("DEBUG: first few k_calc: {:?}", &k_calc[0..k_calc.len().min(5)]);
-    eprintln!("DEBUG: first few k_theo_vec: {:?}", &k_theo_vec[0..k_theo_vec.len().min(5)]);
-    eprintln!("DEBUG: first few k_perm_avg: {:?}", &k_perm_avg[0..k_perm_avg.len().min(5)]);
-
     let k_calc_py = PyArray1::from_vec_bound(py, k_calc);
     let k_theo_py = PyArray1::from_vec_bound(py, k_theo_vec);
     let k_perm_py = PyArray1::from_vec_bound(py, k_perm_avg);

@@ -49,4 +49,6 @@ def k_cross_homogeneous_py(
         int(permutations), int(perm_seed),
     )
     # Ensure contiguous float64 arrays
+    print('rust returns:')
+    print(np.array(K, dtype=np.float64), np.array(K_theo, dtype=np.float64), np.array(K_perm, dtype=np.float64))
     return np.array(K, dtype=np.float64), np.array(K_theo, dtype=np.float64), np.array(K_perm, dtype=np.float64)

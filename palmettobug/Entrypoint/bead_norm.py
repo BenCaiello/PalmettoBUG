@@ -193,6 +193,10 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
         bead_label = i[i.rfind("/") + 1:]
         if channels_to_normalize is None:
             channels_to_normalize = _identify_metal_columns(prenorms_df)
+        print(beads_df)
+        print(prenorms_df)
+        print(bead_channels)
+        print(channels_to_normalize)
         my_normed_events, my_normed_beads = normalize_pipeline_one_fcs(bead_fcs = beads_df, 
                                                             to_normalize_fcs = prenorms_df, 
                                                             bead_channels = bead_channels, 
