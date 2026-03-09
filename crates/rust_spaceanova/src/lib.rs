@@ -256,7 +256,7 @@ fn k_from_edges_counts(
 ) -> Vec<f64> {
     let n_bins = radii.len();
     if n_bins == 0 {
-        eprintln!("n_bins = 0 error");
+        // eprintln!("n_bins = 0 error");
         return Vec::new();
     }
 
@@ -403,6 +403,10 @@ fn k_cross_homogeneous<'py>(
     let dy = ymax - ymin;
     let diameter = ((dx * dx) + (dy * dy)).sqrt();
     let window_area = dx * dy;
+    eprintln!("xmin, xmax, ymin, ymax = {}", xmin, xmax, ymin, ymax);
+    eprintln!("dx = {}", dx);
+    eprintln!("dy = {}", dy);
+    eprintln!("window_area = {}", window_area);
 
     // Radii and truncation bound
     let (radii, new_max, _truncated) = make_radii_with_truncation(r_min, r_max, r_step, diameter);

@@ -96,10 +96,14 @@ def normalize_pipeline_one_fcs(bead_fcs: pd.DataFrame,
         (pd.DataFrame, pd.DataFrame): the first output is the to_normalize_fcs dataframe, normalized on channels_to_normalize. 
         the second output is the bead_fcs dataframe, normalized on bead_channels
     '''
-    median_smoothed_beads = _median_500_window_df(bead_fcs, bead_channels).sort_values('Time')
+    median_smoothed_beads = _median_500_window_df(bead_fcs.sort_values('Time'), bead_channels).sort_values('Time')
+    print(median_smoothed_beads)
     slopes = _find_slope(bead_fcs, median_smoothed_beads.loc[:,bead_channels], bead_channels)
+    print(slopes)
     norm_events = np.interp(to_normalize_fcs['Time'], median_smoothed_beads['Time'], slopes)
+    print(norm_events)
     norm_beads = np.interp(bead_fcs['Time'], median_smoothed_beads['Time'], slopes)
+    print(norm_beads)
     my_normed_events = pd.DataFrame((np.array(to_normalize_fcs.loc[:, channels_to_normalize]).T * norm_events).T, 
                                     columns = channels_to_normalize)
     my_normed_events['Time'] = to_normalize_fcs['Time']
@@ -195,8 +199,6 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
             channels_to_normalize = _identify_metal_columns(prenorms_df)
         print(beads_df)
         print(prenorms_df)
-        print(bead_channels)
-        print(channels_to_normalize)
         my_normed_events, my_normed_beads = normalize_pipeline_one_fcs(bead_fcs = beads_df, 
                                                             to_normalize_fcs = prenorms_df, 
                                                             bead_channels = bead_channels, 
