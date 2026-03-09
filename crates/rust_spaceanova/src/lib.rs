@@ -403,7 +403,7 @@ fn k_cross_homogeneous<'py>(
     let dy = ymax - ymin;
     let diameter = ((dx * dx) + (dy * dy)).sqrt();
     let window_area = dx * dy;
-    eprintln!("xmin, xmax, ymin, ymax = {}", xmin, xmax, ymin, ymax);
+    eprintln!("xmin, xmax, ymin, ymax = {}, {}, {}, {}", xmin, xmax, ymin, ymax);
     eprintln!("dx = {}", dx);
     eprintln!("dy = {}", dy);
     eprintln!("window_area = {}", window_area);
