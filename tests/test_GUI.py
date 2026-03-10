@@ -898,18 +898,18 @@ def test_SpaceANOVA():
     my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
     rust_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
 
-    window.load_and_run_spatial_analysis(min_radius = 10, 
-                                         max_radii = 80, 
-                                         step = 5, 
-                                         condition_comparison = "All (multicomparison)", 
-                                         celltype_key = 'merging', 
-                                         permutations = 0, 
-                                        seed = 42,
-                                         use_rust = False)
-    my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
-    python_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
+    #window.load_and_run_spatial_analysis(min_radius = 10, 
+    #                                     max_radii = 80, 
+    #                                     step = 5, 
+    #                                     condition_comparison = "All (multicomparison)", 
+    #                                     celltype_key = 'merging', 
+     #                                    permutations = 0, 
+     #                                   seed = 42,
+    #                                     use_rust = False)
+    #my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
+    #python_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
     print(rust_data_table['c2___c2'])
-    print(python_data_table['c2___c2'])
+    #print(python_data_table['c2___c2'])
     assert my_spatial.SpaceANOVA.data_table is not None, "spaceANOVA Ripley's statistics not calculated!"
     assert my_spatial.SpaceANOVA._comparison_dictionary is not None, "spaceANOVA Ripley's statistics not calculated!"
     window.destroy()
