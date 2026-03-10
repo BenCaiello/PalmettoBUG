@@ -903,8 +903,8 @@ def test_SpaceANOVA():
     #                                     step = 5, 
     #                                     condition_comparison = "All (multicomparison)", 
     #                                     celltype_key = 'merging', 
-     #                                    permutations = 2, 
-     #                                   seed = 42,
+    #                                     permutations = 2, 
+    #                                     seed = 42,
     #                                     use_rust = False)
     #my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
     #python_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
