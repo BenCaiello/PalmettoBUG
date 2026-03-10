@@ -1318,7 +1318,6 @@ def do_K_L_g(pointpattern: pd.DataFrame,
             int(threshold),
             int(permutations), int(perm_state),
         )
-        print(K_calc, K_theo, K_perm_avg)
         result_array = K_calc.copy()
         theoretical_K = K_theo.copy()
 
