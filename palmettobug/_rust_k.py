@@ -9,6 +9,7 @@ try:
     from .rust_spaceanova import k_cross_homogeneous as _k_cross_native
     _RUST_OK = True
 except Exception as e:
+    print("Rust spaceanova not available")
     print(e)
     _RUST_OK = False
 
