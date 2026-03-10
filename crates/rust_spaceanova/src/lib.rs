@@ -361,6 +361,8 @@ fn k_cross_homogeneous<'py>(
     x: PyReadonlyArray1<f64>,
     y: PyReadonlyArray1<f64>,
     labels: PyReadonlyArray1<i64>,  // integer-encoded labels
+    type1: , 
+    type2: ,
     r_min: usize,
     r_max: usize,
     r_step: usize,
@@ -378,18 +380,18 @@ fn k_cross_homogeneous<'py>(
     let mut n1: usize = 0;
     let mut n2: usize = 0;
     for &lab in labels {
-        if lab == type1_code {
-            n1 += 1;
-        } else if lab == type2_code {
-            n2 += 1;
-        }
+        if lab == type1_code {n1 += 1; } 
+        if lab == type2_code {n2 += 1; }
     }
 
-    if x.len() != y.len() || x.len() != labels.len() || (n1 + n2) != labels.len() {
+    let mut autocorr = false
+    if (n1 == n2) && (n1 == lab.len()) {      //This means the two labels are the same and encompass the entire set of labels -- i.e., an auto-correlation
+        autocorr = true
+    } else if x.len() != y.len() || x.len() != labels.len() || (n1 + n2) != labels.len() {
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
             "x, y, labels must have the same length",
         ));
-    }
+    } 
 
     // Compute window & diameter
     let xmin = x.iter().fold(f64::INFINITY, |a, &b| a.min(b));

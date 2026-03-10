@@ -20,6 +20,8 @@ def k_cross_homogeneous_py(
     x: np.ndarray,
     y: np.ndarray,
     labels: np.ndarray,
+    type1, 
+    type2,
     r_min: int,
     r_max: int,
     r_step: int,
@@ -44,7 +46,7 @@ def k_cross_homogeneous_py(
 
 
     K, K_theo, K_perm = _k_cross_native(
-        x, y, labels_arr,
+        x, y, labels_arr, type1, type2,
         int(r_min), int(r_max), int(r_step),
         int(threshold),
         int(permutations), int(perm_seed),

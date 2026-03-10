@@ -1307,13 +1307,15 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         # Prepare arrays for Rust
         pp = pointpattern.copy()  # your per-image df
         for_rust = pp[['x','y',type_column]]
-        types_to_keep = np.asarray(for_rust[type_column] == type1) + np.asarray(for_rust[type_column] == type2) 
-        for_rust = for_rust[types_to_keep] 
+        encoding_dict = {}
+        for i,ii in enumerate(for_rust[type_column].unique()):
+            for_rust[type_column] = for_rust[type_column].astype('str').replace(type1, str(i))
+            encoding_dict[str(i)] = ii
 
-        for_rust[type_column] = for_rust[type_column].astype('str').replace(type1, '1').replace(type2, '2').astype('int')
 
         K_calc, K_theo, K_perm_avg = _rust_k_cross(
-            for_rust['x'], for_rust['y'], np.asarray(for_rust[type_column]),
+            for_rust['x'], for_rust['y'], np.asarray(for_rust[type_column]), type1, 
+            type2,
             int(fixed_r[0]), int(fixed_r[-1]), int(fixed_r.step),
             int(threshold),
             int(permutations), int(perm_state),
@@ -1425,12 +1427,6 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     theory_g = ((radii_array/2) * cs.derivative(nu = 1).__call__(fixed_r)) + for_theory_z
     g_df['theoretical'] = theory_g + (centerer - 1)  # no change when center = 1, else -1 to the theoretical
     g_df['radii'] = radii_array
-    if (type1 == 'c2') and (type2 == 'c3'): 
-        if use_rust:
-            print('rust')
-        else:
-            print('python')
-        print(K_df, L_df, g_df)
 
     return K_df, L_df, g_df
 
