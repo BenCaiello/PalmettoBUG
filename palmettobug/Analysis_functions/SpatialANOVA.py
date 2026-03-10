@@ -1342,6 +1342,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
             if center_on_zero:
                 result_array = result_array - theoretical_K
                 centerer = 0
+        print(result_array, theoretical_K)
     ##>>## end of AI-based code block
 
     else:
