@@ -1302,10 +1302,6 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     if use_rust:  ## added manually -- this is so that the use of rust or not can be controlled outside of only whether it is available. 
                   ## If the rust implementation proves strictly & unequivocally superior, then this can be removed
         use_rust = _rust_available()
-    if use_rust:
-        print('rust')
-    else:
-        print('python')
     
     if use_rust:  
         # Prepare arrays for Rust
@@ -1400,9 +1396,6 @@ def do_K_L_g(pointpattern: pd.DataFrame,
             if center_on_zero is True:
                 result_array = result_array - theoretical_K
                 centerer = 0
-
-    if (type1 == 'c2') and (type2 == 'c2'): 
-        print(result_array, theoretical_K)
             
     K_df = pd.DataFrame(result_array, columns = ["K"])
     K_df['theoretical'] = theoretical_K
@@ -1432,7 +1425,11 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     theory_g = ((radii_array/2) * cs.derivative(nu = 1).__call__(fixed_r)) + for_theory_z
     g_df['theoretical'] = theory_g + (centerer - 1)  # no change when center = 1, else -1 to the theoretical
     g_df['radii'] = radii_array
-    if (type1 == 'c2') and (type2 == 'c2'): 
+    if (type1 == 'c2') and (type2 == 'c3'): 
+        if use_rust:
+            print('rust')
+        else:
+            print('python')
         print(K_df, L_df, g_df)
 
     return K_df, L_df, g_df
