@@ -1342,7 +1342,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
             print("KeyError")
             print(saved_K)
             K_df = pd.DataFrame(np.zeros([len(fixed_r)]), columns = ["K"])
-            K_df['theoretical'] = theoretical_K
+            K_df['theoretical'] = np.zeros([len(fixed_r)])
             K_df['radii'] = radii_array
             return K_df, np.zeros([len(fixed_r)]), np.zeros([len(fixed_r)])  ###assume this means failure to have this comparison in rust (meaning 0 cells in image of one or other of the types)
 
