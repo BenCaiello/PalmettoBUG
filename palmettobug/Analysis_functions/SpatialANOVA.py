@@ -1315,13 +1315,13 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         if rust_data == {}:     ## means fresh calculation, clear any saved rust data to allow for fresh calculations
             pp = pointpattern.copy()  # your per-image df
             for_rust = pp[['x','y',type_column]]
-            all_at_once_dict = _rust_k_cross(
+            saved_K = _rust_k_cross(
                 for_rust['x'], for_rust['y'], np.asarray(for_rust[type_column]),
                 int(fixed_r[0]), int(fixed_r[-1]), int(fixed_r.step),
                 int(threshold),
                 int(permutations), int(perm_state),
                 )
-            rust_data[if_rust_what_image] = all_at_once_dict
+            rust_data[if_rust_what_image] = saved_K
         else:
             try:         ## if already calculated K, use the available data
                 saved_K = rust_data[if_rust_what_image]
@@ -1329,13 +1329,13 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                 # Prepare arrays for Rust
                 pp = pointpattern.copy()  # your per-image df
                 for_rust = pp[['x','y',type_column]]
-                all_at_once_dict = _rust_k_cross(
+                saved_K = _rust_k_cross(
                     for_rust['x'], for_rust['y'], np.asarray(for_rust[type_column]),
                     int(fixed_r[0]), int(fixed_r[-1]), int(fixed_r.step),
                     int(threshold),
                     int(permutations), int(perm_state),
                 )
-                rust_data[if_rust_what_image] = all_at_once_dict
+                rust_data[if_rust_what_image] = saved_K
 
         result_array, theoretical_K, K_perm_avg = saved_K[f'{type1}___{type2}']  ## extract the desired comparison arrays
 
