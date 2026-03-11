@@ -490,7 +490,7 @@ fn k_all_at_once_optimized<'py>(
             out.set_item(key, val)?;
         }
     }
-    eprintln!("Unique labels (L={}): {:?}, length of dict = {}", L, unique, out.len() );
+    // eprintln!("Unique labels (L={}): {:?}, length of dict = {}", L, unique, out.len() );
     Ok(out.into())
 }
 

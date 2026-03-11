@@ -38,8 +38,6 @@ def k_cross_homogeneous_py(
     x = np.asarray(x, dtype=np.float64)
     y = np.asarray(y, dtype=np.float64)
 
-    print(labels)
-    print(np.unique(labels))
     all_at_once_dict = _k_cross_native(
         x, y, labels,
         int(r_min), int(r_max), int(r_step),
@@ -47,5 +45,4 @@ def k_cross_homogeneous_py(
         int(permutations), int(perm_seed),
     )
     # Ensure contiguous float64 arrays
-    print(all_at_once_dict)
     return all_at_once_dict

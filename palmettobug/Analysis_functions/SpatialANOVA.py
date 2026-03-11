@@ -547,7 +547,7 @@ class SpatialANOVA():
                                         rust_data = self.rust_data) 
             if len(K_L_g_output_chunk) == 4:   ## means rust data was returned
                 self.rust_data = K_L_g_output_chunk[3]
-                K_L_g_output_chunk = K_L_g_output_chunk[0:2]
+                K_L_g_output_chunk = K_L_g_output_chunk[0:3]
             append_K_L_g(K_L_g_output_chunk)
 
         self.type1 = type1
@@ -1315,6 +1315,8 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         if rust_data == {}:     ## means fresh calculation, clear any saved rust data to allow for fresh calculations
             pp = pointpattern.copy()  # your per-image df
             for_rust = pp[['x','y',type_column]]
+            #if (for_rust[type_column] == "dropped").sum() == len(for_rust):
+            #    pass
             saved_K = _rust_k_cross(
                 for_rust['x'], for_rust['y'], list(for_rust[type_column]),
                 int(fixed_r[0]), int(fixed_r[-1]), int(fixed_r.step),
