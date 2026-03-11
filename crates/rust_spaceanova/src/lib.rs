@@ -6,7 +6,7 @@
 // AI debugging: lines of code I commented out are marked with a unique comment ID -->     //##
 // search for this to find these lines for later fixing (if needed)
 
-use numpy::{PyArray1, PyReadonlyArray1};
+use numpy::{PyReadonlyArray1};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use rayon::prelude::*;
@@ -401,7 +401,7 @@ fn k_all_at_once_optimized<'py>(
                         let n1 = counts[i];
                         let n2 = counts[j];
                         // Threshold/area gate: if invalid, leave zeros (do not add
-                        if n1 < threshold || n2 < threshold || !window_area.is_finite() || window_area <= 0.0 {
+                        if n1 < threshold || n2 < threshold || !window_area.is_finite() {
                             continue
                         }
 
@@ -440,7 +440,7 @@ fn k_all_at_once_optimized<'py>(
             let n1 = counts[i];
             let n2 = counts[j];
             // Threshold/area gate: if invalid, leave zeros
-            if n1 < threshold || n2 < threshold || !window_area.is_finite() || window_area <= 0.0 {
+            if n1 < threshold || n2 < threshold || !window_area.is_finite() {
                 // already zeros
             } else {
                 let norm = (n1 as f64) * (n2 as f64 / window_area);
@@ -473,7 +473,7 @@ fn k_all_at_once_optimized<'py>(
             let n2 = counts[j] as f64;
 
             // Threshold/area gate: if invalid, leave zeros
-            let k_theo = if n1 < threshold || n2 < threshold || !window_area.is_finite() || window_area <= 0.0 {
+            let k_theo = if n1 < threshold || n2 < threshold || !window_area.is_finite() {
                     vec![0.0f64; n_bins]
                 } else {
                     theoretical_k(&radii, new_max, n1 as f64, n2 as f64, window_area)
