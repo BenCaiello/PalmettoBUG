@@ -258,7 +258,7 @@ fn k_all_at_once_optimized<'py>(
     // --- Load coordinate slices ---
     let x = x.as_slice()?;
     let y = y.as_slice()?;
-    let labels_str = labels.as_slice()?;   // &[String]
+    let labels_str: Vec<String> = labels.as_slice();   // &[String]
 
     let n_points = x.len();
     if n_points != y.len() || n_points != labels_str.len() {
