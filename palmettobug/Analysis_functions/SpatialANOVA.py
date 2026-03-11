@@ -541,7 +541,8 @@ class SpatialANOVA():
                                         perm_state = perm_state, 
                                         center_on_zero = center_on_zero,
                                         suppress_threshold_warnings = suppress_threshold_warnings,
-                                        use_rust = use_rust) 
+                                        use_rust = use_rust,
+                                        if_rust_what_image = i) 
             append_K_L_g(K_L_g_output_chunk)
 
         self.type1 = type1
@@ -1255,6 +1256,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
           center_on_zero: bool = True,
           suppress_threshold_warnings = False,
           use_rust: bool = True,
+          if_rust_what_image: int = -1,   ## either the unique id for the image, or -1 to indicate a fresh calculation
           ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:       # *** deriv_spatstat (largely a direct translation, but some divergences)
     '''
     This function calculates K, L, and g for a given image and pair of cell types at a range of distances (fixed_r).
@@ -1303,32 +1305,34 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                   ## If the rust implementation proves strictly & unequivocally superior, then this can be removed
         use_rust = _rust_available()
     
-    if use_rust:  
-        # Prepare arrays for Rust
-        pp = pointpattern.copy()  # your per-image df
-        for_rust = pp[['x','y',type_column]]
-        encoding_dict = {}
-        for i,ii in enumerate(for_rust[type_column].unique()):
-            for_rust[type_column] = for_rust[type_column].astype('str').replace(type1, str(i))
-            encoding_dict[str(i)] = ii
+    if use_rust: 
+        if if_rust_what_image == -1:     ## means fresh calculation, clear any saved rust data to allow for fresh calculations
+            rust_data = {} 
+            pp = pointpattern.copy()  # your per-image df
+            for_rust = pp[['x','y',type_column]]
+            all_at_once_dict = _rust_k_cross(
+                for_rust['x'], for_rust['y'], np.asarray(for_rust[type_column]),
+                int(fixed_r[0]), int(fixed_r[-1]), int(fixed_r.step),
+                int(threshold),
+                int(permutations), int(perm_state),
+                )
+            rust_data[if_rust_what_image] = all_at_once_dict
+        else:
+            try:         ## if already calculated K, use the available data
+                saved_K = rust_data[if_rust_what_image]
+            except:      ##  else calculate the K's for the entire image
+                # Prepare arrays for Rust
+                pp = pointpattern.copy()  # your per-image df
+                for_rust = pp[['x','y',type_column]]
+                all_at_once_dict = _rust_k_cross(
+                    for_rust['x'], for_rust['y'], np.asarray(for_rust[type_column]),
+                    int(fixed_r[0]), int(fixed_r[-1]), int(fixed_r.step),
+                    int(threshold),
+                    int(permutations), int(perm_state),
+                )
+                rust_data[if_rust_what_image] = all_at_once_dict
 
-
-        K_calc, K_theo, K_perm_avg = _rust_k_cross(
-            for_rust['x'], for_rust['y'], np.asarray(for_rust[type_column]), type1, 
-            type2,
-            int(fixed_r[0]), int(fixed_r[-1]), int(fixed_r.step),
-            int(threshold),
-            int(permutations), int(perm_state),
-        )
-        result_array = K_calc.copy()
-        theoretical_K = K_theo.copy()
-
-        if (result_array.sum() == 0):
-            '''This means that there are no cells / the number of cells is below the threshold '''
-            K_df = pd.DataFrame(result_array, columns = ["K"])
-            K_df['theoretical'] = theoretical_K
-            K_df['radii'] = radii_array
-            return K_df, np.zeros([len(fixed_r)]), np.zeros([len(fixed_r)])
+        result_array, theoretical_K, K_perm_avg = saved_K[f'{type1}___{type2}']  ## extract the desired comparison arrays
 
         centerer = 1
         if permutations > 0:

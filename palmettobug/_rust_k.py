@@ -6,7 +6,7 @@
 import numpy as np
 
 try:
-    from .rust_spaceanova import k_cross_homogeneous as _k_cross_native
+    from .rust_spaceanova import k_all_at_once_optimized as _k_cross_native
     _RUST_OK = True
 except Exception as e:
     print("Rust spaceanova not available")
@@ -20,15 +20,13 @@ def k_cross_homogeneous_py(
     x: np.ndarray,
     y: np.ndarray,
     labels: np.ndarray,
-    type1, 
-    type2,
     r_min: int,
     r_max: int,
     r_step: int,
     threshold: int,
     permutations: int = 0,
     perm_seed: int = 42,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> dict:
     """
     Python-friendly wrapper around the Rust kernel.
     Returns (K_calc, K_theoretical, K_perm_avg).
@@ -37,19 +35,16 @@ def k_cross_homogeneous_py(
     if not _RUST_OK:
         raise RuntimeError("Rust extension not available")
 
-    #if (len(x) != len(y)) or (len(x) != len(labels)):   ## the input arrays must all be the same length -- however this same eror is handled inside rust (hence commented out)
-    #    raise ValueError("Inputs arrays to rust spaceanova (x,y, labels) are not all the same length")
-
     x = np.asarray(x, dtype=np.float64)
     y = np.asarray(y, dtype=np.float64)
-    labels_arr = np.asarray(labels)    ### assumed to be an array with length equal ot x,y of 1's and 2's for type 1 and type 2
+    labels_arr = np.asarray(labels)  
 
 
-    K, K_theo, K_perm = _k_cross_native(
-        x, y, labels_arr, type1, type2,
+    all_at_once_dict = _k_cross_native(
+        x, y, list(labels_arr.astype('str')),
         int(r_min), int(r_max), int(r_step),
         int(threshold),
         int(permutations), int(perm_seed),
     )
     # Ensure contiguous float64 arrays
-    return np.array(K, dtype=np.float64), np.array(K_theo, dtype=np.float64), np.array(K_perm, dtype=np.float64)
+    return all_at_once_dict

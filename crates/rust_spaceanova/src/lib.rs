@@ -8,6 +8,7 @@
 
 use numpy::{PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
+use pyo3::types::PyDict;
 use rayon::prelude::*;
 use rand::prelude::*;
 use rand_pcg::Pcg64Mcg;
@@ -238,251 +239,245 @@ fn theoretical_k(radii: &[f64], new_max: f64, n1: f64, n2: f64, window_area: f64
         .collect()
 }
 
-
-/// Histogram+cumulate per Python's logic using bins as in numpy.histogram(range=(lo, hi), bins=...).
-/// Returns K counts (unnormalized), length == radii.len().
-fn k_from_edges_counts(
-    edges: &[Edge],
-    labels: &[i64],
-    type1: i64,
-    type2: i64,
-    min_r: usize,
-    _max_r: usize,
-    step: usize,
-    radii: &[f64],
-    new_max: f64,
-    threshold: usize,
-    window_area: f64,
-) -> Vec<f64> {
-    let n_bins = radii.len();
-    if n_bins == 0 {
-        return Vec::new();
-    }
-
-    // Counts per type
-    let mut n1: usize = 0;
-    let mut n2: usize = 0;
-    for &lab in labels {
-        if lab == type1 {
-            n1 += 1;
-        } else if lab == type2 {
-            n2 += 1;
-        }
-    }
-    if n1 < threshold || n2 < threshold || n1 == 0 || n2 == 0 {
-        // eprintln!("threshold error, with threshold = {}", threshold);
-        return vec![0.0; n_bins];
-    }
-    if !(window_area.is_finite()) || window_area <= 0.0 {
-        return vec![0.0; n_bins];
-    }
-
-    let lo = min_r as f64;
-    let hi = new_max; // right-exclusive
-
-    // Number of histogram bins up to new_max
-    let eff_bins = if min_r == 0 {
-        ((new_max / (step as f64)).floor() as isize).max(0) as usize
-    } else {
-        ((((new_max - (min_r as f64)) / (step as f64)).floor()) as isize).max(0) as usize
-    };
-
-    // --- FIXED: Handle eff_bins == 0 correctly ---
-    if eff_bins == 0 {
-        let mut out = vec![0.0; n_bins];
-        let mut sum = 0.0f64;
-        for e in edges {
-            if labels[e.left] == type1 && labels[e.right] == type2 {
-                let d = e.dist;
-                if d > 0.0 && d < hi {
-                    sum += e.w;
-                }
-            }
-        }
-        let norm = (n1 as f64) * (n2 as f64 / window_area);
-        if norm > 0.0 {
-            out[0] = sum / norm;
-        }
-        return out;
-    }
-
-    // Weighted histogram over (lo, hi), bins=eff_bins (exclusive of hi)
-    let mut bins = vec![0.0f64; eff_bins];
-    let mut fill = 0.0f64; // weights for (0, min) when min > 0, else 0
-
-    for e in edges {
-        if labels[e.left] != type1 || labels[e.right] != type2 {
-            continue;
-        }
-        let d = e.dist;
-        if d <= 0.0 {
-            continue;
-        }
-        if d < lo {
-            fill += e.w;
-        } else if d < hi {
-            let k = ((d - lo) / (step as f64)).floor() as isize;
-            if k >= 0 && (k as usize) < eff_bins {
-                bins[k as usize] += e.w;
-            }
-        }
-    }
-
-    // cumulative: K = [fill, fill + cumsum(bins)] then pad zeros to n_bins
-    let mut cum = vec![0.0f64; eff_bins + 1];
-    cum[0] = fill;
-    for i in 0..eff_bins {
-        cum[i + 1] = cum[i] + bins[i];
-    }
-
-    let norm = (n1 as f64) * (n2 as f64 / window_area);
-    if norm > 0.0 {
-        for v in &mut cum {
-            *v /= norm;
-        }
-    } else {
-        // degenerate; leave zeros
-        for v in &mut cum {
-            *v = 0.0;
-        }
-    }
-
-    let mut out = vec![0.0f64; n_bins];
-    let upto = (eff_bins).min(n_bins.saturating_sub(1));
-    for i in 0..=upto {
-        out[i] = cum[i];
-    }
-    out
-}
-
 #[pyfunction]
-fn k_cross_homogeneous<'py>(
+fn k_all_at_once_optimized<'py>(
     py: Python<'py>,
     x: PyReadonlyArray1<f64>,
     y: PyReadonlyArray1<f64>,
-    labels: PyReadonlyArray1<i64>,  // integer-encoded labels
-    type1: , 
-    type2: ,
+    labels: Vec<String>,
     r_min: usize,
     r_max: usize,
     r_step: usize,
     threshold: usize,
     permutations: usize,
     perm_seed: u64,
-) -> PyResult<(Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>)> {
-    let type1_code: i64 = 1;
-    let type2_code: i64 = 2;
+) -> PyResult<Py<PyDict>> {
+
+    use pyo3::types::PyDict;
+
+    // --- Load coordinate slices ---
     let x = x.as_slice()?;
     let y = y.as_slice()?;
-    let labels = labels.as_slice()?;
+    let labels_str = labels.as_slice()?;   // &[String]
 
-    
-    let mut n1: usize = 0;
-    let mut n2: usize = 0;
-    for &lab in labels {
-        if lab == type1_code {n1 += 1; } 
-        if lab == type2_code {n2 += 1; }
+    let n_points = x.len();
+    if n_points != y.len() || n_points != labels_str.len() {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "x, y, labels must have same length",
+        ));
     }
 
-    let mut autocorr = false
-    if (n1 == n2) && (n1 == lab.len()) {      //This means the two labels are the same and encompass the entire set of labels -- i.e., an auto-correlation
-        autocorr = true
-    } else if x.len() != y.len() || x.len() != labels.len() || (n1 + n2) != labels.len() {
-        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-            "x, y, labels must have the same length",
-        ));
-    } 
-
-    // Compute window & diameter
-    let xmin = x.iter().fold(f64::INFINITY, |a, &b| a.min(b));
-    let xmax = x.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
-    let ymin = y.iter().fold(f64::INFINITY, |a, &b| a.min(b));
-    let ymax = y.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
+    // --- Window geometry ---
+    let xmin = x.iter().fold(f64::INFINITY, |a,&b| a.min(b));
+    let xmax = x.iter().fold(f64::NEG_INFINITY, |a,&b| a.max(b));
+    let ymin = y.iter().fold(f64::INFINITY, |a,&b| a.min(b));
+    let ymax = y.iter().fold(f64::NEG_INFINITY, |a,&b| a.max(b));
     let dx = xmax - xmin;
     let dy = ymax - ymin;
-    let diameter = ((dx * dx) + (dy * dy)).sqrt();
     let window_area = dx * dy;
+    let diameter = ((dx*dx)+(dy*dy)).sqrt();
 
-    // Radii and truncation bound
-    let (radii, new_max, _truncated) = make_radii_with_truncation(r_min, r_max, r_step, diameter);
+    let (radii, new_max, _) = make_radii_with_truncation(r_min, r_max, r_step, diameter);
+    let n_bins = radii.len();
 
-    
-    let k_theo_vec = theoretical_k(&radii, n1 as f64, n2 as f64, new_max, window_area);
+    // --- Build unique labels ---
+    let mut unique: Vec<String> = labels_str.to_vec();
+    unique.sort();
+    unique.dedup();
+    let L = unique.len();
 
-    // Precompute point geometry for edge weights
-    let geom: Vec<PointGeom> = x
-        .iter()
+    // --- Map label string -> integer code ---
+    let mut label_index: HashMap<String, usize> = HashMap::new();
+    for (i, lab) in unique.iter().enumerate() {
+        label_index.insert(lab.clone(), i);
+    }
+
+    // --- Convert input labels to integer codes ---
+    let mut labels_int = Vec::with_capacity(labels_str.len());
+    for lab in labels_str {
+        labels_int.push(label_index[lab]);  
+    }
+
+    // --- Precompute geometry + edges ---
+    let geom: Vec<PointGeom> = x.iter()
         .zip(y.iter())
-        .map(|(&xi, &yi)| PointGeom::from_xy(xi, yi, xmin, xmax, ymin, ymax))
+        .map(|(&xi,&yi)| PointGeom::from_xy(xi, yi, xmin, xmax, ymin, ymax))
         .collect();
 
-    // Build edges once (for all points; we need both directions because weights differ by origin)
     let edges = py.allow_threads(|| precompute_edges(x, y, &geom, xmin, ymin, new_max));
 
-    // Compute K for current labeling
-    let k_calc = py.allow_threads(|| {
-        k_from_edges_counts(
-            &edges,
-            labels,
-            type1_code,
-            type2_code,
-            r_min,
-            r_max,
-            r_step,
-            &radii,
-            new_max,
-            threshold,
-            window_area,
-        )
-    });
+    // --- Compute effective histogram bins ---
+    let lo = r_min as f64;
+    let eff_bins = if r_step > 0 {
+        if r_min == 0 {
+            ((new_max / r_step as f64).floor() as isize).max(0) as usize
+        } else {
+            ((((new_max - lo) / r_step as f64).floor()) as isize).max(0) as usize
+        }
+    } else { 0 };
 
-    // Permutation average if requested
-    let k_perm_avg = if permutations == 0 {
-        vec![0.0f64; radii.len()]
-    } else {
+    // --- Global accumulators ---
+    let mut fill = vec![0.0f64; L*L];
+    let mut bins = vec![0.0f64; L*L * eff_bins];
+
+    // --- SINGLE PASS over edges ---
+    for e in &edges {
+        let d = e.dist;
+        if d <= 0.0 || d >= new_max { continue; }
+
+        let li = labels_int[e.left];
+        let lj = labels_int[e.right];
+        let pair = li * L + lj;
+
+        if d < lo {
+            fill[pair] += e.w;
+        } else if eff_bins > 0 {
+            let k = ((d - lo) / (r_step as f64)).floor() as isize;
+            if k >= 0 {
+                let k = k as usize;
+                if k < eff_bins {
+                    unsafe { 
+                        *bins.get_unchecked_mut(pair*eff_bins + k) += e.w;
+                    }
+                }
+            }
+        }
+    }
+
+    // --- Label counts ---
+    let mut counts = vec![0usize; L];
+    for &code in &labels_int {
+        counts[code] += 1;
+    }
+
+    // --- Permutation accumulators ---
+    let mut perm_acc = vec![vec![0.0f64; n_bins]; L*L];
+
+    // --- Permutations ---
+    if permutations > 0 {
         py.allow_threads(|| {
             let mut rng = Pcg64Mcg::seed_from_u64(perm_seed);
-            // We'll average normalized K for each permutation.
-            let mut acc = vec![0.0f64; radii.len()];
-            let mut labels_perm: Vec<i64> = labels.to_vec();
+            let mut labels_perm = labels_int.clone();
+            let mut pair_map = vec![0usize; n_points];
 
             for _ in 0..permutations {
                 labels_perm.shuffle(&mut rng);
-                let k_perm = k_from_edges_counts(
-                    &edges,
-                    &labels_perm,
-                    type1_code,
-                    type2_code,
-                    r_min,
-                    r_max,
-                    r_step,
-                    &radii,
-                    new_max,
-                    threshold,
-                    window_area,
-                );
-                debug_assert_eq!(k_perm.len(), acc.len());
-                for (a, v) in acc.iter_mut().zip(k_perm.into_iter()) {
-                    *a += v;
+
+                // create pair_map (label code)
+                for i in 0..n_points {
+                    pair_map[i] = labels_perm[i];
+                }
+
+                let mut local_fill = vec![0.0f64; L*L];
+                let mut local_bins = vec![0.0f64; L*L*eff_bins];
+
+                for e in &edges {
+                    let d = e.dist;
+                    if d <= 0.0 || d >= new_max { continue; }
+
+                    let i = pair_map[e.left];
+                    let j = pair_map[e.right];
+                    let pair = i * L + j;
+
+                    if d < lo {
+                        local_fill[pair] += e.w;
+                    } else if eff_bins > 0 {
+                        let k = ((d - lo) / (r_step as f64)).floor() as isize;
+                        if k >= 0 {
+                            let k = k as usize;
+                            if k < eff_bins {
+                                unsafe {
+                                    *local_bins.get_unchecked_mut(pair*eff_bins + k) += e.w;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // cumulative + normalize
+                for i in 0..L {
+                    for j in 0..L {
+                        let pair = i*L + j;
+                        let n1 = counts[i];
+                        let n2 = counts[j];
+                        let norm = (n1 as f64) * (n2 as f64 / window_area);
+
+                        let mut c = local_fill[pair];
+                        perm_acc[pair][0] += c / norm;
+
+                        for k in 0..eff_bins {
+                            let val = local_bins[pair*eff_bins + k];
+                            c += val;
+                            if k+1 < n_bins {
+                                perm_acc[pair][k+1] += c / norm;
+                            }
+                        }
+                    }
                 }
             }
-            for v in &mut acc {
-                *v /= permutations as f64;
+        });
+
+        // average
+        for pair in 0..L*L {
+            for b in 0..n_bins {
+                perm_acc[pair][b] /= permutations as f64;
             }
-            acc
-        })
-    };
+        }
+    }
 
-    // Convert to numpy
-    let k_calc_py = PyArray1::from_vec_bound(py, k_calc);
-    let k_theo_py = PyArray1::from_vec_bound(py, k_theo_vec);
-    let k_perm_py = PyArray1::from_vec_bound(py, k_perm_avg);
+    // --- Observed cumulative K ---
+    let mut k_obs = vec![vec![0.0f64; n_bins]; L*L];
 
-    Ok((k_calc_py, k_theo_py, k_perm_py))
+    for i in 0..L {
+        for j in 0..L {
+            let pair = i*L + j;
+
+            let n1 = counts[i];
+            let n2 = counts[j];
+            let norm = (n1 as f64) * (n2 as f64 / window_area);
+
+            let mut c = fill[pair];
+            k_obs[pair][0] = c / norm;
+
+            for k in 0..eff_bins {
+                let val = bins[pair * eff_bins + k];
+                c += val;
+                if k+1 < n_bins {
+                    k_obs[pair][k+1] = c / norm;
+                }
+            }
+        }
+    }
+
+    // --- Build Python dict ---
+    let out = PyDict::new(py);
+
+    for i in 0..L {
+        for j in 0..L {
+            let pair = i*L + j;
+
+            let n1 = counts[i] as f64;
+            let n2 = counts[j] as f64;
+
+            let k_theo = theoretical_k(&radii, new_max, n1, n2, window_area);
+
+            let key = format!("{}___{}", unique[i], unique[j]);
+
+            let val = (
+                numpy::PyArray1::from_vec(py, k_obs[pair].clone()),
+                numpy::PyArray1::from_vec(py, k_theo),
+                numpy::PyArray1::from_vec(py, perm_acc[pair].clone()),
+            );
+
+            out.set_item(key, val)?;
+        }
+    }
+
+    Ok(out.into())
 }
 
 #[pymodule]
 fn rust_spaceanova(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(k_cross_homogeneous, m)?)?;
+    m.add_function(wrap_pyfunction!(k_all_at_once_optimized, m)?)?;
     Ok(())
 }
