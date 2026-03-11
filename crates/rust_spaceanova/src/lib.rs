@@ -400,6 +400,11 @@ fn k_all_at_once_optimized<'py>(
                         let pair = i*L + j;
                         let n1 = counts[i];
                         let n2 = counts[j];
+                        // Threshold/area gate: if invalid, leave zeros (do not add
+                        if n1 < threshold || n2 < threshold || !window_area.is_finite() || window_area <= 0.0 {
+                            continue
+                        }
+
                         let norm = (n1 as f64) * (n2 as f64 / window_area);
 
                         let mut c = local_fill[pair];
@@ -434,16 +439,24 @@ fn k_all_at_once_optimized<'py>(
 
             let n1 = counts[i];
             let n2 = counts[j];
-            let norm = (n1 as f64) * (n2 as f64 / window_area);
+            // Threshold/area gate: if invalid, leave zeros
+            if n1 < threshold || n2 < threshold || !window_area.is_finite() || window_area <= 0.0 {
+                // already zeros
+            } else {
+                let norm = (n1 as f64) * (n2 as f64 / window_area);
 
-            let mut c = fill[pair];
-            k_obs[pair][0] = c / norm;
 
-            for k in 0..eff_bins {
-                let val = bins[pair * eff_bins + k];
-                c += val;
-                if k+1 < n_bins {
-                    k_obs[pair][k+1] = c / norm;
+                let norm = (n1 as f64) * (n2 as f64 / window_area);
+
+                let mut c = fill[pair];
+                k_obs[pair][0] = c / norm;
+
+                for k in 0..eff_bins {
+                    let val = bins[pair * eff_bins + k];
+                    c += val;
+                    if k+1 < n_bins {
+                        k_obs[pair][k+1] = c / norm;
+                    }
                 }
             }
         }
@@ -459,7 +472,12 @@ fn k_all_at_once_optimized<'py>(
             let n1 = counts[i] as f64;
             let n2 = counts[j] as f64;
 
-            let k_theo = theoretical_k(&radii, new_max, n1, n2, window_area);
+            // Threshold/area gate: if invalid, leave zeros
+            let k_theo = if n1 < threshold || n2 < threshold || !window_area.is_finite() || window_area <= 0.0 {
+                    vec![0.0f64; n_bins]
+                } else {
+                    theoretical_k(&radii, new_max, n1 as f64, n2 as f64, window_area)
+                };
 
             let key = format!("{}___{}", unique[i], unique[j]);
 

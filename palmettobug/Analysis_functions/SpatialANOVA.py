@@ -1336,8 +1336,11 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                     int(permutations), int(perm_state),
                 )
                 rust_data[if_rust_what_image] = saved_K
-
-        result_array, theoretical_K, K_perm_avg = saved_K[f'{type1}___{type2}']  ## extract the desired comparison arrays
+        try:
+            result_array, theoretical_K, K_perm_avg = saved_K[f'{type1}___{type2}']  ## extract the desired comparison arrays
+        except KeyError: 
+            print("KeyError")
+            print(saved_K)
 
         centerer = 1
         if permutations > 0:
