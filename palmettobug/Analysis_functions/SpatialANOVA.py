@@ -1341,7 +1341,10 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         except KeyError: 
             print("KeyError")
             print(saved_K)
-            return np.zeros([len(fixed_r)]), np.zeros([len(fixed_r)]), np.zeros([len(fixed_r)])  ###assume this means failure to have this comparison in rust (meaning 0 cells in image of one or other of the types)
+            K_df = pd.DataFrame(np.zeros([len(fixed_r)]), columns = ["K"])
+            K_df['theoretical'] = theoretical_K
+            K_df['radii'] = radii_array
+            return K_df, np.zeros([len(fixed_r)]), np.zeros([len(fixed_r)])  ###assume this means failure to have this comparison in rust (meaning 0 cells in image of one or other of the types)
 
         centerer = 1
         if permutations > 0:
