@@ -19,7 +19,7 @@ def has_rust() -> bool:
 def k_cross_homogeneous_py(
     x: np.ndarray,
     y: np.ndarray,
-    labels: np.ndarray,
+    labels: list[str],
     r_min: int,
     r_max: int,
     r_step: int,
@@ -37,11 +37,11 @@ def k_cross_homogeneous_py(
 
     x = np.asarray(x, dtype=np.float64)
     y = np.asarray(y, dtype=np.float64)
-    labels_arr = np.asarray(labels)  
 
-    print(labels_arr)
+    print(labels)
+    print(np.unique(labels))
     all_at_once_dict = _k_cross_native(
-        x, y, list(labels_arr.astype('str')),
+        x, y, labels,
         int(r_min), int(r_max), int(r_step),
         int(threshold),
         int(permutations), int(perm_seed),

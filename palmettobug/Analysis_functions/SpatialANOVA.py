@@ -1316,7 +1316,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
             pp = pointpattern.copy()  # your per-image df
             for_rust = pp[['x','y',type_column]]
             saved_K = _rust_k_cross(
-                for_rust['x'], for_rust['y'], np.asarray(for_rust[type_column]),
+                for_rust['x'], for_rust['y'], list(for_rust[type_column]),
                 int(fixed_r[0]), int(fixed_r[-1]), int(fixed_r.step),
                 int(threshold),
                 int(permutations), int(perm_state),
@@ -1330,7 +1330,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
                 pp = pointpattern.copy()  # your per-image df
                 for_rust = pp[['x','y',type_column]]
                 saved_K = _rust_k_cross(
-                    for_rust['x'], for_rust['y'], np.asarray(for_rust[type_column]),
+                    for_rust['x'], for_rust['y'], list(for_rust[type_column]),
                     int(fixed_r[0]), int(fixed_r[-1]), int(fixed_r.step),
                     int(threshold),
                     int(permutations), int(perm_state),
@@ -1341,6 +1341,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         except KeyError: 
             print("KeyError")
             print(saved_K)
+            return K_df, np.zeros([len(fixed_r)]), np.zeros([len(fixed_r)])  ###assume this means failure to have this comparison in rust (meaning 0 cells in image of one or other of the types)
 
         centerer = 1
         if permutations > 0:
