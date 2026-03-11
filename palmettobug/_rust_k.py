@@ -47,4 +47,5 @@ def k_cross_homogeneous_py(
         int(permutations), int(perm_seed),
     )
     # Ensure contiguous float64 arrays
+    print(all_at_once_dict)
     return all_at_once_dict

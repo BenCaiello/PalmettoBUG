@@ -1325,7 +1325,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         else:
             try:         ## if already calculated K, use the available data
                 saved_K = rust_data[if_rust_what_image]
-            except Exception:      ##  else calculate the K's for the entire image
+            except KeyError:      ##  else calculate the K's for the entire image
                 # Prepare arrays for Rust
                 pp = pointpattern.copy()  # your per-image df
                 for_rust = pp[['x','y',type_column]]
