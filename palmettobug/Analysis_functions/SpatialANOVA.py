@@ -1262,6 +1262,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
           suppress_threshold_warnings = False,
           use_rust: bool = True,
           if_rust_what_image: int = 0,   ## the unique id for the image
+          rust_data = {},
           ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:       # *** deriv_spatstat (largely a direct translation, but some divergences)
     '''
     This function calculates K, L, and g for a given image and pair of cell types at a range of distances (fixed_r).
