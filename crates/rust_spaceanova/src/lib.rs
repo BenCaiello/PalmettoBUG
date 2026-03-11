@@ -258,7 +258,7 @@ fn k_all_at_once_optimized<'py>(
     // --- Load coordinate slices ---
     let x = x.as_slice()?;
     let y = y.as_slice()?;
-    let labels_str: Vec<String> = labels.as_slice();   // &[String]
+    let labels_str: Vec<String> = labels;   // &[String]
 
     let n_points = x.len();
     if n_points != y.len() || n_points != labels_str.len() {
@@ -295,7 +295,7 @@ fn k_all_at_once_optimized<'py>(
     // --- Convert input labels to integer codes ---
     let mut labels_int = Vec::with_capacity(labels_str.len());
     for lab in labels_str {
-        labels_int.push(label_index[lab]);  
+        labels_int.push(label_index[&lab]);  
     }
 
     // --- Precompute geometry + edges ---
