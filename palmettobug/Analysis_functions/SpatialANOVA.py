@@ -529,6 +529,7 @@ class SpatialANOVA():
         self._all_g = pd.DataFrame()
         self._all_K = pd.DataFrame()
         self._all_L = pd.DataFrame()
+        self.rust_data = {}
         for ii,i in zip(group_img_dict,range(0,len(split_point_pattern))):
             K_L_g_output_chunk = do_K_L_g(split_point_pattern[i], 
                                         type_column = 'cellType', 
@@ -542,7 +543,11 @@ class SpatialANOVA():
                                         center_on_zero = center_on_zero,
                                         suppress_threshold_warnings = suppress_threshold_warnings,
                                         use_rust = use_rust,
-                                        if_rust_what_image = i) 
+                                        if_rust_what_image = i,
+                                        if_rust_what_data = self.rust_data) 
+            if len(K_L_g_output_chunk) == 4:   ## means rust data was returned
+                self.rust_data = K_L_g_output_chunk[3]
+                K_L_g_output_chunk = K_L_g_output_chunk[0:2]
             append_K_L_g(K_L_g_output_chunk)
 
         self.type1 = type1
@@ -1256,7 +1261,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
           center_on_zero: bool = True,
           suppress_threshold_warnings = False,
           use_rust: bool = True,
-          if_rust_what_image: int = -1,   ## either the unique id for the image, or -1 to indicate a fresh calculation
+          if_rust_what_image: int = 0,   ## the unique id for the image
           ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:       # *** deriv_spatstat (largely a direct translation, but some divergences)
     '''
     This function calculates K, L, and g for a given image and pair of cell types at a range of distances (fixed_r).
@@ -1306,8 +1311,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         use_rust = _rust_available()
     
     if use_rust: 
-        if if_rust_what_image == -1:     ## means fresh calculation, clear any saved rust data to allow for fresh calculations
-            rust_data = {} 
+        if rust_data == {}:     ## means fresh calculation, clear any saved rust data to allow for fresh calculations
             pp = pointpattern.copy()  # your per-image df
             for_rust = pp[['x','y',type_column]]
             all_at_once_dict = _rust_k_cross(
@@ -1320,7 +1324,7 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         else:
             try:         ## if already calculated K, use the available data
                 saved_K = rust_data[if_rust_what_image]
-            except:      ##  else calculate the K's for the entire image
+            except Exception:      ##  else calculate the K's for the entire image
                 # Prepare arrays for Rust
                 pp = pointpattern.copy()  # your per-image df
                 for_rust = pp[['x','y',type_column]]
@@ -1431,7 +1435,8 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     theory_g = ((radii_array/2) * cs.derivative(nu = 1).__call__(fixed_r)) + for_theory_z
     g_df['theoretical'] = theory_g + (centerer - 1)  # no change when center = 1, else -1 to the theoretical
     g_df['radii'] = radii_array
-
+    if use_rust:
+        return K_df, L_df, g_df, rust_data
     return K_df, L_df, g_df
 
 def _K_cross_homogeneous(df: pd.DataFrame, 
