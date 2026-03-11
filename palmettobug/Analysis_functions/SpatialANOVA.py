@@ -544,7 +544,7 @@ class SpatialANOVA():
                                         suppress_threshold_warnings = suppress_threshold_warnings,
                                         use_rust = use_rust,
                                         if_rust_what_image = i,
-                                        if_rust_what_data = self.rust_data) 
+                                        rust_data = self.rust_data) 
             if len(K_L_g_output_chunk) == 4:   ## means rust data was returned
                 self.rust_data = K_L_g_output_chunk[3]
                 K_L_g_output_chunk = K_L_g_output_chunk[0:2]
