@@ -401,7 +401,7 @@ fn k_all_at_once_optimized<'py>(
                         let n1 = counts[i];
                         let n2 = counts[j];
                         // Threshold/area gate: if invalid, leave zeros (do not add
-                        if n1 < (threshold as f64) || n2 < (threshold as f64) || !window_area.is_finite() {
+                        if (n1 as usize) < (threshold as usize) || (n2 as usize) < (threshold as usize) {
                             continue
                         }
 
@@ -440,7 +440,7 @@ fn k_all_at_once_optimized<'py>(
             let n1 = counts[i];
             let n2 = counts[j];
             // Threshold/area gate: if invalid, leave zeros
-            if n1 < (threshold as f64) || n2 < (threshold as f64) || !window_area.is_finite() {
+            if (n1 as usize) < (threshold as usize) || (n2 as usize) < (threshold as usize) {
                 // already zeros
             } else {
                 let norm = (n1 as f64) * (n2 as f64 / window_area);
@@ -473,7 +473,7 @@ fn k_all_at_once_optimized<'py>(
             let n2 = counts[j] as f64;
 
             // Threshold/area gate: if invalid, leave zeros
-            let k_theo = if n1 < (threshold as f64) || n2 < (threshold as f64) || !window_area.is_finite() {
+            let k_theo = if (n1 as usize) < (threshold as usize) || (n2 as usize) < (threshold as usize) {
                     vec![0.0f64; n_bins]
                 } else {
                     theoretical_k(&radii, new_max, n1 as f64, n2 as f64, window_area)
