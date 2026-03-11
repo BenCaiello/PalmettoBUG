@@ -39,7 +39,7 @@ def k_cross_homogeneous_py(
     y = np.asarray(y, dtype=np.float64)
     labels_arr = np.asarray(labels)  
 
-
+    print(labels_arr)
     all_at_once_dict = _k_cross_native(
         x, y, list(labels_arr.astype('str')),
         int(r_min), int(r_max), int(r_step),
