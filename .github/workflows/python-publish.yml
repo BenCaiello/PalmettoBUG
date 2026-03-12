@@ -57,6 +57,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install uv pip-licenses svg-stack
           uv pip install .[instanseg] --system
+          cd crates/rust_spaceanova/target
           pwd
           ls
 
@@ -64,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-dists
-          path: palmettobug/palmettobug/crates/rust_spaceanova/target/wheels
+          path: crates/rust_spaceanova/target/wheels
 
   pypi-publish:
     runs-on: ubuntu-latest

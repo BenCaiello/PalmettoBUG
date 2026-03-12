@@ -28,8 +28,8 @@
 name: Python application
 
 on:
-  push:
-    branches: [ "rusty_vibin" ]
+  #push:
+  #  branches: [ "rusty_vibin" ]
   #push:
   #  branches: ['development']
   pull_request:
