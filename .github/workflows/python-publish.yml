@@ -57,9 +57,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install uv pip-licenses svg-stack
           uv pip install .[instanseg] --system
-          cd crates/rust_spaceanova/target
-          pwd
-          ls
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
