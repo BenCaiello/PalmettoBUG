@@ -231,7 +231,7 @@ fn theoretical_k(radii: &[f64], new_max: f64, n1: f64, n2: f64, window_area: f64
     radii.iter()
         .map(|&r| {
             if r <= new_max {
-                std::f64::consts::PI * r * r * scale
+                std::f64::consts::PI * r * r // * scale
             } else {
                 0.0
             }

@@ -1341,8 +1341,6 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         try:
             result_array, theoretical_K, K_perm_avg = saved_K[f'{type1}___{type2}']  ## extract the desired comparison arrays
         except KeyError: 
-            print("KeyError")
-            print(saved_K)
             K_df = pd.DataFrame(np.zeros([len(fixed_r)]), columns = ["K"])
             K_df['theoretical'] = np.zeros([len(fixed_r)])
             K_df['radii'] = radii_array

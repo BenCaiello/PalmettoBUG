@@ -916,6 +916,8 @@ def test_SpaceANOVA():
     python_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
     print(rust_data_table['c2___c3'])
     print(python_data_table['c2___c3'])
+    print(rust_data_table['c2___c2'])
+    print(python_data_table['c2___c2'])
     assert my_spatial.SpaceANOVA.data_table is not None, "spaceANOVA Ripley's statistics not calculated!"
     assert my_spatial.SpaceANOVA._comparison_dictionary is not None, "spaceANOVA Ripley's statistics not calculated!"
     window.destroy()
