@@ -53,16 +53,16 @@ jobs:
 
       - name: Build release distributions
         run: |
-          python -m venv build
-          build/bin/pip install poetry
-          mkdir dist
-          build/bin/poetry build
+          curl -sSf https://sh.rustup.rs | sh -s -- -y
+          python -m pip install --upgrade pip
+          pip install uv pip-licenses svg-stack
+          uv pip install .[instanseg] --system
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
         with:
           name: release-dists
-          path: dist/
+          path: palmettobug/crates/rust_spaceanova/target/wheels
 
   pypi-publish:
     runs-on: ubuntu-latest

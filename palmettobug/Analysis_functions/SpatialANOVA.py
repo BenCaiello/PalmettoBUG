@@ -1555,6 +1555,7 @@ def _K_cross_homogeneous(df: pd.DataFrame,
 
     # take into account density of celltypes in the window
     K = K / (lambda1 * lambda2)
+    # K_theo = K_theo / (lambda1 * lambda2)   ## should the theoretical K also be density corrected (?). Think about how it would affect perm. correction as well
     if truncated is True:
         K = np.concatenate([K, append_array])
     if theo is True:

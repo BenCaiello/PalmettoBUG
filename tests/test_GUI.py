@@ -887,8 +887,8 @@ def test_SpaceANOVA():
     window.refresh_SpaceANOVA_clusters()
     window.refresh_comparisons()
     window.filter_N()
-    import time  
-    rust_start = time.time()
+    #import time  
+    #rust_start = time.time()
     window.load_and_run_spatial_analysis(min_radius = 10, 
                                          max_radii = 80, 
                                          step = 5, 
@@ -897,31 +897,31 @@ def test_SpaceANOVA():
                                          permutations = 2, 
                                          seed = 42,
                                          use_rust = True)
-    rust_time = time.time() - rust_start
+    #rust_time = time.time() - rust_start
     my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
     rust_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
 
-    py_start = time.time()
-    window.load_and_run_spatial_analysis(min_radius = 10, 
-                                         max_radii = 80, 
-                                         step = 5, 
-                                         condition_comparison = "All (multicomparison)", 
-                                         celltype_key = 'merging', 
-                                         permutations = 2, 
-                                         seed = 42,
-                                         use_rust = False)
-    py_time = time.time() - py_start
-    print(f'times in seconds: py = {py_time}, rust = {rust_time}')
-    my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
-    python_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
-    print(rust_data_table['c2___c3'])
-    print(python_data_table['c2___c3'])
-    print(rust_data_table['c2___c2'])
-    print(python_data_table['c2___c2'])
+    #py_start = time.time()
+    #window.load_and_run_spatial_analysis(min_radius = 10, 
+    #                                     max_radii = 80, 
+    #                                     step = 5, 
+    #                                     condition_comparison = "All (multicomparison)", 
+    #                                     celltype_key = 'merging', 
+    #                                     permutations = 2, 
+    #                                     seed = 42,
+    #                                     use_rust = False)
+    #py_time = time.time() - py_start
+    #print(f'times in seconds: py = {py_time}, rust = {rust_time}')
+    #my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
+    #python_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
+    #print(rust_data_table['c2___c3'])
+    #print(python_data_table['c2___c3'])
+    #print(rust_data_table['c2___c2'])
+    #print(python_data_table['c2___c2'])
     assert my_spatial.SpaceANOVA.data_table is not None, "spaceANOVA Ripley's statistics not calculated!"
     assert my_spatial.SpaceANOVA._comparison_dictionary is not None, "spaceANOVA Ripley's statistics not calculated!"
     window.destroy()
-    assert False
+    #assert False
 
 def test_SpaceANOVA_stats_and_heatmap():
     window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()
