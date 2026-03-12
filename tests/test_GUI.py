@@ -894,7 +894,7 @@ def test_SpaceANOVA():
                                          step = 5, 
                                          condition_comparison = "All (multicomparison)", 
                                          celltype_key = 'merging', 
-                                         permutations = 0, 
+                                         permutations = 2, 
                                          seed = 42,
                                          use_rust = True)
     rust_time = time.time() - rust_start
@@ -907,7 +907,7 @@ def test_SpaceANOVA():
                                          step = 5, 
                                          condition_comparison = "All (multicomparison)", 
                                          celltype_key = 'merging', 
-                                         permutations = 0, 
+                                         permutations = 2, 
                                          seed = 42,
                                          use_rust = False)
     py_time = time.time() - py_start
