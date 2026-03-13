@@ -13,7 +13,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.21", features = ["extension-module"] }
-make_features
 
 [profile.release]
 codegen-units = 1
