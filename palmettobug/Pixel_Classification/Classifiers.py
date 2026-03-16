@@ -550,8 +550,15 @@ class SupervisedClassifier:
             image = tf.imread(image_folder + "/" + i).T
     
             ## generate input training data set:
+            try:
+                from ..rust_sup_classifier import all_channels_features_together as rust_all_features
+                _RUST_OK = True
+            except Exception as e:
+                print("Rust classifiers not available")
+                print(e)
+                _RUST_OK = False
             if _RUST_OK:
-                print("rusty-predictin")
+                print("rusty-trainin")
                 channel_list_in_order = list(classifier_details['channel_dictionary'].values())  
                 all_together = rust_all_features(image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
             else:
@@ -1517,7 +1524,11 @@ def add_additional_features(image: np.ndarray[float],
         channel_slice = image[j,:,:]    ## tehehe... imageJ
         if len(features_list) > 1:      ## ignore channels with only 'GAUSSIAN' (as in, all selected channels)
             features_list = features_list[1:]
-            feature_set = make_features(channel_slice, features_list, sigma)
+             if _RUST_OK:
+                print("rusty-unsupervisin")
+                all_together = rust_all_features(image, [0], features_list, list(sigma))
+            else:
+                feature_set = make_features(channel_slice, features_list, sigma)
             for i in feature_set:
                 feature_999 = np.quantile(i[i > 0], quantile)
                 quantile_list.append(feature_999)
