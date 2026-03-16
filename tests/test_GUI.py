@@ -229,7 +229,7 @@ def test_training():
     shutil.copytree(f"{homedir}/tests/training_labels", training_dir)
     app.Tabs.px_classification.create.px_widg.Napari_frame.choose_folder.configure(variable = ctk.StringVar(value = 'img'))
     app.Tabs.px_classification.create.px_widg.Napari_frame.training_button.invoke()
-    assert True 
+    assert False 
 
 def test_events_create_px():   ## do at least after a classifier has been loaded to limit risk of errors
     app.Tabs.px_classification.create.px_widg.start_frame.refresh_exclusive_buttons()
@@ -254,6 +254,7 @@ def test_prediction():
     assert (tf.imread(prediction_paths[0]).shape == tf.imread(image_paths[0]).shape[1:]), "The X/Y dimensions of the source images and output class maps should be the same!"
     assert (tf.imread(prediction_paths[1]).astype('int') != tf.imread(prediction_paths[1])).sum() == 0, "The pixel class maps shoul be integers!"
     assert tf.imread(prediction_paths[2]).max() <= 3, "There should be no pixels >3 (the number of prediction classes)"
+    assert False
 
     merging_dir = pixel_class_object.output_directory[:pixel_class_object.output_directory.rfind("/")] + "/merged_classification_maps"
     assert len(os.listdir(merging_dir)) == 10, "Wrong number of merged class maps generated!"

@@ -551,6 +551,7 @@ class SupervisedClassifier:
     
             ## generate input training data set:
             if _RUST_OK:
+                print("rusty-predictin")
                 channel_list_in_order = list(classifier_details['channel_dictionary'].values())  
                 all_together = rust_all_features(image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
             else:
@@ -634,6 +635,7 @@ class SupervisedClassifier:
     
         # Create the data matrix with the correct features, sigmas, and channels for the classifier to make predictions with:
         if _RUST_OK:
+            print("rusty-predictin")
             channel_list_in_order = list(classifier_details['channel_dictionary'].values())  
             all_together = rust_all_features(image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
         else:
