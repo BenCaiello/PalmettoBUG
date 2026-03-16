@@ -1524,7 +1524,7 @@ def add_additional_features(image: np.ndarray[float],
         channel_slice = image[j,:,:]    ## tehehe... imageJ
         if len(features_list) > 1:      ## ignore channels with only 'GAUSSIAN' (as in, all selected channels)
             features_list = features_list[1:]
-             if _RUST_OK:
+            if _RUST_OK:
                 print("rusty-unsupervisin")
                 all_together = rust_all_features(image, [0], features_list, list(sigma))
             else:
