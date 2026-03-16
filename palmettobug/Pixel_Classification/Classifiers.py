@@ -550,7 +550,7 @@ class SupervisedClassifier:
             image = tf.imread(image_folder + "/" + i).T
     
             ## generate input training data set:
-            if _rust_OK:
+            if _RUST_OK:
                 channel_list_in_order = list(classifier_details['channel_dictionary'].values())  
                 all_together = rust_all_features(image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
             else:
@@ -633,7 +633,7 @@ class SupervisedClassifier:
         algorithm1 = self.algorithm
     
         # Create the data matrix with the correct features, sigmas, and channels for the classifier to make predictions with:
-        if _rust_OK:
+        if _RUST_OK:
             channel_list_in_order = list(classifier_details['channel_dictionary'].values())  
             all_together = rust_all_features(image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
         else:
