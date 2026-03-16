@@ -9,10 +9,11 @@ authors = ["PalmettoBUG contributors"]
 
 [lib]
 name = "rust_sup_classifier"
-crate-type = ["cdylib"]
+# crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.21", features = ["extension-module"] }
+# pyo3 = { version = "0.21", features = ["extension-module"] }
+numpy = "0.21"
 
 [profile.release]
 codegen-units = 1

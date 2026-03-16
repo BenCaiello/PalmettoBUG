@@ -1,0 +1,21 @@
+[package]
+name = "palmettobug_central"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+authors = ["PalmettoBUG contributors"]
+description = "PyO3 thin wrapper exposing palmettobug.rust_spaceanova and palmettobug.rust_sup_classifier"
+
+[lib]
+name = "rust_spaceanova"
+name = "palmettobug_central"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.21", features = ["extension-module"] }
+rust_spaceanova = { path = "../rust_spaceanova" }
+rust_sup_classifier = { path = "../rust_sup_classifier" }
+numpy = "0.21"
+
+[features]
+default = []

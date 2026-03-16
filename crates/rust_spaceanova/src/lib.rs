@@ -6,13 +6,10 @@
 // AI debugging: lines of code I commented out are marked with a unique comment ID -->     //##
 // search for this to find these lines for later fixing (if needed)
 
-use numpy::{PyReadonlyArray1};
-use pyo3::prelude::*;
-use pyo3::types::PyDict;
 use rayon::prelude::*;
 use rand::prelude::*;
 use rand_pcg::Pcg64Mcg;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::f64::consts::PI;
 
 /// Numerical epsilon check (equivalent to numpy finfo eps logic in spirit).
@@ -239,11 +236,10 @@ fn theoretical_k(radii: &[f64], new_max: f64, n1: f64, n2: f64, window_area: f64
         .collect()
 }
 
-#[pyfunction]
-fn k_all_at_once_optimized<'py>(
-    py: Python<'py>,
-    x: PyReadonlyArray1<f64>,
-    y: PyReadonlyArray1<f64>,
+/*
+fn k_all_at_once_optimized(
+    x: Vec<f64>,
+    y: Vec<f64>,
     labels: Vec<String>,
     r_min: usize,
     r_max: usize,
@@ -252,8 +248,6 @@ fn k_all_at_once_optimized<'py>(
     permutations: usize,
     perm_seed: u64,
 ) -> PyResult<Py<PyDict>> {
-
-    use pyo3::types::PyDict;
 
     // --- Load coordinate slices ---
     let x = x.as_slice()?;
@@ -493,9 +487,297 @@ fn k_all_at_once_optimized<'py>(
     // eprintln!("Unique labels (L={}): {:?}, length of dict = {}", L, unique, out.len() );
     Ok(out.into())
 }
+*/
 
+// ---------- Error type (pure Rust) ----------
+#[derive(Debug)]
+pub enum SpaceAnovaError {
+    InvalidInput(String),
+    // You can add more variants as needed, e.g., Internal(String)
+}
+
+impl std::fmt::Display for SpaceAnovaError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SpaceAnovaError::InvalidInput(msg) => write!(f, "invalid input: {msg}"),
+        }
+    }
+}
+impl std::error::Error for SpaceAnovaError {}
+
+// ---------- Result value types (pure Rust) ----------
+#[derive(Debug, Clone)]
+pub struct Triple {
+    /// Observed cumulative K for this pair (length = n_bins)
+    pub k_obs: Vec<f64>,
+    /// Theoretical K for this pair (length = n_bins)
+    pub k_theo: Vec<f64>,
+    /// Permutation-average cumulative K for this pair (length = n_bins)
+    pub perm_acc: Vec<f64>,
+}
+
+/// Final output map: "label_i___label_j" → Triple(k_obs, k_theo, perm_acc)
+pub type KAllMap = BTreeMap<String, Triple>;
+
+// ---------- Function (pure Rust) ----------
+pub fn k_all_at_once_optimized(
+    x: &[f64],
+    y: &[f64],
+    labels: &[String],
+    r_min: usize,
+    r_max: usize,
+    r_step: usize,
+    threshold: usize,
+    permutations: usize,
+    perm_seed: u64,
+) -> Result<KAllMap, SpaceAnovaError> {
+    // --- Load coordinate slices ---
+    let n_points = x.len();
+    if n_points != y.len() || n_points != labels.len() {
+        return Err(SpaceAnovaError::InvalidInput(
+            "x, y, labels must have same length".to_string(),
+        ));
+    }
+
+    // --- Window geometry ---
+    let xmin = x.iter().fold(f64::INFINITY, |a, &b| a.min(b));
+    let xmax = x.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
+    let ymin = y.iter().fold(f64::INFINITY, |a, &b| a.min(b));
+    let ymax = y.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
+    let dx = xmax - xmin;
+    let dy = ymax - ymin;
+    let window_area = dx * dy;
+    let diameter = ((dx * dx) + (dy * dy)).sqrt();
+
+    let (radii, new_max, _) = make_radii_with_truncation(r_min, r_max, r_step, diameter);
+    let n_bins = radii.len();
+
+    // --- Build unique labels ---
+    let mut unique: Vec<String> = labels.to_vec();
+    unique.sort();
+    unique.dedup();
+    let L = unique.len();
+
+    // --- Map label string -> integer code ---
+    let mut label_index: HashMap<String, usize> = HashMap::new();
+    for (i, lab) in unique.iter().enumerate() {
+        label_index.insert(lab.clone(), i);
+    }
+
+    // --- Convert input labels to integer codes ---
+    let mut labels_int = Vec::with_capacity(labels.len());
+    for lab in labels {
+        labels_int.push(label_index[lab]);
+    }
+
+    // --- Precompute geometry + edges ---
+    let geom: Vec<PointGeom> = x
+        .iter()
+        .zip(y.iter())
+        .map(|(&xi, &yi)| PointGeom::from_xy(xi, yi, xmin, xmax, ymin, ymax))
+        .collect();
+
+    // (No GIL here; just call directly.)
+    let edges = precompute_edges(x, y, &geom, xmin, ymin, new_max);
+
+    // --- Compute effective histogram bins ---
+    let lo = r_min as f64;
+    let eff_bins = if r_step > 0 {
+        if r_min == 0 {
+            ((new_max / r_step as f64).floor() as isize).max(0) as usize
+        } else {
+            ((((new_max - lo) / r_step as f64).floor()) as isize).max(0) as usize
+        }
+    } else {
+        0
+    };
+
+    // --- Global accumulators ---
+    let mut fill = vec![0.0f64; L * L];
+    let mut bins = vec![0.0f64; L * L * eff_bins];
+
+    // --- SINGLE PASS over edges ---
+    for e in &edges {
+        let d = e.dist;
+        if d <= 0.0 || d >= new_max {
+            continue;
+        }
+
+        let li = labels_int[e.left];
+        let lj = labels_int[e.right];
+        let pair = li * L + lj;
+
+        if d < lo {
+            fill[pair] += e.w;
+        } else if eff_bins > 0 {
+            let k = ((d - lo) / (r_step as f64)).floor() as isize;
+            if k >= 0 {
+                let k = k as usize;
+                if k < eff_bins {
+                    unsafe {
+                        *bins.get_unchecked_mut(pair * eff_bins + k) += e.w;
+                    }
+                }
+            }
+        }
+    }
+
+    // --- Label counts ---
+    let mut counts = vec![0usize; L];
+    for &code in &labels_int {
+        counts[code] += 1;
+    }
+
+    // --- Permutation accumulators ---
+    let mut perm_acc = vec![vec![0.0f64; n_bins]; L * L];
+
+    // --- Permutations ---
+    if permutations > 0 {
+        use rand::{seq::SliceRandom, SeedableRng};
+        use rand_pcg::Pcg64Mcg;
+
+        let mut rng = Pcg64Mcg::seed_from_u64(perm_seed);
+        let mut labels_perm = labels_int.clone();
+        let mut pair_map = vec![0usize; n_points];
+
+        for _ in 0..permutations {
+            labels_perm.shuffle(&mut rng);
+
+            // create pair_map (label code)
+            for i in 0..n_points {
+                pair_map[i] = labels_perm[i];
+            }
+
+            let mut local_fill = vec![0.0f64; L * L];
+            let mut local_bins = vec![0.0f64; L * L * eff_bins];
+
+            for e in &edges {
+                let d = e.dist;
+                if d <= 0.0 || d >= new_max {
+                    continue;
+                }
+
+                let i = pair_map[e.left];
+                let j = pair_map[e.right];
+                let pair = i * L + j;
+
+                if d < lo {
+                    local_fill[pair] += e.w;
+                } else if eff_bins > 0 {
+                    let k = ((d - lo) / (r_step as f64)).floor() as isize;
+                    if k >= 0 {
+                        let k = k as usize;
+                        if k < eff_bins {
+                            unsafe {
+                                *local_bins.get_unchecked_mut(pair * eff_bins + k) += e.w;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // cumulative + normalize
+            for i in 0..L {
+                for j in 0..L {
+                    let pair = i * L + j;
+                    let n1 = counts[i];
+                    let n2 = counts[j];
+
+                    // Threshold/area gate: if invalid, leave zeros (do not add)
+                    if n1 < threshold || n2 < threshold {
+                        continue;
+                    }
+
+                    let norm = (n1 as f64) * (n2 as f64 / window_area);
+
+                    let mut c = local_fill[pair];
+                    perm_acc[pair][0] += c / norm;
+
+                    for k in 0..eff_bins {
+                        let val = local_bins[pair * eff_bins + k];
+                        c += val;
+                        if k + 1 < n_bins {
+                            perm_acc[pair][k + 1] += c / norm;
+                        }
+                    }
+                }
+            }
+        }
+
+        // average
+        for pair in 0..L * L {
+            for b in 0..n_bins {
+                perm_acc[pair][b] /= permutations as f64;
+            }
+        }
+    }
+
+    // --- Observed cumulative K ---
+    let mut k_obs = vec![vec![0.0f64; n_bins]; L * L];
+
+    for i in 0..L {
+        for j in 0..L {
+            let pair = i * L + j;
+
+            let n1 = counts[i];
+            let n2 = counts[j];
+            // Threshold/area gate: if invalid, leave zeros
+            if n1 < threshold || n2 < threshold {
+                // already zeros
+            } else {
+                let norm = (n1 as f64) * (n2 as f64 / window_area);
+
+                let mut c = fill[pair];
+                k_obs[pair][0] = c / norm;
+
+                for k in 0..eff_bins {
+                    let val = bins[pair * eff_bins + k];
+                    c += val;
+                    if k + 1 < n_bins {
+                        k_obs[pair][k + 1] = c / norm;
+                    }
+                }
+            }
+        }
+    }
+
+    // --- Build pure-Rust map (replaces PyDict) ---
+    let mut out: KAllMap = BTreeMap::new();
+
+    for i in 0..L {
+        for j in 0..L {
+            let pair = i * L + j;
+
+            let n1 = counts[i] as f64;
+            let n2 = counts[j] as f64;
+
+            // Threshold/area gate: if invalid, leave zeros
+            let k_theo = if (n1 as usize) < threshold || (n2 as usize) < threshold {
+                vec![0.0f64; n_bins]
+            } else {
+                theoretical_k(&radii, new_max, n1, n2, window_area)
+            };
+
+            let key = format!("{}___{}", unique[i], unique[j]);
+
+            let triple = Triple {
+                k_obs: k_obs[pair].clone(),
+                k_theo,
+                perm_acc: perm_acc[pair].clone(),
+            };
+
+            out.insert(key, triple);
+        }
+    }
+
+    Ok(out)
+}
+
+
+/*
 #[pymodule]
 fn rust_spaceanova(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(k_all_at_once_optimized, m)?)?;
     Ok(())
 }
+*/

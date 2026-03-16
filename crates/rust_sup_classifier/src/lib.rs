@@ -16,70 +16,7 @@
 // --------------------------------------------------------------
 
 use std::f32::consts::PI;
-use pyo3::prelude::*;
-use pyo3::exceptions::*;
-use numpy::{PyArray2, PyArray3, PyArray1};
-use numpy::IntoPyArray;
 
-//
-// ========== Utility Conversion Helpers ==========
-//
-
-// ---- Helpers to check contiguity quickly ----
-fn ensure_c_contiguous2<'py>(py: Python<'py>, a: &PyArray2<f32>) -> PyResult<()> {
-    if !a.is_c_contiguous() {
-        return Err(PyValueError::new_err("Expected a C-contiguous float32 array (H, W). Consider calling np.ascontiguousarray(x, dtype=np.float32)."));
-    }
-    Ok(())
-}
-fn ensure_c_contiguous3<'py>(py: Python<'py>, a: &PyArray3<f32>) -> PyResult<()> {
-    if !a.is_c_contiguous() {
-        return Err(PyValueError::new_err("Expected a C-contiguous float32 array (C, H, W). Consider calling np.ascontiguousarray(x, dtype=np.float32)."));
-    }
-    Ok(())
-}
-
-// (H, W) -> Vec<Vec<f32>>
-fn array2_to_vec2<'py>(py: Python<'py>, arr: &PyArray2<f32>) -> PyResult<Vec<Vec<f32>>> {
-    ensure_c_contiguous2(py, arr)?;
-    let (h, w) = arr.dim();
-    let slice = unsafe { arr.as_slice().unwrap() };
-    Ok(slice.chunks(w).map(|row| row.to_vec()).collect())
-}
-
-// (C, H, W) -> Vec<Vec<Vec<f32>>>
-fn array3_to_vec3<'py>(py: Python<'py>, arr: &PyArray3<f32>) -> PyResult<Vec<Vec<Vec<f32>>>> {
-    ensure_c_contiguous3(py, arr)?;
-    let (c, h, w) = arr.dim();
-    let slice = unsafe { arr.as_slice().unwrap() };
-
-    let mut out = vec![vec![vec![0.0; w]; h]; c];
-    let mut idx = 0;
-    for ci in 0..c {
-        for yi in 0..h {
-            for xi in 0..w {
-                out[ci][yi][xi] = slice[idx];
-                idx += 1;
-            }
-        }
-    }
-    Ok(out)
-}
-
-// Vec<Vec<f32>> -> (H, W)
-fn vec2_to_py<'py>(py: Python<'py>, v: Vec<Vec<f32>>) -> &'py PyArray2<f32> {
-    // This performs one allocation/copy internally; no need to flatten manually.
-    PyArray2::from_vec2(py, &v).expect("unable to create PyArray2 from Vec<Vec<f32>>")
-}
-
-// Vec<Vec<Vec<f32>>> -> (A, B, C) following the nesting order
-fn vec3_to_py<'py>(py: Python<'py>, v: Vec<Vec<Vec<f32>>>) -> &'py PyArray3<f32> {
-    let a = v.len();
-    let b = v[0].len();
-    let c = v[0][0].len();
-    let flat: Vec<f32> = v.into_iter().flatten().flatten().collect();
-    PyArray3::from_shape_vec(py, (a, b, c), flat).expect("Failed to construct PyArray3")
-}
 
 /// Clamp `v` into the inclusive range [lo, hi].
 #[inline]
@@ -544,53 +481,5 @@ fn rust_make_features_single_channel(
         }
     }
 
-    // layers: Vec<F>{H×W}; Python sees shape (F, H, W) via vec3_to_py
     layers
 }
-
-
-// ===============================================================
-//   PYTHON MODULE DEFINITION (PyO3 entry point) & API
-// ===============================================================
-
-#[pymodule]
-fn rust_features(_py: Python, m: &PyModule) -> PyResult<()> {
-
-    m.add_function(wrap_pyfunction!(make_features_py, m)?)?;
-    m.add_function(wrap_pyfunction!(all_channels_features_together_py, m)?)?;
-
-    Ok(())
-}
-
-#[pyfunction]
-fn make_features_py<'py>(
-    py: Python<'py>,
-    image: &PyArray2<f32>,
-    feature_list: Vec<String>,
-    sigma: f32,
-) -> PyResult<&'py PyArray3<f32>> {
-    let img_vec = array2_to_vec2(py, image)?;
-    let out = rust_make_features_single_channel(&img_vec, &feature_list, sigma);
-    Ok(vec3_to_py(py, out))
-}
-
-#[pyfunction]
-fn all_channels_features_together_py<'py>(
-    py: Python<'py>,
-    image: &PyArray3<f32>,
-    channels: Vec<usize>,
-    features: Vec<String>,
-    sigmas: Vec<f32>,
-) -> PyResult<&'py PyArray3<f32>> {
-    let img = array3_to_vec3(py, image)?;
-
-    let details = crate::ClassifierDetails {
-        channel_list: channels,
-        features_list: features,
-        sigma_list: sigmas,
-    };
-
-    let out = crate::all_channels_features_together(&img, &details);
-    Ok(vec3_to_py(py, out))
-}
-
