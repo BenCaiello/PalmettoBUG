@@ -87,6 +87,14 @@ import seaborn as sns
 
 from flowsom import FlowSOM
 
+try:
+    from ..rust_sup_classifier import all_channels_features_together as rust_all_features
+    _RUST_OK = True
+except Exception as e:
+    print("Rust classifiers not available")
+    print(e)
+    _RUST_OK = False
+
 pd.set_option('future.no_silent_downcasting', True)
 
 __all__ = ["SupervisedClassifier", 
@@ -542,7 +550,11 @@ class SupervisedClassifier:
             image = tf.imread(image_folder + "/" + i).T
     
             ## generate input training data set:
-            all_together = all_channels_features_together(image, classifier_details)
+            if _rust_OK:
+                channel_list_in_order = list(classifier_details['channel_dictionary'].values())  
+                all_together = rust_all_features(image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
+            else:
+                all_together = all_channels_features_together(image, classifier_details)
             training_data = all_together.reshape([(all_together.shape[0]*all_together.shape[1]),
                                                   all_together.shape[2]])    ## this assumes X/Y dimensions are the first two layers
     
@@ -621,7 +633,11 @@ class SupervisedClassifier:
         algorithm1 = self.algorithm
     
         # Create the data matrix with the correct features, sigmas, and channels for the classifier to make predictions with:
-        all_together = all_channels_features_together(image, classifier_details)
+        if _rust_OK:
+            channel_list_in_order = list(classifier_details['channel_dictionary'].values())  
+            all_together = rust_all_features(image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
+        else:
+            all_together = all_channels_features_together(image, classifier_details)
         px_class = _predictClassifier(all_together, 
                                      algorithm1, 
                                      classifier_details['categorical'], 
