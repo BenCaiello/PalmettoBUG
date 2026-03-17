@@ -76,6 +76,43 @@ fn to_py_err<E: std::fmt::Display>(e: E) -> pyo3::PyErr {
     pyo3::exceptions::PyRuntimeError::new_err(e.to_string())
 }
 
+
+#[pyfunction]
+fn k_all_at_once_optimized<'py>(
+    py: Python<'py>,
+    x: numpy::PyReadonlyArray1<f64>,
+    y: numpy::PyReadonlyArray1<f64>,
+    labels: Vec<String>,
+    r_min: usize,
+    r_max: usize,
+    r_step: usize,
+    threshold: usize,
+    permutations: usize,
+    perm_seed: u64,
+) -> PyResult<Py<PyDict>> {
+    // NumPy -> Rust
+    let x = x.as_slice()?;
+    let y = y.as_slice()?;
+
+    // Call pure Rust
+    let out_map = sa::k_all_at_once_optimized(
+        x, y, &labels, r_min, r_max, r_step, threshold, permutations, perm_seed,
+    ).map_err(to_py_err)?;
+
+    // Rust map -> Python dict
+    let dict = PyDict::new_bound(py);
+    for (key, triple) in out_map {
+        let k_obs   = PyArray1::from_vec(py, triple.k_obs);
+        let k_theo  = PyArray1::from_vec(py, triple.k_theo);
+        let permacc = PyArray1::from_vec(py, triple.perm_acc);
+
+        // Tuple of NumPy arrays, just like your original API
+        dict.set_item(key, (k_obs, k_theo, permacc))?;
+    }
+
+    Ok(dict.into())
+}
+
 #[pyfunction]
 fn all_features_together_rust<'py>(
     py: Python<'py>,
