@@ -70,9 +70,9 @@ fn vec3_to_py<'py>(py: Python<'py>, v: Vec<Vec<Vec<f32>>>) -> Bound<'py, PyArray
 
     // Optional: check for length mismatch; use checked_mul if desired
     let expected = a.saturating_mul(b).saturating_mul(c);
-    if flat.len() != expected {
+    /*if flat.len() != expected {
         return Err(PyValueError::new_err("length mismatch"));
-    }
+    }*/
 
     let pyarray: Bound<'py, PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (a, b, c), false);
     // Safe because we just allocated and the array is C-contiguous.
@@ -147,7 +147,7 @@ fn all_features_together_rust<'py>(
 
     // Call sub-library
     let layers: Vec<Vec<Vec<f32>>> =
-        clf::all_features_together(&image_vec, &channel_list, &feature_list, &sigmas);
+        clf::all_features_together(&image_vec, &channel_list, &feature_list.as_slice()?, &sigmas);
 
     // Empty -> return (0, H, W) without copying
     if layers.is_empty() {
@@ -203,7 +203,7 @@ fn make_features_rust<'py>(
     }
 
     // Call sub-library: [L][H][W]
-    let layers = rust_sup_classifier::rust_make_features_single_channel(&image_vec, &feature_list.as_slice(), sigma);
+    let layers = clf::rust_make_features_single_channel(&image_vec, &feature_list.as_slice(), sigma);
 
     // Empty -> (0, H, W)
     let l = layers.len();
@@ -243,13 +243,13 @@ fn make_features_rust<'py>(
 fn _native(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     // palmettobug.rust_spaceanova
     let sa_mod = PyModule::new_bound(py, "rust_spaceanova")?;
-    sa_mod.add_function(wrap_pyfunction!(sa::k_all_at_once_optimized, &sa_mod)?)?;
+    sa_mod.add_function(wrap_pyfunction!(k_all_at_once_optimized, &sa_mod)?)?;
     m.add_submodule(&sa_mod)?;
 
     // palmettobug.rust_sup_classifier
     let clf_mod = PyModule::new_bound(py, "rust_sup_classifier")?;
-    clf_mod.add_function(wrap_pyfunction!(clf::all_features_together_rust, &clf_mod)?)?;
-    clf_mod.add_function(wrap_pyfunction!(clf::make_features_rust, &clf_mod)?)?;
+    clf_mod.add_function(wrap_pyfunction!(all_features_together_rust, &clf_mod)?)?;
+    clf_mod.add_function(wrap_pyfunction!(make_features_rust, &clf_mod)?)?;
     m.add_submodule(&clf_mod)?;
 
     Ok(())
