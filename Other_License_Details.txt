@@ -99,6 +99,7 @@ Files (see file headers for more specifics / modifications of the packages):
             - rayon --> MIT license OR Apache 2.0.  Copyright (c) 2010 The Rust Project Developers
             - rand and rand_pcg --> MIT license OR Apache 2.0.  Copyright 2018 Developers of the Rand project    (and for rand only)   Copyright (c) 2014 The Rust Project Developers
             - rust-numpy --> BSD-2.                Copyright (c) 2017, Toshiki Teramura
+            - rust-ndarray --> MIT license OR Apache 2.0. Copyright (c) 2015 - 2021 Ulrik Sverdrup "bluss", Jim Turner, and ndarray developers
 
         -- Rust crates themselves (these are largely AI-driven translations of existing palmettobug code or dependencies):
             - rust_spaceanova is a AI-driven translation of (in-part) python-ported spatstat & spaceanova code (see palmettobug/Analysis_functions/SpatialANOVA.py above)
