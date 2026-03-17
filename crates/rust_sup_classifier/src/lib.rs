@@ -342,7 +342,7 @@ fn get_structure_tensor(
     compute_coherence: bool,
 ) -> (Vec<Vec<f32>>, Vec<Vec<f32>>, Vec<Vec<f32>>) 
 {
-    let (dx, dy, mag) = sobel_3x3(image);
+    let (dx, dy, _mag) = sobel_3x3(image);
 
     let mut dxx = zeros_like(image);
     let mut dyy = zeros_like(image);
