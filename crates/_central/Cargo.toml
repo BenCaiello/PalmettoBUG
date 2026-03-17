@@ -15,6 +15,7 @@ pyo3 = { version = "0.21", features = ["extension-module"] }
 rust_spaceanova = { path = "../rust_spaceanova" }
 rust_sup_classifier = { path = "../rust_sup_classifier" }
 numpy = "0.21"
+ndarray = "0.15"
 
 [features]
 default = []
