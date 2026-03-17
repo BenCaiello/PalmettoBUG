@@ -73,7 +73,7 @@ fn vec3_to_py<'py>(py: Python<'py>, v: Vec<Vec<Vec<f32>>>) -> PyResult<&'py PyAr
         return Err(PyValueError::new_err("length mismatch"));
     }
 
-    let pyarray: &PyArray3<f32> = PyArray3::<f32>::new(py, (a, b, c), false);
+    let pyarray: &PyArray3<f32> = PyArray3::<f32>::new_bound(py, (a, b, c), false);
     // Safe because we just allocated and the array is C-contiguous.
     pyarray.as_slice_mut()?.copy_from_slice(&flat);
     Ok(pyarray)
@@ -86,8 +86,8 @@ fn to_py_err<E: std::fmt::Display>(e: E) -> pyo3::PyErr {
 #[pyfunction]
 fn k_all_at_once_optimized<'py>(
     py: Python<'py>,
-    x: numpy::PyReadonlyArray1<f64>,
-    y: numpy::PyReadonlyArray1<f64>,
+    x: PyReadonlyArray1<f64>,
+    y: PyReadonlyArray1<f64>,
     labels: Vec<String>,
     r_min: usize,
     r_max: usize,
@@ -109,9 +109,9 @@ fn k_all_at_once_optimized<'py>(
     // Rust map -> Python dict
     let dict = PyDict::new_bound(py);
     for (key, triple) in out_map {
-        let k_obs = PyArray1::from_vec(py, triple.k_obs);
-        let k_theo = PyArray1::from_vec(py, triple.k_theo);
-        let permacc = PyArray1::from_vec(py, triple.perm_acc);
+        let k_obs = PyArray1::from_vec_bound(py, triple.k_obs);
+        let k_theo = PyArray1::from_vec_bound(py, triple.k_theo);
+        let permacc = PyArray1::from_vec_bound(py, triple.perm_acc);
         dict.set_item(key, (k_obs, k_theo, permacc))?;
     }
 
@@ -150,7 +150,7 @@ fn all_features_together_rust<'py>(
 
     // Empty -> return (0, H, W) without copying
     if layers.is_empty() {
-        let out: &PyArray3<f32> = PyArray3::<f32>::new(py, (0, h, w), false);
+        let out: &PyArray3<f32> = PyArray3::<f32>::new_bound(py, (0, h, w), false);
         return Ok(out);
     }
 
@@ -176,7 +176,7 @@ fn all_features_together_rust<'py>(
             flat.extend_from_slice(&row);
         }
     }
-    let out: &PyArray3<f32> = PyArray3::<f32>::new(py, (l, h, w), false);
+    let out: &PyArray3<f32> = PyArray3::<f32>::new_bound(py, (l, h, w), false);
     out.as_slice_mut()?.copy_from_slice(&flat);
     Ok(out)
 }
@@ -207,7 +207,7 @@ fn make_features_rust<'py>(
     // Empty -> (0, H, W)
     let l = layers.len();
     if l == 0 {
-        let out: &PyArray3<f32> = PyArray3::<f32>::new(py, (0, h, w), false);
+        let out: &PyArray3<f32> = PyArray3::<f32>::new_bound(py, (0, h, w), false);
         return Ok(out);
     }
 
@@ -232,7 +232,7 @@ fn make_features_rust<'py>(
             flat.extend_from_slice(&row);
         }
     }
-    let out: &PyArray3<f32> = PyArray3::<f32>::new(py, (l, h, w), false);
+    let out: &PyArray3<f32> = PyArray3::<f32>::new_bound(py, (l, h, w), false);
     out.as_slice_mut()?.copy_from_slice(&flat);
     Ok(out)
 }
@@ -240,12 +240,12 @@ fn make_features_rust<'py>(
 #[pymodule]
 fn _native(py: Python, m: &PyModule) -> PyResult<()> {
     // palmettobug.rust_spaceanova
-    let sa_mod = PyModule::new(py, "rust_spaceanova")?;
+    let sa_mod = PyModule::new_bound(py, "rust_spaceanova")?;
     sa_mod.add_function(pyo3::wrap_pyfunction!(k_all_at_once_optimized, sa_mod)?)?;
     m.add_submodule(sa_mod)?;
 
     // palmettobug.rust_sup_classifier
-    let clf_mod = PyModule::new(py, "rust_sup_classifier")?;
+    let clf_mod = PyModule::new_bound(py, "rust_sup_classifier")?;
     clf_mod.add_function(pyo3::wrap_pyfunction!(all_features_together_rust, clf_mod)?)?;
     clf_mod.add_function(pyo3::wrap_pyfunction!(make_features_rust, clf_mod)?)?;
     m.add_submodule(clf_mod)?;
