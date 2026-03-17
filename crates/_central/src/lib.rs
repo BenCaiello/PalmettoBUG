@@ -77,7 +77,7 @@ fn vec3_to_py<'py>(py: Python<'py>, v: Vec<Vec<Vec<f32>>>) -> Bound<'py, PyArray
     let pyarray: Bound<'py, PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (a, b, c), false);
     // Safe because we just allocated and the array is C-contiguous.
     pyarray.as_slice_mut()?.copy_from_slice(&flat);
-    Ok(pyarray)
+    pyarray
 }
 
 fn to_py_err<E: std::fmt::Display>(e: E) -> pyo3::PyErr {
@@ -179,7 +179,7 @@ fn all_features_together_rust<'py>(
     }
     let out: Bound<'py, PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (l, h, w), false);
     out.as_slice_mut()?.copy_from_slice(&flat);
-    Ok(out)
+    out
 }
 
 #[pyfunction]
@@ -235,7 +235,7 @@ fn make_features_rust<'py>(
     }
     let out: Bound<'py, PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (l, h, w), false);
     out.as_slice_mut()?.copy_from_slice(&flat);
-    Ok(out)
+    out
 }
 
 #[pymodule]
