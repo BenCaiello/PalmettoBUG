@@ -77,44 +77,7 @@ fn to_py_err<E: std::fmt::Display>(e: E) -> pyo3::PyErr {
 }
 
 #[pyfunction]
-fn k_all_at_once_optimized<'py>(
-    _py: Python<'py>,
-    x: PyReadonlyArray1<f64>,
-    y: PyReadonlyArray1<f64>,
-    labels: Vec<String>,
-    r_min: usize,
-    r_max: usize,
-    r_step: usize,
-    threshold: usize,
-    permutations: usize,
-    perm_seed: u64,
-) -> PyResult<Py<PyDict>> {
-    // NumPy -> Rust (requires contiguity; returns PyErr if not contiguous)
-    let x = x.as_slice()?;
-    let y = y.as_slice()?;
-
-    // Call pure Rust
-    let out_map = sa::k_all_at_once_optimized_impl(
-        x, y, &labels, r_min, r_max, r_step, threshold, permutations, perm_seed,
-    )
-    .map_err(to_py_err)?;
-
-    // Rust map -> Python dict
-    Python::with_gil(|py| {
-        let dict = PyDict::new_bound(py);
-        for (key, triple) in out_map {
-            let k_obs = PyArray1::from_vec(py, triple.k_obs);
-            let k_theo = PyArray1::from_vec(py, triple.k_theo);
-            let permacc = PyArray1::from_vec(py, triple.perm_acc);
-            dict.set_item(key, (k_obs, k_theo, permacc))?;
-        }
-        Ok(dict.into())
-    })
-}
-
-
-#[pyfunction]
-fn all_channels_features_together_py<'py>(
+fn all_features_together_rust<'py>(
     py: Python<'py>,
     x: PyReadonlyArray3<f32>,     // Expect [C, H, W]
     channel_list: Vec<usize>,
@@ -188,7 +151,7 @@ fn all_channels_features_together_py<'py>(
 
 
 #[pyfunction]
-fn make_features_py<'py>(
+fn make_features_rust<'py>(
     py: Python<'py>,
     x: PyReadonlyArray2<f32>,       // single-channel image [H, W]
     feature_list: &Vec<String>,
@@ -258,7 +221,7 @@ fn make_features_py<'py>(
 fn _native(py: Python, m: &PyModule) -> PyResult<()> {
     // palmettobug.rust_spaceanova
     let sa_mod = PyModule::new(py, "rust_spaceanova")?;
-    sa_mod.add_function(pyo3::wrap_pyfunction!(k_all_at_once_optimized, sa_mod)?)?;
+    sa_mod.add_function(pyo3::wrap_pyfunction!(all_features_together_rust, sa_mod)?)?;
     m.add_submodule(sa_mod)?;
 
     // palmettobug.rust_sup_classifier
@@ -267,7 +230,7 @@ fn _native(py: Python, m: &PyModule) -> PyResult<()> {
         all_channels_features_together_py,
         clf_mod
     )?)?;
-    clf_mod.add_function(pyo3::wrap_pyfunction!(make_features_py, clf_mod)?)?;
+    clf_mod.add_function(pyo3::wrap_pyfunction!(make_features_rust, clf_mod)?)?;
     m.add_submodule(clf_mod)?;
 
     Ok(())

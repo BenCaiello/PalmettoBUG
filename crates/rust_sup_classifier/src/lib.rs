@@ -18,12 +18,6 @@
 use std::f32::consts::PI;
 
 
-/// Clamp `v` into the inclusive range [lo, hi].
-#[inline]
-fn clamp_usize(v: isize, lo: usize, hi: usize) -> usize {
-    if v < lo as isize { lo } else if v > hi as isize { hi } else { v as usize }
-}
-
 #[inline]
 fn zeros_like(like: &Vec<Vec<f32>>) -> Vec<Vec<f32>> {
     let h = like.len();

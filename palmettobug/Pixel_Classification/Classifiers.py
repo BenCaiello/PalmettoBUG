@@ -88,7 +88,7 @@ import seaborn as sns
 from flowsom import FlowSOM
 
 try:
-    from ..rust_sup_classifier import all_channels_features_together_py, make_features_py
+    from ..rust_sup_classifier import all_features_together_rust, make_features_rust
     _RUST_OK = True
 except Exception as e:
     print("Rust classifiers not available")
@@ -551,7 +551,7 @@ class SupervisedClassifier:
     
             ## generate input training data set:
             try:
-                from ..rust_sup_classifier import make_features_py, all_channels_features_together_py
+                from ..rust_sup_classifier import make_features_rust, all_features_together_rust
                 _RUST_OK = True
             except Exception as e:
                 print("Rust classifiers not available")
@@ -560,7 +560,7 @@ class SupervisedClassifier:
             if _RUST_OK:
                 print("rusty-trainin")
                 channel_list_in_order = list(classifier_details['channel_dictionary'].values())  
-                all_together = all_channels_features_together_py(image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
+                all_together = all_features_together_rust(image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
             else:
                 all_together = all_channels_features_together(image, classifier_details)
             training_data = all_together.reshape([(all_together.shape[0]*all_together.shape[1]),
@@ -644,7 +644,7 @@ class SupervisedClassifier:
         if _RUST_OK:
             print("rusty-predictin")
             channel_list_in_order = list(classifier_details['channel_dictionary'].values())  
-            all_together = all_channels_features_together_py(image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
+            all_together = all_features_together_rust(image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
         else:
             all_together = all_channels_features_together(image, classifier_details)
         px_class = _predictClassifier(all_together, 
@@ -1526,7 +1526,7 @@ def add_additional_features(image: np.ndarray[float],
             features_list = features_list[1:]
             if _RUST_OK:
                 print("rusty-unsupervisin")
-                all_together = make_features_py(channel_slice, features_list, sigma)
+                all_together = make_features_rust(channel_slice, features_list, sigma)
             else:
                 feature_set = make_features(channel_slice, features_list, sigma)
             for i in feature_set:
