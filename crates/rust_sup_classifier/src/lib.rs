@@ -490,7 +490,7 @@ pub fn all_features_together(
 
 fn rust_make_features_single_channel(
     image: &Vec<Vec<f32>>,
-    feature_list: &Vec<String>,
+    feature_list: &[String],
     sigma: f32,
 ) -> Vec<Vec<Vec<f32>>> {
     let (k0, k1, k2) = get_gaussian_derivs(sigma);
