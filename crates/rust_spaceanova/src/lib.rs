@@ -225,11 +225,11 @@ fn make_radii_with_truncation(min_r: usize, max_r: usize, step: usize, diameter:
 
 /// Build theoretical K as π r² with radii > new_max set to 0 (by making those radii 0).
 fn theoretical_k(radii: &[f64], new_max: f64, n1: f64, n2: f64, window_area: f64) -> Vec<f64> {
-    let scale = if window_area > 0.0 { n1 * n2 / window_area } else { 0.0 };
+    let _scale = if window_area > 0.0 { n1 * n2 / window_area } else { 0.0 };
     radii.iter()
         .map(|&r| {
             if r <= new_max {
-                std::f64::consts::PI * r * r // * scale
+                std::f64::consts::PI * r * r // * _scale
             } else {
                 0.0
             }

@@ -410,6 +410,82 @@ fn get_weighted_stddev(image: &Vec<Vec<f32>>, k0: &Vec<f32>) -> Vec<Vec<f32>> {
 }
 
 
+/// Compute all features across selected channels and sigmas, stacking each resulting
+/// feature layer into a single `[num_layers, H, W]` output, ordered by:
+/// channel-major -> sigma-major -> feature-major.
+///
+/// - `image` is a multi-channel image: shape `[C][H][W]`.
+/// - `channel_list` contains channel indices to process.
+/// - `feature_list` lists which features to compute (semantics owned by `rust_make_features_single_channel`).
+/// - `sigmas` lists sigma (scale) values to apply.
+///
+/// Returns: a 3D vector where each entry is a 2D layer `[H][W]`.
+pub fn all_features_together(
+    image: &Vec<Vec<Vec<f32>>>,     // [C][H][W]
+    channel_list: &[usize],
+    feature_list: &[String],
+    sigmas: &[f32],
+) -> Vec<Vec<Vec<f32>>> {
+    // Optional: validate inputs
+    debug_assert!(
+        !image.is_empty(),
+        "image should have at least one channel"
+    );
+    if image.is_empty() {
+        return Vec::new();
+    }
+
+    let h = image[0].len();
+    let w = if h > 0 { image[0][0].len() } else { 0 };
+
+    // Reserve roughly (channels * sigmas * features) layers.
+    // Exact layer count comes from rust_make_features_single_channel,
+    // which typically returns one layer per feature in `feature_list`.
+    let mut output: Vec<Vec<Vec<f32>>> =
+        Vec::with_capacity(channel_list.len() * sigmas.len() * feature_list.len());
+
+    for &cidx in channel_list {
+        // Basic bounds check to avoid panic on bad indices.
+        if cidx >= image.len() {
+            // You can choose to panic instead if this should be programmer error:
+            // panic!("channel index {} out of bounds for image with {} channels", cidx, image.len());
+            // For now, skip invalid indices.
+            continue;
+        }
+
+        let channel_img: &Vec<Vec<f32>> = &image[cidx];
+
+        // Optional: ensure consistent H, W
+        debug_assert_eq!(channel_img.len(), h, "all channels must have same height");
+        if !channel_img.is_empty() {
+            debug_assert_eq!(
+                channel_img[0].len(),
+                w,
+                "all channels must have same width"
+            );
+        }
+
+        for &s in sigmas {
+            // `rust_make_features_single_channel` returns multiple layers (e.g., one per feature).
+            let layers_for_sigma: Vec<Vec<Vec<f32>>> =
+                rust_make_features_single_channel(channel_img, feature_list, s);
+
+            // Optionally validate sizes of returned layers
+            debug_assert!(
+                layers_for_sigma.iter().all(|layer| layer.len() == h
+                    && (layer.is_empty() || layer[0].len() == w)),
+                "feature layer shape must match input channel HxW"
+            );
+
+            // Append to the master stack
+            output.extend(layers_for_sigma);
+        }
+    }
+
+    output
+}
+
+
 // Unified features calculator
 
 fn rust_make_features_single_channel(
@@ -456,8 +532,11 @@ fn rust_make_features_single_channel(
                 layers.push(get_laplacian(&dxx, &dyy));
             }
             "STRUCT_CO" => {
-                let (_, _, co) = get_structure_tensor(image, &k0, true);
-                layers.push(co);
+                if struct_cached.is_none() {
+                    struct_cached = Some(get_structure_tensor(image, &k0, false));
+                }
+                let (_, _, co) = struct_cached.as_ref().unwrap();
+                layers.push(co.clone());
             }
             "STRUCT_MAX" => {
                 if struct_cached.is_none() {
