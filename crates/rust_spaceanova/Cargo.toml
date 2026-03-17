@@ -10,10 +10,8 @@ authors = ["PalmettoBUG contributors"]
 
 [lib]
 name = "rust_spaceanova"
-# crate-type = ["cdylib"]
 
 [dependencies]
-# pyo3 = { version = "0.21", features = ["extension-module"] }
 # numpy = "0.21"
 rayon = "1.8"
 rand = "0.8"

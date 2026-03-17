@@ -1,5 +1,5 @@
 [package]
-name = "palmettobug_central"
+name = "_central"
 version = "0.1.0"
 edition = "2021"
 license = "GPL-3.0-or-later"
@@ -7,8 +7,7 @@ authors = ["PalmettoBUG contributors"]
 description = "PyO3 thin wrapper exposing palmettobug.rust_spaceanova and palmettobug.rust_sup_classifier"
 
 [lib]
-name = "rust_spaceanova"
-name = "palmettobug_central"
+name = "_central"
 crate-type = ["cdylib"]
 
 [dependencies]
