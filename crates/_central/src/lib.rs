@@ -124,7 +124,7 @@ fn k_all_at_once_optimized<'py>(
 fn all_features_together_rust<'py>(
     py: Python<'py>,
     x: PyReadonlyArray3<f32>, // Expect [C, H, W]
-    channel_list: PyReadonlyArray3<<usize>,
+    channel_list: PyReadonlyArray3<usize>,
     feature_list:  PyArray3<String>,
     sigmas: PyReadonlyArray3<f32>,
 ) -> Bound<'py, PyArray3<f32>> {
@@ -203,7 +203,7 @@ fn make_features_rust<'py>(
     }
 
     // Call sub-library: [L][H][W]
-    let layers = rust_sup_classifier::rust_make_features_single_channel(&image_vec, &feature_list, sigma);
+    let layers = rust_sup_classifier::rust_make_features_single_channel(&image_vec, &feature_list.as_slice(), sigma);
 
     // Empty -> (0, H, W)
     let l = layers.len();
@@ -243,13 +243,13 @@ fn make_features_rust<'py>(
 fn _native(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     // palmettobug.rust_spaceanova
     let sa_mod = PyModule::new_bound(py, "rust_spaceanova")?;
-    sa_mod.add_function(wrap_pyfunction!(k_all_at_once_optimized, &sa_mod)?)?;
+    sa_mod.add_function(wrap_pyfunction!(sa::k_all_at_once_optimized, &sa_mod)?)?;
     m.add_submodule(&sa_mod)?;
 
     // palmettobug.rust_sup_classifier
     let clf_mod = PyModule::new_bound(py, "rust_sup_classifier")?;
-    clf_mod.add_function(wrap_pyfunction!(all_features_together_rust, &clf_mod)?)?;
-    clf_mod.add_function(wrap_pyfunction!(make_features_rust, &clf_mod)?)?;
+    clf_mod.add_function(wrap_pyfunction!(clf::all_features_together_rust, &clf_mod)?)?;
+    clf_mod.add_function(wrap_pyfunction!(clf::make_features_rust, &clf_mod)?)?;
     m.add_submodule(&clf_mod)?;
 
     Ok(())
