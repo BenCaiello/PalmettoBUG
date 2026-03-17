@@ -328,10 +328,10 @@ build-backend = "maturin"
 [tool.maturin]
 bindings = "pyo3"
 # Path to the Rust crate that exports the PyO3 module:
-manifest-path = "crates/rust_spaceanova/Cargo.toml"
-# Expose the compiled module at palmettobug.rust_spaceanova
+manifest-path = "crates/_central/Cargo.toml"
+# Expose the compiled module at palmettobug._central
 python-packages = ["palmettobug"]
-module-name = "palmettobug.rust_spaceanova"
+module-name = "palmettobug._central"
 # Optional niceties:
 profile = "release"
 strip = true
