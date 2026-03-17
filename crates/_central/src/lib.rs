@@ -221,13 +221,13 @@ fn make_features_rust<'py>(
 fn _native(py: Python, m: &PyModule) -> PyResult<()> {
     // palmettobug.rust_spaceanova
     let sa_mod = PyModule::new(py, "rust_spaceanova")?;
-    sa_mod.add_function(pyo3::wrap_pyfunction!(all_features_together_rust, sa_mod)?)?;
+    sa_mod.add_function(pyo3::wrap_pyfunction!(k_all_at_once_optimized, sa_mod)?)?;
     m.add_submodule(sa_mod)?;
 
     // palmettobug.rust_sup_classifier
     let clf_mod = PyModule::new(py, "rust_sup_classifier")?;
     clf_mod.add_function(pyo3::wrap_pyfunction!(
-        all_channels_features_together_py,
+        all_features_together_rust,
         clf_mod
     )?)?;
     clf_mod.add_function(pyo3::wrap_pyfunction!(make_features_rust, clf_mod)?)?;
