@@ -124,9 +124,9 @@ fn k_all_at_once_optimized<'py>(
 fn all_features_together_rust<'py>(
     py: Python<'py>,
     x: PyReadonlyArray3<f32>, // Expect [C, H, W]
-    channel_list: Vec<usize>,
-    feature_list: Vec<String>,
-    sigmas: Vec<f32>,
+    channel_list: PyReadonlyArray3<<usize>,
+    feature_list:  PyArray3<String>,
+    sigmas: PyReadonlyArray3<f32>,
 ) -> Bound<'py, PyArray3<f32>> {
     // Convert [C,H,W] -> Vec<Vec<Vec<f32>>>
     let view = x.as_array();
@@ -152,7 +152,7 @@ fn all_features_together_rust<'py>(
     // Empty -> return (0, H, W) without copying
     if layers.is_empty() {
         let out: Bound<'py, PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (0, h, w), false);
-        return Ok(out);
+        return out;
     }
 
     // Validate layer shapes
@@ -186,7 +186,7 @@ fn all_features_together_rust<'py>(
 fn make_features_rust<'py>(
     py: Python<'py>,
     x: PyReadonlyArray2<f32>, // single-channel [H, W]
-    feature_list: &Vec<String>,
+    feature_list: PyArray3<String>,
     sigma: f32, // single sigma
 ) -> Bound<'py, PyArray3<f32>> {
     // Convert [H, W] -> Vec<Vec<f32>>
@@ -203,13 +203,13 @@ fn make_features_rust<'py>(
     }
 
     // Call sub-library: [L][H][W]
-    let layers = rust_sup_classifier::rust_make_features_single_channel(&image_vec, feature_list, sigma);
+    let layers = rust_sup_classifier::rust_make_features_single_channel(&image_vec, &feature_list, sigma);
 
     // Empty -> (0, H, W)
     let l = layers.len();
     if l == 0 {
         let out: Bound<'py, PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (0, h, w), false);
-        return Ok(out);
+        return out;
     }
 
     // Validate shapes
