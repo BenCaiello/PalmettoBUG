@@ -238,18 +238,19 @@ fn make_features_rust<'py>(
     out
 }
 
+
 #[pymodule]
-fn _native(py: Python, m: &PyModule) -> PyResult<()> {
+fn _native(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     // palmettobug.rust_spaceanova
-    let sa_mod = PyModule::new_bound(py, "rust_spaceanova")?.as_ref();
-    sa_mod.add_function(pyo3::wrap_pyfunction!(k_all_at_once_optimized, sa_mod)?)?;
-    m.add_submodule(sa_mod)?;
+    let sa_mod = PyModule::new_bound(py, "rust_spaceanova")?;
+    sa_mod.add_function(wrap_pyfunction!(k_all_at_once_optimized, &sa_mod)?)?;
+    m.add_submodule(&sa_mod)?;
 
     // palmettobug.rust_sup_classifier
-    let clf_mod = PyModule::new_bound(py, "rust_sup_classifier")?.as_ref();
-    clf_mod.add_function(pyo3::wrap_pyfunction!(all_features_together_rust, clf_mod)?)?;
-    clf_mod.add_function(pyo3::wrap_pyfunction!(make_features_rust, clf_mod)?)?;
-    m.add_submodule(clf_mod)?;
+    let clf_mod = PyModule::new_bound(py, "rust_sup_classifier")?;
+    clf_mod.add_function(wrap_pyfunction!(all_features_together_rust, &clf_mod)?)?;
+    clf_mod.add_function(wrap_pyfunction!(make_features_rust, &clf_mod)?)?;
+    m.add_submodule(&clf_mod)?;
 
     Ok(())
 }
