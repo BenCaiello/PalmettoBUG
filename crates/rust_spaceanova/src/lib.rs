@@ -6,9 +6,10 @@
 // AI debugging: lines of code I commented out are marked with a unique comment ID -->     //##
 // search for this to find these lines for later fixing (if needed)
 
-use rayon::prelude::*;
-use rand::prelude::*;
+//use rayon::prelude::*;
+// use rand::prelude::*;
 use rand_pcg::Pcg64Mcg;
+use rand::{seq::SliceRandom, SeedableRng};
 use std::collections::{BTreeMap, HashMap};
 use std::f64::consts::PI;
 
@@ -633,8 +634,6 @@ pub fn k_all_at_once_optimized(
 
     // --- Permutations ---
     if permutations > 0 {
-        use rand::{seq::SliceRandom, SeedableRng};
-        use rand_pcg::Pcg64Mcg;
 
         let mut rng = Pcg64Mcg::seed_from_u64(perm_seed);
         let mut labels_perm = labels_int.clone();

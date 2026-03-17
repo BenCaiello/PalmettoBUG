@@ -184,7 +184,6 @@ pub fn sep_filter_2d(
     let tmp = convolve_horizontal_replicate(image, kernel_x);
     convolve_vertical_replicate(&tmp, kernel_y)
 }
-}
 
 /// 3×3 Sobel operator with replicate borders.
 /// Returns (dx, dy, magnitude) as three H×W images.
