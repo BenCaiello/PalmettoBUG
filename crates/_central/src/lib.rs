@@ -117,7 +117,7 @@ fn k_all_at_once_optimized<'py>(
     }
 
     // In pyo3 0.21+, convert Bound<'py, PyDict> -> Py<PyDict> via unbind()
-    Ok(dict)
+    Ok(dict.into())
 }
 
 #[pyfunction]
