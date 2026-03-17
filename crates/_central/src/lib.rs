@@ -73,7 +73,7 @@ fn vec3_to_py<'py>(py: Python<'py>, v: Vec<Vec<Vec<f32>>>) -> PyResult<&'py PyAr
         return Err(PyValueError::new_err("length mismatch"));
     }
 
-    let pyarray: Bound<'_, &PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (a, b, c), false);
+    let pyarray: &PyArray3<f32> = PyArray3::<f32>::new_bound(py, (a, b, c), false).unbind();
     // Safe because we just allocated and the array is C-contiguous.
     pyarray.as_slice_mut()?.copy_from_slice(&flat);
     Ok(pyarray)
@@ -150,7 +150,7 @@ fn all_features_together_rust<'py>(
 
     // Empty -> return (0, H, W) without copying
     if layers.is_empty() {
-        let out: Bound<'_, &PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (0, h, w), false);
+        let out: &PyArray3<f32> = PyArray3::<f32>::new_bound(py, (0, h, w), false).unbind();
         return Ok(out);
     }
 
@@ -176,7 +176,7 @@ fn all_features_together_rust<'py>(
             flat.extend_from_slice(&row);
         }
     }
-    let out: Bound<'_, &PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (l, h, w), false);
+    let out: &PyArray3<f32> = PyArray3::<f32>::new_bound(py, (l, h, w), false).unbind();
     out.as_slice_mut()?.copy_from_slice(&flat);
     Ok(out)
 }
@@ -207,7 +207,7 @@ fn make_features_rust<'py>(
     // Empty -> (0, H, W)
     let l = layers.len();
     if l == 0 {
-        let out: Bound<'_, &PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (0, h, w), false);
+        let out: &PyArray3<f32> = PyArray3::<f32>::new_bound(py, (0, h, w), false).unbind();
         return Ok(out);
     }
 
@@ -232,7 +232,7 @@ fn make_features_rust<'py>(
             flat.extend_from_slice(&row);
         }
     }
-    let out: Bound<'_, &PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (l, h, w), false);
+    let out: &PyArray3<f32> = PyArray3::<f32>::new_bound(py, (l, h, w), false).unbind();
     out.as_slice_mut()?.copy_from_slice(&flat);
     Ok(out)
 }
@@ -245,7 +245,7 @@ fn _native(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_submodule(sa_mod)?;
 
     // palmettobug.rust_sup_classifier
-    let clf_mod = PyModule::new_bound(py, "rust_sup_classifier")?.unbind();
+    let clf_mod = PyModule::new_bound(py, "rust_sup_classifier").unbind()?;
     clf_mod.add_function(pyo3::wrap_pyfunction!(all_features_together_rust, clf_mod)?)?;
     clf_mod.add_function(pyo3::wrap_pyfunction!(make_features_rust, clf_mod)?)?;
     m.add_submodule(clf_mod)?;

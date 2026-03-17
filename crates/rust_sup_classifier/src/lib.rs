@@ -482,7 +482,7 @@ pub fn all_features_together(
 
 // Unified features calculator
 
-fn rust_make_features_single_channel(
+pub fn rust_make_features_single_channel(
     image: &Vec<Vec<f32>>,
     feature_list: &[String],
     sigma: f32,
