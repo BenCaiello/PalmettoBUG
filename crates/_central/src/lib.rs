@@ -61,7 +61,7 @@ fn array3_to_vec3(arr: &PyReadonlyArray3<f32>) -> PyResult<Vec<Vec<Vec<f32>>>> {
 }
 
 // Vec<Vec<Vec<f32>>> -> (A, B, C) PyArray3 following the nesting order
-fn vec3_to_py<'py>(py: Python<'py>, v: Vec<Vec<Vec<f32>>>) -> PyResult<&'py PyArray3<f32>> {
+fn vec3_to_py<'py>(py: Python<'py>, v: Vec<Vec<Vec<f32>>>) -> Bound<'py, PyArray3<f32>> {
     let a = v.len();
     let b = if a > 0 { v[0].len() } else { 0 };
     let c = if b > 0 { v[0][0].len() } else { 0 };
@@ -77,7 +77,7 @@ fn vec3_to_py<'py>(py: Python<'py>, v: Vec<Vec<Vec<f32>>>) -> PyResult<&'py PyAr
     let pyarray: Bound<'py, PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (a, b, c), false);
     // Safe because we just allocated and the array is C-contiguous.
     pyarray.as_slice_mut()?.copy_from_slice(&flat);
-    Ok(pyarray.as_ref())
+    Ok(pyarray)
 }
 
 fn to_py_err<E: std::fmt::Display>(e: E) -> pyo3::PyErr {
@@ -127,7 +127,7 @@ fn all_features_together_rust<'py>(
     channel_list: Vec<usize>,
     feature_list: Vec<String>,
     sigmas: Vec<f32>,
-) -> PyResult<&'py PyArray3<f32>> {
+) -> Bound<'py, PyArray3<f32>> {
     // Convert [C,H,W] -> Vec<Vec<Vec<f32>>>
     let view = x.as_array();
     let (c, h, w) = view.dim();
@@ -152,7 +152,7 @@ fn all_features_together_rust<'py>(
     // Empty -> return (0, H, W) without copying
     if layers.is_empty() {
         let out: Bound<'py, PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (0, h, w), false);
-        return Ok(out.as_ref());
+        return Ok(out);
     }
 
     // Validate layer shapes
@@ -179,7 +179,7 @@ fn all_features_together_rust<'py>(
     }
     let out: Bound<'py, PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (l, h, w), false);
     out.as_slice_mut()?.copy_from_slice(&flat);
-    Ok(out.as_ref())
+    Ok(out)
 }
 
 #[pyfunction]
@@ -188,7 +188,7 @@ fn make_features_rust<'py>(
     x: PyReadonlyArray2<f32>, // single-channel [H, W]
     feature_list: &Vec<String>,
     sigma: f32, // single sigma
-) -> PyResult<&'py numpy::PyArray3<f32>> {
+) -> Bound<'py, PyArray3<f32>> {
     // Convert [H, W] -> Vec<Vec<f32>>
     let view = x.as_array();
     let (h, w) = view.dim();
@@ -209,7 +209,7 @@ fn make_features_rust<'py>(
     let l = layers.len();
     if l == 0 {
         let out: Bound<'py, PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (0, h, w), false);
-        return Ok(out.as_ref());
+        return Ok(out);
     }
 
     // Validate shapes
@@ -235,7 +235,7 @@ fn make_features_rust<'py>(
     }
     let out: Bound<'py, PyArray3<f32>> = PyArray3::<f32>::new_bound(py, (l, h, w), false);
     out.as_slice_mut()?.copy_from_slice(&flat);
-    Ok(out.as_ref())
+    Ok(out)
 }
 
 #[pymodule]
