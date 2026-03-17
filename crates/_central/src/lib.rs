@@ -77,7 +77,7 @@ fn vec3_to_py<'py>(py: Python<'py>, v: Vec<Vec<Vec<f32>>>) -> PyResult<&'py PyAr
     let pyarray = PyArray3::<f32>::new_bound(py, (a, b, c), false);
     // Safe because we just allocated and the array is C-contiguous.
     pyarray.as_slice_mut()?.copy_from_slice(&flat);
-    Ok(pyarray.unbind())
+    Ok(pyarray.as_ref())
 }
 
 fn to_py_err<E: std::fmt::Display>(e: E) -> pyo3::PyErr {
@@ -117,7 +117,7 @@ fn k_all_at_once_optimized<'py>(
     }
 
     // In pyo3 0.21+, convert Bound<'py, PyDict> -> Py<PyDict> via unbind()
-    Ok(dict.unbind())
+    Ok(dict.as_ref())
 }
 
 #[pyfunction]
@@ -152,7 +152,7 @@ fn all_features_together_rust<'py>(
     // Empty -> return (0, H, W) without copying
     if layers.is_empty() {
         let out = PyArray3::<f32>::new_bound(py, (0, h, w), false);
-        return Ok(out);
+        return Ok(out.as_ref());
     }
 
     // Validate layer shapes
@@ -179,7 +179,7 @@ fn all_features_together_rust<'py>(
     }
     let out = PyArray3::<f32>::new_bound(py, (l, h, w), false);
     out.as_slice_mut()?.copy_from_slice(&flat);
-    Ok(out.unbind())
+    Ok(out.as_ref())
 }
 
 #[pyfunction]
@@ -209,7 +209,7 @@ fn make_features_rust<'py>(
     let l = layers.len();
     if l == 0 {
         let out = PyArray3::<f32>::new_bound(py, (0, h, w), false);
-        return Ok(out);
+        return Ok(out.as_ref());
     }
 
     // Validate shapes
@@ -235,7 +235,7 @@ fn make_features_rust<'py>(
     }
     let out = PyArray3::<f32>::new_bound(py, (l, h, w), false);
     out.as_slice_mut()?.copy_from_slice(&flat);
-    Ok(out.unbind())
+    Ok(out.as_ref())
 }
 
 #[pymodule]
