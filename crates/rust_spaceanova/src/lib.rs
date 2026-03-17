@@ -6,7 +6,7 @@
 // AI debugging: lines of code I commented out are marked with a unique comment ID -->     //##
 // search for this to find these lines for later fixing (if needed)
 
-//use rayon::prelude::*;
+use rayon::prelude::*;
 // use rand::prelude::*;
 use rand_pcg::Pcg64Mcg;
 use rand::{seq::SliceRandom, SeedableRng};
