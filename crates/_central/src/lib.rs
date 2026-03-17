@@ -5,6 +5,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyModule};
 
 use numpy::{PyArray1, PyArray3, PyReadonlyArray1, PyReadonlyArray2, PyReadonlyArray3};
+use numpy::PyArrayMethods;
 
 use rust_spaceanova as sa;
 use rust_sup_classifier as clf;
@@ -76,7 +77,7 @@ fn vec3_to_py<'py>(py: Python<'py>, v: Vec<Vec<Vec<f32>>>) -> PyResult<&'py PyAr
     let pyarray = PyArray3::<f32>::new_bound(py, (a, b, c), false);
     // Safe because we just allocated and the array is C-contiguous.
     pyarray.as_slice_mut()?.copy_from_slice(&flat);
-    Ok(pyarray)
+    Ok(pyarray.unbind())
 }
 
 fn to_py_err<E: std::fmt::Display>(e: E) -> pyo3::PyErr {
@@ -178,7 +179,7 @@ fn all_features_together_rust<'py>(
     }
     let out = PyArray3::<f32>::new_bound(py, (l, h, w), false);
     out.as_slice_mut()?.copy_from_slice(&flat);
-    Ok(out)
+    Ok(out.unbind())
 }
 
 #[pyfunction]
@@ -234,7 +235,7 @@ fn make_features_rust<'py>(
     }
     let out = PyArray3::<f32>::new_bound(py, (l, h, w), false);
     out.as_slice_mut()?.copy_from_slice(&flat);
-    Ok(out)
+    Ok(out.unbind())
 }
 
 #[pymodule]
