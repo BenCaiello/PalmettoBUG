@@ -247,7 +247,7 @@ fn _native(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     // Make `from palmettobug.rust_sup_classifier import ...` work:
     let sys = PyModule::import(py, "sys")?;
     sys.dict().set_item("palmettobug.rust_sup_classifier", &clf_mod)?;
-    modules.dict().set_item("palmettobug.rust_spaceanova", &sa_mod)?;
+    sys.dict().set_item("palmettobug.rust_spaceanova", &sa_mod)?;
 
     Ok(())
 }
