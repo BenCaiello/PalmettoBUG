@@ -173,7 +173,7 @@ fn all_features_together_rust<'py>(
     // Empty -> (0, H, W)
     let (_c, h, w) = x.as_array().dim();
     if layers.is_empty() {
-        let out = PyArray3::<f32>::new_bound(py, (0, h, w), false);
+        let out = PyArray3::<f32>::zeros_bound(py, (0, h, w), false);
         return Ok(out);
     }
 
@@ -211,7 +211,7 @@ fn make_features_rust<'py>(
     // Empty -> (0, H, W)
     let (h, w) = x.as_array().dim();
     if layers.is_empty() {
-        let out = PyArray3::<f32>::new_bound(py, (0, h, w), false);
+        let out = PyArray3::<f32>::zeros_bound(py, (0, h, w), false);
         return Ok(out);
     }
 
