@@ -416,9 +416,9 @@ fn get_weighted_stddev(image: &Vec<Vec<f32>>, k0: &Vec<f32>) -> Vec<Vec<f32>> {
 /// Returns: a 3D vector where each entry is a 2D layer `[H][W]`.
 pub fn all_features_together(
     image: &Vec<Vec<Vec<f32>>>,     // [C][H][W]
-    channel_list: &Vec<usize>,
-    feature_list: &Vec<str>,
-    sigmas: &Vec<f32>,
+    channel_list: &[usize],
+    feature_list: &[str],
+    sigmas: &[f32],
 ) -> Vec<Vec<Vec<f32>>> {
     // Optional: validate inputs
     debug_assert!(
