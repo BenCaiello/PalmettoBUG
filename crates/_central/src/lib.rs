@@ -165,6 +165,7 @@ fn all_features_together_rust<'py>(
 ) -> PyResult<Bound<'py, PyArray3<f32>>> {
     // Enforce contiguity where we might depend on perf / stride assumptions
     ensure_c_contiguous3_f32(&x)?;
+    let image_vec:   Vec<Vec<Vec<f32>>>   = array3_to_vec3(&x)?;
 
     // Call pure Rust lib (assumed: returns Vec<Vec<Vec<f32>>>)
     let layers = clf::all_features_together(&image_vec, &channel_list, &feature_list, &sigmas);
