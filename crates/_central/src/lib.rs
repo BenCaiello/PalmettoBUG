@@ -160,7 +160,7 @@ fn all_features_together_rust<'py>(
     // [C, H, W] float32, C-contiguous
     x: PyReadonlyArray3<f32>,
     channel_list: Vec<usize>,
-    feature_list: Vec<str>,
+    feature_list: Vec<String>,
     sigmas: Vec<f32>,
 ) -> PyResult<Bound<'py, PyArray3<f32>>> {
     // Enforce contiguity where we might depend on perf / stride assumptions
@@ -168,7 +168,7 @@ fn all_features_together_rust<'py>(
     let image_vec:   Vec<Vec<Vec<f32>>>   = array3_to_vec3(&x)?;
 
     // Call pure Rust lib (assumed: returns Vec<Vec<Vec<f32>>>)
-    let layers = clf::all_features_together(&image_vec, &channel_list, &feature_list, &sigmas);
+    let layers = clf::all_features_together(&image_vec, channel_list, feature_list, sigmas);
 
     // Empty -> (0, H, W)
     let (_c, h, w) = x.as_array().dim();
@@ -198,7 +198,7 @@ fn make_features_rust<'py>(
     // single-channel [H, W]
     x: PyReadonlyArray2<f32>,
     // string list
-    feature_list: Vec<str>,
+    feature_list: Vec<String>,
     // single sigma
     sigma: f32,
 ) -> PyResult<Bound<'py, PyArray3<f32>>> {
@@ -206,7 +206,7 @@ fn make_features_rust<'py>(
     let image_vec: Vec<Vec<f32>> = array2_to_vec2_f32(&x)?;
 
     // Call pure Rust lib
-    let layers = clf::rust_make_features_single_channel(&image_vec, &feature_list, sigma);
+    let layers = clf::rust_make_features_single_channel(&image_vec, feature_list, sigma);
 
     // Empty -> (0, H, W)
     let (h, w) = x.as_array().dim();
