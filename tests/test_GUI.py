@@ -922,7 +922,7 @@ def test_SpaceANOVA():
     assert my_spatial.SpaceANOVA.data_table is not None, "spaceANOVA Ripley's statistics not calculated!"
     assert my_spatial.SpaceANOVA._comparison_dictionary is not None, "spaceANOVA Ripley's statistics not calculated!"
     window.destroy()
-    #assert False
+    assert False
 
 def test_SpaceANOVA_stats_and_heatmap():
     window = app.Tabs.Spatial.widgets.widgets.launch_heat_plot()

@@ -44,7 +44,9 @@ from .Analysis_functions.SpatialAnalysis import SpatialAnalysis
 from .Utils.sharedClasses import TableLaunch_nonGUI as TableLaunch
 from .Utils.sharedClasses import run_napari
 
-from . import _central
+from . import _central as _central
+from . import rust_spaceanova as rust_spaceanova
+from . import rust_sup_classifier as rust_sup_classifier
 
 __version__ = '0.2.11'
 __all__ = ["run_GUI",
