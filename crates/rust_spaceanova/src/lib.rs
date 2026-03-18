@@ -557,7 +557,7 @@ pub fn k_all_at_once_optimized(
     let mut unique: Vec<String> = labels.to_vec();
     unique.sort();
     unique.dedup();
-    let L = unique.len();
+    let unique_len = unique.len();
 
     // --- Map label string -> integer code ---
     let mut label_index: HashMap<String, usize> = HashMap::new();
@@ -594,8 +594,8 @@ pub fn k_all_at_once_optimized(
     };
 
     // --- Global accumulators ---
-    let mut fill = vec![0.0f64; L * L];
-    let mut bins = vec![0.0f64; L * L * eff_bins];
+    let mut fill = vec![0.0f64; unique_len * unique_len];
+    let mut bins = vec![0.0f64; unique_len * unique_len * eff_bins];
 
     // --- SINGLE PASS over edges ---
     for e in &edges {
@@ -606,7 +606,7 @@ pub fn k_all_at_once_optimized(
 
         let li = labels_int[e.left];
         let lj = labels_int[e.right];
-        let pair = li * L + lj;
+        let pair = li * unique_len + lj;
 
         if d < lo {
             fill[pair] += e.w;
@@ -630,7 +630,7 @@ pub fn k_all_at_once_optimized(
     }
 
     // --- Permutation accumulators ---
-    let mut perm_acc = vec![vec![0.0f64; n_bins]; L * L];
+    let mut perm_acc = vec![vec![0.0f64; n_bins]; unique_len * unique_len];
 
     // --- Permutations ---
     if permutations > 0 {
@@ -647,8 +647,8 @@ pub fn k_all_at_once_optimized(
                 pair_map[i] = labels_perm[i];
             }
 
-            let mut local_fill = vec![0.0f64; L * L];
-            let mut local_bins = vec![0.0f64; L * L * eff_bins];
+            let mut local_fill = vec![0.0f64; unique_len * unique_len];
+            let mut local_bins = vec![0.0f64; unique_len * unique_len * eff_bins];
 
             for e in &edges {
                 let d = e.dist;
@@ -658,7 +658,7 @@ pub fn k_all_at_once_optimized(
 
                 let i = pair_map[e.left];
                 let j = pair_map[e.right];
-                let pair = i * L + j;
+                let pair = i * unique_len + j;
 
                 if d < lo {
                     local_fill[pair] += e.w;
@@ -676,9 +676,9 @@ pub fn k_all_at_once_optimized(
             }
 
             // cumulative + normalize
-            for i in 0..L {
-                for j in 0..L {
-                    let pair = i * L + j;
+            for i in 0..unique_len {
+                for j in 0..unique_len {
+                    let pair = i * unique_len + j;
                     let n1 = counts[i];
                     let n2 = counts[j];
 
@@ -704,7 +704,7 @@ pub fn k_all_at_once_optimized(
         }
 
         // average
-        for pair in 0..L * L {
+        for pair in 0..unique_len * unique_len {
             for b in 0..n_bins {
                 perm_acc[pair][b] /= permutations as f64;
             }
@@ -712,11 +712,11 @@ pub fn k_all_at_once_optimized(
     }
 
     // --- Observed cumulative K ---
-    let mut k_obs = vec![vec![0.0f64; n_bins]; L * L];
+    let mut k_obs = vec![vec![0.0f64; n_bins]; unique_len * unique_len];
 
-    for i in 0..L {
-        for j in 0..L {
-            let pair = i * L + j;
+    for i in 0..unique_len {
+        for j in 0..unique_len {
+            let pair = i * unique_len + j;
 
             let n1 = counts[i];
             let n2 = counts[j];
@@ -744,8 +744,8 @@ pub fn k_all_at_once_optimized(
     let mut out: KAllMap = BTreeMap::new();
 
     for i in 0..L {
-        for j in 0..L {
-            let pair = i * L + j;
+        for j in 0..unique_len {
+            let pair = i * unique_len + j;
 
             let n1 = counts[i] as f64;
             let n2 = counts[j] as f64;

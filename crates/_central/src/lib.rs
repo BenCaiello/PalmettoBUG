@@ -58,7 +58,7 @@ fn array2_to_vec2_f32(a: &PyReadonlyArray2<f32>) -> PyResult<Vec<Vec<f32>>> {
 
 // Generic (C, H, W) -> Vec<Vec<Vec<T>>> for T: Clone
 #[inline]
-fn array3_to_vec3<T: Clone>(a: &PyReadonlyArray3<T>) -> PyResult<Vec<Vec<Vec<T>>>> {
+fn array3_to_vec3<T: Clone>(a: &PyReadonlyArray3<T>) -> PyResult<Vec<Vec<Vec<T>>>> where T: numpy::Element {
     let v = a.as_array();
     let c = v.len_of(Axis(0));
     let h = v.len_of(Axis(1));
