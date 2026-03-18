@@ -13,7 +13,6 @@ Institution: FlowCytometry and Cell Sorting Shared Resource of the Hollings Canc
 
 This script contains the code for exporting the various functions / classes of PalmettoBUG's non-GUI API
 '''
-
 from .Executable import run_GUI    ## might as well create an additional launch point for the GUI program
 
 from .Entrypoint.app_and_entry import fetch_CyTOF_example, fetch_IMC_example
@@ -44,6 +43,8 @@ from .Analysis_functions.SpatialAnalysis import SpatialAnalysis
 
 from .Utils.sharedClasses import TableLaunch_nonGUI as TableLaunch
 from .Utils.sharedClasses import run_napari
+
+from . import _central
 
 __version__ = '0.2.11'
 __all__ = ["run_GUI",
