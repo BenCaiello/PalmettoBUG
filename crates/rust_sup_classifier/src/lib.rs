@@ -417,7 +417,7 @@ fn get_weighted_stddev(image: &Vec<Vec<f32>>, k0: &Vec<f32>) -> Vec<Vec<f32>> {
 pub fn all_features_together(
     image: &Vec<Vec<Vec<f32>>>,     // [C][H][W]
     channel_list: &[usize],
-    feature_list: &[str],
+    feature_list: &[String],
     sigmas: &[f32],
 ) -> Vec<Vec<Vec<f32>>> {
     // Optional: validate inputs
@@ -484,7 +484,7 @@ pub fn all_features_together(
 
 pub fn rust_make_features_single_channel(
     image: &Vec<Vec<f32>>,
-    feature_list: &Vec<str>,
+    feature_list: &[String],
     sigma: f32,
 ) -> Vec<Vec<Vec<f32>>> {
     let (k0, k1, k2) = get_gaussian_derivs(sigma);
