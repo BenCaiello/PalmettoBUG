@@ -44,8 +44,11 @@ from .Analysis_functions.SpatialAnalysis import SpatialAnalysis
 from .Utils.sharedClasses import TableLaunch_nonGUI as TableLaunch
 from .Utils.sharedClasses import run_napari
 
+from . import _central as _central
+
 __version__ = '0.2.11'
-__all__ = ["run_GUI",
+__all__ = ["_central",
+            "run_GUI",
            "CyTOF_bead_normalize",
            "ImageAnalysis",
            "mask_expand",
