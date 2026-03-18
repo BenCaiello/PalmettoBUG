@@ -231,7 +231,7 @@ fn make_features_rust<'py>(
 }
 
 #[pymodule]
-fn _native(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
+fn _central(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     // palmettobug.rust_spaceanova
     let sa_mod = PyModule::new_bound(py, "rust_spaceanova")?;
     sa_mod.add_function(wrap_pyfunction!(k_all_at_once_optimized, &sa_mod)?)?;
