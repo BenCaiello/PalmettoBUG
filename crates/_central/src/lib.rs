@@ -73,54 +73,6 @@ fn array3_to_vec3<T: Clone>(a: &PyReadonlyArray3<T>) -> PyResult<Vec<Vec<Vec<T>>
     Ok(out)
 }
 
-// (C,H,W) i64 -> Vec<Vec<Vec<usize>>> with validation (non-negative, fits usize)
-#[inline]
-fn array3_i64_to_vec3_usize(a: &PyReadonlyArray3<i64>) -> PyResult<Vec<Vec<Vec<usize>>>> {
-    let v = a.as_array();
-    let c = v.len_of(Axis(0));
-    let h = v.len_of(Axis(1));
-    let mut out_c = Vec::with_capacity(c);
-    for plane in v.axis_iter(Axis(0)) {
-        let mut out_h = Vec::with_capacity(h);
-        for row in plane.axis_iter(Axis(0)) {
-            let mut out_w = Vec::with_capacity(row.len());
-            for &val in row.iter() {
-                if val < 0 {
-                    return Err(PyValueError::new_err(
-                        "channel_list must contain non-negative integers",
-                    ));
-                }
-                let u = usize::try_from(val)
-                    .map_err(|_| PyValueError::new_err("channel_list integer out of range for usize"))?;
-                out_w.push(u);
-            }
-            out_h.push(out_w);
-        }
-        out_c.push(out_h);
-    }
-    Ok(out_c)
-}
-
-// Accept Python lists of strings: list[str] | list[list[str]] | list[list[list[str]]]
-// -> Vec<Vec<Vec<String>>>
-#[inline]
-fn extract_str_list3(obj: &PyAny) -> PyResult<Vec<Vec<Vec<String>>>> {
-    if let Ok(v3) = obj.extract::<Vec<Vec<Vec<String>>>>() {
-        return Ok(v3);
-    }
-    if let Ok(v2) = obj.extract::<Vec<Vec<String>>>() {
-        return Ok(vec![v2]); // promote 2D -> 3D
-    }
-    if let Ok(v1) = obj.extract::<Vec<String>>() {
-        return Ok(vec![vec![v1]]); // promote 1D -> 3D
-    }
-    Err(PyValueError::new_err(
-        "feature_list must be a nested list of strings: \
-         list[str], list[list[str]], or list[list[list[str]]]. \
-         Numpy object arrays of strings are not supported; please pass Python lists.",
-    ))
-}
-
 // Vec<Vec<Vec<f32>>> -> PyArray3<f32> without unsafe copies.
 // Uses ndarray::Array3 + numpy::PyArray::from_owned_array_bound.
 #[inline]
@@ -208,24 +160,15 @@ fn all_features_together_rust<'py>(
     py: Python<'py>,
     // [C, H, W] float32, C-contiguous
     x: PyReadonlyArray3<f32>,
-    // use np.int64 at Python boundary; convert to usize here
-    channel_list: PyReadonlyArray3<i64>,
-    // accept Python lists of strings
-    feature_list: &PyAny,
-    // float32 [*,*,*]
-    sigmas: PyReadonlyArray3<f32>,
+    channel_list: &[usize],
+    feature_list: &[f32],
+    sigmas: &[String],
 ) -> PyResult<Bound<'py, PyArray3<f32>>> {
     // Enforce contiguity where we might depend on perf / stride assumptions
     ensure_c_contiguous3_f32(&x)?;
 
-    // ndarray-based, no index loops
-    let image_vec:   Vec<Vec<Vec<f32>>>   = array3_to_vec3(&x)?;
-    let channel_vec: Vec<Vec<Vec<usize>>> = array3_i64_to_vec3_usize(&channel_list)?;
-    let sigma_vec:   Vec<Vec<Vec<f32>>>   = array3_to_vec3(&sigmas)?;
-    let feature_vec: Vec<Vec<Vec<String>>> = extract_str_list3(feature_list)?;
-
     // Call pure Rust lib (assumed: returns Vec<Vec<Vec<f32>>>)
-    let layers = clf::all_features_together(&image_vec, &channel_vec, &feature_vec, &sigma_vec);
+    let layers = clf::all_features_together(&image_vec, channel_list, feature_list, sigmas);
 
     // Empty -> (0, H, W)
     let (_c, h, w) = x.as_array().dim();
@@ -254,17 +197,16 @@ fn make_features_rust<'py>(
     py: Python<'py>,
     // single-channel [H, W]
     x: PyReadonlyArray2<f32>,
-    // string lists
-    feature_list: &PyAny,
+    // string list
+    feature_list: &[String],
     // single sigma
     sigma: f32,
 ) -> PyResult<Bound<'py, PyArray3<f32>>> {
     ensure_c_contiguous2(&x)?;
     let image_vec: Vec<Vec<f32>> = array2_to_vec2_f32(&x)?;
-    let features:  Vec<Vec<Vec<String>>> = extract_str_list3(feature_list)?;
 
     // Call pure Rust lib
-    let layers = clf::rust_make_features_single_channel(&image_vec, &features, sigma);
+    let layers = clf::rust_make_features_single_channel(&image_vec, feature_list, sigma);
 
     // Empty -> (0, H, W)
     let (h, w) = x.as_array().dim();
