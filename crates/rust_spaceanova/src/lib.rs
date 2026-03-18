@@ -624,7 +624,7 @@ pub fn k_all_at_once_optimized(
     }
 
     // --- Label counts ---
-    let mut counts = vec![0usize; L];
+    let mut counts = vec![0usize; unique_len];
     for &code in &labels_int {
         counts[code] += 1;
     }
@@ -743,7 +743,7 @@ pub fn k_all_at_once_optimized(
     // --- Build pure-Rust map (replaces PyDict) ---
     let mut out: KAllMap = BTreeMap::new();
 
-    for i in 0..L {
+    for i in 0..unique_len {
         for j in 0..unique_len {
             let pair = i * unique_len + j;
 
