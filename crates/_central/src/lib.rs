@@ -243,6 +243,14 @@ fn _native(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     clf_mod.add_function(wrap_pyfunction!(make_features_rust, &clf_mod)?)?;
     m.add_submodule(&clf_mod)?;
 
+    
+    // Make `from palmettobug.rust_sup_classifier import ...` work:
+    let sys = PyModule::import(py, "sys")?;
+    let modules: Bound<'_, PyDict> = sys.getattr("modules")?.downcast_into()?;
+    // IMPORTANT: use the *full* dotted name under your Python package:
+    modules.set_item("palmettobug.rust_sup_classifier", clf_mod)?;
+    modules.set_item("palmettobug.rust_spaceanova", sa_mod)?;
+
     Ok(())
 }
 
