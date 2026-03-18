@@ -6,7 +6,6 @@ use pyo3::types::{PyDict, PyModule};
 use pyo3::wrap_pyfunction;
 
 use numpy::{PyArray1, PyArray3, PyReadonlyArray1, PyReadonlyArray2, PyReadonlyArray3};
-use numpy::PyArrayMethods;
 
 use ndarray::{Array3, Axis};
 
@@ -160,9 +159,9 @@ fn all_features_together_rust<'py>(
     py: Python<'py>,
     // [C, H, W] float32, C-contiguous
     x: PyReadonlyArray3<f32>,
-    channel_list: &[usize],
-    feature_list: &[f32],
-    sigmas: &[String],
+    channel_list: Vec<usize>,
+    feature_list: Vec<str>,
+    sigmas: Vec<f32>,
 ) -> PyResult<Bound<'py, PyArray3<f32>>> {
     // Enforce contiguity where we might depend on perf / stride assumptions
     ensure_c_contiguous3_f32(&x)?;
@@ -198,7 +197,7 @@ fn make_features_rust<'py>(
     // single-channel [H, W]
     x: PyReadonlyArray2<f32>,
     // string list
-    feature_list: &[String],
+    feature_list: Vec<str>,
     // single sigma
     sigma: f32,
 ) -> PyResult<Bound<'py, PyArray3<f32>>> {
