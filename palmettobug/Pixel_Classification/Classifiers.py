@@ -551,7 +551,7 @@ class SupervisedClassifier:
     
             ## generate input training data set:
             try:
-                from ..rust_sup_classifier import make_features_rust, all_features_together_rust
+                from ..rust_sup_classifier import all_features_together_rust
                 _RUST_OK = True
             except Exception as e:
                 print("Rust classifiers not available")
@@ -1526,7 +1526,7 @@ def add_additional_features(image: np.ndarray[float],
             features_list = features_list[1:]
             if _RUST_OK:
                 print("rusty-unsupervisin")
-                all_together = make_features_rust(channel_slice, features_list, sigma)
+                feature_set = make_features_rust(channel_slice, features_list, sigma)
             else:
                 feature_set = make_features(channel_slice, features_list, sigma)
             for i in feature_set:
