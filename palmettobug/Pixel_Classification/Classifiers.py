@@ -88,7 +88,7 @@ import seaborn as sns
 from flowsom import FlowSOM
 
 try:
-    import .._central as rsc 
+    from . import _central as rsc 
     rsc = rsc.rust_sup_classifier
     from rsc import all_features_together_rust, make_features_rust
     _RUST_OK = True
@@ -553,7 +553,7 @@ class SupervisedClassifier:
     
             ## generate input training data set:
             try:
-                import .._central as rsc 
+                from . import _central as rsc 
                 rsc = rsc.rust_sup_classifier
                 from rsc import all_features_together_rust, make_features_rust
                 _RUST_OK = True
