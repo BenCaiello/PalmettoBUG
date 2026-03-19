@@ -497,6 +497,10 @@ pub fn rust_make_features_single_channel(
 
     for feat in feature_list {
         match feat.as_str() {
+            "GAUSSIAN" => {
+                let mean = sep_filter_2d(image, k0, k0);
+                layers.push(mean);
+            }
             "GRAD_MAG" => {
                 let (_, _, mag) = sobel_3x3(image);
                 layers.push(mag);
