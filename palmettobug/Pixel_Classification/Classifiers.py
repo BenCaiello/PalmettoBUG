@@ -565,7 +565,8 @@ class SupervisedClassifier:
                 all_together = all_channels_features_together(image, classifier_details)
 
             py_all_together = all_channels_features_together(image, classifier_details)
-            round_rust = np.round(all_together, 3).T
+            print(all_together.shape, py_all_together.shape)
+            round_rust = np.round(all_together, 3)
             round_python = np.round(py_all_together, 3)
             for l,ll in zip(round_rust.T, round_python.T):
                 print("all_together rounded to 3 digits: ", l)
