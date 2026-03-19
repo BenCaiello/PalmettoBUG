@@ -135,7 +135,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         shutil.copyfile((destination + f"{self.name}_details.json"), details_path)
         pixel_logger.info(f"Saved classifier {self.name} to PalmettoBUG assets")
 
-    def training(self, image_folder: str) -> None:
+    def training(self, image_folder: str, try_rust: bool = True) -> None:
         if image_folder == "":
             message = "You must select a folder of images in the training folder before training!\nThis will be the same folder drop-down you use when launching in Napari\nfor label generation."
             tk.messagebox.showwarning("Warning!", message = message)
@@ -146,7 +146,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
             message = "The are no saved label images in the training folder of the classifier!"
             tk.messagebox.showwarning("Warning!", message = message)
             return
-        self.PxQuPy_class.train_folder(image_folder = image_folder)    
+        self.PxQuPy_class.train_folder(image_folder = image_folder, try_rust = try_rust)    
         pixel_logger.info(f"Trained supervised classifier {self.name} on image folder = {image_folder}")
         return warning_window("Training Finished!")
 

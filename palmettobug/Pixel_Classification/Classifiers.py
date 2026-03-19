@@ -494,7 +494,7 @@ class SupervisedClassifier:
         print('Training labels written!')
         self._image_name = None
 
-    def train_folder(self, image_folder: Union[Path, str], labels_dir: Union[str, Path, None] = None) -> cv.ml.ANN_MLP:
+    def train_folder(self, image_folder: Union[Path, str], labels_dir: Union[str, Path, None] = None, try_rust: bool = True) -> cv.ml.ANN_MLP:
         '''
         This function trains the ANN_MLP classifier using the training labels in the classifier's directory & the corresponding images 
         in the provided image_folder.
@@ -551,24 +551,25 @@ class SupervisedClassifier:
             image = tf.imread(image_folder + "/" + i).T
     
             ## generate input training data set:
-            if _RUST_OK:
+            if try_rust and _RUST_OK:
                 channel_list_in_order = list(classifier_details['channel_dictionary'].values())
                 for_rust_image = image.transpose()  
                 for_rust_image = np.ascontiguousarray(for_rust_image, dtype=np.float32)
                 all_together = rsc.all_features_together_rust(for_rust_image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
+                for k,kk in enumerate(all_together):
+                    all_together[i,:,:] = ii.transpose()
+                    all_together = all_together.T
                 all_together = all_together.transpose()
             else:
                 all_together = all_channels_features_together(image, classifier_details)
 
             py_all_together = all_channels_features_together(image, classifier_details)
             round_rust = np.round(all_together, 3).T
-            for i,ii in enumerate(round_rust):
-                round_rust[i,:,:] = ii.transpose()
-            round_rust = round_rust.T
             round_python = np.round(py_all_together, 3)
-            print("all_together rounded to 3 digits: ", round_rust)
-            print("py_all_together rounded to 3 digits: ", round_python)
-            print("comparison: ", np.isclose(round_rust, round_python).sum().sum())
+            for l,ll in zip(all_together.T, py_all_together.T):
+                print("all_together rounded to 3 digits: ", l)
+                print("py_all_together rounded to 3 digits: ", ll)
+                print("comparison: ", np.isclose(l, l).sum().sum())
             training_data = all_together.reshape([(all_together.shape[0]*all_together.shape[1]),
                                                   all_together.shape[2]])    ## this assumes X/Y dimensions are the first two layers
     
@@ -1543,7 +1544,7 @@ def add_additional_features(image: np.ndarray[float],
             else:
                 feature_set = make_features(channel_slice, features_list, sigma)
             for i in feature_set:
-                if len(i > 0) == 0:
+                if len(i[i > 0]) == 0:
                     feature_999 = 1   ## the feature is featureless (all 0), then the local quantile is irrelevant
                 else:
                     feature_999 = np.quantile(i[i > 0], quantile)
