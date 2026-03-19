@@ -48,12 +48,13 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.10"
+    ## uv pip install "git+https://github.com/BenCaiello/PalmettoBUG.git@rusty_vibin#egg=PalmettoBUG[instanseg]" --system
     - name: Install dependencies
       run: |
         curl -sSf https://sh.rustup.rs | sh -s -- -y
         python -m pip install --upgrade pip
         pip install uv pip-licenses svg-stack
-        uv pip install "git+https://github.com/BenCaiello/PalmettoBUG.git@rusty_vibin#egg=PalmettoBUG[instanseg]" --system
+        uv pip install -e .[instanseg] --system
         pip freeze
         pip install pytest pytest-cov pytest-xvfb
 
