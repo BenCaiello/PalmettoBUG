@@ -561,7 +561,6 @@ class SupervisedClassifier:
                 all_together = all_channels_features_together(image, classifier_details)
 
             py_all_together = all_channels_features_together(image, classifier_details)
-            print("shapes: ", (all_together.shape, py_all_together.shape))
             round_rust = np.round(all_together, 3).T
             for i,ii in enumerate(round_rust):
                 round_rust[i,:,:] = ii.transpose()
@@ -569,7 +568,7 @@ class SupervisedClassifier:
             round_python = np.round(py_all_together, 3)
             print("all_together rounded to 3 digits: ", round_rust)
             print("py_all_together rounded to 3 digits: ", round_python)
-            print("comparison: ", (round_rust == round_python).sum().sum())
+            print("comparison: ", np.isclose(round_rust, round_python).sum().sum())
             training_data = all_together.reshape([(all_together.shape[0]*all_together.shape[1]),
                                                   all_together.shape[2]])    ## this assumes X/Y dimensions are the first two layers
     
@@ -1544,7 +1543,10 @@ def add_additional_features(image: np.ndarray[float],
             else:
                 feature_set = make_features(channel_slice, features_list, sigma)
             for i in feature_set:
-                feature_999 = np.quantile(i[i > 0], quantile)
+                if len(i > 0) == 0:
+                    feature_999 = 1   ## the feature is featureless (all 0), then the local quantile is irrelevant
+                else:
+                    feature_999 = np.quantile(i[i > 0], quantile)
                 quantile_list.append(feature_999)
             image = np.append(image, feature_set, axis = 0)   ## note that that order in which the new features are added to the end of the image
     return image, quantile_list
