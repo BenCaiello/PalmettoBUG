@@ -229,7 +229,7 @@ def test_training():
     shutil.copytree(f"{homedir}/tests/training_labels", training_dir)
     app.Tabs.px_classification.create.px_widg.Napari_frame.choose_folder.configure(variable = ctk.StringVar(value = 'img'))
     app.Tabs.px_classification.create.px_widg.Napari_frame.training_button.invoke()
-    assert False 
+    assert True 
 
 def test_events_create_px():   ## do at least after a classifier has been loaded to limit risk of errors
     app.Tabs.px_classification.create.px_widg.start_frame.refresh_exclusive_buttons()

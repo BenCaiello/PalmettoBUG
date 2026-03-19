@@ -564,14 +564,14 @@ class SupervisedClassifier:
             else:
                 all_together = all_channels_features_together(image, classifier_details)
 
-            py_all_together = all_channels_features_together(image, classifier_details)
+            '''py_all_together = all_channels_features_together(image, classifier_details)
             print(all_together.shape, py_all_together.shape)
             round_rust = np.round(all_together, 3)
             round_python = np.round(py_all_together, 3)
             for l,ll in zip(round_rust.T, round_python.T):
                 print("all_together rounded to 3 digits: ", l)
                 print("py_all_together rounded to 3 digits: ", ll)
-                print("comparison: ", np.isclose(l, ll).sum().sum())
+                print("comparison: ", np.isclose(l, ll).sum().sum())'''
             training_data = all_together.reshape([(all_together.shape[0]*all_together.shape[1]),
                                                   all_together.shape[2]])    ## this assumes X/Y dimensions are the first two layers
     
@@ -661,7 +661,15 @@ class SupervisedClassifier:
         px_class = _predictClassifier(all_together, 
                                      algorithm1, 
                                      classifier_details['categorical'], 
-                                     num_classes = classifier_details['number_of_classes'])   
+                                     num_classes = classifier_details['number_of_classes']) 
+
+        py_all_together = all_channels_features_together(image, classifier_details)
+        py_px_class = _predictClassifier(all_together, 
+                                     algorithm1, 
+                                     classifier_details['categorical'], 
+                                     num_classes = classifier_details['number_of_classes']) 
+        print('shapes: ', px_class.shape, py_px_class.shape)
+        print('discordant pixels', (px_class == py_px_class).sum().sum())
         
         # finally, export the pixel classifications derived as .tiff files and return the px_class if it is desired
         tf.imwrite(output_file_name, px_class.T.astype('int32'), photometric = "minisblack")
