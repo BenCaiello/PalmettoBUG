@@ -501,25 +501,25 @@ pub fn rust_make_features_single_channel(
                 let mean = sep_filter_2d(&image, &k0, &k0);
                 layers.push(mean);
             }
-            "GRAD_MAG" => {
+            "GRADIENT_MAGNITUDE" | "GRAD_MAG" => {
                 let (_, _, mag) = sobel_3x3(image);
                 layers.push(mag);
             }
-            "HESSIAN_DET" => {
+            "HESSIAN_DETERMINANT" | "HESSIAN_DET" => {
                 if hess_cached.is_none() {
                     hess_cached = Some(get_hessian(&dxx, &dyy, &dxy));
                 }
                 let (_, _, det) = hess_cached.as_ref().unwrap();
                 layers.push(det.clone());
             }
-            "HESSIAN_MAX" => {
+            "HESSIAN_EIGENVALUE_MAX" | "HESSIAN_MAX" => {
                 if hess_cached.is_none() {
                     hess_cached = Some(get_hessian(&dxx, &dyy, &dxy));
                 }
                 let (_, maxv, _) = hess_cached.as_ref().unwrap();
                 layers.push(maxv.clone());
             }
-            "HESSIAN_MIN" => {
+            "HESSIAN_EIGENVALUE_MIN" | "HESSIAN_MIN" => {
                 if hess_cached.is_none() {
                     hess_cached = Some(get_hessian(&dxx, &dyy, &dxy));
                 }
@@ -529,28 +529,28 @@ pub fn rust_make_features_single_channel(
             "LAPLACIAN" => {
                 layers.push(get_laplacian(&dxx, &dyy));
             }
-            "STRUCT_CO" => {
+            "STRUCTURE_TENSOR_COHERENCE" | "STRUCT_CO" => {
                 if struct_cached.is_none() {
                     struct_cached = Some(get_structure_tensor(image, &k0, false));
                 }
                 let (_, _, co) = struct_cached.as_ref().unwrap();
                 layers.push(co.clone());
             }
-            "STRUCT_MAX" => {
+            "STRUCTURE_TENSOR_EIGENVALUE_MAX" | "STRUCT_MAX" => {
                 if struct_cached.is_none() {
                     struct_cached = Some(get_structure_tensor(image, &k0, false));
                 }
                 let (_, maxv, _) = struct_cached.as_ref().unwrap();
                 layers.push(maxv.clone());
             }
-            "STRUCT_MIN" => {
+            "STRUCTURE_TENSOR_EIGENVALUE_MIN" | "STRUCT_MIN" => {
                 if struct_cached.is_none() {
                     struct_cached = Some(get_structure_tensor(image, &k0, false));
                 }
                 let (minv, _, _) = struct_cached.as_ref().unwrap();
                 layers.push(minv.clone());
             }
-            "WGT_STDV" => {
+            "WEIGHTED_STD_DEV" | "WGT_STDV" => {
                 layers.push(get_weighted_stddev(image, &k0));
             }
             other => panic!("Unknown feature: {}", other),
