@@ -564,7 +564,7 @@ class SupervisedClassifier:
             print("shapes: ", (all_together.shape, py_all_together.shape))
             round_rust = np.round(all_together, 3).T
             for i,ii in enumerate(round_rust):
-                round_rust[i,:,:] = ii.transpose
+                round_rust[i,:,:] = ii.transpose()
             round_rust = round_rust.T
             round_python = np.round(py_all_together, 3)
             print("all_together rounded to 3 digits: ", round_rust)
@@ -1539,7 +1539,8 @@ def add_additional_features(image: np.ndarray[float],
                 print("rust output: ", np.array(feature_set).shape)
                 for i in feature_set:
                     print("feature shape: ", i.shape)
-                    print("rust feature zeros:", (i > 0).sum())
+                    print("rust feature greater than zeros:", (i > 0).sum())
+                    print("rust feature less than zeros:", (i < 0).sum())
             else:
                 feature_set = make_features(channel_slice, features_list, sigma)
             for i in feature_set:
