@@ -556,6 +556,7 @@ class SupervisedClassifier:
                 for_rust_image = image.transpose()  
                 for_rust_image = np.ascontiguousarray(for_rust_image, dtype=np.float32)
                 all_together = rsc.all_features_together_rust(for_rust_image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
+                all_together = all_together.transpose()
                 for k,kk in enumerate(all_together):
                     all_together[k,:,:] = kk.transpose()
                 all_together = all_together.transpose()
@@ -568,7 +569,7 @@ class SupervisedClassifier:
             for l,ll in zip(round_rust.T, round_python.T):
                 print("all_together rounded to 3 digits: ", l)
                 print("py_all_together rounded to 3 digits: ", ll)
-                print("comparison: ", np.isclose(l, l).sum().sum())
+                print("comparison: ", np.isclose(l, ll).sum().sum())
             training_data = all_together.reshape([(all_together.shape[0]*all_together.shape[1]),
                                                   all_together.shape[2]])    ## this assumes X/Y dimensions are the first two layers
     
@@ -1475,8 +1476,11 @@ def get_quantile_averages(img_directory: Union[Path, str],
         img = img[channels_to_use,:,:]
         quantile_array = np.zeros([img.shape[0]])   ## should be an array of length = channels
         for j,jj in enumerate(img):     ### since we've removed the unwanted channels, lets collect the 0.999 quantile values)
-             quantile_array[j] = np.quantile(jj[jj > 0], quantile)
-        quantile_list.append(quantile_array)
+            if len(jj.ravel()) == (jj == 0).sum().sum():
+                quantile_array = 1   ## the feature is featureless (all 0), then the local quantile is irrelevant
+            else:
+                quantile_array[j] = np.quantile(jj[jj > 0], quantile)
+            quantile_list.append(quantile_array)
         total = 0
         for i in quantile_list:
             total = i + total
@@ -1549,10 +1553,10 @@ def add_additional_features(image: np.ndarray[float],
             else:
                 feature_set = make_features(channel_slice, features_list, sigma)
             for i in feature_set:
-                if len(i[i > 0]) == 0:
+                if len(i.ravel()) == (i == 0).sum().sum():
                     feature_999 = 1   ## the feature is featureless (all 0), then the local quantile is irrelevant
                 else:
-                    feature_999 = np.quantile(i[i > 0], quantile)
+                    feature_999 = np.quantile(i, quantile)
                 quantile_list.append(feature_999)
             image = np.append(image, feature_set, axis = 0)   ## note that that order in which the new features are added to the end of the image
     return image, quantile_list
