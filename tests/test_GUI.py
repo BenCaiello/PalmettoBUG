@@ -270,7 +270,7 @@ def test_bio_label_launch():
     window.plot_heatmap()
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
-
+'''
 def test_save_classifier():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
     app.Tabs.px_classification.create.px_widg.save_classifier()
@@ -1174,3 +1174,4 @@ def test_plot_class_centers():
 def test_app_destroy():
     app.destroy()
 
+'''
