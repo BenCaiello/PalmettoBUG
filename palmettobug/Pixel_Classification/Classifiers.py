@@ -552,7 +552,6 @@ class SupervisedClassifier:
     
             ## generate input training data set:
             if _RUST_OK:
-                print("rusty-trainin")
                 channel_list_in_order = list(classifier_details['channel_dictionary'].values())
                 for_rust_image = image.transpose()  
                 for_rust_image = np.ascontiguousarray(for_rust_image, dtype=np.float32)
@@ -562,7 +561,11 @@ class SupervisedClassifier:
                 all_together = all_channels_features_together(image, classifier_details)
 
             py_all_together = all_channels_features_together(image, classifier_details)
-            round_rust = np.round(all_together, 3)
+            print("shapes: ", (all_together.shape, py_all_together.shape))
+            round_rust = np.round(all_together, 3).T
+            for i,ii in enumerate(round_rust):
+                round_rust[i,:,:] = ii.transpose
+            round_rust = round_rust.T
             round_python = np.round(py_all_together, 3)
             print("all_together rounded to 3 digits: ", round_rust)
             print("py_all_together rounded to 3 digits: ", round_python)
@@ -646,7 +649,6 @@ class SupervisedClassifier:
     
         # Create the data matrix with the correct features, sigmas, and channels for the classifier to make predictions with:
         if _RUST_OK:
-            print("rusty-predictin")
             channel_list_in_order = list(classifier_details['channel_dictionary'].values()) 
             for_rust_image = image.transpose()  
             for_rust_image = np.ascontiguousarray(for_rust_image, dtype=np.float32) 
@@ -1535,7 +1537,6 @@ def add_additional_features(image: np.ndarray[float],
                 print("rusty-unsupervisin")
                 feature_set = rsc.make_features_rust(np.ascontiguousarray(channel_slice, dtype=np.float32), features_list, sigma)
                 print("rust output: ", np.array(feature_set).shape)
-                py_feature_set = make_features(channel_slice, features_list, sigma)
                 for i in feature_set:
                     print("feature shape: ", i.shape)
                     print("rust feature zeros:", (i > 0).sum())
