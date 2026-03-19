@@ -553,11 +553,15 @@ class SupervisedClassifier:
             ## generate input training data set:
             if _RUST_OK:
                 print("rusty-trainin")
-                channel_list_in_order = list(classifier_details['channel_dictionary'].values())  
-                all_together = rsc.all_features_together_rust(np.ascontiguousarray(image, dtype=np.float32), channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
+                channel_list_in_order = list(classifier_details['channel_dictionary'].values())
+                for_rust_image = image.transpose()  
+                for_rust_image = np.ascontiguousarray(for_rust_image, dtype=np.float32)
+                all_together = rsc.all_features_together_rust(for_rust_image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
+                all_together = all_together.tranpose()
             else:
                 all_together = all_channels_features_together(image, classifier_details)
             print("image shape: ", image.shape)
+            print("rust image shape: ", for_rust_image.shape)
             print("rust output shape: ",np.array(all_together).shape)
             print(classifier_details)
             py_all_together = all_channels_features_together(image, classifier_details)
@@ -1527,10 +1531,11 @@ def add_additional_features(image: np.ndarray[float],
             features_list = features_list[1:]
             if _RUST_OK:
                 print("rusty-unsupervisin")
+                print("channel_slice_shape: ", channel_slice.shape)
                 feature_set = rsc.make_features_rust(np.ascontiguousarray(channel_slice, dtype=np.float32), features_list, sigma)
-                print(np.array(feature_set))
+                print("rust output: ", np.array(feature_set).shape)
                 py_feature_set = make_features(channel_slice, features_list, sigma)
-                print(py_feature_set)
+                print("python output: ",py_feature_set.shape)
             else:
                 feature_set = make_features(channel_slice, features_list, sigma)
             for i in feature_set:
