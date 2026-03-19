@@ -53,7 +53,7 @@ jobs:
         curl -sSf https://sh.rustup.rs | sh -s -- -y
         python -m pip install --upgrade pip
         pip install uv pip-licenses svg-stack
-        uv pip install -e "git+https://github.com/BenCaiello/PalmettoBUG.git@rusty_vibin#egg=PalmettoBUG[instanseg]" --system
+        uv pip install "git+https://github.com/BenCaiello/PalmettoBUG.git@rusty_vibin#egg=PalmettoBUG[instanseg]" --system
         pip freeze
         pip install pytest pytest-cov pytest-xvfb
 
