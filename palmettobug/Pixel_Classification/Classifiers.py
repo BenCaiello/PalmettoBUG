@@ -556,7 +556,8 @@ class SupervisedClassifier:
                 for_rust_image = image.transpose()  
                 for_rust_image = np.ascontiguousarray(for_rust_image, dtype=np.float32)
                 all_together = rsc.all_features_together_rust(for_rust_image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
-                all_together = all_together.transpose()
+                #all_together = all_together.transpose()
+                print(all_together.shape)
                 for k,kk in enumerate(all_together):
                     all_together[k,:,:] = kk.transpose()
                 all_together = all_together.transpose()
@@ -1539,7 +1540,7 @@ def add_additional_features(image: np.ndarray[float],
             if _RUST_OK:
                 print("rusty-unsupervisin")
                 feature_set = rsc.make_features_rust(np.ascontiguousarray(channel_slice, dtype=np.float32), features_list, sigma)
-                print("rust output: ", np.array(feature_set).shape)
+                '''print("rust output: ", np.array(feature_set).shape)
                 for i in feature_set:
                     print("feature shape: ", i.shape)
                     print("rust feature greater than zeros:", (i > 0).sum())
@@ -1549,7 +1550,7 @@ def add_additional_features(image: np.ndarray[float],
                 for i in py_feature_set:
                     print("py feature shape: ", i.shape)
                     print("py feature greater than zeros:", (i > 0).sum())
-                    print("py feature less than zeros:", (i < 0).sum())
+                    print("py feature less than zeros:", (i < 0).sum())'''
             else:
                 feature_set = make_features(channel_slice, features_list, sigma)
             for i in feature_set:
