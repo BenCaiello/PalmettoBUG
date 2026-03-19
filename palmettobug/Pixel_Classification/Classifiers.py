@@ -557,6 +557,7 @@ class SupervisedClassifier:
                 all_together = rsc.all_features_together_rust(np.ascontiguousarray(image, dtype=np.float32), channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
             else:
                 all_together = all_channels_features_together(image, classifier_details)
+            print(np.array(all_together).shape)
             training_data = all_together.reshape([(all_together.shape[0]*all_together.shape[1]),
                                                   all_together.shape[2]])    ## this assumes X/Y dimensions are the first two layers
     
@@ -832,6 +833,8 @@ def _predictClassifier(all_together: np.ndarray[float],
         px_class = np.zeros((all_together.shape[1],all_together.shape[0],num_classes))
     for i in range(0, all_together.shape[1]):
         row = all_together[:,i]
+        if i == 2:
+            print(row)
         px_probs = algorithm1.predict(row)[1]
         if categorical is False:
              px_class[i,:,:] = scipy.special.softmax(px_probs, axis = 1)      # presumes negative precedes positive in the QuPath classifier
@@ -1521,7 +1524,9 @@ def add_additional_features(image: np.ndarray[float],
             if _RUST_OK:
                 print("rusty-unsupervisin")
                 feature_set = rsc.make_features_rust(np.ascontiguousarray(channel_slice, dtype=np.float32), features_list, sigma)
-                print(feature_set)
+                print(np.array(feature_set))
+                py_feature_set = make_features(channel_slice, features_list, sigma)
+                print(py_feature_set)
             else:
                 feature_set = make_features(channel_slice, features_list, sigma)
             for i in feature_set:
