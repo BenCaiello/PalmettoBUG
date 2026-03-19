@@ -560,6 +560,13 @@ class SupervisedClassifier:
                 all_together = all_together.transpose()
             else:
                 all_together = all_channels_features_together(image, classifier_details)
+
+            py_all_together = all_channels_features_together(image, classifier_details)
+            round_rust = np.round(all_together, 3)
+            round_python = np.round(py_all_together, 3)
+            print("all_together rounded to 3 digits: ", round_rust)
+            print("py_all_together rounded to 3 digits: ", round_python)
+            print("comparison: ", (round_rust == round_python).sum().sum())
             training_data = all_together.reshape([(all_together.shape[0]*all_together.shape[1]),
                                                   all_together.shape[2]])    ## this assumes X/Y dimensions are the first two layers
     
@@ -838,8 +845,6 @@ def _predictClassifier(all_together: np.ndarray[float],
         px_class = np.zeros((all_together.shape[1],all_together.shape[0],num_classes))
     for i in range(0, all_together.shape[1]):
         row = all_together[:,i]
-        if i == 2:
-            print(row)
         px_probs = algorithm1.predict(row)[1]
         if categorical is False:
              px_class[i,:,:] = scipy.special.softmax(px_probs, axis = 1)      # presumes negative precedes positive in the QuPath classifier
@@ -1531,9 +1536,9 @@ def add_additional_features(image: np.ndarray[float],
                 feature_set = rsc.make_features_rust(np.ascontiguousarray(channel_slice, dtype=np.float32), features_list, sigma)
                 print("rust output: ", np.array(feature_set).shape)
                 py_feature_set = make_features(channel_slice, features_list, sigma)
-                for i,ii in zip(feature_set, py_feature_set):
+                for i in feature_set:
+                    print("feature shape: ", i.shape)
                     print("rust feature zeros:", (i > 0).sum())
-                    print("python feature zeros:", (ii > 0).sum())
             else:
                 feature_set = make_features(channel_slice, features_list, sigma)
             for i in feature_set:
