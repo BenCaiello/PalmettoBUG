@@ -354,7 +354,27 @@ fn get_structure_tensor(
     let dyy_f = sep_filter_2d(&dyy, kernel0, kernel0);
     let dxy_f = sep_filter_2d(&dxy, kernel0, kernel0);
 
-    let (st_min, st_max, _) = get_hessian(&dxx_f, &dyy_f, &dxy_f);
+    //let (st_min, st_max, _) = get_hessian(&dxx_f, &dyy_f, &dxy_f);
+    let (st_min, st_max) = {
+        let h = dxx_f.len();
+        let w = dxx_f[0].len();
+        let mut lmin = zeros_like(&dxx_f);
+        let mut lmax = zeros_like(&dxx_f);
+        for i in 0..h {
+            for j in 0..w {
+                let a = dxx_f[i][j];
+                let c = dyy_f[i][j];
+                let b = dxy_f[i][j];
+                let trace = a + c;
+                let diff  = a - c;
+                let temp  = (0.25 * diff * diff + b * b).sqrt();
+                lmax[i][j] = 0.5 * trace + temp;
+                lmin[i][j] = 0.5 * trace - temp;
+            }
+        }
+        (lmin, lmax)
+    };
+
 
     let mut coherence = zeros_like(&st_min);
     if compute_coherence {

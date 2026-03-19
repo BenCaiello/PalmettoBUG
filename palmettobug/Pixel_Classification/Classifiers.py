@@ -558,7 +558,6 @@ class SupervisedClassifier:
                 all_together = rsc.all_features_together_rust(for_rust_image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
                 for k,kk in enumerate(all_together):
                     all_together[k,:,:] = kk.transpose()
-                    all_together = all_together.T
                 all_together = all_together.transpose()
             else:
                 all_together = all_channels_features_together(image, classifier_details)
@@ -566,7 +565,7 @@ class SupervisedClassifier:
             py_all_together = all_channels_features_together(image, classifier_details)
             round_rust = np.round(all_together, 3).T
             round_python = np.round(py_all_together, 3)
-            for l,ll in zip(all_together.T, py_all_together.T):
+            for l,ll in zip(round_rust.T, round_python.T):
                 print("all_together rounded to 3 digits: ", l)
                 print("py_all_together rounded to 3 digits: ", ll)
                 print("comparison: ", np.isclose(l, l).sum().sum())
@@ -1541,6 +1540,12 @@ def add_additional_features(image: np.ndarray[float],
                     print("feature shape: ", i.shape)
                     print("rust feature greater than zeros:", (i > 0).sum())
                     print("rust feature less than zeros:", (i < 0).sum())
+
+                py_feature_set = make_features(channel_slice, features_list, sigma)
+                for i in py_feature_set:
+                    print("py feature shape: ", i.shape)
+                    print("py feature greater than zeros:", (i > 0).sum())
+                    print("py feature less than zeros:", (i < 0).sum())
             else:
                 feature_set = make_features(channel_slice, features_list, sigma)
             for i in feature_set:
