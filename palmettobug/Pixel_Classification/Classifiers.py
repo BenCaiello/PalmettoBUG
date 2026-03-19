@@ -560,12 +560,6 @@ class SupervisedClassifier:
                 all_together = all_together.transpose()
             else:
                 all_together = all_channels_features_together(image, classifier_details)
-            print("image shape: ", image.shape)
-            print("rust image shape: ", for_rust_image.shape)
-            print("rust output shape: ",np.array(all_together).shape)
-            print(classifier_details)
-            py_all_together = all_channels_features_together(image, classifier_details)
-            print("python output shape: ",np.array(py_all_together).shape)
             training_data = all_together.reshape([(all_together.shape[0]*all_together.shape[1]),
                                                   all_together.shape[2]])    ## this assumes X/Y dimensions are the first two layers
     
@@ -646,8 +640,11 @@ class SupervisedClassifier:
         # Create the data matrix with the correct features, sigmas, and channels for the classifier to make predictions with:
         if _RUST_OK:
             print("rusty-predictin")
-            channel_list_in_order = list(classifier_details['channel_dictionary'].values())  
-            all_together = rsc.all_features_together_rust(np.ascontiguousarray(image, dtype=np.float32), channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
+            channel_list_in_order = list(classifier_details['channel_dictionary'].values()) 
+            for_rust_image = image.transpose()  
+            for_rust_image = np.ascontiguousarray(for_rust_image, dtype=np.float32) 
+            all_together = rsc.all_features_together_rust(for_rust_image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
+            all_together = all_together.transpose()
         else:
             all_together = all_channels_features_together(image, classifier_details)
         px_class = _predictClassifier(all_together, 
@@ -1534,7 +1531,7 @@ def add_additional_features(image: np.ndarray[float],
                 feature_set = rsc.make_features_rust(np.ascontiguousarray(channel_slice, dtype=np.float32), features_list, sigma)
                 print("rust output: ", np.array(feature_set).shape)
                 py_feature_set = make_features(channel_slice, features_list, sigma)
-                for i,ii in feature_set, py_feature_set:
+                for i,ii in zip(feature_set, py_feature_set):
                     print("rust feature zeros:", (i > 0).sum())
                     print("python feature zeros:", (ii > 0).sum())
             else:
