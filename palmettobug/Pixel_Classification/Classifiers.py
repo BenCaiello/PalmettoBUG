@@ -557,7 +557,11 @@ class SupervisedClassifier:
                 all_together = rsc.all_features_together_rust(np.ascontiguousarray(image, dtype=np.float32), channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
             else:
                 all_together = all_channels_features_together(image, classifier_details)
-            print(np.array(all_together).shape)
+            print("image shape: ", image.shape)
+            print("rust output shape: ",np.array(all_together).shape)
+            print(classifier_details)
+            py_all_together = all_channels_features_together(image, classifier_details)
+            print("python output shape: ",np.array(py_all_together).shape)
             training_data = all_together.reshape([(all_together.shape[0]*all_together.shape[1]),
                                                   all_together.shape[2]])    ## this assumes X/Y dimensions are the first two layers
     
