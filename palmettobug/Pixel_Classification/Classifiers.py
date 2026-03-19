@@ -662,14 +662,6 @@ class SupervisedClassifier:
                                      algorithm1, 
                                      classifier_details['categorical'], 
                                      num_classes = classifier_details['number_of_classes']) 
-
-        py_all_together = all_channels_features_together(image, classifier_details)
-        py_px_class = _predictClassifier(all_together, 
-                                     algorithm1, 
-                                     classifier_details['categorical'], 
-                                     num_classes = classifier_details['number_of_classes']) 
-        print('shapes: ', px_class.shape, py_px_class.shape)
-        print('discordant pixels', (px_class == py_px_class).sum().sum())
         
         # finally, export the pixel classifications derived as .tiff files and return the px_class if it is desired
         tf.imwrite(output_file_name, px_class.T.astype('int32'), photometric = "minisblack")
