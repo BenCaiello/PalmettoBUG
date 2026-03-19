@@ -557,7 +557,7 @@ class SupervisedClassifier:
                 for_rust_image = np.ascontiguousarray(for_rust_image, dtype=np.float32)
                 all_together = rsc.all_features_together_rust(for_rust_image, channel_list_in_order, classifier_details['features_list'], classifier_details['sigma_list'])
                 for k,kk in enumerate(all_together):
-                    all_together[i,:,:] = ii.transpose()
+                    all_together[k,:,:] = kk.transpose()
                     all_together = all_together.T
                 all_together = all_together.transpose()
             else:
