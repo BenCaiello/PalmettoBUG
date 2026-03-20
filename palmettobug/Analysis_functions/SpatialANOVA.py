@@ -1313,7 +1313,6 @@ def do_K_L_g(pointpattern: pd.DataFrame,
         use_rust = _rust_available()
     
     if use_rust: 
-        print("rusty ANOVin'")
         if rust_data == {}:     ## means fresh calculation, clear any saved rust data to allow for fresh calculations
             pp = pointpattern.copy()  # your per-image df
             for_rust = pp[['x','y',type_column]]
