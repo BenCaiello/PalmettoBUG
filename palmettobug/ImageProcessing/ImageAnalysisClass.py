@@ -60,6 +60,14 @@ from .._vendor import pyometiff as pot
 from .._vendor import steinbock as stein_unhook 
 from ..Utils.sharedClasses import DirSetup, TableLaunch, Analysis_logger, Project_logger, warning_window  
 
+try:
+    from .. import central as rsc 
+    rsc = rsc.rust_masks
+    _RUST_OK = True 
+except Exception as e:
+    print('Rust failed to load with error: ', e)
+    _RUST_OK = False 
+
 '''
 try:
     import navis as nv       ### currently, there is an error in navis on small meshes (I think?) so recommend to not use this  TODO: reactivate once fixed?
@@ -910,7 +918,11 @@ class ImageAnalysis:
             if mask1.shape != mask2.shape:
                 print(f"Warning! Mask file: {i} did  not have a matching shape between the two folders of masks. Skipping this file!")
             else:
-                output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
+                if _RUST_OK:
+                    print('rusty boolin')
+                    output = rsc.mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
+                else:
+                    output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
                 tf.imwrite(f'{output_folder}/{i}', output.astype('int32'))
         
     def _mask_bool(self, mask1: np.ndarray[int], 

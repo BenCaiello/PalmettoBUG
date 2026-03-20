@@ -1,17 +1,16 @@
-## file edited from rust_spaceanova Cargo.toml file
+## file edited from rust_sup_classifier Cargo.toml file
 
 [package]
-name = "rust_sup_classifier"
+name = "rust_masks"
 version = "0.1.0"
 edition = "2021"
 license = "GPL-3.0-or-later"
 authors = ["PalmettoBUG contributors"]
 
 [lib]
-name = "rust_sup_classifier"
+name = "rust_masks"
 
 [dependencies]
-
 
 [profile.release]
 codegen-units = 1

@@ -11,6 +11,7 @@ use ndarray::{Array2, Array3, Axis};
 
 use rust_spaceanova as sa;
 use rust_sup_classifier as clf;
+use rust_masks as rm
 
 // ------------------------- Error helper -------------------------
 
@@ -251,6 +252,38 @@ fn get_gaussian_derivs <'py>(
 
 }
 
+#[pyfunction]
+fn mask_boolean<'py>(
+    py: Python<'py>,
+    mask1: PyReadonlyArray2<usize>,
+    mask2: PyReadonlyArray2<usize>,
+    kind: &str,
+    object_threshold: usize,
+    pixel_threshold: usize,
+    re_order: bool
+)  -> PyResult<pyo3::Bound<'py, PyArray2<usize>>>{
+    let mask1: Vec<Vec<usize>> = array2_to_vec2_f32(&mask1)?;
+    let mask2: Vec<Vec<usize>> = array2_to_vec2_f32(&mask2)?;
+    
+    let output_mask: Vec<Vec<usize>> = mask_boolean_rust(&mask1_vec, &mask2_vec, kind,
+        object_threshold, pixel_threshold, re_order);
+
+    let rows = output_mask.len();
+    let cols = if rows == 0 { 0 } else { output_mask[0].len() };
+    // Flatten row-major
+    let flat: Vec<usize> = output_mask.into_iter().flatten().collect();
+
+    let out_array: Array2<usize> =
+        Array2::from_shape_vec((rows, cols), flat)
+            .expect("inconsistent row lengths in output");
+
+    // Return as a NumPy array bound to `py`
+    Ok(out_array.to_pyarray_bound(py))
+
+
+    Ok(output_mask)
+}
+
 
 
 #[pyfunction]
@@ -300,6 +333,11 @@ fn _central(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     sa_mod.add_function(wrap_pyfunction!(k_all_at_once_optimized, &sa_mod)?)?;
     m.add_submodule(&sa_mod)?;
 
+    // palmettobug.rust_masks
+    let rm_mod = PyModule::new_bound(py, "rust_masks")?;
+    rm_mod.add_function(wrap_pyfunction!(mask_boolean, &rm_mod)?)?;
+    m.add_submodule(&rm_mod)?;
+
     // palmettobug.rust_sup_classifier
     let clf_mod = PyModule::new_bound(py, "rust_sup_classifier")?;
     clf_mod.add_function(wrap_pyfunction!(all_features_together_rust, &clf_mod)?)?;
@@ -313,6 +351,7 @@ fn _central(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     let sys = PyModule::import(py, "sys")?;
     sys.dict().set_item("palmettobug.rust_sup_classifier", &clf_mod)?;
     sys.dict().set_item("palmettobug.rust_spaceanova", &sa_mod)?;
+    sys.dict().set_item("palmettobug.rust_masks", &rm_mod)?;
 
     Ok(())
 }
