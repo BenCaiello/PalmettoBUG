@@ -11,7 +11,7 @@ use ndarray::{Array2, Array3, Axis};
 
 use rust_spaceanova as sa;
 use rust_sup_classifier as clf;
-use rust_masks as rm
+use rust_masks as rm;
 
 // ------------------------- Error helper -------------------------
 
@@ -248,9 +248,8 @@ fn get_gaussian_derivs <'py>(
     let d2g_arr= PyArray1::from_vec_bound(py, d2g);
 
     Ok((g_arr, dg_arr, d2g_arr))
-
-
 }
+
 
 #[pyfunction]
 fn mask_boolean<'py>(
