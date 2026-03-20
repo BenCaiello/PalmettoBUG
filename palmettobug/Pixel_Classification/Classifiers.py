@@ -1767,7 +1767,7 @@ def classify_one(img: np.ndarray[float],
             if _RUST_OK:
                 print("rusty gaussin'")
                 d0, _, _ = rsc.get_gaussian_derivs(sigma)
-                ri = rsc.sep_filter_2d(ii, d0, d0)
+                ri = rsc.sep_filter_2d(ii, d0, d0).T
             else:
                 ri = gaussian_blur_image(ii, sigma) 
             pyi = gaussian_blur_image(ii, sigma)
