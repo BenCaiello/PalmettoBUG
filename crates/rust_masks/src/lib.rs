@@ -36,22 +36,26 @@ pub fn mask_boolean (
             let mut object_counter: usize = 0;
 
             for k in unique_matches.iter(){ 
-                if matches.iter().filter(|&x| x == k).count() > pixel_threshold{
+                if matches.iter().filter(|&x| x == *k).count() > pixel_threshold{
                     object_counter += 1;
                 }
             }
 
             if kind == "intersection1" || kind == "intersection2" {
                 if object_counter < object_threshold{
-                    for px in output.iter_mut(){
-                        if *px == j {*px = 0}
+                    for row in output.iter_mut(){
+                        for px in row{
+                            if *px == j {*px = 0}
+                        }
                     }
                 }
             }
             if kind == "difference1" || kind == "difference2"{
                 if object_counter > object_threshold{
-                    for px in output.iter_mut(){
-                        if *px == j {*px = 0}
+                    for row in output.iter_mut(){
+                        for px in row{
+                            if *px == j {*px = 0}
+                        }
                     }
                 }
             }
@@ -94,7 +98,7 @@ pub fn mask_boolean (
         for (m,mm) in unique_in_output.iter().enumerate(){
             for row in output.iter_mut(){
                 for px in row{
-                    if *px == mm{
+                    if *px == *mm{
                         *px = m + increment
                     }
                 }
