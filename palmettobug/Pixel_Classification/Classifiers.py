@@ -662,6 +662,8 @@ class SupervisedClassifier:
                                      algorithm1, 
                                      classifier_details['categorical'], 
                                      num_classes = classifier_details['number_of_classes']) 
+        if _RUST_OK:
+            px_class = px_class.T
         
         # finally, export the pixel classifications derived as .tiff files and return the px_class if it is desired
         tf.imwrite(output_file_name, px_class.T.astype('int32'), photometric = "minisblack")
@@ -1647,7 +1649,11 @@ def blur_flatten_quantile_sample(img: np.ndarray[float],
     ## now iterate through the image, blurring & flattening
     for i, ii in enumerate(img):
         if i <= len(additional_features_dict): 
-            ii = gaussian_blur_image(ii, sigma)  
+            if _RUST_OK:
+                d0, _, _ = rsc.get_gaussian_derivs(sigma)
+                ii = rsc.sep_filter_2d(ii, d0, d0)
+            else:
+                ii = gaussian_blur_image(ii, sigma)  
         image = ii.flatten()
         image = np.expand_dims(image, axis = 1)
         if i == 0:
@@ -1758,8 +1764,17 @@ def classify_one(img: np.ndarray[float],
     ## now iterate through the image, blurring & flattening
     for i, ii in enumerate(img):
         if i <= len(additional_features_dict):
-            ii = gaussian_blur_image(ii, sigma)  
-            img[i] = ii
+            if _RUST_OK:
+                print("rusty gaussin'")
+                d0, _, _ = rsc.get_gaussian_derivs(sigma)
+                ri = rsc.sep_filter_2d(ii, d0, d0)
+            else:
+                ri = gaussian_blur_image(ii, sigma) 
+            pyi = gaussian_blur_image(ii, sigma)
+            print('rust output: ', ri)
+            print('py output: ', pyi)
+            print("transpose proper? ", np.isclose(ri, pyi).sum().sum()) 
+            img[i] = ri
 
     ## do the quantile divisions -- added features are divided by 1 to leave unchanged
     if quantile_avg.shape[0] != img.shape[0]:   ## this means additional features have been added

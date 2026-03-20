@@ -217,7 +217,7 @@ pub fn sobel_3x3(image: &Vec<Vec<f32>>) -> (Vec<Vec<f32>>, Vec<Vec<f32>>, Vec<Ve
 // =============================================================
 // Equivalent of _getGaussianDerivs()
 // =============================================================
-fn get_gaussian_derivs(sigma: f32) -> (Vec<f32>, Vec<f32>, Vec<f32>) {
+pub fn get_gaussian_derivs(sigma: f32) -> (Vec<f32>, Vec<f32>, Vec<f32>) {
     let length = (sigma * 8.0).floor() as usize + 1;
     let n = length / 2;
 
