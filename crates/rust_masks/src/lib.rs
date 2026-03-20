@@ -36,7 +36,7 @@ pub fn mask_boolean (
             let mut object_counter: usize = 0;
 
             for k in unique_matches.iter(){ 
-                if matches.iter().filter(|&x| x == *k).count() > pixel_threshold{
+                if matches.iter().filter(|&x| x == k).count() > pixel_threshold{
                     object_counter += 1;
                 }
             }
@@ -45,7 +45,7 @@ pub fn mask_boolean (
                 if object_counter < object_threshold{
                     for row in output.iter_mut(){
                         for px in row{
-                            if *px == j {*px = 0}
+                            if *px == *j {*px = 0}
                         }
                     }
                 }
@@ -54,7 +54,7 @@ pub fn mask_boolean (
                 if object_counter > object_threshold{
                     for row in output.iter_mut(){
                         for px in row{
-                            if *px == j {*px = 0}
+                            if *px == *j {*px = 0}
                         }
                     }
                 }
@@ -70,7 +70,7 @@ pub fn mask_boolean (
                 let unique_matches: Vec<usize> = find_unique1(&matches);
                 let mut object_counter: usize = 0;
                 for k in unique_matches.iter(){ 
-                    if matches.iter().filter(|&&x| x == k).count() > pixel_threshold{
+                    if matches.iter().filter(|&&x| x == *k).count() > pixel_threshold{
                         object_counter += 1;
                     }
                 }
