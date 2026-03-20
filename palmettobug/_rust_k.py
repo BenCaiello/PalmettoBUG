@@ -6,7 +6,8 @@
 import numpy as np
 
 try:
-    from .rust_spaceanova import k_all_at_once_optimized as _k_cross_native
+    from . import _central as rk
+    rk = rk.rust_spaceanova
     _RUST_OK = True
 except Exception as e:
     print("Rust spaceanova not available")
@@ -38,7 +39,7 @@ def k_cross_homogeneous_py(
     x = np.asarray(x, dtype=np.float64)
     y = np.asarray(y, dtype=np.float64)
 
-    all_at_once_dict = _k_cross_native(
+    all_at_once_dict = rk._k_cross_native(
         x, y, labels,
         int(r_min), int(r_max), int(r_step),
         int(threshold),

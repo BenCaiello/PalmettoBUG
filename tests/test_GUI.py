@@ -199,6 +199,7 @@ def test_unsupervised():
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     # app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
     assert len(os.listdir(app.Tabs.px_classification.create.px_widg.unsupervised.output_dir)) == 1, "Wrong number of classification maps generated!"
+    assert False
     
 def test_accept_classifier_name():   ## supervised window
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
