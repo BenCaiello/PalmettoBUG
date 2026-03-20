@@ -5,9 +5,9 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyModule};
 use pyo3::wrap_pyfunction;
 
-use numpy::{PyArray1, PyArray3, PyReadonlyArray1, PyReadonlyArray2, PyReadonlyArray3};
+use numpy::{PyArray1, PyArray2, PyArray3, PyReadonlyArray1, PyReadonlyArray2, PyReadonlyArray3};
 
-use ndarray::{Array3, Axis};
+use ndarray::{Array2, Array3, Axis};
 
 use rust_spaceanova as sa;
 use rust_sup_classifier as clf;
@@ -230,6 +230,70 @@ fn make_features_rust<'py>(
     vec3_to_pyarray3_f32(py, layers)
 }
 
+
+#[pyfunction]
+fn get_gaussian_derivs <'py>(
+    py: Python<'py>,
+    sigma: f32,
+) -> PyResult<(
+    pyo3::Bound<'py, PyArray1<f32>>,
+    pyo3::Bound<'py, PyArray1<f32>>,
+    pyo3::Bound<'py, PyArray1<f32>>)> {
+    let (g, dg, d2g) = clf::get_gaussian_derivs(sigma);
+
+    // Construct NumPy arrays (1D)
+    let g_arr  = PyArray1::from_vec_bound(py, g);
+    let dg_arr = PyArray1::from_vec_bound(py, dg);
+    let d2g_arr= PyArray1::from_vec_bound(py, d2g);
+
+    Ok((g_arr, dg_arr, d2g_arr))
+
+
+}
+
+
+
+#[pyfunction]
+fn sep_filter_2d<'py>(
+    py: Python<'py>,
+    image: PyReadonlyArray2<'_, f32>,   // H x W
+    kernel_x: PyReadonlyArray1<'_, f32>,// W-kernel
+    kernel_y: PyReadonlyArray1<'_, f32>,// H-kernel
+) -> PyResult<Py<PyArray2<f32>>> {
+    // Convert inputs to Rust-owned containers (zero-copy views -> owned Vecs)
+    let img2d = image.as_array();
+    let img_vec: Vec<Vec<f32>> = img2d
+        .rows()
+        .into_iter()
+        .map(|r| r.to_vec())
+        .collect();
+
+    let kx: Vec<f32> = kernel_x.as_slice()?.to_vec();
+    let ky: Vec<f32> = kernel_y.as_slice()?.to_vec();
+
+    // Call your Rust implementation (module path assumed)
+    let out: Vec<Vec<f32>> = clf::sep_filter_2d(&img_vec, &kx, &ky);
+
+    // Validate rectangular shape
+    let h = out.len();
+    let w = if h > 0 { out[0].len() } else { 0 };
+    if !out.iter().all(|row| row.len() == w) {
+        return Err(PyValueError::new_err(
+            "sep_filter_2d returned a ragged Vec<Vec<f32>>; expected rectangular matrix",
+        ));
+    }
+
+    // Convert Vec<Vec<f32>> -> ndarray::Array2 -> NumPy array
+    let flat: Vec<f32> = out.into_iter().flatten().collect();
+    let arr = Array2::from_shape_vec((h, w), flat)
+        .map_err(|e| PyValueError::new_err(format!("shape error: {e}")))?;
+    let py_arr: &PyArray2<f32> = PyArray2::from_owned_array(py, arr);
+
+    Ok(py_arr.to_owned()) // Py<PyArray2<f32>>
+}
+
+}
+
 #[pymodule]
 fn _central(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     // palmettobug.rust_spaceanova
@@ -241,6 +305,8 @@ fn _central(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     let clf_mod = PyModule::new_bound(py, "rust_sup_classifier")?;
     clf_mod.add_function(wrap_pyfunction!(all_features_together_rust, &clf_mod)?)?;
     clf_mod.add_function(wrap_pyfunction!(make_features_rust, &clf_mod)?)?;
+    clf_mod.add_function(wrap_pyfunction!(get_gaussian_derivs, &clf_mod)?)?;
+    clf_mod.add_function(wrap_pyfunction!(sep_filter_2d, &clf_mod)?)?;
     m.add_submodule(&clf_mod)?;
 
     
