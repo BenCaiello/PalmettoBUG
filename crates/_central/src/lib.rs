@@ -292,7 +292,6 @@ fn sep_filter_2d<'py>(
     Ok(py_arr.to_owned()) // Py<PyArray2<f32>>
 }
 
-}
 
 #[pymodule]
 fn _central(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
