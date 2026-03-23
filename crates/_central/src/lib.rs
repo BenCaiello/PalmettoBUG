@@ -273,7 +273,7 @@ fn mask_boolean_rust<'py>(
     let mask1: Vec<Vec<usize>> = array2_to_vec2_usize(&mask1)?;
     let mask2: Vec<Vec<usize>> = array2_to_vec2_usize(&mask2)?;
     
-    let output_mask: Vec<Vec<usize>> = rm::mask_boolean(&mask1_vec, &mask2_vec, kind,
+    let output_mask: Vec<Vec<usize>> = rm::mask_boolean(&mask1, &mask2, kind,
         object_threshold, pixel_threshold, re_order);
 
     let rows = output_mask.len();
@@ -285,8 +285,10 @@ fn mask_boolean_rust<'py>(
         Array2::from_shape_vec((rows, cols), flat)
             .expect("inconsistent row lengths in output");
 
+    let out_array: &PyArray2<f32> = PyArray2::from_owned_array(py, out_array);
+
     // Return as a NumPy array bound to `py`
-    Ok(out_array.to_pyarray_bound(py))
+    Ok(out_array.to_owned(py))
 }
 
 
