@@ -269,7 +269,7 @@ fn mask_boolean_rust<'py>(
     object_threshold: usize,
     pixel_threshold: usize,
     re_order: bool
-)  -> PyResult<pyo3::Bound<'py, PyArray2<usize>>>{
+)  -> PyResult<&PyArray2<usize>>{
     let mask1: Vec<Vec<usize>> = array2_to_vec2_usize(&mask1)?;
     let mask2: Vec<Vec<usize>> = array2_to_vec2_usize(&mask2)?;
     
