@@ -285,10 +285,10 @@ fn mask_boolean_rust<'py>(
         Array2::from_shape_vec((rows, cols), flat)
             .expect("inconsistent row lengths in output");
 
-    let out_array: &PyArray2<usize> = PyArray2::from_owned_array(py, out_array);
+    let out_array = PyArray2::from_owned_array(py, out_array);
 
     // Return as a NumPy array bound to `py`
-    Ok(out_array.to_owned())
+    Ok(out_array)
 }
 
 
