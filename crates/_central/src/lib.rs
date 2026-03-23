@@ -264,7 +264,7 @@ fn mask_boolean<'py>(
     let mask1: Vec<Vec<usize>> = array2_to_vec2_f32(&mask1)?;
     let mask2: Vec<Vec<usize>> = array2_to_vec2_f32(&mask2)?;
     
-    let output_mask: Vec<Vec<usize>> = mask_boolean_rust(&mask1_vec, &mask2_vec, kind,
+    let output_mask: Vec<Vec<usize>> = rm.mask_boolean_rust(&mask1_vec, &mask2_vec, kind,
         object_threshold, pixel_threshold, re_order);
 
     let rows = output_mask.len();
@@ -278,9 +278,6 @@ fn mask_boolean<'py>(
 
     // Return as a NumPy array bound to `py`
     Ok(out_array.to_pyarray_bound(py))
-
-
-    Ok(output_mask)
 }
 
 
