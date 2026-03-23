@@ -261,7 +261,7 @@ fn get_gaussian_derivs <'py>(
 
 
 #[pyfunction]
-fn mask_boolean<'py>(
+fn mask_boolean_rust<'py>(
     py: Python<'py>,
     mask1: PyReadonlyArray2<usize>,
     mask2: PyReadonlyArray2<usize>,
@@ -273,7 +273,7 @@ fn mask_boolean<'py>(
     let mask1: Vec<Vec<usize>> = array2_to_vec2_usize(&mask1)?;
     let mask2: Vec<Vec<usize>> = array2_to_vec2_usize(&mask2)?;
     
-    let output_mask: Vec<Vec<usize>> = rm::mask_boolean_rust(&mask1_vec, &mask2_vec, kind,
+    let output_mask: Vec<Vec<usize>> = rm::mask_boolean(&mask1_vec, &mask2_vec, kind,
         object_threshold, pixel_threshold, re_order);
 
     let rows = output_mask.len();
@@ -340,7 +340,7 @@ fn _central(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
 
     // palmettobug.rust_masks
     let rm_mod = PyModule::new_bound(py, "rust_masks")?;
-    rm_mod.add_function(wrap_pyfunction!(mask_boolean, &rm_mod)?)?;
+    rm_mod.add_function(wrap_pyfunction!(mask_boolean_rust, &rm_mod)?)?;
     m.add_submodule(&rm_mod)?;
 
     // palmettobug.rust_sup_classifier
