@@ -918,6 +918,13 @@ class ImageAnalysis:
             if mask1.shape != mask2.shape:
                 print(f"Warning! Mask file: {i} did  not have a matching shape between the two folders of masks. Skipping this file!")
             else:
+                try:
+                    from .. import central as rsc 
+                    rsc = rsc.rust_masks
+                    _RUST_OK = True 
+                except Exception as e:
+                    print('Rust failed to load with error: ', e)
+                    _RUST_OK = False 
                 if _RUST_OK:
                     print('rusty boolin')
                     output = rsc.mask_boolean_rust(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
