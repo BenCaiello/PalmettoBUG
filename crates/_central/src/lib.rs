@@ -44,6 +44,15 @@ fn ensure_c_contiguous3_f32(a: &PyReadonlyArray3<f32>) -> PyResult<()> {
 }
 
 // ------------------------- Converters (ndarray-powered) -------------------------
+#[inline]
+fn array2_to_vec2_usize(a: &PyReadonlyArray2<usize>) -> PyResult<Vec<Vec<usize>>> {
+    let view = a.as_array();
+    let mut out = Vec::with_capacity(view.len_of(Axis(0)));
+    for row in view.rows() {
+        out.push(row.to_vec());
+    }
+    Ok(out)
+}
 
 // (H, W) -> Vec<Vec<f32>>
 #[inline]
@@ -261,10 +270,10 @@ fn mask_boolean<'py>(
     pixel_threshold: usize,
     re_order: bool
 )  -> PyResult<pyo3::Bound<'py, PyArray2<usize>>>{
-    let mask1: Vec<Vec<usize>> = array2_to_vec2_f32(&mask1)?;
-    let mask2: Vec<Vec<usize>> = array2_to_vec2_f32(&mask2)?;
+    let mask1: Vec<Vec<usize>> = array2_to_vec2_usize(&mask1)?;
+    let mask2: Vec<Vec<usize>> = array2_to_vec2_usize(&mask2)?;
     
-    let output_mask: Vec<Vec<usize>> = rm.mask_boolean_rust(&mask1_vec, &mask2_vec, kind,
+    let output_mask: Vec<Vec<usize>> = rm::mask_boolean_rust(&mask1_vec, &mask2_vec, kind,
         object_threshold, pixel_threshold, re_order);
 
     let rows = output_mask.len();
