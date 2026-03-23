@@ -61,7 +61,7 @@ from .._vendor import steinbock as stein_unhook
 from ..Utils.sharedClasses import DirSetup, TableLaunch, Analysis_logger, Project_logger, warning_window  
 
 try:
-    from .. import central as rsc 
+    from .. import _central as rsc 
     rsc = rsc.rust_masks
     _RUST_OK = True 
 except Exception as e:
