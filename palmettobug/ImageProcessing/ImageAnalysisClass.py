@@ -927,7 +927,7 @@ class ImageAnalysis:
                     _RUST_OK = False 
                 if _RUST_OK:
                     print('rusty boolin')
-                    output = rsc.mask_boolean_rust(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
+                    output = rsc.mask_boolean_rust(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold, re_order = True)
                 else:
                     output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
                 tf.imwrite(f'{output_folder}/{i}', output.astype('int32'))
