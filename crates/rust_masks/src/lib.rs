@@ -21,6 +21,10 @@ pub fn mask_boolean (
     pixel_threshold: usize,
     re_order: bool
 ) -> Vec<Vec<usize>> {
+
+    //if kind == "difference2" || kind == "intersection2"{
+    //    let backup: Vec<Vec<usize>> = mask1.clone();
+    //}
     
     let mut output: Vec<Vec<usize>> = mask1.clone();
     let mask1_flat: Vec<usize> = mask1.iter().flatten().copied().collect();
@@ -110,12 +114,16 @@ pub fn mask_boolean (
 
         // set every pixel in the output to the value from obj_overlap_array_2 -- zero if failing the overlap threshold, the original mask1 value if passing the threshold
         let mut counter: usize = 0;
+        let mut baseline: usize = 0;
         for row in output.iter_mut(){
             for px in row{
                 let mask2_px = mask2_flat[counter];
                 counter += 1;
-                if (*px == 0) && (obj_overlap_array_2[mask2_px] != 0) {   // Don't overwrite any non-zero pixels in mask1 and don't use the zero 'nask' in mask2
-                    *px = obj_overlap_array_2[mask2_px] + maximum_mask1;  // replace the pixel with the value from the object_overlap_array (which now holds the pass/fail values for each mask)
+                if *px == 0 {      // Don't overwrite any non-zero pixels in mask1
+                    let replacement = obj_overlap_array_2[mask2_px];
+                    if replacement != 0 {
+                        *px = replacement + maximum_mask1;  // replace the pixel with the value from the object_overlap_array (which now holds the pass/fail values for each mask)
+                    }    
                 }
             }
         }
