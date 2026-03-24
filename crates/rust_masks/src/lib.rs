@@ -129,7 +129,7 @@ pub fn mask_boolean (
         }
     }
 
-    
+    /*
     if re_order {
         // Find output's maximum label
         let max_label = *output.iter().flatten().max().unwrap_or(&0);
@@ -159,6 +159,28 @@ pub fn mask_boolean (
             *px = lut[*px];
         }
     }
+    */
+
+    
+    if re_order {
+        let mut unique: Vec<usize> = find_unique2(&output, max_label);
+        unique.sort_unstable();
+
+        let increment = if output.iter().flatten().any(|&x| x == 0) { 0 } else { 1 };
+
+        for (new_label, &old_label) in unique.iter().enumerate() {
+            let final_label = new_label + increment;
+
+            for row in output.iter_mut() {
+                for px in row.iter_mut() {
+                    if *px == old_label {
+                        *px = final_label;
+                    }
+                }
+            }
+        }
+    }
+
 
     return output
 }
