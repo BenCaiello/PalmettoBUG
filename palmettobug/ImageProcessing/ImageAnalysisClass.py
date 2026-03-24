@@ -62,10 +62,10 @@ from ..Utils.sharedClasses import DirSetup, TableLaunch, Analysis_logger, Projec
 
 try:
     from .. import _central as rsc 
-    rsc = rsc.mask_boolean_rust
+    rsc = rsc.rust_masks
     _RUST_OK = True 
-except Exception as e:
-    print('Rust failed to load with error: ', e)
+except Exception as rust_error:
+    print('Rust failed to load with error: ', rust_error)
     _RUST_OK = False 
 
 '''
@@ -935,6 +935,7 @@ class ImageAnalysis:
                     print("output shape and pyoutput shape: ", output.shape, py_output.shape)
                     print("concordant pixels = ", (output == py_output).sum().sum())
                 else:
+                    print("Rust not OK: ", rust_error)
                     output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
                 
                 tf.imwrite(f'{output_folder}/{i}', output.astype('int32'))
