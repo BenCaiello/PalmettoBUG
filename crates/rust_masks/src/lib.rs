@@ -37,7 +37,7 @@ pub fn mask_boolean (
     
 
     if (maximum_mask1 != mask1_values.len() - 1) || (maximum_mask2 != mask2_values.len() - 1){
-        if (maximum_mask1.saturating_mul(maximum_mask2) < 1_000_000_000){
+        if maximum_mask1.saturating_mul(maximum_mask2) < 1_000_000_000{
             println!("Warning! Non dense labels passed to rust mask_boolean function. Proceeding as N(masks in mask1) * N(masks in mask2) is less than 1 billion.")
         }else{
             panic!("Input Error: Dense label assumption failed and N(masks in mask1) * N(masks in mask2) is greater than 1 billion. This risks extreme memory usage in rust mask_boolean function");
@@ -66,12 +66,12 @@ pub fn mask_boolean (
 
     for (ii,i) in obj_overlap_array.iter_mut().enumerate(){     // iterate over object overlap counts, handling appropriately depending on intersection or difference
         if kind == "intersection1" || kind == "intersection2" {
-            if i < object_threshold{       // if under object threshold, set output value to 0 (to be dropped from output)
+            if *i < object_threshold{       // if under object threshold, set output value to 0 (to be dropped from output)
                 *i = 0;
             } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
         }
         if kind == "difference1" || kind == "difference2" {
-            if i > object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
+            if *i > object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
                 *i = 0;
             } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
         }
