@@ -1,39 +1,39 @@
 // Written with AI assistance, but also intentionally made in a more "manual", smaller-pieces-at-a-time manner for the sake of learning rust better
 
 
-fn find_unique1(mask: &Vec<i32>) -> Vec<i32> {
-    let mut mask_values: Vec<i32> = mask.iter().copied().collect();
+fn find_unique1(mask: &Vec<usize>) -> Vec<usize> {
+    let mut mask_values: Vec<usize> = mask.iter().copied().collect();
     mask_values.sort_unstable();
     mask_values.dedup();
     return mask_values
 }
 
-fn find_unique2(mask: &Vec<Vec<i32>>) -> Vec<i32> {
-    let mut mask_values: Vec<i32> = mask.iter().flatten().copied().collect();
+fn find_unique2(mask: &Vec<Vec<usize>>) -> Vec<usize> {
+    let mut mask_values: Vec<usize> = mask.iter().flatten().copied().collect();
     mask_values.sort_unstable();
     mask_values.dedup();
     return mask_values
 }
 
 pub fn mask_boolean (
-    mask1: &Vec<Vec<i32>>,
-    mask2: &Vec<Vec<i32>>,
+    mask1: &Vec<Vec<usize>>,
+    mask2: &Vec<Vec<usize>>,
     kind: &str,
-    object_threshold: i32,
-    pixel_threshold: i32,
+    object_threshold: usize,
+    pixel_threshold: usize,
     re_order: bool
-) -> Vec<Vec<i32>> {
+) -> Vec<Vec<usize>> {
     
-    let mut output: Vec<Vec<i32>> = mask1.clone();
-    let mask1_values: Vec<i32> = find_unique2(&mask1);
-    let maximum_mask1: i32 = *mask1.iter().flatten().max().unwrap_or(&0);
+    let mut output: Vec<Vec<usize>> = mask1.clone();
+    let mask1_values: Vec<usize> = find_unique2(&mask1);
+    let maximum_mask1: usize = *mask1.iter().flatten().max().unwrap_or(&0);
 
     for j in mask1_values.iter(){
         if *j == 0 {continue} else { //skip 0, it is not a mask!
-            let matches: Vec<i32> = mask1.iter().flatten().zip(mask2.iter().flatten()).filter_map(|(&m, &v)| (m == *j).then_some(v)).collect();
+            let matches: Vec<usize> = mask1.iter().flatten().zip(mask2.iter().flatten()).filter_map(|(&m, &v)| (m == *j).then_some(v)).collect();
 
-            let unique_matches: Vec<i32> = find_unique1(&matches);
-            let mut object_counter: i32 = 0;
+            let unique_matches: Vec<usize> = find_unique1(&matches);
+            let mut object_counter: usize = 0;
 
             for k in unique_matches.iter(){ 
                 if matches.iter().filter(|&x| x == k).count() > pixel_threshold{
@@ -63,12 +63,12 @@ pub fn mask_boolean (
     }
 
     if kind == "difference2" || kind == "intersection2"{
-        let mask2_values: Vec<i32> = find_unique2(&mask2);
+        let mask2_values: Vec<usize> = find_unique2(&mask2);
         for j in mask2_values.iter(){
             if *j == 0 {continue} else {
-                let matches: Vec<i32> = mask2.iter().flatten().zip(mask1.iter().flatten()).filter_map(|(&m, &v)| (m == *j).then_some(v)).collect();
-                let unique_matches: Vec<i32> = find_unique1(&matches);
-                let mut object_counter: i32 = 0;
+                let matches: Vec<usize> = mask2.iter().flatten().zip(mask1.iter().flatten()).filter_map(|(&m, &v)| (m == *j).then_some(v)).collect();
+                let unique_matches: Vec<usize> = find_unique1(&matches);
+                let mut object_counter: usize = 0;
                 for k in unique_matches.iter(){ 
                     if matches.iter().filter(|&&x| x == *k).count() > pixel_threshold{
                         object_counter += 1;
@@ -92,8 +92,8 @@ pub fn mask_boolean (
     }
 
     if re_order {
-        let increment: i32 = if output.iter().flatten().any(|&x| x == 0) { 0 } else { 1 };
-        let mut unique_in_output: Vec<i32> = find_unique2(&output); 
+        let increment: usize = if output.iter().flatten().any(|&x| x == 0) { 0 } else { 1 };
+        let mut unique_in_output: Vec<usize> = find_unique2(&output); 
         unique_in_output.sort();
         for (m,mm) in unique_in_output.iter().enumerate(){
             for row in output.iter_mut(){
