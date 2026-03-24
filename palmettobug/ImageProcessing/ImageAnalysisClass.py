@@ -929,18 +929,20 @@ class ImageAnalysis:
                                                    pixel_threshold = np.uint(pixel_threshold), 
                                                    re_order = True)
                     rust_time = time.time() - start
+                    re_start = time.time()
                     py_output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
-                    py_time = time.time() - rust_time
+                    py_time = time.time() - re_start
                     print("execution times for rust / python: ", rust_time, " / ", py_time)
                     print("output shape and pyoutput shape: ", output.shape, py_output.shape)
                     print("concordant pixels = ", (output == py_output).sum().sum())
+                    print("discordant pixels = ", (output != py_output).sum().sum())
                 else:
                     print("Rust not OK: ", rust_error)
                     output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
                 
                 tf.imwrite(f'{output_folder}/{i}', output.astype('int32'))
         
-    def _mask_bool(self, mask1: np.ndarray[int], 
+    def _mask_bool(self, mask1: np.ndarray[int],     ### Edited for performance with AI help
                    mask2: np.ndarray[int], 
                    kind: str = 'intersection1', 
                    object_threshold: int = 1, 
@@ -951,9 +953,21 @@ class ImageAnalysis:
         '''
         if (kind =="difference2") or (kind =="intersection2"):
             backup = mask1.copy()
+
+        '''## Besides single changes, only optimize this function once the optimized rust version is returning an identical value (then optimize this function and check using the rust version, & propagate to the dev/main branch)
+        unique_values_1 = np.unique(mask1)
+        unique_values_2 = np.unique(mask2)
+
+        overlap = np.zeros((max_label1+1, max_label2+1), dtype=np.int32) ## AI! -- this creates a single array to contain all the overlaps between pixels of different values between the two images
+        # Single pass over all pixels:
+        for a, b in zip(mask1.ravel(), mask2.ravel()):
+            overlap[a, b] += 1
+        '''
+
         mask_values = [i for i in np.unique(mask1) if i > 0]
         for j in mask_values:
-            temp = mask2[mask1 == j]      ## look at mask2 with each mask of mask1, and count overlapping values
+            temp_mask1_boolean_comparator = (mask1 == j)
+            temp = mask2[temp_mask1_boolean_comparator]      ## look at mask2 with each mask of mask1, and count overlapping values
             overlapping_values = [i for i in np.unique(temp) if i > 0]
             object_counter = 0
             for k in overlapping_values:
@@ -962,16 +976,17 @@ class ImageAnalysis:
 
             if (kind == "intersection1") or (kind == "intersection2"):
                 if object_counter < object_threshold:
-                    mask1[mask1 == j] = 0   ## delete masks from mask1 that do not have sufficient overlap with objects from mask2
+                    mask1[temp_mask1_boolean_comparator] = 0   ## delete masks from mask1 that do not have sufficient overlap with objects from mask2
 
             if (kind == 'difference1') or (kind == "difference2"):
                 if object_counter > object_threshold:
-                    mask1[mask1 == j] = 0   ## delete masks from mask1 that have sufficient overlap with objects from mask2
+                    mask1[temp_mask1_boolean_comparator] = 0   ## delete masks from mask1 that have sufficient overlap with objects from mask2
                 
         if (kind =="difference2") or (kind =="intersection2"):
             mask_values = [i for i in np.unique(mask2) if i > 0]     ## if two-way difference, repeat the process but look from mask2 --> mask1 instead, then add kept mask2 to output
             for j in mask_values:
-                temp = backup[mask2 == j]      
+                temp_mask1_boolean_comparator = (mask2 == j)
+                temp = backup[temp_mask1_boolean_comparator]      
                 overlapping_values = [i for i in np.unique(temp) if i > 0]
                 object_counter = 0
                 for k in overlapping_values:
@@ -979,10 +994,10 @@ class ImageAnalysis:
                         object_counter += 1
                 if kind == "difference2":
                     if object_counter < object_threshold:
-                        mask1[(mask2 == j)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
+                        mask1[(temp_mask1_boolean_comparator)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
                 if kind == "intersection2":
                     if object_counter > object_threshold:
-                        mask1[(mask2 == j)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
+                        mask1[(temp_mask1_boolean_comparator)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
         
         if re_order:
             for m,mm in enumerate(sorted(np.unique(mask1))):
