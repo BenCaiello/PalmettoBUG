@@ -97,12 +97,12 @@ pub fn mask_boolean (
 
         for (ii,i) in obj_overlap_array_2.iter_mut().enumerate(){     // iterate over object overlap counts, handling appropriately depending on intersection or difference
             if kind == "intersection2" {
-                if i < object_threshold{       // if under object threshold, set output value to 0 (to be dropped from output)
+                if *i < object_threshold{       // if under object threshold, set output value to 0 (to be dropped from output)
                     *i = 0;
                 } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
             }
             if kind == "difference2" {
-                if i > object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
+                if *i > object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
                     *i = 0;
                 } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
             }
