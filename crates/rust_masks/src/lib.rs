@@ -163,7 +163,8 @@ pub fn mask_boolean (
 
     
     if re_order {
-        let mut unique: Vec<usize> = find_unique2(&output, max_label);
+        let maximum_out: usize = *output.iter().flatten().max().unwrap_or(&0);
+        let mut unique: Vec<usize> = find_unique2(&output, maximum_out);
         unique.sort_unstable();
 
         let increment = if output.iter().flatten().any(|&x| x == 0) { 0 } else { 1 };
