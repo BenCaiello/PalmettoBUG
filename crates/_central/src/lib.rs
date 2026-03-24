@@ -266,8 +266,8 @@ fn mask_boolean_rust<'py>(
     mask1: PyReadonlyArray2<i32>,
     mask2: PyReadonlyArray2<i32>,
     kind: &str,
-    object_threshold: usize,
-    pixel_threshold: usize,
+    object_threshold: i32,
+    pixel_threshold: i32,
     re_order: bool
 )  -> PyResult<&'py PyArray2<i32>>{
     let mask1: Vec<Vec<i32>> = array2_to_vec2_i32(&mask1)?;
@@ -279,7 +279,7 @@ fn mask_boolean_rust<'py>(
     let rows = output_mask.len();
     let cols = if rows == 0 { 0 } else { output_mask[0].len() };
     // Flatten row-major
-    let flat: Vec<usize> = output_mask.into_iter().flatten().collect();
+    let flat: Vec<i32> = output_mask.into_iter().flatten().collect();
 
     let out_array: Array2<i32> =
         Array2::from_shape_vec((rows, cols), flat)

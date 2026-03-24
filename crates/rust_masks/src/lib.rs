@@ -19,8 +19,8 @@ pub fn mask_boolean (
     mask1: &Vec<Vec<i32>>,
     mask2: &Vec<Vec<i32>>,
     kind: &str,
-    object_threshold: usize,
-    pixel_threshold: usize,
+    object_threshold: i32,
+    pixel_threshold: i32,
     re_order: bool
 ) -> Vec<Vec<i32>> {
     
@@ -92,7 +92,7 @@ pub fn mask_boolean (
     }
 
     if re_order {
-        let increment = if output.iter().flatten().any(|&x| x == 0) { 0 } else { 1 };
+        let increment: i32 = if output.iter().flatten().any(|&x| x == 0) { 0 } else { 1 };
         let mut unique_in_output: Vec<i32> = find_unique2(&output); 
         unique_in_output.sort();
         for (m,mm) in unique_in_output.iter().enumerate(){
