@@ -935,6 +935,7 @@ class ImageAnalysis:
                     print("output shape and pyoutput shape: ", output.shape, py_output.shape)
                     print("concordant pixels = ", (output == py_output).sum().sum())
                     print("discordant pixels = ", (output != py_output).sum().sum())
+                    print(output, py_output)
                 else:
                     output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
                 
