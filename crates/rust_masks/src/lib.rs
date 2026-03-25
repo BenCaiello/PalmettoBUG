@@ -22,9 +22,9 @@ pub fn mask_boolean (
     re_order: bool
 ) -> Vec<Vec<usize>> {
 
-    //if kind == "difference2" || kind == "intersection2"{
-    //    let backup: Vec<Vec<usize>> = mask1.clone();
-    //}
+    if kind == "difference2" || kind == "intersection2"{
+        let backup: Vec<Vec<usize>> = mask1.clone().iter().flatten().copied().collect();
+    }
     
     let mut output: Vec<Vec<usize>> = mask1.clone();
     let mask1_flat: Vec<usize> = mask1.iter().flatten().copied().collect();
@@ -119,17 +119,16 @@ pub fn mask_boolean (
             for px in row{
                 let mask2_px = mask2_flat[counter];
                 counter += 1;
-                if *px == 0 {      // Don't overwrite any non-zero pixels in mask1
+                if backup[counter] == 0 && *px == 0 {      // Don't overwrite any non-zero pixels in mask1
                     let replacement = obj_overlap_array_2[mask2_px];
                     if replacement != 0 {
-                        *px = replacement + maximum_mask1;  // replace the pixel with the value from the object_overlap_array (which now holds the pass/fail values for each mask)
-                    }    
+                        *px = replacement + maximum_mask1;       // replace the pixel with the value from the object_overlap_array (which now holds the pass/fail values for each mask)
+                    }
                 }
             }
         }
     }
 
-    /*
     if re_order {
         // Find output's maximum label
         let max_label = *output.iter().flatten().max().unwrap_or(&0);
@@ -157,28 +156,6 @@ pub fn mask_boolean (
         // Rewrite pixels using LUT
         for px in output.iter_mut().flatten() {
             *px = lut[*px];
-        }
-    }
-    */
-
-    
-    if re_order {
-        let maximum_out: usize = *output.iter().flatten().max().unwrap_or(&0);
-        let mut unique: Vec<usize> = find_unique2(&output, maximum_out);
-        unique.sort_unstable();
-
-        let increment = if output.iter().flatten().any(|&x| x == 0) { 0 } else { 1 };
-
-        for (new_label, &old_label) in unique.iter().enumerate() {
-            let final_label = new_label + increment;
-
-            for row in output.iter_mut() {
-                for px in row.iter_mut() {
-                    if *px == old_label {
-                        *px = final_label;
-                    }
-                }
-            }
         }
     }
 
