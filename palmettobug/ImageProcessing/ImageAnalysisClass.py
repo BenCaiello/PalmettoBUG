@@ -926,10 +926,10 @@ class ImageAnalysis:
                                                    kind = kind, 
                                                    object_threshold = np.uint(object_threshold), 
                                                    pixel_threshold = np.uint(pixel_threshold), 
-                                                   re_order = False)
+                                                   re_order = True)
                     rust_time = time.time() - start
                     re_start = time.time()
-                    py_output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold, re_order = False)
+                    py_output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
                     py_time = time.time() - re_start
                     print("execution times for rust / python: ", rust_time, " / ", py_time)
                     print("output shape and pyoutput shape: ", output.shape, py_output.shape)
@@ -951,6 +951,7 @@ class ImageAnalysis:
         '''
         if (kind =="difference2") or (kind =="intersection2"):
             backup = mask1.copy()
+            back_up_max = np.max(backup)
 
         '''## Besides single changes, only optimize this function once the optimized rust version is returning an identical value (then optimize this function and check using the rust version, & propagate to the dev/main branch)
         unique_values_1 = np.unique(mask1)
@@ -992,10 +993,10 @@ class ImageAnalysis:
                         object_counter += 1
                 if kind == "difference2":
                     if object_counter < object_threshold:
-                        mask1[(temp_mask1_boolean_comparator)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
+                        mask1[(temp_mask1_boolean_comparator)*(mask1 == 0)] = j + back_up_max   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
                 if kind == "intersection2":
                     if object_counter > object_threshold:
-                        mask1[(temp_mask1_boolean_comparator)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
+                        mask1[(temp_mask1_boolean_comparator)*(mask1 == 0)] = j + back_up_max   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
         
         if re_order:
             for m,mm in enumerate(sorted(np.unique(mask1))):

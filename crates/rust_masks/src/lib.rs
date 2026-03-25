@@ -89,23 +89,26 @@ pub fn mask_boolean (
         let mut obj_overlap_array_2: Vec<usize> = vec![0;maximum_mask2 + 1]; 
         for &m2 in mask2_values.iter(){                      // now iterate over every unique value combination to see if they pass the pixel threshold
             for &m1 in mask1_values.iter(){  
-                if px_overlap_array[m2][m1] > pixel_threshold{
+                if px_overlap_array[m1][m2] > pixel_threshold{
                     obj_overlap_array_2[m2] += 1;            // count every time a mask1 object counts as "overlapping" with a particular mask1 object by passing the threshold
                 }
             }
         }
 
         for (ii,i) in obj_overlap_array_2.iter_mut().enumerate(){     // iterate over object overlap counts, handling appropriately depending on intersection or difference
-            if kind == "intersection2" {
-                if *i < object_threshold{       // if under object threshold, set output value to 0 (to be dropped from output)
-                    *i = 0;
-                } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
+            if ii != 0{  // Ignore the zero "mask" (its actually background, not an object)
+              if kind == "intersection2" {
+                    if *i < object_threshold{       // if under object threshold, set output value to 0 (to be dropped from output)
+                        *i = 0;
+                    } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
+                }
+                if kind == "difference2" {
+                    if *i > object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
+                        *i = 0;
+                    } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
+                }  
             }
-            if kind == "difference2" {
-                if *i > object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
-                    *i = 0;
-                } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
-            }
+            
         }
 
         // set every pixel in the output to the value from obj_overlap_array_2 -- zero if failing the overlap threshold, the original mask1 value if passing the threshold
