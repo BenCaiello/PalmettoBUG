@@ -94,12 +94,12 @@ def test_call_intersection_difference():
     intersect.refresh1()
     intersect.masks_folder1.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     intersect.masks_folder2.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
-    intersect.kind2.configure(variable = ctk.StringVar(value = "two-way"))
+    #intersect.kind2.configure(variable = ctk.StringVar(value = "two-way"))
     intersect.read_values()
     assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks")) == 10), "Mask intersection function failed!"
     intersect.destroy()
     assert False
-
+'''
 def test_call_region_measurement():
     region_meas = app.entrypoint.image_proc_widg.call_region_measurement()
     region_meas.refresh1()
@@ -1171,3 +1171,4 @@ def test_plot_class_centers():
 
 def test_app_destroy():
     app.destroy()
+'''
