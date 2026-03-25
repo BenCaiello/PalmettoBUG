@@ -86,10 +86,14 @@ pub fn mask_boolean (
 
 
     if kind == "difference2" || kind == "intersection2"{
+        let mut px_overlap_array_2: Vec<Vec<usize>> = vec![vec![0;maximum_mask2 + 1];maximum_mask1 + 1]; // Instatiate an array 
+        for (m2,m1) in mask2_flat.iter().zip(mask1_flat.iter()){ // iterate through every pixel
+            px_overlap_array_2[*m2][*m1] += 1;                     // count overlaps for every mask1 value (will need to ignore 0's later)
+        }
         let mut obj_overlap_array_2: Vec<usize> = vec![0;maximum_mask2 + 1]; 
         for &m2 in mask2_values.iter(){                      // now iterate over every unique value combination to see if they pass the pixel threshold
             for &m1 in mask1_values.iter(){  
-                if px_overlap_array[m2][m1] > pixel_threshold{
+                if px_overlap_array_2[m2][m1] > pixel_threshold{
                     obj_overlap_array_2[m2] += 1;            // count every time a mask1 object counts as "overlapping" with a particular mask1 object by passing the threshold
                 }
             }
