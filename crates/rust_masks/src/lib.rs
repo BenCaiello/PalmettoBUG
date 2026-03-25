@@ -114,13 +114,13 @@ pub fn mask_boolean (
         for row in output.iter_mut(){
             for px in row{
                 let mask2_px = mask2_flat[counter];
-                counter += 1;
                 if (mask1_flat[counter] == 0) && (*px == 0) {      // Don't overwrite any non-zero pixels in mask1
                     let replacement = obj_overlap_array_2[mask2_px];
                     if replacement != 0 {
                         *px = replacement + maximum_mask1;       // replace the pixel with the value from the object_overlap_array (which now holds the pass/fail values for each mask)
                     }
                 }
+                counter += 1;
             }
         }
     }
