@@ -23,7 +23,7 @@ pub fn mask_boolean (
 ) -> Vec<Vec<usize>> {
 
     if kind == "difference2" || kind == "intersection2"{
-        let backup: Vec<Vec<usize>> = mask1.clone().iter().flatten().copied().collect();
+        let backup: Vec<usize> = mask1.clone().iter().flatten().copied().collect();
     }
     
     let mut output: Vec<Vec<usize>> = mask1.clone();
