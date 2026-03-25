@@ -926,10 +926,10 @@ class ImageAnalysis:
                                                    kind = kind, 
                                                    object_threshold = np.uint(object_threshold), 
                                                    pixel_threshold = np.uint(pixel_threshold), 
-                                                   re_order = True)
+                                                   re_order = False)
                     rust_time = time.time() - start
                     re_start = time.time()
-                    py_output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
+                    py_output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold, re_order = False)
                     py_time = time.time() - re_start
                     print("execution times for rust / python: ", rust_time, " / ", py_time)
                     print("output shape and pyoutput shape: ", output.shape, py_output.shape)
