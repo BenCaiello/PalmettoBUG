@@ -77,7 +77,7 @@ pub fn mask_boolean (
             } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
         }
         if (kind == "difference1") || (kind == "difference2") {
-            if *i > object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
+            if *i >= object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
                 *i = 0;
             } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
         }
@@ -99,7 +99,7 @@ pub fn mask_boolean (
                 } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
             }
             if kind == "difference2" {
-                if *i > object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
+                if *i >= object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
                     *i = 0;
                 } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
             }  
