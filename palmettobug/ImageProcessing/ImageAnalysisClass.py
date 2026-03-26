@@ -919,20 +919,12 @@ class ImageAnalysis:
                 print(f"Warning! Mask file: {i} did  not have a matching shape between the two folders of masks. Skipping this file!")
             else:
                 if _RUST_OK:
-                    import time
-                    start = time.time()
                     output = rsc.mask_boolean_rust(np.ascontiguousarray(mask1, dtype=np.uint), 
                                                    np.ascontiguousarray(mask2, dtype=np.uint), 
                                                    kind = kind, 
                                                    object_threshold = np.uint(object_threshold), 
                                                    pixel_threshold = np.uint(pixel_threshold), 
                                                    re_order = True)
-                    rust_time = time.time() - start
-                    re_start = time.time()
-                    py_output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
-                    py_time = time.time() - re_start
-                    print("execution times for rust / python: ", rust_time, " / ", py_time)
-                    print("discordant pixels = ", (output != py_output).sum().sum())
                 else:
                     output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
                 
