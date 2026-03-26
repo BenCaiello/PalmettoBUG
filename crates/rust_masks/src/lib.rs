@@ -111,18 +111,14 @@ pub fn mask_boolean (
         }
 
         // set every pixel in the output to the value from obj_overlap_array_2 -- zero if failing the overlap threshold, the original mask1 value if passing the threshold
-        let mut counter: usize = 0;
-        let mut baseline: usize = 0;
-        for row in output.iter_mut(){
-            for px in row{
-                let mask2_px = mask2_flat[counter];
-                if (mask1_flat[counter] == 0) && (*px == 0) {      // Don't overwrite any non-zero pixels in mask1
-                    let replacement = obj_overlap_array_2[mask2_px];
+        for (row, r2) in output.iter_mut().zip(mask2.iter()){
+            for (px, p2) in row.zip(r2){
+                if *px == 0 {      // Don't overwrite any non-zero pixels in output
+                    let replacement = obj_overlap_array_2[*p2];
                     if replacement != 0 {
                         *px = replacement + maximum_mask1;       // replace the pixel with the value from the object_overlap_array (which now holds the pass/fail values for each mask)
                     }
                 }
-                counter += 1;
             }
         }
     }
