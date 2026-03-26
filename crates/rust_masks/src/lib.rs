@@ -82,7 +82,6 @@ pub fn mask_boolean (
             } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
         }
     }
-}
 
     // set every pixel in the output to the value from obj_overlap_array -- zero if failing the overlap threshold, the original mask1 value if passing the threshold
     for row in output.iter_mut(){
