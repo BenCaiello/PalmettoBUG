@@ -51,7 +51,6 @@ pub fn mask_boolean (
             px_overlap_array[*m1][*m2] += 1;                     // count overlaps for every mask1 value (will need to ignore 0's later)
         }
     }
-    println!(px_overlap_array)
 
     let mut obj_overlap_array: Vec<usize> = vec![0;maximum_mask1 + 1];   // This array serves a dual purpose: first we track object overlaps & check the object threshold, 
                                                                     // then we store the value to replace pixels in mask1 with:
