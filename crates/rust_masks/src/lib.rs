@@ -36,7 +36,7 @@ pub fn mask_boolean (
 
     
 
-    if (maximum_mask1 != mask1_values.len() - 1) || (maximum_mask2 != mask2_values.len() - 1){
+    if (maximum_mask1 != length_mask1_values - 1) || (maximum_mask2 != length_mask2_values - 1){
         if maximum_mask1.saturating_mul(maximum_mask2) < 1_000_000_000{
             println!("Warning! Non dense labels passed to rust mask_boolean function. Proceeding as N(masks in mask1) * N(masks in mask2) is less than 1 billion.")
         }else{
