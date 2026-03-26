@@ -938,7 +938,7 @@ class ImageAnalysis:
                 
                 tf.imwrite(f'{output_folder}/{i}', output.astype('int32'))
         
-    def _mask_bool(self, mask1: np.ndarray[int],     ### Edited for performance with AI help
+    def _mask_bool(self, mask1: np.ndarray[int], 
                    mask2: np.ndarray[int], 
                    kind: str = 'intersection1', 
                    object_threshold: int = 1, 
@@ -947,90 +947,48 @@ class ImageAnalysis:
         ''' 
         helper for self.boolean_mask_transform, executing the operation on a single pair of masks
         '''
-        output = mask1.copy()
-        flat_1 = mask1.flat
-        flat_2 = mask2.flat
-        max_1  = np.max(flat_1)
-        max_2  = np.max(flat_2)
-        unique_values_1 = np.unique(mask1)
-        unique_values_2 = np.unique(mask2)
-        len_uv_1 = len(unique_values_1)
-        len_uv_2 = len(unique_values_2)
-
-        if (max_1 != (len_uv_1 - 1)) or (max_2 != (len_uv_2 - 1)):
-            if max_1*max_2 < 1000000000:
-                print("Warning! Non dense labels passed to rust mask_boolean function. Proceeding as N(masks in mask1) * N(masks in mask2) is less than 1 billion.")
-            else:
-                raise ValueError("Input Error: Dense label assumption failed and N(masks in mask1) * N(masks in mask2) is greater than 1 billion. This risks extreme memory usage in rust mask_boolean function")
-
-        px_overlap = np.zeros((max_1+1, max_2+1), dtype=np.int32) 
-        for a, b in zip(flat_1, flat_2):
-            if (a !=0 ) and (b != 0):
-                px_overlap[a, b] += 1
-        
-        obj_overlap1 = np.zeros(max_1+1, dtype=np.int32) 
-        obj_overlap2 = np.zeros(max_2+1, dtype=np.int32) 
-        for i1 in unique_values_1:
-            for i2 in unique_values_2:
-                if px_overlap[i1][i2] >= pixel_threshold:
-                    obj_overlap1[i1] += 1
-                    if (kind =="difference2") or (kind =="intersection2"):
-                        obj_overlap2[i2] += 1
-
-        for i,ii in enumerate(obj_overlap1):
-            if (kind == "intersection1") or (kind == "intersection2"):
-                if ii >= object_threshold:
-                    obj_overlap1[i] = i
-                else:
-                    obj_overlap1[i] = 0
-            
-            if (kind == "difference1") or (kind == "difference2"):
-                if ii >= object_threshold:
-                    obj_overlap1[i] = 0
-                else:
-                    obj_overlap1[i] = i
-
-        for j in range(output.shape[0]):
-            for jj in range(output.shape[1]):
-                output[j,jj] = obj_overlap1[output[j,jj]]
-
         if (kind =="difference2") or (kind =="intersection2"):
-            for i,ii in enumerate(obj_overlap2):
-                if kind == "intersection2":
-                    if ii >= object_threshold:
-                        obj_overlap2[i] = i
-                    else:
-                        obj_overlap2[i] = 0
+            backup = mask1.copy()
+        mask_values = [i for i in np.unique(mask1) if i > 0]
+        for j in mask_values:
+            temp = mask2[mask1 == j]      ## look at mask2 with each mask of mask1, and count overlapping values
+            overlapping_values = [i for i in np.unique(temp) if i > 0]
+            object_counter = 0
+            for k in overlapping_values:
+                if (temp == k).sum() >= pixel_threshold:
+                    object_counter += 1
 
+            if (kind == "intersection1") or (kind == "intersection2"):
+                if object_counter < object_threshold:
+                    mask1[mask1 == j] = 0   ## delete masks from mask1 that do not have sufficient overlap with objects from mask2
+
+            if (kind == 'difference1') or (kind == "difference2"):
+                if object_counter >= object_threshold:
+                    mask1[mask1 == j] = 0   ## delete masks from mask1 that have sufficient overlap with objects from mask2
+                
+        if (kind =="difference2") or (kind =="intersection2"):
+            mask_values = [i for i in np.unique(mask2) if i > 0]     ## if two-way difference, repeat the process but look from mask2 --> mask1 instead, then add kept mask2 to output
+            for j in mask_values:
+                temp = backup[mask2 == j]      
+                overlapping_values = [i for i in np.unique(temp) if i > 0]
+                object_counter = 0
+                for k in overlapping_values:
+                    if (temp == k).sum() >= pixel_threshold:
+                        object_counter += 1
                 if kind == "difference2":
-                    if ii >= object_threshold:
-                        obj_overlap2[i] = 0
-                    else:
-                        obj_overlap2[i] = i
-
-            for idx_r,(j,i) in enumerate(zip(output,mask2)):
-                for idx_c,(jj,ii) in enumerate(zip(j,i)):
-                    if jj == 0:
-                        replacement = obj_overlap2[ii]
-                        if replacement != 0:
-                            output[idx_r,idx_c] = replacement + max_1
-
+                    if object_counter < object_threshold:
+                        mask1[(mask2 == j)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
+                if kind == "intersection2":
+                    if object_counter >= object_threshold:
+                        mask1[(mask2 == j)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
+        
         if re_order:
-            max_output = np.max(output)
-            seen = np.zeros(max_output + 1).astype('bool')
-            for i in output.flat:
-                seen[i] = True
-            increment = 0
-            if not seen[0]:
-                increment = 1
-            lut = np.zeros(max_output + 1)
-            for i,ii in enumerate(seen):
-                if ii:
-                    lut[i] = increment
-                increment += 1
-            for indx, px in enumerate(output.flat):
-                output.flat[indx] = lut[px]
-        return output
+            for m,mm in enumerate(sorted(np.unique(mask1))):
+                if mask1.min() != 0:   ## if masks take up the entire space of the image / there is no background, then need to index from 1 instead of 0
+                    m = m + 1
+                mask1[mask1 == mm] = m
+
+        return mask1
 
         
 
