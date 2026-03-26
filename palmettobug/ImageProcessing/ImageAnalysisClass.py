@@ -971,15 +971,15 @@ class ImageAnalysis:
             overlapping_values = [i for i in np.unique(temp) if i > 0]
             object_counter = 0
             for k in overlapping_values:
-                if (temp == k).sum() > pixel_threshold:
+                if (temp == k).sum() >= pixel_threshold:
                     object_counter += 1
 
             if (kind == "intersection1") or (kind == "intersection2"):
-                if object_counter < object_threshold:
+                if object_counter <= object_threshold:
                     mask1[temp_mask1_boolean_comparator] = 0   ## delete masks from mask1 that do not have sufficient overlap with objects from mask2
 
             if (kind == 'difference1') or (kind == "difference2"):
-                if object_counter > object_threshold:
+                if object_counter >= object_threshold:
                     mask1[temp_mask1_boolean_comparator] = 0   ## delete masks from mask1 that have sufficient overlap with objects from mask2
                 
         if (kind =="difference2") or (kind =="intersection2"):
@@ -990,13 +990,13 @@ class ImageAnalysis:
                 overlapping_values = [i for i in np.unique(temp) if i > 0]
                 object_counter = 0
                 for k in overlapping_values:
-                    if (temp == k).sum() > pixel_threshold:
+                    if (temp == k).sum() >= pixel_threshold:
                         object_counter += 1
                 if kind == "difference2":
-                    if object_counter < object_threshold:
+                    if object_counter <= object_threshold:
                         mask1[(temp_mask1_boolean_comparator)*(mask1 == 0)] = j + back_up_max   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
                 if kind == "intersection2":
-                    if object_counter > object_threshold:
+                    if object_counter >= object_threshold:
                         mask1[(temp_mask1_boolean_comparator)*(mask1 == 0)] = j + back_up_max   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
         
         if re_order:
