@@ -51,6 +51,7 @@ pub fn mask_boolean (
             px_overlap_array[*m1][*m2] += 1;                     // count overlaps for every mask1 value (will need to ignore 0's later)
         }
     }
+    println!(px_overlap_array)
 
     let mut obj_overlap_array: Vec<usize> = vec![0;maximum_mask1 + 1];   // This array serves a dual purpose: first we track object overlaps & check the object threshold, 
                                                                     // then we store the value to replace pixels in mask1 with:
@@ -72,12 +73,12 @@ pub fn mask_boolean (
 
     for (ii,i) in obj_overlap_array.iter_mut().enumerate(){     // iterate over object overlap counts, handling appropriately depending on intersection or difference
         if (kind == "intersection1") || (kind == "intersection2") {
-            if *i <= object_threshold{       // if under object threshold, set output value to 0 (to be dropped from output)
+            if *i < object_threshold{       // if under object threshold, set output value to 0 (to be dropped from output)
                 *i = 0;
             } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
         }
         if (kind == "difference1") || (kind == "difference2") {
-            if *i >= object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
+            if *i > object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
                 *i = 0;
             } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
         }
@@ -94,12 +95,12 @@ pub fn mask_boolean (
     if (kind == "difference2") || kind == ("intersection2"){
         for (ii,i) in obj_overlap_array_2.iter_mut().enumerate(){     // iterate over object overlap counts, handling appropriately depending on intersection or difference
             if kind == "intersection2" {
-                if *i <= object_threshold{       // if under object threshold, set output value to 0 (to be dropped from output)
+                if *i < object_threshold{       // if under object threshold, set output value to 0 (to be dropped from output)
                     *i = 0;
                 } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
             }
             if kind == "difference2" {
-                if *i >= object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
+                if *i > object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
                     *i = 0;
                 } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
             }  
