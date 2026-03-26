@@ -69,7 +69,7 @@ def test_call_raw_to_img_part_1_hpf():
     hpf_window.read_values()
     images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
     assert(len(images) == 10), "Wrong number of images exported to images/img" 
-'''
+
 def test_call_instanseg_segmentor():
     instanseg_window = app.entrypoint.image_proc_widg.call_instanseg_segmentor()
     instanseg_window.refresh1()
@@ -88,7 +88,7 @@ def test_call_mask_expand():
     expander.read_values()
     images = os.listdir(proj_directory + "/masks/expanded_deepcell_masks")
     assert(len(images) == 10), "All masks not expanded" 
-'''
+
 def test_call_intersection_difference():
     intersect = app.entrypoint.image_proc_widg.call_intersection_difference()
     intersect.refresh1()
