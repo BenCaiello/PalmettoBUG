@@ -93,18 +93,17 @@ pub fn mask_boolean (
 
     if (kind == "difference2") || kind == ("intersection2"){
         for (ii,i) in obj_overlap_array_2.iter_mut().enumerate(){     // iterate over object overlap counts, handling appropriately depending on intersection or difference
-                if kind == "intersection2" {
-                    if *i <= object_threshold{       // if under object threshold, set output value to 0 (to be dropped from output)
-                        *i = 0;
-                    } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
-                }
-                if kind == "difference2" {
-                    if *i >= object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
-                        *i = 0;
-                    } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
-                }  
-            }   
-        }
+            if kind == "intersection2" {
+                if *i <= object_threshold{       // if under object threshold, set output value to 0 (to be dropped from output)
+                    *i = 0;
+                } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
+            }
+            if kind == "difference2" {
+                if *i >= object_threshold{       // if greater than object threshold, set output value to 0 (to be dropped from output)
+                    *i = 0;
+                } else {*i = ii;}               // if failing threshold, set the output value to the original mask value (encoded by the vector position)
+            }  
+        }   
 
         // set every pixel in the output to the value from obj_overlap_array_2 -- zero if failing the overlap threshold, the original mask1 value if passing the threshold
         for (row, r2) in output.iter_mut().zip(mask2.iter()){
