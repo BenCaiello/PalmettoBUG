@@ -292,7 +292,7 @@ fn mask_boolean_rust<'py>(
 }
 
 #[pyfunction]
-fn smooth_isolate_pixels(
+fn smooth_isolate_pixels<'py>(
     py: Python<'py>,
     class_map: PyReadonlyArray2<usize>,
     class_num: usize,
