@@ -292,7 +292,7 @@ fn mask_boolean_rust<'py>(
 }
 
 #[pyfunction]
-fn smooth_isolate_pixels<'py>(
+fn smooth_isolated_pixels<'py>(
     py: Python<'py>,
     class_map: PyReadonlyArray2<usize>,
     class_num: usize,
@@ -367,7 +367,7 @@ fn _central(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     // palmettobug.rust_masks
     let rm_mod = PyModule::new_bound(py, "rust_masks")?;
     rm_mod.add_function(wrap_pyfunction!(mask_boolean_rust, &rm_mod)?)?;
-    rm_mod.add_function(wrap_pyfunction!(smooth_isolate_pixels, &rm_mod)?)?;
+    rm_mod.add_function(wrap_pyfunction!(smooth_isolated_pixels, &rm_mod)?)?;
     m.add_submodule(&rm_mod)?;
 
     // palmettobug.rust_sup_classifier
