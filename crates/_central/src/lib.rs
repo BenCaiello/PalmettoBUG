@@ -301,7 +301,7 @@ fn smooth_isolate_pixels(
     mode_mode: &str,
     fill_in: bool,
     warn: bool,
-) --> PyResult<&'py PyArray2<usize>>{
+) -> PyResult<&'py PyArray2<usize>>{
     let input: Vec<Vec<usize>> = array2_to_vec2_usize(&PyReadonlyArray2)?;
     let output: Vec<Vec<usize>> = smooth_isolated_pixels(input, class_num, threshold, search_radius, mode_mode, fill_in, warn);
 
