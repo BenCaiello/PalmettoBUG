@@ -58,18 +58,19 @@ jobs:
 
     - name: Generate Rust license bundle
       run: |
-        mkdir -p licenses
         cargo about generate \
+          --manifest-path crates/_central/Cargo.toml \
           --config .about.toml \
           licenses/about.hbs \
           > licenses/THIRD_PARTY_NOTICES_RUST.txt
 
-    - name: Validate Rust licenses (non-blocking)
-      id: cargo_about
+    - name: Validate Rust licenses
       run: |
         set +e
-        cargo about validate --config .about.toml 2>&1 | tee licenses/cargo-about-report.txt
-        echo "exit_code=$?" >> $GITHUB_OUTPUT
+        cargo about validate \
+          --manifest-path crates/_central/Cargo.toml \
+          --config .about.toml \
+          2>&1 | tee licenses/cargo-about-report.txt
 
     - name: Upload license reports
       uses: actions/upload-artifact@v4

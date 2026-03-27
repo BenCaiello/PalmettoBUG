@@ -20,3 +20,12 @@ ndarray = "0.15"
 
 [features]
 default = []
+
+
+[workspace]
+members = [
+  "../rust_masks",
+  "../rust_spaceanova",
+  "../rust_sup_classifier",
+]
+
