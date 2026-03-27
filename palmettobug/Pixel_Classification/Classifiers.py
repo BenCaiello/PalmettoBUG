@@ -1798,13 +1798,17 @@ def classify_one(img: np.ndarray[float],
                                                       flowsom_dictionary['number_of_classes'], 
                                                       threshold = smoothing, 
                                                       search_radius = 1, 
-                                                      mode_mode = "original_image")
+                                                      mode_mode = "original_image",
+                                                      fill_in = True,
+                                                      warn = True)
         else:
             classification_array = smooth_isolated_pixels(classification_array, 
                                                       flowsom_dictionary['number_of_classes'], 
                                                       threshold = smoothing, 
                                                       search_radius = 1, 
-                                                      mode_mode = "original_image")
+                                                      mode_mode = "original_image",
+                                                      fill_in = True,
+                                                      warn = True)
     if suppress_zero_division_warnings:
         warnings.filterwarnings("default", message = "invalid value encountered in divide")
     return classification_array
@@ -1938,10 +1942,24 @@ def smooth_folder(input_folder: Union[Path, str],
         path_to_file = "".join([input_folder,"/",i])
         class_map = tf.imread(path_to_file)
         if _RUST_OK:
+            import time
+            start = time.time()
             smoothed_img = rm.smooth_isolated_pixels(np.ascontiguousarray(class_map), 
                                               class_num = class_num, 
                                               threshold = threshold, 
+                                              search_radius = search_radius,
+                                              mode_mode = "original_image",
+                                              fill_in = True,
+                                              warn = True)
+            rust_time = time.time()
+            rust_duration = rust_time - start  
+            smoothed_img_py = smooth_isolated_pixels(class_map, 
+                                              class_num = class_num, 
+                                              threshold = threshold, 
                                               search_radius = search_radius)
+            py_duration = rust_time - time.time()
+            print('rust_time, py_time = ', rust_duration, py_duration)
+            print('discordant_pixels: ', (smoothed_img != smoothed_img_py).sum().sum())
         else:
             smoothed_img = smooth_isolated_pixels(class_map, 
                                               class_num = class_num, 
