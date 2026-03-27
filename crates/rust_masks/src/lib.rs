@@ -297,7 +297,7 @@ fn remove_small_objects_binary(
         _ => Connectivity::Eight,
     };
 
-    let labels = connected_components(&img, conn, Luma(0));
+    let labels = connected_components(&img, conn, Luma([0]));
 
     let mut counts: HashMap<u32, usize> = HashMap::new();
     for p in labels.pixels() {
