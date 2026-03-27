@@ -48,10 +48,38 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.10"
+    
+    # AI generated lines for cargo-about license check
+    - name: Install Rust
+      run: curl -sSf https://sh.rustup.rs | sh -s -- -y
+    
+    - name: Install cargo-about
+      run: cargo install cargo-about
+
+    - name: Generate Rust license bundle
+      run: |
+        mkdir -p licenses
+        cargo about generate \
+          --config .about.toml \
+          licenses/about.hbs \
+          > licenses/THIRD_PARTY_NOTICES_RUST.txt
+
+    - name: Validate Rust licenses (non-blocking)
+      id: cargo_about
+      run: |
+        set +e
+        cargo about validate --config .about.toml 2>&1 | tee licenses/cargo-about-report.txt
+        echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+    - name: Upload license reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: rust-license-reports
+        path: licenses/
+
     ## uv pip install "git+https://github.com/BenCaiello/PalmettoBUG.git@rusty_vibin#egg=PalmettoBUG[instanseg]" --system
     - name: Install dependencies
       run: |
-        curl -sSf https://sh.rustup.rs | sh -s -- -y
         python -m pip install --upgrade pip
         pip install uv pip-licenses svg-stack
         uv pip install -e .[instanseg] --system
@@ -63,7 +91,7 @@ jobs:
         uvx ruff check palmettobug/ --exit-zero
     - name: pytest
       run: |  
-        python -m pytest -v --durations=25 -p pytest_cov --cov-report xml:coverage.xml --cov=palmettobug tests/test_GUI.py
+        python -m pytest -v --durations=35 -p pytest_cov --cov-report xml:coverage.xml --cov=palmettobug tests/test_GUI.py
 
     - uses: codecov/codecov-action@v5
 

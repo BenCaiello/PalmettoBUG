@@ -88,8 +88,9 @@ import seaborn as sns
 from flowsom import FlowSOM
 
 try:
-    from .. import _central as rsc 
-    rsc = rsc.rust_sup_classifier
+    from .. import _central as rust_central 
+    rsc = rust_central.rust_sup_classifier
+    rm = rust_central.rust_masks
     _RUST_OK = True
 except Exception as e:
     print("Rust classifiers not available")
@@ -1792,7 +1793,14 @@ def classify_one(img: np.ndarray[float],
         counter += 1
 
     if smoothing != 0:
-        classification_array = smooth_isolated_pixels(classification_array, 
+        if _RUST_OK:
+            classification_array = rm.smooth_isolated_pixels(np.ascontiguousarray(classification_array), 
+                                                      flowsom_dictionary['number_of_classes'], 
+                                                      threshold = smoothing, 
+                                                      search_radius = 1, 
+                                                      mode_mode = "original_image")
+        else:
+            classification_array = smooth_isolated_pixels(classification_array, 
                                                       flowsom_dictionary['number_of_classes'], 
                                                       threshold = smoothing, 
                                                       search_radius = 1, 
@@ -1929,7 +1937,13 @@ def smooth_folder(input_folder: Union[Path, str],
     for i in input_file_names:
         path_to_file = "".join([input_folder,"/",i])
         class_map = tf.imread(path_to_file)
-        smoothed_img = smooth_isolated_pixels(class_map, 
+        if _RUST_OK:
+            smoothed_img = rm.smooth_isolated_pixels(np.ascontiguousarray(class_map), 
+                                              class_num = class_num, 
+                                              threshold = threshold, 
+                                              search_radius = search_radius)
+        else:
+            smoothed_img = smooth_isolated_pixels(class_map, 
                                               class_num = class_num, 
                                               threshold = threshold, 
                                               search_radius = search_radius)
@@ -2043,8 +2057,8 @@ def _find_mode(padded_array: np.ndarray[int],
         if warn:
             print(f"The point at {X},{Y} was surrounded by only zero-points -- expanding search radius!")   
                     ### should only be theoretically possible if mode_mode = "dropped_image" in smooth_isolated_pixels() 
-        padded_array = np.pad(padded_array, 1)
-        mode = _find_mode(padded_array, point, (search_radius + 1))
+        padded_array = np.pad(padded_array, 1) ## adding padding effectively shifts the point[0,1] x/y values each back by one (expanding the square backwards/up, while the  
+                                                # search radius being incrementd up in the recursive call below does the expansion forward/down)
     return mode
 
 def segment_class_map_folder(pixel_classifier_directory: Union[Path, str], 
@@ -2096,14 +2110,14 @@ def segment_class_map_folder(pixel_classifier_directory: Union[Path, str],
     class_map_names = [i for i in sorted(os.listdir(pixel_classifier_directory)) if i.lower().find(".tif") != -1]
     class_maps_paths = ["".join([pixel_classifier_directory,"/",i]) for i in sorted(os.listdir(pixel_classifier_directory)) if i.lower().find(".tif") != -1]
     for i, ii in zip(class_map_names, class_maps_paths):
-        map = tf.imread(ii)
-        map[map == background] = 0
-        all_isolated_pixels_removed = np.zeros(map.shape)
+        mask_map = tf.imread(ii)
+        mask_map[mask_map == background] = 0
+        all_isolated_pixels_removed = np.zeros(mask_map.shape)
         for j in to_segment_on:
-            single_class = (map == j)
+            single_class = (mask_map == j)
             single_class_isolated_pixels_removed = skimage.morphology.remove_small_objects(single_class, min_size = threshold)
             all_isolated_pixels_removed  = all_isolated_pixels_removed + single_class_isolated_pixels_removed.astype('int')
-        all_isolated_pixels_removed = (map * all_isolated_pixels_removed).astype('int')
+        all_isolated_pixels_removed = (mask_map * all_isolated_pixels_removed).astype('int')
 
         #watershed_map = scipy.ndimage.distance_transform_edt(all_isolated_pixels_removed)
 

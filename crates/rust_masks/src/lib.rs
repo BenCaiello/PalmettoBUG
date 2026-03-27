@@ -1,5 +1,7 @@
 // Written with AI assistance, but also intentionally made in a more "manual", smaller-pieces-at-a-time manner for the sake of learning rust better
-
+use imageproc::region_labelling::{connected_components, ConnectivityEnum};
+use image::{GrayImage, Luma};
+use std::collections::HashMap;
 
 fn find_unique2(mask: &Vec<Vec<usize>>, max_label: usize) -> Vec<usize> {
     let mut seen = vec![false; max_label + 1];
@@ -150,4 +152,170 @@ pub fn mask_boolean (
 
 
     return output
+}
+
+pub fn smooth_isolated_pixels(
+    class_map: Vec<Vec<usize>>,
+    class_num: usize,
+    threshold: usize,
+    search_radius: usize,
+    mode_mode: &str,
+    fill_in: bool,
+    warn: bool,
+) -> Vec<Vec<usize>> {
+
+    let height = class_map.len();
+    let width = class_map[0].len();
+
+    // Track original background (Python zero_number logic)
+    let background: Vec<Vec<bool>> = (0..height)
+        .map(|i| (0..width).map(|j| class_map[i][j] == 0).collect())
+        .collect();
+
+    let mut kept = vec![vec![0usize; width]; height];
+
+    // Phase 1: remove small objects per class
+    for class_id in 1..=class_num {
+        let mask: Vec<Vec<bool>> = (0..height)
+            .map(|i| (0..width).map(|j| class_map[i][j] == class_id).collect())
+            .collect();
+
+        let filtered =
+            remove_small_objects_binary(&mask, threshold, search_radius + 1);
+
+        for i in 0..height {
+            for j in 0..width {
+                if filtered[i][j] && (kept[i][j] == 0)  {
+                    kept[i][j] = class_map[i][j];
+                }
+            }
+        }
+    }
+
+    // Phase 2: fill-in via mode
+    if fill_in {
+        let reference = match mode_mode {
+            "original_image" => &class_map,
+            "dropped_image" => &kept,
+            _ => panic!("mode_mode must be 'original_image' or 'dropped_image'"),
+        };
+
+        for i in 0..height {
+            for j in 0..width {
+                // DO NOT fill original background pixels
+                if kept[i][j] == 0 && !background[i][j] {
+                    let mode = find_mode(
+                        reference,
+                        &[i, j],
+                        search_radius,
+                        warn,
+                    );
+                    if mode != 0 { kept[i][j] = mode; }
+                }
+            }
+        }
+    }
+
+    kept
+}
+
+
+fn find_mode(
+    array: &[Vec<usize>],
+    point: &[usize],
+    mut radius: usize,
+    warn: bool,
+) -> usize {
+    let height = array.len();
+    let width = array[0].len();
+
+    let x = point[0]; // row
+    let y = point[1]; // column
+
+    let max_radius = height.max(width);
+
+    loop {
+        if radius > max_radius {
+            return 0;
+        }
+
+        let x_min = x.saturating_sub(radius);
+        let x_max = (x + radius).min(height - 1);
+        let y_min = y.saturating_sub(radius);
+        let y_max = (y + radius).min(width - 1);
+
+        let mut counts: HashMap<usize, usize> = HashMap::new();  
+        for i in x_min..=x_max {
+            for j in y_min..=y_max {
+                let v = array[i][j];
+                if v != 0 {
+                    *counts.entry(v).or_insert(0) += 1;
+                }
+            }
+        }
+
+        if let Some((&mode, _)) = counts.iter().max_by_key(|(_, c)| *c) {
+            return mode;
+        }
+
+        if warn {
+            println!(
+                "No nonzero values around ({},{}) — expanding search radius",
+                x, y
+            );
+        }
+
+        radius += 1;
+    }
+}
+
+/// Remove connected components smaller than `min_size`
+/// Connectivity must match skimage semantics
+// Written by AI, consciously meant to emulate the behaviour of skimage's remove small objects function
+fn remove_small_objects_binary(
+    mask: &Vec<Vec<bool>>,
+    min_size: usize,
+    connectivity: usize,
+) -> Vec<Vec<bool>> {
+
+    let height = mask.len();
+    let width = mask[0].len();
+
+    let mut img = GrayImage::new(width as u32, height as u32);
+    for y in 0..height {
+        for x in 0..width {
+            img.put_pixel(
+                x as u32,
+                y as u32,
+                Luma([if mask[y][x] { 255 } else { 0 }]),
+            );
+        }
+    }
+
+    let conn = match connectivity {
+        1 => ConnectivityEnum::Four,
+        _ => ConnectivityEnum::Eight,
+    };
+
+    let labels = connected_components(&img, conn);
+
+    let mut counts: HashMap<u32, usize> = HashMap::new();
+    for p in labels.pixels() {
+        let label = p.0[0];
+        if label != 0 {
+            *counts.entry(label).or_insert(0) += 1;
+        }
+    }
+
+    let mut output = vec![vec![false; width]; height];
+    for y in 0..height {
+        for x in 0..width {
+            let label = labels.get_pixel(x as u32, y as u32).0[0];
+            if label != 0 && counts.get(&label).copied().unwrap_or(0) >= min_size {
+                output[y][x] = true;
+            }
+        }
+    }
+
+    output
 }

@@ -291,6 +291,30 @@ fn mask_boolean_rust<'py>(
     Ok(out_array)
 }
 
+#[pyfunction]
+fn smooth_isolate_pixels(
+    py: Python<'py>,
+    class_map: PyReadonlyArray2<usize>,
+    class_num: usize,
+    threshold: usize,
+    search_radius: usize,
+    mode_mode: &str,
+    fill_in: bool,
+    warn: bool,
+) --> PyResult<&'py PyArray2<usize>>{
+    let input: Vec<Vec<usize>> = array2_to_vec2_usize(&PyReadonlyArray2)?;
+    let output: Vec<Vec<usize>> = smooth_isolated_pixels(input, class_num, threshold, search_radius, mode_mode, fill_in, warn);
+
+    let rows = output.len();
+    let cols = if rows == 0 { 0 } else { output[0].len() };
+    let flat: Vec<usize> = output.into_iter().flatten().collect();
+
+    let out_array: Array2<usize> =
+        Array2::from_shape_vec((rows, cols), flat)
+            .expect("inconsistent row lengths in output");
+    let out_array = PyArray2::from_owned_array(py, out_array);
+    Ok(out_array)
+}
 
 
 #[pyfunction]
@@ -343,6 +367,7 @@ fn _central(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     // palmettobug.rust_masks
     let rm_mod = PyModule::new_bound(py, "rust_masks")?;
     rm_mod.add_function(wrap_pyfunction!(mask_boolean_rust, &rm_mod)?)?;
+    rm_mod.add_function(wrap_pyfunction!(smooth_isolate_pixels, &rm_mod)?)?;
     m.add_submodule(&rm_mod)?;
 
     // palmettobug.rust_sup_classifier

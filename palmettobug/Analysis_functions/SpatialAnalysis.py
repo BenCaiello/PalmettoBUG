@@ -37,6 +37,15 @@ from ..Pixel_Classification.Classifiers import smooth_isolated_pixels
 from ..Pixel_Classification.use_classifiers import merge_folder
 from .SpatialANOVA import SpatialANOVA, plot_spatial_stat_heatmap
 
+try:
+    from .. import _central as rust_central 
+    rm = rust_central.rust_masks
+    _RUST_OK = True
+except Exception as e:
+    print("Rust classifiers not available")
+    print(e)
+    _RUST_OK = False
+
 warnings.filterwarnings("ignore", message = "Importing read_text")   ## future warning in anndata that squidpy has not caught up to yet. Irritating to see everytime on startup
 import squidpy as sq # noqa: E402
 
@@ -1135,7 +1144,15 @@ def _spatial_by_edt(mask: np.ndarray[int],
     if smoothing > 0:
         max = np.max(class_map)
         #class_map[class_map == 0] = max + 1
-        class_map = smooth_isolated_pixels(class_map, 
+        if _RUST_OK:
+            class_map = smooth_isolated_pixels(np.ascontiguousarray(class_map), 
+                                           class_num = max, 
+                                           threshold = smoothing, 
+                                           mode_mode = "dropped_image", 
+                                           fill_in = False,
+                                           warn = False)
+        else:
+            class_map = smooth_isolated_pixels(class_map, 
                                            class_num = max, 
                                            threshold = smoothing, 
                                            mode_mode = "dropped_image", 

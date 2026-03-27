@@ -352,6 +352,8 @@ exclude = [
   "samples/**",
   "docs/_build/**",
 ]
+include = ["licenses/THIRD_PARTY_NOTICES_RUST.txt"]
+
 
 
 
