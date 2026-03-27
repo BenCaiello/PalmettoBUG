@@ -1163,6 +1163,7 @@ def test_smooth_folder():
                   search_radius = 1,
                   )
     assert len(os.listdir(output_dir)) == 10
+    assert False
 
 def test_plot_class_centers():
     figure, df = palmettobug.plot_class_centers(fs)
