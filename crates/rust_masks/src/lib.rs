@@ -1,5 +1,5 @@
 // Written with AI assistance, but also intentionally made in a more "manual", smaller-pieces-at-a-time manner for the sake of learning rust better
-use imageproc::region_labelling::{connected_components, ConnectivityEnum};
+use imageproc::region_labelling::{connected_components, Connectivity};
 use image::{GrayImage, Luma};
 use std::collections::HashMap;
 
@@ -194,16 +194,16 @@ pub fn smooth_isolated_pixels(
 
     // Phase 2: fill-in via mode
     if fill_in {
-        let reference = match mode_mode {
-            "original_image" => &class_map,
-            "dropped_image" => &kept,
-            _ => panic!("mode_mode must be 'original_image' or 'dropped_image'"),
-        };
-
+        
         for i in 0..height {
             for j in 0..width {
                 // DO NOT fill original background pixels
                 if kept[i][j] == 0 && !background[i][j] {
+                    let reference = match mode_mode {
+                        "original_image" => &class_map,
+                        "dropped_image" => &kept,
+                        _ => panic!("mode_mode must be 'original_image' or 'dropped_image'"),
+                    };
                     let mode = find_mode(
                         reference,
                         &[i, j],
@@ -293,11 +293,11 @@ fn remove_small_objects_binary(
     }
 
     let conn = match connectivity {
-        1 => ConnectivityEnum::Four,
-        _ => ConnectivityEnum::Eight,
+        1 => Connectivity::Four,
+        _ => Connectivity::Eight,
     };
 
-    let labels = connected_components(&img, conn);
+    let labels = connected_components(&img, conn, Luma(0));
 
     let mut counts: HashMap<u32, usize> = HashMap::new();
     for p in labels.pixels() {

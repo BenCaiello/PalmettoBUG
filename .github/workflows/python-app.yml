@@ -53,8 +53,8 @@ jobs:
     - name: Install Rust
       run: curl -sSf https://sh.rustup.rs | sh -s -- -y
     
-    - name: Install cargo-about
-      run: cargo install cargo-about
+    #- name: Install cargo-about
+    #  run: cargo install cargo-about
 
     #- name: Generate Rust license bundle
     #  run: |
