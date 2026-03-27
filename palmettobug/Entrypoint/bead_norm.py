@@ -48,9 +48,12 @@ def _median_500_window_df(dataframe: pd.DataFrame,
     This is a function that performs rolling median calculations on all the columns of a dataframe specified by columns_to_run_on
     '''
     dataframe = dataframe.copy()
+    df_length = len(dataframe)
+    default_min = int((window / 2) - 1)
+    if df_length < (default_min*4):
+        default_min = int(df_length / 4) - 1
     for i in columns_to_run_on:
-        dataframe[i] = dataframe[i].rolling(window, min_periods = int((window / 2) - 1), center = True, closed = 'neither').median()            
-                                                                                                                         # min_periods = 99,
+        dataframe[i] = dataframe[i].rolling(window, min_periods = default_min, center = True, closed = 'neither').median()
     return dataframe
 
 def _find_slope(original_data: pd.DataFrame, 
@@ -96,7 +99,7 @@ def normalize_pipeline_one_fcs(bead_fcs: pd.DataFrame,
         (pd.DataFrame, pd.DataFrame): the first output is the to_normalize_fcs dataframe, normalized on channels_to_normalize. 
         the second output is the bead_fcs dataframe, normalized on bead_channels
     '''
-    median_smoothed_beads = _median_500_window_df(bead_fcs, bead_channels).sort_values('Time')
+    median_smoothed_beads = _median_500_window_df(bead_fcs.sort_values('Time'), bead_channels).sort_values('Time')
     slopes = _find_slope(bead_fcs, median_smoothed_beads.loc[:,bead_channels], bead_channels)
     norm_events = np.interp(to_normalize_fcs['Time'], median_smoothed_beads['Time'], slopes)
     norm_beads = np.interp(bead_fcs['Time'], median_smoothed_beads['Time'], slopes)
