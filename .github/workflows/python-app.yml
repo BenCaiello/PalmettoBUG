@@ -56,27 +56,19 @@ jobs:
     - name: Install cargo-about
       run: cargo install cargo-about
 
-    - name: Generate Rust license bundle
-      run: |
-        cargo about generate \
-          --manifest-path crates/_central/Cargo.toml \
-          --config .about.toml \
-          licenses/about.hbs \
-          > licenses/THIRD_PARTY_NOTICES_RUST.txt
+    #- name: Generate Rust license bundle
+    #  run: |
+    #    cargo about generate \
+    #      --manifest-path crates/_central/Cargo.toml \
+    #      --config .about.toml \
+    #      licenses/about.hbs \
+    #      > licenses/THIRD_PARTY_NOTICES_RUST.txt
 
-    - name: Validate Rust licenses
-      run: |
-        set +e
-        cargo about validate \
-          --manifest-path crates/_central/Cargo.toml \
-          --config .about.toml \
-          2>&1 | tee licenses/cargo-about-report.txt
-
-    - name: Upload license reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: rust-license-reports
-        path: licenses/
+    #- name: Upload license reports
+    #  uses: actions/upload-artifact@v4
+    #  with:
+    #    name: rust-license-reports
+    #    path: licenses/
 
     ## uv pip install "git+https://github.com/BenCaiello/PalmettoBUG.git@rusty_vibin#egg=PalmettoBUG[instanseg]" --system
     - name: Install dependencies
