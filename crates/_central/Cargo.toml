@@ -18,14 +18,13 @@ rust_masks = { path = "../rust_masks" }
 numpy = "0.21"
 ndarray = "0.15"
 
+# all sub-depencies of lower crates copyied here for the sake of caro-about to find licenses easily (I think)
+rayon = "1.8"
+rand = "0.8"
+rand_pcg = "0.3"
+image = "0.24.9"
+imageproc = "0.23.0"
+
 [features]
 default = []
-
-
-[workspace]
-members = [
-  "../rust_masks",
-  "../rust_spaceanova",
-  "../rust_sup_classifier",
-]
 
