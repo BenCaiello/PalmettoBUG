@@ -53,8 +53,7 @@ def _median_500_window_df(dataframe: pd.DataFrame,
     if df_length < (default_min*4):
         default_min = int(df_length / 4) - 1
     for i in columns_to_run_on:
-        dataframe[i] = dataframe[i].rolling(window, min_periods = default_min, center = True, closed = 'neither').median()            
-                                                                                                                         # min_periods = 99,
+        dataframe[i] = dataframe[i].rolling(window, min_periods = default_min, center = True, closed = 'neither').median()
     return dataframe
 
 def _find_slope(original_data: pd.DataFrame, 
@@ -194,7 +193,6 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
         no_bead_label = ii[ii.rfind("/") + 1:]
         _, beads_df = fcsparser.parse(i, channel_naming = "$PnS")
         beads_df = DataFrame(beads_df.sort_values('Time'))
-
         bead_label = i[i.rfind("/") + 1:]
         if channels_to_normalize is None:
             channels_to_normalize = _identify_metal_columns(prenorms_df)
