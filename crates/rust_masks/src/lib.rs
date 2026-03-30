@@ -204,8 +204,8 @@ pub fn smooth_isolated_pixels(
     // --- Phase 2: fill-in via mode (sentinel participates!)
     if fill_in {
         let reference = match mode_mode {
-            "original_image" => &class_map,
-            "dropped_image" => &kept,
+            "original_image" => class_map,
+            "dropped_image" => kept.clone(),
             _ => panic!("mode_mode must be 'original_image' or 'dropped_image'"),
         };
 
@@ -213,7 +213,7 @@ pub fn smooth_isolated_pixels(
             for j in 0..width {
                 if kept[i][j] == 0 {
                     let mode = find_mode(
-                        reference,
+                        &reference,
                         &[i, j],
                         search_radius,
                         warn,
