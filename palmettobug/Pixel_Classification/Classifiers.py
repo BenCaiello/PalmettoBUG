@@ -1794,7 +1794,7 @@ def classify_one(img: np.ndarray[float],
 
     if smoothing != 0:
         if _RUST_OK:
-            classification_array = rm.smooth_isolated_pixels(np.ascontiguousarray(classification_array, dtype=np.int32), 
+            classification_array = rm.smooth_isolated_pixels(np.ascontiguousarray(classification_array, dtype=np.uintp), 
                                                       flowsom_dictionary['number_of_classes'], 
                                                       threshold = smoothing, 
                                                       search_radius = 1, 
@@ -1944,7 +1944,7 @@ def smooth_folder(input_folder: Union[Path, str],
         if _RUST_OK:
             import time
             start = time.time()
-            smoothed_img = rm.smooth_isolated_pixels(np.ascontiguousarray(class_map, dtype = np.int32), 
+            smoothed_img = rm.smooth_isolated_pixels(np.ascontiguousarray(class_map, dtype = np.uintp), 
                                               class_num = class_num, 
                                               threshold = threshold, 
                                               search_radius = search_radius,

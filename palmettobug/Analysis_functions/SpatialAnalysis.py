@@ -1145,7 +1145,7 @@ def _spatial_by_edt(mask: np.ndarray[int],
         max = np.max(class_map)
         #class_map[class_map == 0] = max + 1
         if _RUST_OK:
-            class_map = smooth_isolated_pixels(np.ascontiguousarray(class_map, dtype=np.int32), 
+            class_map = smooth_isolated_pixels(np.ascontiguousarray(class_map, dtype=np.uintp), 
                                            class_num = max, 
                                            threshold = smoothing, 
                                            mode_mode = "dropped_image", 
