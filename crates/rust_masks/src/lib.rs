@@ -1,7 +1,16 @@
-// Written with AI assistance, but also intentionally made in a more "manual", smaller-pieces-at-a-time manner for the sake of learning rust better
+// This file was written with a mix of generative AI and manual edits, based from existing palmettobug code being ported over into rust
 use imageproc::region_labelling::{connected_components, Connectivity};
 use image::{GrayImage, Luma};
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
+use std::collections::hash_map::DefaultHasher;
+
+fn stable_hash<T: Hash>(t: &T) -> u64 {
+    let mut h = DefaultHasher::new();
+    t.hash(&mut h);
+    h.finish()
+}
+
 
 fn find_unique2(mask: &Vec<Vec<usize>>, max_label: usize) -> Vec<usize> {
     let mut seen = vec![false; max_label + 1];
@@ -270,21 +279,23 @@ fn find_mode(
             }
         }
 
-        if let Some((&mode, _)) = counts.iter().max_by(|(v1, c1), (v2, c2)| {    // original rust (does not autmatically select smallest valued mode) --> counts.iter().max_by_key(|(_, c)| *c)
-                c1.cmp(c2)                                                       // plan to revert to another mode tie-breaking schema, but want to check concordance with python
-                .then_with(|| v2.cmp(v1)) // reverse: smaller value wins
-            }){
-            return mode;
+        
+        // Nothing found → expand radius
+        if counts.is_empty() {
+            if warn {
+                println!(
+                    "No nonzero values around ({},{}) — expanding search radius",
+                    x, y
+                );
+            }
+            radius += 1;
+            continue;
         }
 
-        if warn {
-            println!(
-                "No nonzero values around ({},{}) — expanding search radius",
-                x, y
-            );
-        }
-
-        radius += 1;
+        // Find maximum frequency
+        let max_count = *counts.values().max().unwrap();
+        let mode = counts.iter().filter(|(_, &c)| c == max_count).max_by_key(|(&v, _)| stable_hash(&(v, x, y))).map(|(&v, _)| v).unwrap();
+        return mode;
     }
 }
 

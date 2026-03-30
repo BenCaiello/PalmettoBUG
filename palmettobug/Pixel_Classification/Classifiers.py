@@ -1942,8 +1942,6 @@ def smooth_folder(input_folder: Union[Path, str],
         path_to_file = "".join([input_folder,"/",i])
         class_map = tf.imread(path_to_file)
         if _RUST_OK:
-            import time
-            start = time.time()
             smoothed_img = rm.smooth_isolated_pixels(np.ascontiguousarray(class_map, dtype = np.uintp), 
                                               class_num = class_num, 
                                               threshold = threshold, 
@@ -1951,15 +1949,6 @@ def smooth_folder(input_folder: Union[Path, str],
                                               mode_mode = "original_image",
                                               fill_in = True,
                                               warn = True)
-            rust_time = time.time()
-            rust_duration = rust_time - start  
-            smoothed_img_py = smooth_isolated_pixels(class_map, 
-                                              class_num = class_num, 
-                                              threshold = threshold, 
-                                              search_radius = search_radius)
-            py_duration = time.time() - rust_time
-            print('rust_time, py_time = ', rust_duration, py_duration)
-            print('discordant_pixels: ', (smoothed_img != smoothed_img_py).sum().sum())
         else:
             smoothed_img = smooth_isolated_pixels(class_map, 
                                               class_num = class_num, 
