@@ -1957,7 +1957,7 @@ def smooth_folder(input_folder: Union[Path, str],
                                               class_num = class_num, 
                                               threshold = threshold, 
                                               search_radius = search_radius)
-            py_duration = rust_time - time.time()
+            py_duration = time.time() - rust_time
             print('rust_time, py_time = ', rust_duration, py_duration)
             print('discordant_pixels: ', (smoothed_img != smoothed_img_py).sum().sum())
         else:

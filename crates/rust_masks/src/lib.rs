@@ -154,8 +154,9 @@ pub fn mask_boolean (
     return output
 }
 
+
 pub fn smooth_isolated_pixels(
-    class_map: Vec<Vec<usize>>,
+    mut class_map: Vec<Vec<usize>>,
     class_num: usize,
     threshold: usize,
     search_radius: usize,
@@ -167,14 +168,22 @@ pub fn smooth_isolated_pixels(
     let height = class_map.len();
     let width = class_map[0].len();
 
-    // Track original background (Python zero_number logic)
-    let background: Vec<Vec<bool>> = (0..height)
-        .map(|i| (0..width).map(|j| class_map[i][j] == 0).collect())
-        .collect();
+    // --- Step 1: create background sentinel (Python zero_number equivalent)
+    let max_value = class_map.iter().flatten().copied().max().unwrap_or(0);
+    let sentinel = max_value + 10_000; // large enough to be unique
+
+    // Replace original background (0) with sentinel
+    for i in 0..height {
+        for j in 0..width {
+            if class_map[i][j] == 0 {
+                class_map[i][j] = sentinel;
+            }
+        }
+    }
 
     let mut kept = vec![vec![0usize; width]; height];
 
-    // Phase 1: remove small objects per class
+    // --- Phase 1: remove small objects per class
     for class_id in 1..=class_num {
         let mask: Vec<Vec<bool>> = (0..height)
             .map(|i| (0..width).map(|j| class_map[i][j] == class_id).collect())
@@ -185,40 +194,47 @@ pub fn smooth_isolated_pixels(
 
         for i in 0..height {
             for j in 0..width {
-                if filtered[i][j] && (kept[i][j] == 0)  {
+                if filtered[i][j] && kept[i][j] == 0 {
                     kept[i][j] = class_map[i][j];
                 }
             }
         }
     }
 
-    // Phase 2: fill-in via mode
+    // --- Phase 2: fill-in via mode (sentinel participates!)
     if fill_in {
-        
+        let reference = match mode_mode {
+            "original_image" => &class_map,
+            "dropped_image" => &kept,
+            _ => panic!("mode_mode must be 'original_image' or 'dropped_image'"),
+        };
+
         for i in 0..height {
             for j in 0..width {
-                // DO NOT fill original background pixels
-                if kept[i][j] == 0 && !background[i][j] {
-                    let reference = match mode_mode {
-                        "original_image" => &class_map,
-                        "dropped_image" => &kept,
-                        _ => panic!("mode_mode must be 'original_image' or 'dropped_image'"),
-                    };
+                if kept[i][j] == 0 {
                     let mode = find_mode(
                         reference,
                         &[i, j],
                         search_radius,
                         warn,
                     );
-                    if mode != 0 { kept[i][j] = mode; }
+                    kept[i][j] = mode;
                 }
+            }
+        }
+    }
+
+    // --- Step 3: convert sentinel back to background (0)
+    for i in 0..height {
+        for j in 0..width {
+            if kept[i][j] == sentinel {
+                kept[i][j] = 0;
             }
         }
     }
 
     kept
 }
-
 
 fn find_mode(
     array: &[Vec<usize>],
