@@ -270,7 +270,10 @@ fn find_mode(
             }
         }
 
-        if let Some((&mode, _)) = counts.iter().max_by_key(|(_, c)| *c) {
+        if let Some((&mode, _)) = counts.iter().max_by(|(v1, c1), (v2, c2)| {    // original rust (does not autmatically select smallest valued mode) --> counts.iter().max_by_key(|(_, c)| *c)
+                c1.cmp(c2)                                                       // plan to revert to another mode tie-breaking schema, but want to check concordance with python
+                .then_with(|| v2.cmp(v1)) // reverse: smaller value wins
+            }){
             return mode;
         }
 
