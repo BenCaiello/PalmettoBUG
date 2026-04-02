@@ -1173,10 +1173,10 @@ class ImageAnalysis:
                 for task in tasks:
                     result = task.result()
                     for message in result:
-                        if _in_gui and not result[0]:
-                            warning_window(result[1])
+                        if _in_gui and not message[0]:
+                            warning_window(message[1])
                         else:
-                            print(result[1])
+                            print(message[1])
 
                 ## Then do regionprops:
                 tasks = []
