@@ -1134,7 +1134,7 @@ class ImageAnalysis:
         def read_and_write_one_step(i, ii, output_directory, channels, stat, csv_type = "intensities"):
             ''''''
             img_file = stein_unhook.read_image(i)
-            mask_file = stein_unhook.read_image(ii)
+            mask_file = stein_unhook.read_image(ii).astype('int32')
             mask_shape = mask_file.shape
             if csv_type == "intensities":
                 output_csv = stein_unhook.measure_intensites(img_file, mask_file, channels, stat)
