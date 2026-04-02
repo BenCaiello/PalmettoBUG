@@ -88,12 +88,8 @@ import tifffile as tf
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
-#try:
 from .readimc import MCDFile
-    # from readimc.data import Acquisition
-#    imc_available = True
-#except Exception:
-#    imc_available = False
+
 
 __all__ = []
 
@@ -329,7 +325,7 @@ def create_image_info(
             }
         )
     return image_info_row
-
+    
 def filter_hot_pixels(img: np.ndarray, thres: float) -> np.ndarray:
     ### Editing for 2D arrays 1-9-24 ###
     if len(img.shape) == 3:
@@ -340,12 +336,6 @@ def filter_hot_pixels(img: np.ndarray, thres: float) -> np.ndarray:
         kernel[1, 1] = False
     max_neighbor_img = maximum_filter(img, footprint=kernel, mode="mirror")
     return np.where(img - max_neighbor_img > thres, max_neighbor_img, img)
-
-def preprocess_image(img: np.ndarray, hpf: Optional[float] = None) -> np.ndarray:
-    img = img.astype(np.float32)
-    if hpf is not None:
-        img = filter_hot_pixels(img, hpf)
-    return img  ### removed to_dtype call
 
 def measure_regionprops(
     img: np.ndarray, mask: np.ndarray, skimage_regionprops: Sequence[str]
