@@ -1104,18 +1104,6 @@ class ImageAnalysis:
             else:
                 print("None of the mask and image filenames matched! Cancelling regionproperty measurement.")
             return
-
-        def filter_redo(dest_folder, shared_files):
-            ''''''
-            ints_files = []
-            if dest_folder is not None:
-                ints_files = [str(i).replace("\\","/") for i in dest_folder]
-                ints_files = [i[(i.rfind("/") + 1):i.rfind(".csv")] for i in ints_files]
-            img_mask_pairs = []
-            for i in shared_files:
-                if i not in ints_files:
-                    img_mask_pairs.append([f'{input_img_folder}/{i}.tiff', f'{input_mask_folder}/{i}.tiff'])            
-            return img_mask_pairs
         
         if re_do is False:
             img_mask_pairs_int = filter_redo(ints_folder, shared_files)
@@ -1130,66 +1118,6 @@ class ImageAnalysis:
         else:
             img_mask_pairs_int = filter_redo(None, shared_files)
             img_mask_pairs_reg = img_mask_pairs_int
-
-        def read_and_write_one_step(i, ii, output_directory, channels, stat, csv_type = "intensities"):
-            ''''''
-            img_file = stein_unhook.read_image(i)
-            mask_file = stein_unhook.read_image(ii).astype('int32')
-            mask_shape = mask_file.shape
-            if csv_type == "intensities":
-                output_csv = stein_unhook.measure_intensites(img_file, mask_file, channels, stat)
-            else:
-                output_csv = stein_unhook.measure_regionprops(img_file, mask_file, ["area", 
-                                                                                    "perimeter",              
-                                                                                    "centroid",
-                                                                                    "axis_major_length",
-                                                                                    "axis_minor_length",
-                                                                                    "eccentricity"] )
-                output_csv['image_area'] = mask_shape[0] * mask_shape[1]
-                output_csv['mask_folder'] = input_mask_folder
-
-            file_name = Path(ii).stem
-
-            return_messages = []
-            if not output_csv.empty:           #### This means there are no cell masks in this file! 
-                output_csv.to_csv(("".join([output_directory, '/', file_name, ".csv"])),index = True)
-                return_messages.append( [True, f"{file_name} {csv_type} csv has been written!"] )
-            else:
-                return_messages.append( [False, f"""{file_name} has no cell masks in it! 
-                    Re-run segmentation or delete image & its mask / csv's from the analysis! 
-                    \n conversion to Analysis will fail in the creation of a 0 event fcs"""] )
-
-            return return_messages
-
-        def threaded_intensities_regions_I_O(img_mask_pairs_int, img_mask_pairs_reg, channels, stat, output_int, output_region):  # *** 
-            ''''''
-            from concurrent.futures import ThreadPoolExecutor
-            tasks = []
-            with ThreadPoolExecutor(max_workers = 5) as threads:
-                ## do intensities separate from regionprops, intensities first:
-                for i,ii in img_mask_pairs_int:
-                    tasks.append(threads.submit(read_and_write_one_step, i, ii, output_int, channels, stat, csv_type = "intensities"))
-
-                for task in tasks:
-                    result = task.result()
-                    for message in result:
-                        if _in_gui and not message[0]:
-                            warning_window(message[1])
-                        else:
-                            print(message[1])
-
-                ## Then do regionprops:
-                tasks = []
-                for i,ii in img_mask_pairs_reg:
-                    tasks.append(threads.submit(read_and_write_one_step, i, ii, output_region, channels, stat, csv_type = "regions"))
-
-                for task in tasks:
-                    result = task.result()
-                    for message in result:
-                        if _in_gui and not message[0]:
-                            warning_window(message[1])
-                        else:
-                            print(message[1])
 
         threaded_intensities_regions_I_O(img_mask_pairs_int, img_mask_pairs_reg, 
                     channels = self.panel[self.panel['keep'] == 1]['name'], 
@@ -1437,6 +1365,71 @@ class ImageAnalysis:
         metadata['condition'] = 'treatment vs. control'   
         self.metadata = metadata
         return metadata
+
+
+def filter_redo(dest_folder, shared_files):
+    ''''''
+    ints_files = []
+    if dest_folder is not None:
+        ints_files = [str(i).replace("\\","/") for i in dest_folder]
+        ints_files = [i[(i.rfind("/") + 1):i.rfind(".csv")] for i in ints_files]
+    img_mask_pairs = []
+    for i in shared_files:
+        if i not in ints_files:
+            img_mask_pairs.append([f'{input_img_folder}/{i}.tiff', f'{input_mask_folder}/{i}.tiff'])            
+    return img_mask_pairs
+
+def write_csv_with_messages(output_csv, return_messages, output_directory, file_name, csv_type):
+    ''''''
+    if not output_csv.empty:           #### This means there are no cell masks in this file! 
+        output_csv.to_csv(("".join([output_directory, '/', file_name, ".csv"])),index = True)
+        return_messages.append( [True, f"{file_name} {csv_type} csv has been written!"] )
+    else:
+        return_messages.append( [False, f"""{file_name} has no cell masks in it! 
+            Re-run segmentation or delete image & its mask / csv's from the analysis! 
+            \n conversion to Analysis will fail in the creation of a 0 event fcs"""] )
+
+def read_and_write_one_step(pair, int_set, reg_set, output_int, output_region, channels, stat):
+    '''''' 
+    return_messages = []
+    img_file = stein_unhook.read_image(pair[0])
+    mask_file = stein_unhook.read_image(pair[1]).astype('int32')
+    file_name = Path(pair[1]).stem
+    mask_shape = mask_file.shape
+    if pair in int_set:
+        output_csv = stein_unhook.measure_intensites(img_file, mask_file, channels, stat)
+        write_csv_with_messages(output_csv, return_messages, output_directory = output_int, file_name = file_name, csv_type = 'intensities')
+    if pair in reg_set:
+        output_csv = stein_unhook.measure_regionprops(img_file, mask_file, ["area", 
+                                                                "perimeter",              
+                                                                "centroid",
+                                                                "axis_major_length",
+                                                                "axis_minor_length",
+                                                                "eccentricity"] )
+        output_csv['image_area'] = mask_shape[0] * mask_shape[1]
+        output_csv['mask_folder'] = input_mask_folder
+        write_csv_with_messages(output_csv, return_messages, output_directory = output_region, file_name = file_name, csv_type = 'regions')
+    return return_messages
+
+
+def threaded_intensities_regions_I_O(img_mask_pairs_int, img_mask_pairs_reg, channels, stat, output_int, output_region):  # *** 
+    ''''''
+    from concurrent.futures import ThreadPoolExecutor
+    tasks = []
+    with ThreadPoolExecutor(max_workers = 5) as threads:
+        messages = []
+        int_set = set(map(tuple, img_mask_pairs_int))
+        reg_set = set(map(tuple, img_mask_pairs_reg))
+        all_pairs = int_set | reg_set
+        for i in all_pairs:
+            tasks.append(threads.submit(read_and_write_one_step, i, int_set, reg_set, output_int, output_region, channels, stat))
+        for task in tasks:
+            messages += task.result()
+        for message in messages:
+            if _in_gui and not message[0]:
+                warning_window(message[1])
+            else:
+                print(message[1])
     
 def setup_for_FCS(directory):
     '''
