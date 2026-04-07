@@ -1116,7 +1116,7 @@ class ImageAnalysis:
                     print("All images have intensity and region files written! Did you intend to redo these measurements?")  
                 return
         else:
-            img_mask_pairs_int = filter_redo(None, shared_files, input_mask_folder), input_img_folder
+            img_mask_pairs_int = filter_redo(None, shared_files, input_mask_folder, input_img_folder)
             img_mask_pairs_reg = img_mask_pairs_int
 
         threaded_intensities_regions_I_O(img_mask_pairs_int, img_mask_pairs_reg, 
