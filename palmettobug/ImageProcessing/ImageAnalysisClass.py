@@ -94,9 +94,7 @@ def _my_auto_hpf(image: np.ndarray[float], hpf: float = 0.75):
     '''
     for ii,i in enumerate(image):
         hpf_threshold = np.quantile(i, hpf)
-        #print(hpf_threshold)
         image[ii,:,:] = stein_unhook.filter_hot_pixels(i,hpf_threshold)
-        
     return image
 
 def imc_entrypoint(directory: Union[Path, str], 
@@ -121,16 +119,15 @@ def imc_entrypoint(directory: Union[Path, str],
     returns:
         a palmettobug.ImageAnalysis object
     '''
-    directory = str(directory)
+    directory = Path(directory)
     try:
         resolutions[0] = float(resolutions[0])
         resolutions[1] = float(resolutions[1])
     except ValueError:
         print("Resolution X / Y must be numbers!")
         return
-    directory = directory.replace("\\","/") 
     try:
-        experiment = ImageAnalysis(directory, resolutions, from_mcds = from_mcds)
+        experiment = ImageAnalysis(str(directory), resolutions, from_mcds = from_mcds)
     except Exception as e:
         print(e)
         if from_mcds:
@@ -175,10 +172,11 @@ def read_txt_file(path: Union[str, Path], num_meta_data_columns: int = 6):
         numpy array, which can be saved as an (.ome).tiff
     '''
     image_df = pd.read_csv(str(path), delimiter = "\t")
-    image_channels_only = image_df.iloc[:,num_meta_data_columns:]
-    image_array = np.array(image_channels_only).reshape([image_df['X'].max() + 1,
-                                                         image_df['Y'].max() + 1, 
-                                                         len(image_channels_only.columns)])
+    image_channels_only = image_df.iloc[:,num_meta_data_columns:].to_numpy()
+    n_channels = image_channels_only.shape[1]
+    image_array = image_channels_only.reshape([image_df['X'].max() + 1,
+                                                image_df['Y'].max() + 1, 
+                                                n_channels])
     image_array = image_array.transpose([2,0,1])
     return image_array
 
@@ -230,26 +228,27 @@ def txt_folder_to_tiff_folder(txt_folder: Union[Path, str],
         Outputs: 
             writes an .ome.tiff file in tiff_folder for each .txt file read in from txt_folder
     '''
-    txt_folder = str(txt_folder)
-    tiff_folder = str(tiff_folder)
-    txt_files = ["".join([txt_folder, "/", i]) for i in sorted(os.listdir(txt_folder)) if i.lower().find(".txt") != -1]
-    tiff_files_out = ["".join([tiff_folder, "/", i.rstrip("txt"),"ome.tiff"]) for i in sorted(os.listdir(txt_folder)) if i.lower().find(".txt") != -1]
-    img_slicer = (panel['keep'] == 1)
-    for i,ii in zip(txt_files, tiff_files_out):
-        image = read_txt_file(i, num_meta_data_columns = num_meta_data_columns)[img_slicer,:,:]
+    txt_folder = Path(txt_folder)
+    tiff_folder = Path(tiff_folder)
+    tiff_folder.mkdir(parents=True, exist_ok=True)
+    txt_files = sorted(txt_folder.glob("*.txt"))
+    img_slicer = panel['keep'].to_numpy(dtype=bool)
+    for i in txt_files:
+        out_path = tiff_folder / (i.stem + ".ome.tiff")
+        image = read_txt_file(i, num_meta_data_columns)[img_slicer,:,:]
         if (hpf > 0) and (hpf < 1):
             image = _my_auto_hpf(image, hpf)
         elif hpf != 0:
             image = stein_unhook.filter_hot_pixels(image,hpf)
         if ome_tiff_metadata:
-            ome_metadata = _generate_ome_tiff_metadata(output_directory = ii[:-9],
-                                                       filename = ii[ii.rfind("/") + 1:], 
+            ome_metadata = _generate_ome_tiff_metadata(output_directory = str(tiff_folder),
+                                                       filename = out_path.name, 
                                                        resolutions = resolutions, 
                                                        panel_csv = panel,
                                                        )
-            write_ome_tiff(image, ome_metadata, ii)
+            write_ome_tiff(image, ome_metadata, out_path)
         else:
-            tf.imwrite(ii, image)
+            tf.imwrite(out_path, image)
 
 def launch_denoise_seg_program(directory: Union[Path, str], 
                                resolutions: list[float] = [1.0, 1.0],
@@ -265,18 +264,19 @@ def launch_denoise_seg_program(directory: Union[Path, str],
         resolutions (list of two floats > 0): 
             the resolution of the images in X and Y dimensions, in micrometers per pixel.
     '''
-    directory = str(directory)
-    if not os.path.exists(directory):
+    directory = Path(directory)
+    if not directory.exists():
         return
     res1 = float(resolutions[0])
     res2 = float(resolutions[1])
     import subprocess
     try:
-        subprocess.run(['segdenoise','-d', f'{directory}', '-r1', f'{str(res1)}', '-r2', f'{str(res2)}'])
+        subprocess.run(['segdenoise','-d', str(directory), '-r1', str(res1), '-r2', str(res2)], check = True)
         # Useful discussion for switching from shell = True to shell = False & using list[str] instead of string (as I had originally done)
         #       https://stackoverflow.com/questions/3172470/actual-meaning-of-shell-true-in-subprocess
-    except Exception:
-        print("Error in launching the Segmentation / Denoising process")
+    except subprocess.CalledProcessError as e:
+        print(f"Segmentation / denoising failed: {e}")
+
 
 def _MCD_Generator(MCD_list: list[Path]):   # ****stein_derived 
                                             # (a substantially sipmlified / stripped down version of 
@@ -285,17 +285,16 @@ def _MCD_Generator(MCD_list: list[Path]):   # ****stein_derived
     A much simplified MCD reader compared to steinbock's, simiarly based on readimc.
     This is a helper function for when converting /raw folder MCDs to .ome.tiffs in the /img folder
     '''
-    for i in MCD_list:
-        with readimc.MCDFile(i) as mcd:
-            for j in mcd.slides:
-                for k in j.acquisitions:
+    for mcd_path in MCD_list:
+        with readimc.MCDFile(mcd_path) as mcd:
+            for slide in mcd.slides:
+                for acq in slide.acquisitions:
                     try:
-                        image = mcd.read_acquisition(k)
-                        path = i
-                        ROI = k.description
-                        yield image, path, ROI, k
+                        image = mcd.read_acquisition(acq)
+                        ROI = acq.description
+                        yield image, mcd_path, ROI, acq
                     except Exception:
-                        print(f"A ROI in the following MCD: \n {str(i)} \n failed to read!")
+                        print(f"A ROI in the following MCD: \n {str(mcd_path)} \n failed to read!")
 
 def _TIFF_Generator(TIFF_list: list[Path]):   # ****stein_derived 
                                                 # (ish -- only in the sense of its structure: 
@@ -304,12 +303,10 @@ def _TIFF_Generator(TIFF_list: list[Path]):   # ****stein_derived
     Similar to _MCD_Generator() above, this function is a helper for when converting from /raw folder Tiffs --> .ome.tiffs in the /img folder
     '''
     for i in TIFF_list:
-        i = str(i)
-        reader =  pot.OMETIFFReader(i)
+        i = Path(i)
+        reader =  pot.OMETIFFReader(str(i))
         img_array, metadata, xml_metadata = reader.read()
-        path = i[:i.rfind("/")]
-        ROI = i[i.rfind("/"):]
-        yield img_array, path, ROI, metadata
+        yield img_array, i.parent, i.name, metadata
 
 def _generate_ome_tiff_metadata(panel_csv: pd.DataFrame, 
                                 output_directory: str, 
@@ -335,19 +332,21 @@ def _generate_ome_tiff_metadata(panel_csv: pd.DataFrame,
                                                                     Molecular systems biology vol. 16,12 (2020): e9798. 
                                                                     doi:10.15252/msb.20209798). 
     '''
-    ome_metadata = {}
-    ome_metadata['Directory'] = str(output_directory)
-    ome_metadata['Filename'] = filename
-    ome_metadata['Extension'] = 'ome.tiff'
-    ome_metadata['ImageType'] = 'ometiff'
-    ome_metadata["PhysicalSizeX"] = resolutions[0]
-    ome_metadata["PhysicalSizeXUnit"] = "micrometer"
-    ome_metadata["PhysicalSizeY"] = resolutions[1]
-    ome_metadata["PhysicalSizeYUnit"] = "micrometer"
-    panel_csv = panel_csv[panel_csv['keep'] == 1].reset_index()
+    ome_metadata = {
+        'Directory': str(output_directory),
+        'Filename': filename,
+        'Extension': 'ome.tiff',
+        'ImageType': 'ometiff',
+        'PhysicalSizeX': resolutions[0],
+        'PhysicalSizeXUnit': 'micrometer',
+        'PhysicalSizeY': resolutions[1],
+        'PhysicalSizeYUnit': 'micrometer',
+    }
+
+    panel_kept = panel_csv.loc[panel_csv['keep'] == 1, ['name', 'channel']]
     channel_dict = {}
-    for i,ii in enumerate(panel_csv['name']):
-        channel_dict[ii] = {'Name':ii,'ID':str(i),'Fluor':str(panel_csv['channel'][i])}
+    for i,(ii, iii) in enumerate(zip(panel_kept['name'], panel_kept['channel'])):
+        channel_dict[ii] = {'Name':ii,'ID':str(i),'Fluor':str(iii)}
     ome_metadata['Channels'] = channel_dict
     return ome_metadata
 
@@ -359,7 +358,7 @@ def write_ome_tiff(image, ome_tiff_metadata, file_path) -> None:
     '''
     #image = image[:,np.newaxis,np.newaxis,:,:]
     writer = pot.OMETIFFWriter(
-            fpath=file_path,
+            fpath=str(file_path),
             dimension_order='CYX',   # 'CZTYX'
             array=image,
             metadata=ome_tiff_metadata,
@@ -395,19 +394,17 @@ def mask_expand(distance: int,
             The filenames in the image_source folder as preserved in the output_directory, so if image_source == output_directory
             then the original masks will be overwritten. 
     '''
-    from skimage.segmentation import expand_labels
-    output_directory = str(output_directory).rstrip("/")
-    image_source = str(image_source)
-    if not os.path.exists(output_directory):
-        os.mkdir(output_directory)
+    output_directory = Path(output_directory)
+    image_source = Path(image_source)
+    output_directory.mkdir(parents = True, exist_ok = True)
 
-    for i in sorted(os.listdir(image_source)):
-        if i.lower().find('.tif') != -1:
-            read_dir = "".join([image_source, "/", i])
-            out_dir = "".join([output_directory, "/", i])
-            read_in_mask = tf.imread(read_dir)
-            expanded_mask = expand_labels(read_in_mask, distance)
-            tf.imwrite(out_dir, expanded_mask, photometric = "minisblack")
+    from skimage.segmentation import expand_labels
+
+    for tif_path in sorted(image_source.glob("*.tif*")):
+        read_in_mask = tf.imread(tif_path)
+        expanded_mask = expand_labels(read_in_mask, distance)
+        out_dir = output_directory / tif_path.name
+        tf.imwrite(out_dir, expanded_mask, photometric = "minisblack")
 
 class ImageAnalysis:
     '''
@@ -658,6 +655,7 @@ class ImageAnalysis:
             except StopIteration:
                 break
             # filter for keep channels
+            ROI = str(ROI)
             if len(image) != len(self.panel):
                 if _in_gui:
                     warning_window(f"""The number of channels in {ROI} of {path} does not match the number of channels 
@@ -1415,8 +1413,6 @@ def read_and_write_one_step(pair, int_set, reg_set, output_int, output_region, c
 
 def threaded_intensities_regions_I_O(img_mask_pairs_int, img_mask_pairs_reg, channels, stat, output_int, output_region, input_mask_folder):  # *** 
     ''''''
-    from concurrent.futures import ThreadPoolExecutor
-    tasks = []
     messages = []
     int_set = set(map(tuple, img_mask_pairs_int))
     reg_set = set(map(tuple, img_mask_pairs_reg))
