@@ -1106,8 +1106,8 @@ class ImageAnalysis:
             return
         
         if re_do is False:
-            img_mask_pairs_int = filter_redo(ints_folder, shared_files)
-            img_mask_pairs_reg = filter_redo(regions_folder, shared_masks)
+            img_mask_pairs_int = filter_redo(ints_folder, shared_files, input_mask_folder, input_img_folder)
+            img_mask_pairs_reg = filter_redo(regions_folder, shared_masks, input_mask_folder, input_img_folder)
             if (len(img_mask_pairs_int) == 0) and (len(img_mask_pairs_reg) == 0):
                 if _in_gui:     
                     tk.messagebox.showwarning("Warning!", 
@@ -1116,14 +1116,15 @@ class ImageAnalysis:
                     print("All images have intensity and region files written! Did you intend to redo these measurements?")  
                 return
         else:
-            img_mask_pairs_int = filter_redo(None, shared_files)
+            img_mask_pairs_int = filter_redo(None, shared_files, input_mask_folder), input_img_folder
             img_mask_pairs_reg = img_mask_pairs_int
 
         threaded_intensities_regions_I_O(img_mask_pairs_int, img_mask_pairs_reg, 
                     channels = self.panel[self.panel['keep'] == 1]['name'], 
                     stat = dict_of_choices[statistic],
                     output_int = output_intensities_folder,
-                    output_region = output_regions_folder)
+                    output_region = output_regions_folder,
+                    input_mask_folder = input_mask_folder)
 
         def write_csvs(img_files, generator, out_directory, csv_type, input_mask_folder = input_mask_folder):
             ''''''
@@ -1367,7 +1368,7 @@ class ImageAnalysis:
         return metadata
 
 
-def filter_redo(dest_folder, shared_files):
+def filter_redo(dest_folder, shared_files, input_mask_folder, input_img_folder):
     ''''''
     ints_files = []
     if dest_folder is not None:
@@ -1412,7 +1413,7 @@ def read_and_write_one_step(pair, int_set, reg_set, output_int, output_region, c
     return return_messages
 
 
-def threaded_intensities_regions_I_O(img_mask_pairs_int, img_mask_pairs_reg, channels, stat, output_int, output_region):  # *** 
+def threaded_intensities_regions_I_O(img_mask_pairs_int, img_mask_pairs_reg, channels, stat, output_int, output_region, input_mask_folder):  # *** 
     ''''''
     from concurrent.futures import ThreadPoolExecutor
     tasks = []
@@ -1422,7 +1423,7 @@ def threaded_intensities_regions_I_O(img_mask_pairs_int, img_mask_pairs_reg, cha
         reg_set = set(map(tuple, img_mask_pairs_reg))
         all_pairs = int_set | reg_set
         for i in all_pairs:
-            tasks.append(threads.submit(read_and_write_one_step, i, int_set, reg_set, output_int, output_region, channels, stat))
+            tasks.append(threads.submit(read_and_write_one_step, i, int_set, reg_set, output_int, output_region, channels, stat, input_mask_folder))
         for task in tasks:
             messages += task.result()
         for message in messages:
