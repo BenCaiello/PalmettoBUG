@@ -1390,7 +1390,7 @@ def write_csv_with_messages(output_csv, return_messages, output_directory, file_
             Re-run segmentation or delete image & its mask / csv's from the analysis! 
             \n conversion to Analysis will fail in the creation of a 0 event fcs"""] )
 
-def read_and_write_one_step(pair, int_set, reg_set, output_int, output_region, channels, stat):
+def read_and_write_one_step(pair, int_set, reg_set, output_int, output_region, channels, stat, input_mask_folder):
     '''''' 
     return_messages = []
     img_file = stein_unhook.read_image(pair[0])
