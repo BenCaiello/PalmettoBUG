@@ -534,25 +534,21 @@ class ImageAnalysis:
                 ## This auto-sets background channels to keep = 0 (based on duplicating entry in the channel / name columns)
                 numbers_channel = self.panel['channel'].str.replace("[^0-9]","", regex = True)
                 letters_channel = self.panel['channel'].str.replace("[0-9]","", regex = True)
-                self.panel['channel_test'] = numbers_channel + letters_channel
-
                 numbers_name = self.panel['name'].str.replace("[^0-9]","", regex = True)
                 letters_name = self.panel['name'].str.replace("[0-9]","", regex = True)
-                self.panel['name_test'] = numbers_name + letters_name
                 
-                keep = (self.panel['channel_test'] != self.panel['name_test'])
-                self.panel['keep'] = keep
+                self.panel['keep'] = (numbers_channel + letters_channel) != (numbers_name + letters_name)
                 self.panel['keep'] = self.panel['keep'].astype('int')
-                self.panel = self.panel.drop(['channel_test','name_test'],axis=1)
         else:  ## if self.mcds is False, then loading from .tiffs
             try:  ## read in panel file if it already exists
                 read_dir = "".join([self.directory_object.main, "/panel.csv"])
                 self.panel = pd.read_csv(read_dir)      
             except FileNotFoundError:
-                image_list = sorted(os.listdir(self.directory_object.main + "/raw"))
-                image_list = [i for i in image_list if i.lower().find(".tif") != -1]   ## exclude any non- .tif(f) files  (looking at you, .DS_store ......)
+                raw_dir = Path(self.directory_object.main) / "raw"
+                image_list = sorted(raw_dir.glob("*.tif*"))
+
                 reader_string = "".join([self.directory_object.main, "/raw/", image_list[0]])
-                if image_list[0][-9:].lower() == ".ome.tiff":   
+                if image_list[0].name.lower().endswith(".ome.tiff"): 
                     # when dealing with an .ome.tiff, I'd like to try to recover some useful metadata (only uses first image):
                     reader = pot.OMETIFFReader(reader_string) 
                     img_array, metadata, xml_metadata = reader.read()
@@ -581,8 +577,7 @@ class ImageAnalysis:
         if _in_gui:
             try:
                 self.panel.to_csv(self.directory_object.main + '/panel.csv', index = False)
-                with open(self.directory_object.main + '/panel.csv') as file:
-                    Project_logger(self.directory_object.main).return_log().info(f"Wrote panel file, with values: \n {file.read()}")
+                Project_logger(self.directory_object.main).return_log().info(f"Wrote panel file, with values: \n {self.panel}")
             except Exception:
                 tk.messagebox.showwarning("Warning!", message = """Could not write panel file! \n 
                             Do you have the .csv open right now in excel or another program?""")
@@ -645,16 +640,13 @@ class ImageAnalysis:
             tiff_list = ["".join([input_directory,i]) for i in sorted(os.listdir(input_directory)) if i.lower().find(".tif") != -1]
             MCD_gen = _TIFF_Generator(tiff_list)
 
-        i = 1
-        counter = -1
         keep = (self.panel['keep'] == 1)
-        while i == 1:
+        while True:
             try: 
                 image, path, ROI, acquisition = next(MCD_gen)
-                counter += 1
             except StopIteration:
                 break
-            # filter for keep channels
+            path = str(path)
             ROI = str(ROI)
             if len(image) != len(self.panel):
                 if _in_gui:
@@ -670,10 +662,7 @@ class ImageAnalysis:
                 elif hpf != 0:
                     image = stein_unhook.filter_hot_pixels(image, hpf)
                 if from_mcds is True:
-                    file_name = "".join([(str(path)[len(self.directory_object.main)+5:-4]), '_', ROI])   ### this is an awkard line -- 
-                                                                                                        # len(directory) + 5, slices off the 
-                                                                                                        # directory + /raw/ ,
-                                                                                                        #  while -4 slices off the .mcd suffix
+                    file_name = f'{path.stem}_ROI'
                     out = "".join([output_directory, file_name, ".ome.tiff"])
                     ome_tiff_metadata = _generate_ome_tiff_metadata(self.panel, 
                                                                     self.directory_object.img_dir, 
