@@ -1417,20 +1417,17 @@ def threaded_intensities_regions_I_O(img_mask_pairs_int, img_mask_pairs_reg, cha
     ''''''
     from concurrent.futures import ThreadPoolExecutor
     tasks = []
-    with ThreadPoolExecutor(max_workers = 5) as threads:
-        messages = []
-        int_set = set(map(tuple, img_mask_pairs_int))
-        reg_set = set(map(tuple, img_mask_pairs_reg))
-        all_pairs = int_set | reg_set
-        for i in all_pairs:
-            tasks.append(threads.submit(read_and_write_one_step, i, int_set, reg_set, output_int, output_region, channels, stat, input_mask_folder))
-        for task in tasks:
-            messages += task.result()
-        for message in messages:
-            if _in_gui and not message[0]:
-                warning_window(message[1])
-            else:
-                print(message[1])
+    messages = []
+    int_set = set(map(tuple, img_mask_pairs_int))
+    reg_set = set(map(tuple, img_mask_pairs_reg))
+    all_pairs = int_set | reg_set
+    for i in all_pairs:
+        messages += read_and_write_one_step(i, int_set, reg_set, output_int, output_region, channels, stat, input_mask_folder)
+    for message in messages:
+        if _in_gui and not message[0]:
+            warning_window(message[1])
+        else:
+            print(message[1])
     
 def setup_for_FCS(directory):
     '''
