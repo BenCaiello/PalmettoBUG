@@ -1411,7 +1411,7 @@ def setup_for_FCS(directory):
     except FileNotFoundError:
         metadata = pd.DataFrame()
         metadata['file_name']  = fcs_files
-        metadata['sample_id'] = = range(len(metadata))
+        metadata['sample_id'] = range(len(metadata))
         metadata['patient_id'] = 'na'      # manually set later
         metadata['condition'] = 'treatment vs. control'       # manually set later
 
