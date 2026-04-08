@@ -45,6 +45,28 @@ homedir = homedir[:(homedir.rfind("/"))]
 ## twice to get back to toplevel directory of the package
 homedir = homedir[:(homedir.rfind("/"))]
 
+def list_file_extension_files(
+    directory: Path,
+    extension: str = ".fcs",
+    alt_extension: str | None = None
+) -> list[Path]:
+    extensions = {extension.lower()}
+    if alt_extension:
+        extensions.add(alt_extension.lower())
+
+    files = sorted(
+        p for p in directory.iterdir()
+        if p.is_file() and p.suffix.lower() in extensions
+    )
+
+    if not files:
+        ext_str = ", ".join(sorted(extensions))
+        raise FileNotFoundError(
+            f"No files with extensions ({ext_str}) found in {directory}"
+        )
+
+    return files
+
 
 def filename_checker(filename: str, GUI_object = None, regex: str = "[a-zA-Z0-9-_]") -> bool: 
     '''
@@ -365,7 +387,8 @@ def warning_window(warning_to_show: str, title: str = "Warning!") -> None:
 ## Still, some of the directory naming conventions or overall structure [with or without renaming] from the underlying packages 
 # have been carried through
 class DirSetup:
-    def __init__(self, directory: str, kind: Union[None, str] = None):
+    def __init__(self, directory: Union[Path, str], kind: Union[None, str] = None):
+        directory = str(directory)
         self.main = directory
         if kind == "Analysis":
             self.analysis_dir = self.main
