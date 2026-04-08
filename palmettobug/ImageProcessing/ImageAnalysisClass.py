@@ -1471,7 +1471,7 @@ class direct_to_Analysis(ImageAnalysis):
         except FileNotFoundError:
             self.metadata = pd.DataFrame()
             self.metadata['file_name']  = fcs_files
-            self.metadata['sample_id'] = range(len(metadata))
+            self.metadata['sample_id'] = range(len(self.metadata))
             self.metadata['patient_id'] = 'na'      # manually set later
             self.metadata['condition'] = 'treatment vs. control'       # manually set later
 
