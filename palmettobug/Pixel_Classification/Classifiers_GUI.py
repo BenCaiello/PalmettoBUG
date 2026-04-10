@@ -189,7 +189,8 @@ class Pixel_class_widgets(ctk.CTkFrame):
         merge_folder(self.PxQuPy_class.output_directory,
                      pd.read_csv(f"{self.PxQuPy_class.classifier_dir}/biological_labels.csv"),
                     f"{self.PxQuPy_class.classifier_dir}/merged_classification_maps")
-        pixel_logger.info(f"Predicted classification map for following image: {f"{image_folder_name}/image_name}")
+        log_name = f"{image_folder_name}/image_name"
+        pixel_logger.info(f"Predicted classification map for following image: {log_name}")
 
     def predict_folder(self) -> None:
         image_folder_choice = self.predictions_frame.folder.get()
