@@ -181,7 +181,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
             tk.messagebox.showwarning("Warning!", message = message)
             return False
     
-        image_folder_name = f"{self.image_directory}/image_folder_choice"
+        image_folder_name = f"{self.image_directory}/{image_folder_choice}"
         if not overwrite_approval(f"{self.PxQuPy_class.classifier_dir}/classification_maps/{image_name}", file_or_folder = "file"):
             return False
         image = tf.imread(f"{image_folder_name}/image_name").T
@@ -198,7 +198,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
             message = "Please select a folder to predict pixel classes from!"
             tk.messagebox.showwarning("Warning!", message = message)
             return False
-        image_folder_name = f"{self.image_directory}/image_folder_choice"
+        image_folder_name = f"{self.image_directory}/{image_folder_choice}"
         if not overwrite_approval(f"{self.PxQuPy_class.classifier_dir}/classification_maps", file_or_folder = "folder", custom_message = "Are you sure you want to potentially overwrite files in this folder"
                                   "and the associated /merged_classification_maps folder?"):
             return False
@@ -220,7 +220,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
             message = "Please select the image to predict pixel classes for!"
             tk.messagebox.showwarning("Warning!", message = message)
             return False
-        image_folder_name = f"{self.image_directory}/image_folder_choice"
+        image_folder_name = f"{self.image_directory}/{image_folder_choice}"
         if not overwrite_approval(f"{self.unsupervised.classifier_dir}/classification_maps/{image_name}", file_or_folder = "file"):
             return False
         self.unsupervised.predict(image_name, image_folder_name, self.unsupervised.classifier_dictionary)
@@ -1115,7 +1115,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master.number_of_classes = n_clusters
 
         pixel_logger.info(f"Trained Unsupervised Classifier {self.master.name} with the following training dictionary: \n" 
-                           "{str(training_dictionary)}")
+                           f"{str(training_dictionary)}")
 
         with open(f"{self.master.classifier_dir}/{self.master.name}/{self.master.name}_details.json",
                    'w' , 
