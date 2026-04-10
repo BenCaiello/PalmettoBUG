@@ -408,7 +408,7 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
                 else:
                     return None
             else:
-                return self.master.Experiment_object.directory_object.masks_dir + "/" + path
+                return self.master.Experiment_object.directory_object.masks_dir / path
         masks_folder1 = check_masks_or_px(masks_folder1)
         masks_folder2 = check_masks_or_px(masks_folder2)
         if (masks_folder1 is None) or (masks_folder2 is None):
@@ -522,7 +522,7 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.master.dir_disp.list_dir()
         except Exception:
             pass
-        Analysis_logger(experiment_class.directory_object.analysis_dir + "/main").return_log().info(f"""Region Measurements made with the following 
+        Analysis_logger(experiment_class.directory_object.analysis_dir / "main").return_log().info(f"""Region Measurements made with the following 
                             image folder = {(self.img_dir / self.image_folder.get())},
                             Masks folder = {(self.masks_dir / self.masks_folder.get())},
                             Intensity aggregation method = {self.intensity_options.get()}""")
@@ -652,8 +652,8 @@ class Expander_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def read_values(self):
         ### Read in the values and return it to the experiment
         self.master.call_mask_expand_part_2(int(self.value.get()), 
-            image_source = self.masks_dir + "/" + self.image_folder.get(), 
-            output_directory = self.masks_dir + "/" + self.output_folder.get().strip())
+            image_source = self.masks_dir / self.image_folder.get(), 
+            output_directory = self.masks_dir / self.output_folder.get().strip())
         self.master.ImageAnalysisPortionLogger.info(f"Expanded masks by {self.value.get()} pixels")
         self.master.dir_disp.list_dir()
         self.destroy()
@@ -690,6 +690,5 @@ class go_to_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         metadata_from_save = self.checkbox.get()
         self.master.to_analysis(choice, metadata_from_save = metadata_from_save)
-        Analysis_logger(self.master.Experiment_object.directory_object.Analyses_dir + 
-                        f"/{self.analysis_choice.get()}/main").return_log().info("Loading Analysis from Image Processing modeule")
+        Analysis_logger(self.master.Experiment_object.directory_object.Analyses_dir / f"{self.analysis_choice.get()}/main").return_log().info("Loading Analysis from Image Processing modeule")
         self.after(200, lambda: self.destroy())
