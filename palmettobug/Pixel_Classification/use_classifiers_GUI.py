@@ -66,6 +66,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
         if partial is False:
             self.dir_object = dir_object
             self.main_directory = dir_object.main
+            self.main_masks = dir_object.main / "masks"
             self.classifier_dir = dir_object.px_classifiers_dir
             self.image_directory = dir_object.img_dir
 
@@ -100,7 +101,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
     def load_classifier(self, option: str) -> None:
         self.name = option
-        self.active_classifier_dir = self.classifier_dir + "/" + option
+        self.active_classifier_dir = self.classifier_dir / option
         if option.find("Unsupervised") == -1:
             self.classifier_type = "supervised"
         else:
@@ -450,7 +451,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                                 tab = None, 
                                 favor_table = True, 
                                 logger = pixel_logger, 
-                                alt_dir = self.master.main_directory + "/Analyses")
+                                alt_dir = self.master.main_directory / "Analyses")
             table_launcher.add_table(1, 1, 
                                      self.master.active_classifier_dir + "/Whole_class_analysis", 
                                      metadata, "metadata", 
@@ -470,7 +471,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             label = ctk.CTkLabel(master = self, text = "Select Masks folder:")
             label.grid(row = 1, column = 0, padx = 3, pady = 3)
 
-            masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.lower().find(".tif") != -1]
+            masks_options = [i for i in sorted(os.listdir(self.master.main_masks)) if i.lower().find(".tif") != -1]
             self.mask_option_menu = ctk.CTkOptionMenu(master = self, values = masks_options, variable = ctk.StringVar(value = ""))
             self.mask_option_menu.grid(padx = 3, pady = 3, column = 1, row = 1)
             self.mask_option_menu.bind("<Enter>", self.refresh3)
@@ -481,7 +482,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             label3 = ctk.CTkLabel(master = self, text = "Select Classy Masks folder:")
             label3.grid(row = 3, column = 0, padx = 3, pady = 3)
 
-            classy_masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/classy_masks")) if i.find(".") == -1]                                                                                       
+            classy_masks_options = [i for i in sorted(os.listdir(self.master.main_directory / "classy_masks")) if i.find(".") == -1]                                                                                       
             self.classy_mask_option_menu = ctk.CTkOptionMenu(master = self, values = classy_masks_options, variable = ctk.StringVar(value = ""))
             self.classy_mask_option_menu.grid(padx = 3, pady = 3, column = 1, row = 3)
             self.classy_mask_option_menu.bind("<Enter>", self.refresh4)
@@ -509,11 +510,11 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.select_table.grid(padx = 3, pady = 3, column = 0, row = 8) 
 
         def refresh3(self, enter = ""):
-            masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.find(".") == -1]
+            masks_options = [i for i in sorted(os.listdir(self.master.main_masks)) if i.find(".") == -1]
             self.mask_option_menu.configure(values = masks_options)
 
         def refresh4(self, enter = ""):
-            classy_masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/classy_masks")) if i.find(".") == -1]
+            classy_masks_options = [i for i in sorted(os.listdir(self.master.main_directory / "classy_masks")) if i.find(".") == -1]
             self.classy_mask_option_menu.configure(values = classy_masks_options)
 
         def loaded_classifier(self, classifier_type) -> None:
@@ -543,16 +544,16 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
             connectivity = int(self.connectivity.get())
 
-            output_directory_folder = self.master.main_directory + "/masks/" + self.output_name.get().strip()
+            output_directory_folder = self.master.main_masks / {self.output_name.get().strip()
             if not overwrite_approval(output_directory_folder, file_or_folder = "folder"):
                 return
             
-            masks_folder = self.master.main_directory + "/masks/" + self.mask_option_menu.get()    
-            classification_folder = self.master.active_classifier_dir + "/merged_classification_maps"
-            classy_mask_folder = self.master.main_directory + "/classy_masks/" + self.classy_mask_option_menu.get()
+            masks_folder = self.master.main_masks / self.mask_option_menu.get()    
+            classification_folder = self.master.active_classifier_dir / "merged_classification_maps"
+            classy_mask_folder = self.master.main_directory / f"classy_masks/{self.classy_mask_option_menu.get()}"
 
-            classy_mask_secondary_folder = classy_mask_folder + "/secondary_masks"
-            classy_mask_folder = classy_mask_folder + "/primary_masks"
+            classy_mask_secondary_folder = classy_mask_folder / "secondary_masks"
+            classy_mask_folder = classy_mask_folder / "primary_masks"
             try:
                 os.listdir(classy_mask_secondary_folder)       ## if secondary mask folder exists, use that
                 classy_mask_folder = classy_mask_secondary_folder
@@ -622,7 +623,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             label = ctk.CTkLabel(master = self, text = "Choose Masks folder to classify:")
             label.grid(padx = 3, pady = 3, column = 0, row = 1)
 
-            masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.find(".") == -1]
+            masks_options = [i for i in sorted(os.listdir(self.master.main_masks)) if i.find(".") == -1]
             self.mask_option_menu = ctk.CTkOptionMenu(master = self, values = masks_options, variable = ctk.StringVar(value = ""))
             self.mask_option_menu.grid(padx = 3, pady = 3, column = 1, row = 1)
             self.mask_option_menu.bind("<Enter>", self.refresh5)
@@ -646,7 +647,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.accept_button.grid(row = 6, column = 1, padx = 3, pady = 3)
 
         def refresh5(self, enter = ""):
-            masks_options = [i for i in sorted(os.listdir(self.master.main_directory + "/masks")) if i.find(".") == -1]
+            masks_options = [i for i in sorted(os.listdir(self.master.main_masks)) if i.find(".") == -1]
             self.mask_option_menu.configure(values = masks_options)
 
         def loaded_classifier(self) -> None:
@@ -669,7 +670,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
             def initialize_with_classifier(self) -> None:
                 try:
-                    self.biological_class_labels = pd.read_csv(self.master.master.active_classifier_dir + "/biological_labels.csv")
+                    self.biological_class_labels = pd.read_csv(self.master.master.active_classifier_dir / "biological_labels.csv")
                 except FileNotFoundError:
                     self.biological_class_labels = pd.DataFrame()
                     self.master.classifier_option_menu.set("classification_maps")
@@ -762,7 +763,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             else:
                 classifier_masks_folder = self.master.active_classifier_dir + f"/{self.classifier_option_menu.get()}"
 
-            masks_folder = self.master.main_directory + "/masks/" + masks_folder
+            masks_folder = self.master.main_masks / masks_folder
 
             ## tests:
             classifier_files = [i for i in sorted(os.listdir(classifier_masks_folder)) if i.lower().find(".tif") != -1]
