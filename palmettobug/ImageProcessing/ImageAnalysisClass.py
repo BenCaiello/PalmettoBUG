@@ -1275,7 +1275,7 @@ class ImageAnalysis:
         for i in input_intensity_directory.glob("*.csv"):
             pd_df = pd.read_csv(input_intensity_directory / i)
             fcs_df = DataFrame(pd_df, columns = pd_df.columns)
-            fcs_df.to_fcs(ouput_fcs_folder / f"{i.stem}.fcs")
+            fcs_df.to_fcs(f"{ouput_fcs_folder}/{i.stem}.fcs")
 
     def _initial_Analysis_panel(self) -> pd.DataFrame:
         ''' 

@@ -117,7 +117,7 @@ def test_call_region_measurement():
     region_meas.output_folder.configure(textvariable = ctk.StringVar(value = "test_analysis2"))
     region_meas.masks_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     region_meas.accept_values.invoke()
-    analysis_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analyses_dir + "/test_analysis"
+    analysis_dir = f"{app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analyses_dir}/test_analysis"
     assert(len(os.listdir(f"{analysis_dir}/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
     assert(len(pd.read_csv(f"{analysis_dir}/intensities/CRC_1_ROI_001.ome.csv") == 2177)), "Unexpected number of cells in image 1" 
 
@@ -135,12 +135,12 @@ def test_call_to_Analysis():
     metadata = app.Tabs.py_exploratory.analysiswidg.cat_exp.metadata
     panel = app.Tabs.py_exploratory.analysiswidg.cat_exp.panel
     interal_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analysis_internal_dir
-    assert(os.listdir(interal_dir + "/Analysis_fcs")[0].rfind(".fcs") != -1), "FCS files not in /main/Analysis_fcs!"
+    assert(os.listdir(f"{interal_dir}/Analysis_fcs")[0].rfind(".fcs") != -1), "FCS files not in /main/Analysis_fcs!"
     assert(len(metadata) == 10), "Automatically generated Metadata file's length does not match the number of FCS files in the experiment!"
     assert("marker_class" in panel.columns), "Automatically generated Analysis_panel file should have a 'marker_class' column"
     assert("Analysis_panel.csv" in os.listdir(interal_dir)), "Analysis_panel.csv not written to the proper place!"
     assert("metadata.csv" in os.listdir(interal_dir)), "metadata.csv not written to the proper place!"
-    assert("condition" in list(pd.read_csv(interal_dir + "/metadata.csv").columns)), "Automatically generated metadata.csv file must have a 'condition' column!"
+    assert("condition" in list(pd.read_csv(f"{interal_dir}/metadata.csv").columns)), "Automatically generated metadata.csv file must have a 'condition' column!"
 
 def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows (as is, does not close itself and blocks future instnaces as a singleton)
     window = loader_window.load_CyTOF()
@@ -156,7 +156,6 @@ def test_setup_for_FCS():
     palmettobug.setup_for_FCS(top_dir)
     assert True
 
-'''
 
 def test_fake_bead_norm():
     fake_bead_norm_dir = f"{FETCH_DIR}/bead_norm_fakery"
@@ -180,7 +179,8 @@ def test_fake_bead_norm():
     for i in channel_norm_window.checkbox_beads_list[:5]:
         i.select()
     channel_norm_window.run_button.invoke()
-    
+
+''' 
     
 ### GUI Pixel classification tests (px class creation)
 def test_unsupervised():
