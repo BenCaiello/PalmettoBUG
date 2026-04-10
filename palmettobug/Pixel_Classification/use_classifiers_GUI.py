@@ -544,7 +544,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
             connectivity = int(self.connectivity.get())
 
-            output_directory_folder = self.master.main_masks / {self.output_name.get().strip()
+            output_directory_folder = self.master.main_masks / self.output_name.get().strip()
             if not overwrite_approval(output_directory_folder, file_or_folder = "folder"):
                 return
             
