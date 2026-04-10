@@ -124,7 +124,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.label = ctk.CTkLabel(master = self, text = "Load a Classifier's masks to Use:")
             self.label.grid(padx = 3, pady = 3, column = 0, row = 0, sticky = "ew", columnspan = 2)
 
-            classifier_options = sorted((self.master.classifier_dir))
+            classifier_options = sorted(os.listdir(self.master.classifier_dir))
             self.classifier_option_menu = ctk.CTkOptionMenu(master = self, 
                                                             values = classifier_options, 
                                                             variable = ctk.StringVar(value = ""), 
