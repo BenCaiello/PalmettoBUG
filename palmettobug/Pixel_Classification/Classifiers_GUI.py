@@ -46,7 +46,7 @@ PALMETTO_BUG_homedir = __file__.replace("\\","/")
 PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
 ## do it twice to get up to the top level directory:
 PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
-PALMETTO_BUG_assets_classifier_folder = PALMETTO_BUG_homedir + '/Assets/Px_classifiers'
+PALMETTO_BUG_assets_classifier_folder = f"{PALMETTO_BUG_homedir}/Assets/Px_classifiers"
 if not os.path.exists(PALMETTO_BUG_assets_classifier_folder):
     os.mkdir(PALMETTO_BUG_assets_classifier_folder)
 
@@ -90,7 +90,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
         label_quick_display = ctk.CTkLabel(master = self, text = "Quick Display of Masks")
         label_quick_display.grid(row = 0, column = 3, padx = 5, pady = 5)
 
-        self.quick_display = display_image_button(self, PALMETTO_BUG_homedir + "/Assets/Capture2.png")
+        self.quick_display = display_image_button(self, f"{PALMETTO_BUG_homedir}/Assets/Capture2.png")
         self.quick_display.grid(row = 1, rowspan = 5,  column = 3, padx = 3, pady = 3)
 
         self.dir_display.setup_with_dir(self.main_directory, delete_remove = True, png = self.quick_display)
@@ -124,15 +124,15 @@ class Pixel_class_widgets(ctk.CTkFrame):
             return
     
         ## this code is just a reverse of the load option:
-        new_dir = PALMETTO_BUG_assets_classifier_folder + f"/{self.name}"
-        assets_path = new_dir + f"/{self.name}.json"
-        details_path = new_dir + f"/{self.name}_details.json"
-        destination = self.classifier_dir + f"/{self.name}/"
+        new_dir = f"{PALMETTO_BUG_assets_classifier_folder}/{self.name}"
+        assets_path = f"{new_dir}/{self.name}.json"
+        details_path = f"{new_dir}/{self.name}_details.json"
+        destination = f"{self.classifier_dir}/{self.name}/"
         if not os.path.exists(new_dir):
             os.mkdir(new_dir)
         ## shutil copy over the classifier dictionaries to assets:
-        shutil.copyfile((destination + f"{self.name}.json"), assets_path)
-        shutil.copyfile((destination + f"{self.name}_details.json"), details_path)
+        shutil.copyfile((f"{destination}{self.name}.json"), assets_path)
+        shutil.copyfile((f"{destination}{self.name}_details.json"), details_path)
         pixel_logger.info(f"Saved classifier {self.name} to PalmettoBUG assets")
 
     def training(self, image_folder: str, try_rust: bool = True) -> None:
@@ -181,15 +181,15 @@ class Pixel_class_widgets(ctk.CTkFrame):
             tk.messagebox.showwarning("Warning!", message = message)
             return False
     
-        image_folder_name = self.image_directory + "/" + image_folder_choice
-        if not overwrite_approval(self.PxQuPy_class.classifier_dir + "/classification_maps/" + image_name, file_or_folder = "file"):
+        image_folder_name = f"{self.image_directory}/image_folder_choice"
+        if not overwrite_approval(f"{self.PxQuPy_class.classifier_dir}/classification_maps/{image_name}", file_or_folder = "file"):
             return False
-        image = tf.imread(image_folder_name + "/"  + image_name).T
+        image = tf.imread(f"{image_folder_name}/image_name").T
         self.PxQuPy_class.predict(image, image_name)
         merge_folder(self.PxQuPy_class.output_directory,
-                     pd.read_csv(self.PxQuPy_class.classifier_dir + "/biological_labels.csv"),
-                    self.PxQuPy_class.classifier_dir + "/merged_classification_maps")
-        pixel_logger.info(f"Predicted classification map for following image: {image_folder_name + '/'  + image_name}")
+                     pd.read_csv(f"{self.PxQuPy_class.classifier_dir}/biological_labels.csv"),
+                    f"{self.PxQuPy_class.classifier_dir}/merged_classification_maps")
+        pixel_logger.info(f"Predicted classification map for following image: {f"{image_folder_name}/image_name}")
 
     def predict_folder(self) -> None:
         image_folder_choice = self.predictions_frame.folder.get()
@@ -197,14 +197,14 @@ class Pixel_class_widgets(ctk.CTkFrame):
             message = "Please select a folder to predict pixel classes from!"
             tk.messagebox.showwarning("Warning!", message = message)
             return False
-        image_folder_name = self.image_directory + "/" + image_folder_choice
-        if not overwrite_approval(self.PxQuPy_class.classifier_dir + "/classification_maps", file_or_folder = "folder", custom_message = "Are you sure you want to potentially overwrite files in this folder"
+        image_folder_name = f"{self.image_directory}/image_folder_choice"
+        if not overwrite_approval(f"{self.PxQuPy_class.classifier_dir}/classification_maps", file_or_folder = "folder", custom_message = "Are you sure you want to potentially overwrite files in this folder"
                                   "and the associated /merged_classification_maps folder?"):
             return False
         self.PxQuPy_class.predict_folder(image_folder_name)
         merge_folder(self.PxQuPy_class.output_directory, 
-                     pd.read_csv(self.PxQuPy_class.classifier_dir + "/biological_labels.csv"),
-                    self.PxQuPy_class.classifier_dir + "/merged_classification_maps")
+                     pd.read_csv(f"{self.PxQuPy_class.classifier_dir}/biological_labels.csv"),
+                    f"{self.PxQuPy_class.classifier_dir}/merged_classification_maps")
         pixel_logger.info(f"Predicted classification map for following image folder: {image_folder_name}")
 
     def run_one_unsupervised(self) -> None:
@@ -219,11 +219,12 @@ class Pixel_class_widgets(ctk.CTkFrame):
             message = "Please select the image to predict pixel classes for!"
             tk.messagebox.showwarning("Warning!", message = message)
             return False
-        image_folder_name = self.image_directory + "/" + image_folder_choice
-        if not overwrite_approval(self.unsupervised.classifier_dir + "/classification_maps/" + image_name, file_or_folder = "file"):
+        image_folder_name = f"{self.image_directory}/image_folder_choice"
+        if not overwrite_approval(f"{self.unsupervised.classifier_dir}/classification_maps/{image_name}", file_or_folder = "file"):
             return False
         self.unsupervised.predict(image_name, image_folder_name, self.unsupervised.classifier_dictionary)
-        pixel_logger.info(f"Predicted classification map for following image: {image_folder_name + '/'  + image_name}")
+        file_name = f"{image_folder_name}/{image_name}"
+        pixel_logger.info(f"Predicted classification map for following image: {file_name}")
 
     def run_all_unsupervised(self) -> None:
         image_folder_choice = self.predictions_frame.folder.get()
@@ -231,8 +232,8 @@ class Pixel_class_widgets(ctk.CTkFrame):
             message = "Please select a folder to predict pixel classes from!"
             tk.messagebox.showwarning("Warning!", message = message)
             return False
-        image_folder_name = self.image_directory + "/" + image_folder_choice
-        if not overwrite_approval(self.unsupervised.classifier_dir + "/classification_maps/", file_or_folder = "folder"):
+        image_folder_name = f"{self.image_directory}/{image_folder_choice}"
+        if not overwrite_approval(f"{self.unsupervised.classifier_dir}/classification_maps/", file_or_folder = "folder"):
             return False
         self.unsupervised.predict_folder(image_folder_name, self.unsupervised.classifier_dictionary)
 
@@ -245,9 +246,9 @@ class Pixel_class_widgets(ctk.CTkFrame):
             message = "No Classifier Available to Plot Heatmap from!"
             tk.messagebox.showwarning("Warning!", message = message)
             return
-        filepath = self.classifier_dir + "/" + self.name + "/cluster_heatmap.png"
-        panel = pd.read_csv(self.main_directory + "/panel.csv")
-        open_json = open(self.classifier_dir + f"/{self.name}/{self.name}_details.json", 'r' , encoding="utf-8")
+        filepath = f"{self.classifier_dir}/{self.name}/cluster_heatmap.png"
+        panel = pd.read_csv(f"{self.main_directory}/panel.csv")
+        open_json = open(f"{self.classifier_dir}/{self.name}/{self.name}_details.json", 'r' , encoding="utf-8")
         loaded_json = open_json.read()
         loaded_json = json.loads(loaded_json) 
         open_json.close()
@@ -384,7 +385,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
             try:       
                     ## try / except here because of the tendency of many errors to be generated by refreshers like these 
                     # before a classifier is loaded
-                image_list = [i for i in sorted(os.listdir(self.image_directory + "/" + image_folder)) if i.lower().find(".tif") != -1]
+                image_list = [i for i in sorted(os.listdir(f"{self.image_directory}/{image_folder}")) if i.lower().find(".tif") != -1]
                 self.choose_an_image.configure(values = image_list)
             except Exception:
                 pass
@@ -422,7 +423,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
                 message = "You must select an image folder as well as an image in that folder to launch in Napari!"
                 tk.messagebox.showwarning("Napari Warning!", message = message)
                 return
-            image_path = self.image_directory + "/" + image_folder + "/" + image_name
+            image_path = f"{self.image_directory}/{image_folder}/{image_name}"
             self.image_path_choice = image_path
             if self.labels_done is True:
                 message = "Labels have been generated and not exported! \n Napari will not launch unless you export or discard those labels!"
@@ -442,7 +443,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
                 message = "No labels to save! \n Did you accidently click save before drawing any labels in Napari? \nIf you have closed Napari, click the Discard button to allow another Napari window to be opened"
                 tk.messagebox.showwarning("Napari Warning!", message = message)
                 return
-            if not overwrite_approval(self.master.PxQuPy_class.classifier_training_labels + "/" + self.master.PxQuPy_class._image_name, file_or_folder = "file"):
+            if not overwrite_approval(f"{self.master.PxQuPy_class.classifier_training_labels}/{self.master.PxQuPy_class._image_name}", file_or_folder = "file"):
                 return
             self.master.PxQuPy_class.write_from_Napari()
             pixel_logger.info(f"Updated labels for Training image: {self.image_path_choice}")
@@ -503,12 +504,12 @@ class Pixel_class_widgets(ctk.CTkFrame):
             try:       
                     ## try / except here because of the tendency of many errors to be generated by refreshers like these 
                     # before a classifier is loaded
-                self.one_img.configure(values = [i for i in sorted(os.listdir(self.master.image_directory + "/" + image_folder)) if i.lower().find(".tif") != -1])
+                self.one_img.configure(values = [i for i in sorted(os.listdir(f"{self.master.image_directory}/{image_folder}")) if i.lower().find(".tif") != -1])
             except Exception:
                 pass
 
         def update_one(self, image_folder: str) -> None:
-            self.one_img.configure(values = [i for i in sorted(os.listdir(self.master.image_directory + "/" + image_folder)) if i.lower().find(".tif") != -1])
+            self.one_img.configure(values = [i for i in sorted(os.listdir(f"{self.master.image_directory}/{image_folder}")) if i.lower().find(".tif") != -1])
             self.one_img.bind("<Enter>", lambda enter: self.refresh4(image_folder))
 
     class segmentation_frame(ctk.CTkFrame):
@@ -545,7 +546,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
 
         def refresh5(self, enter = ""):
             try:
-                self.input_choices = [i.name for i in os.scandir(self.master.classifier_dir + f"/{self.master.name}") 
+                self.input_choices = [i.name for i in os.scandir(f"{self.master.classifier_dir}/{self.master.name}") 
                                         if ((i.is_dir() is True) 
                                         and (i.name != "training_labels") 
                                         and (i.name.find('Whole_class_analy') == -1))]
@@ -576,7 +577,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
                 tk.messagebox.showwarning("Warning!", message = message)
                 return
             
-            input_folder = self.master.classifier_dir  + f"/{self.master.name}/" + self.input_folder.get()
+            input_folder = f"{self.master.classifier_dir}/{self.master.name}/{self.input_folder.get()}"
             maps_exist = False
             if os.path.exists(input_folder):
                 if len(os.listdir(input_folder)) >= 0:
@@ -587,7 +588,7 @@ class Pixel_class_widgets(ctk.CTkFrame):
                 tk.messagebox.showwarning("Warning!", message = message)
                 return
 
-            output_folder = self.master.main_directory  + f"/masks/{self.master.name}_direct_segmentation"
+            output_folder = f"{self.master.main_directory}/masks/{self.master.name}_direct_segmentation"
             if not overwrite_approval(output_folder, file_or_folder = "folder"):
                 return
             
@@ -611,8 +612,8 @@ class bio_label_launch_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master = master
         self.title("Associate class numbers with Biological Labels")
         try:
-            self.current_class_labels = pd.read_csv(self.master.classifier_dir + f"/{self.master.name}/biological_labels.csv")
-            open_json = open(self.master.classifier_dir + f"/{self.master.name}/{self.master.name}_details.json", 'r' , encoding="utf-8")
+            self.current_class_labels = pd.read_csv(f"{self.master.classifier_dir}/{self.master.name}/biological_labels.csv")
+            open_json = open(f"{self.master.classifier_dir}/{self.master.name}/{self.master.name}_details.json", 'r' , encoding="utf-8")
             loaded_json = open_json.read()
             loaded_json = json.loads(loaded_json) 
             open_json.close()
@@ -664,32 +665,32 @@ class bio_label_launch_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         unique_dict = {ii:(i + 1) for i,ii in enumerate(unique_names)}
         unique_dict['background'] = 0
         df['merging'] = df['labels'].replace(unique_dict)
-        df.to_csv(self.master.classifier_dir + f"/{self.master.name}/biological_labels.csv", index = False)
+        df.to_csv(f"{self.master.classifier_dir}/{self.master.name}/biological_labels.csv", index = False)
         
         if self.master.classifier_type == "supervised":
-            merge_folder(self.master.PxQuPy_class.classifier_dir + "/classification_maps", 
-                        pd.read_csv(self.master.PxQuPy_class.classifier_dir + "/biological_labels.csv"),
-                        self.master.PxQuPy_class.classifier_dir + "/merged_classification_maps")
+            temp_class_dir = self.master.PxQuPy_class.classifier_dir
         elif self.master.classifier_type == "unsupervised":
-            merge_folder(self.master.unsupervised.classifier_dir + "/classification_maps", 
-                        pd.read_csv(self.master.unsupervised.classifier_dir + "/biological_labels.csv"),
-                        self.master.unsupervised.classifier_dir + "/merged_classification_maps")
+            temp_class_dir = self.master.PxQuPy_class.classifier_dir
+        merge_folder(f"{temp_class_dir}/classification_maps", 
+                    pd.read_csv(f"{temp_class_dir}/biological_labels.csv"),
+                    f"{temp_class_dir}/merged_classification_maps")
+
         pixel_logger.info(f"Saved Biological labels and merged: \n {str(df)}")
         self.destroy()
 
     def plot_heatmap(self):
         ''''''
-        panel = pd.read_csv(self.master.main_directory + "/panel.csv")
+        panel = pd.read_csv(f"{self.master.main_directory}/panel.csv")
         if self.master.classifier_type == "unsupervised":
             pixel_folder = self.master.unsupervised.output_dir
             details_dict = self.master.unsupervised.training_dictionary
             channels = [i for i in details_dict['features_dictionary']]
-            filepath = self.master.unsupervised.classifier_dir + "/cluster_heatmap.png"
+            filepath = f"{self.master.unsupervised.classifier_dir}/cluster_heatmap.png"
         else:
             pixel_folder = self.master.PxQuPy_class.output_directory
             details_dict = self.master.PxQuPy_class.details_dict
             channels = [i for i in details_dict['channel_dictionary']]
-            filepath = self.master.PxQuPy_class.classifier_dir + "/cluster_heatmap.png"
+            filepath = f"{self.master.PxQuPy_class.classifier_dir}/cluster_heatmap.png"
         if self.channel_checkbox.get() is True:
             channels = [i for i in panel[panel['keep'] == 1]['name']]
         
@@ -758,7 +759,7 @@ class quick_option_dir_disp(DirectoryDisplay):
 
         def file_click(self, parent, value: str) -> None:
             parent.out = value
-            filepath = parent.currentdir + "/" + parent.out
+            filepath = f"{parent.currentdir}/{parent.out}"
             identifier = parent.out[(parent.out.rfind(".")):]
             if (identifier == ".tiff") and (self.parent.mode == "Napari"):
                 input_img = tf.imread(filepath).T
@@ -768,15 +769,15 @@ class quick_option_dir_disp(DirectoryDisplay):
                         filepath_folder = filepath[:filepath.rfind("/")]
                         classifier_folder = filepath_folder[:filepath_folder.rfind("/")]
                         details_dict = [i for i in sorted(os.listdir(classifier_folder)) if i.rfind("_details.jso") != -1]
-                        open_json = open(classifier_folder + "/" + details_dict[0], 'r' , encoding="utf-8")
+                        open_json = open(f"{classifier_folder}/{details_dict[0]}", 'r' , encoding="utf-8")
                         loaded_json = open_json.read()
                         loaded_json = json.loads(loaded_json) 
                         open_json.close()
                         img_directory = loaded_json['img_directory']
-                        image = tf.imread(img_directory + "/" + value)
+                        image = tf.imread(f"{img_directory}/{value}")
                     except Exception:
                         try:
-                            image = tf.imread(self.parent.image_dir + "/img/" + value)
+                            image = tf.imread(f"{self.parent.image_dir}/img/{value}")
                         except FileNotFoundError:
                             image = np.zeros(masks.shape)
                     masks = masks.T
@@ -790,8 +791,9 @@ class quick_option_dir_disp(DirectoryDisplay):
             elif (identifier == ".tiff") and (self.parent.mode == "quick"):
                 image = tf.imread(filepath).astype('int')
                 plot = tf.imshow(image, cmap = "tab20", vmax = 20)
-                plot[0].savefig(PALMETTO_BUG_homedir + "/Assets/temp_image.png")
-                self.parent.master.quick_display.save_and_display(PALMETTO_BUG_homedir + "/Assets/temp_image.png")
+                temp_img_path = f"{PALMETTO_BUG_homedir}/Assets/temp_image.png"
+                plot[0].savefig(temp_img_path)
+                self.parent.master.quick_display.save_and_display(temp_img_path)
                 plt.close(fig = "all")
 
             elif identifier == ".png":
@@ -847,12 +849,12 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def unsupervised(self, classifier_name: str, master) -> None:
         ''''''
-        if not overwrite_approval(self.master.classifier_dir + "/Unsupervised_" + classifier_name, file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
+        if not overwrite_approval(f"{self.master.classifier_dir}/Unsupervised_{classifier_name}", file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
             return
         self.master.classifier_type = "unsupervised"
         self.master.name = "Unsupervised_" + classifier_name
         self.master.name_holder.set(self.master.name)
-        self.master.unsupervised = UnsupervisedClassifier(self.master.main_directory, classifier_name = ("/Unsupervised_" + classifier_name))
+        self.master.unsupervised = UnsupervisedClassifier(self.master.main_directory, classifier_name = (f"/Unsupervised_{classifier_name}"))
         self.master.segment_frame.initialize_with_classifier()
         pixel_logger.info(f"Initialized Classifier {self.master.name}")
         window = unsupervised_window(master)
@@ -861,9 +863,9 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         
     def accept_classifier_name(self, classifier_name: str, master) -> None:
         ''''''
-        if not overwrite_approval(self.master.classifier_dir + "/" + classifier_name, file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
+        if not overwrite_approval(f"{self.master.classifier_dir}/{classifier_name}", file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
             return
-        self.master.PxQuPy_class._setup_classifier_directory(classifier_name = ("/" + classifier_name))
+        self.master.PxQuPy_class._setup_classifier_directory(classifier_name = (f"/{classifier_name}"))
         self.master.name = classifier_name
         self.master.name_holder.set(self.master.name)
         self.master.classifier_type = "supervised"
@@ -879,13 +881,13 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if name.rfind('Unsupervised') == -1:
             self.master.name = name
             self.master.name_holder.set(self.master.name)
-            self.master.PxQuPy_class._setup_classifier_directory(classifier_name = ("/" + name))
-            self.master.PxQuPy_class.load_saved_classifier(self.master.classifier_dir + f"/{name}/{name}.json" ) 
+            self.master.PxQuPy_class._setup_classifier_directory(classifier_name = (f"/{name}"))
+            self.master.PxQuPy_class.load_saved_classifier(f"{self.master.classifier_dir}/{name}/{name}.json" ) 
             self.master.classifier_type = "supervised"
             self.master.Napari_frame.activate_buttons()
             self.master.segment_frame.initialize_with_classifier()
 
-            details_path = self.master.classifier_dir + f"/{name}/{name}_details.json"
+            details_path = f"{self.master.classifier_dir}/{name}/{name}_details.json"
             open_json = open(details_path, 'r' , encoding="utf-8")
             loaded_json = open_json.read()
             loaded_json = json.loads(loaded_json) 
@@ -896,7 +898,7 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.master.name = name
             self.master.name_holder.set(self.master.name)
             self.master.classifier_type = "unsupervised"
-            details_path = self.master.classifier_dir + f"/{name}/{name}_details.json"
+            details_path = f"{self.master.classifier_dir}/{name}/{name}_details.json"
             open_json = open(details_path, 'r' , encoding="utf-8")
             loaded_json = open_json.read()
             loaded_json = json.loads(loaded_json) 
@@ -978,7 +980,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master = master
         self.title("Select Options for Unsupervised FlowSOM-based Pixel Classifier")
         self.additional_features = False
-        self.panel = pd.read_csv(self.master.main_directory + "/panel.csv").drop(["channel", "segmentation"], axis = 1)
+        self.panel = pd.read_csv(f"{self.master.main_directory}/panel.csv").drop(["channel", "segmentation"], axis = 1)
         self.panel = self.panel[self.panel['keep'] == 1]
 
         label = ctk.CTkLabel(master = self, 
@@ -1059,7 +1061,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def run_training(self) -> None:
         ''''''
-        img_directory = self.master.image_directory + "/" + self.image_choice.get()
+        img_directory = f"{self.master.image_directory}/{self.image_choice.get()}"
         if self.image_choice.get() == "":
             message = "You must select a folder of images to train from!"
             tk.messagebox.showwarning("Warning!", message = message)
@@ -1090,7 +1092,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             tk.messagebox.showwarning("No Channels selected!", message = message)
             self.focus()
             return
-        self.panel.to_csv(self.master.classifier_dir + f"/{self.master.name}/flowsom_panel.csv", index = False)
+        self.panel.to_csv(f"{self.master.classifier_dir}/{self.master.name}/flowsom_panel.csv", index = False)
         self.master.image_source_dir = img_directory
         
         self.master.unsupervised.panel = self.panel
@@ -1114,11 +1116,11 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         pixel_logger.info(f"Trained Unsupervised Classifier {self.master.name} with the following training dictionary: \n" 
                            "{str(training_dictionary)}")
 
-        with open(self.master.classifier_dir + f"/{self.master.name}/{self.master.name}_details.json",
+        with open(f"{self.master.classifier_dir}/{self.master.name}/{self.master.name}_details.json",
                    'w' , 
                    encoding="utf-8") as write_json:
             json.dump(training_dictionary, write_json, indent = 4) 
-        #pd.DataFrame(self.master.unsupervised.classifier_dictionary['fs'].model.codes).to_csv(self.master.classifier_dir + f"/{self.master.name}/clustering_codes.csv")   
+        #pd.DataFrame(self.master.unsupervised.classifier_dictionary['fs'].model.codes).to_csv(f"{self.master.classifier_dir}/{self.master.name}/clustering_codes.csv")   
                                             ## this .csv might allow loading & predicting from a previously done classifier
                                             ## However, creating the flowsom object in the first place may be difficult...
 
@@ -1127,7 +1129,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         '''
         plot, cluster_centers = plot_class_centers(flowsom = self.master.unsupervised.classifier_dictionary['fs'],
                                                     panel = self.master.unsupervised.classifier_dictionary['panel'])
-        filepath = self.master.classifier_dir + "/" + self.master.name + "/cluster_heatmap.png"
+        filepath = f"{self.master.classifier_dir}/{self.master.name}/cluster_heatmap.png"
         plot.savefig(filepath)
         plt.close(fig = 'all')
         pixel_logger.info(f"Plotted heatmap for FlowSOM cluster centers of {self.master.name}")
@@ -1247,21 +1249,21 @@ class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def load_classifier(self, name: str, classifier_load_name: str) -> None:
         ''''''
-        if not overwrite_approval(self.master.classifier_dir + "/" + name, file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
+        if not overwrite_approval(f"{self.master.classifier_dir}/{name}", file_or_folder = "folder", custom_message = "Are you sure you want to overwrite the existing classifier?"):
             return
         self.master.name = name
         self.master.name_holder.set(self.master.name)
-        self.master.PxQuPy_class._setup_classifier_directory(classifier_name = ("/" + name))
+        self.master.PxQuPy_class._setup_classifier_directory(classifier_name = (f"/{name}"))
 
-        assets_path = PALMETTO_BUG_assets_classifier_folder + f"/{classifier_load_name}/{classifier_load_name}.json"
-        details_path = PALMETTO_BUG_assets_classifier_folder + f"/{classifier_load_name}/{classifier_load_name}_details.json"
-        destination = self.master.classifier_dir + f"/{name}/{name}"
+        assets_path = f"{PALMETTO_BUG_assets_classifier_folder}/{classifier_load_name}/{classifier_load_name}.json"
+        details_path = f"{PALMETTO_BUG_assets_classifier_folder}/{classifier_load_name}/{classifier_load_name}_details.json"
+        destination = f"{self.master.classifier_dir}/{name}/{name}"
         self.master.Napari_frame.activate_buttons()
         self.master.segment_frame.initialize_with_classifier()
-        shutil.copyfile(assets_path, (destination + ".json"))
-        shutil.copyfile(details_path, (destination + "_details.json"))
+        shutil.copyfile(assets_path, (f"{destination}.json"))
+        shutil.copyfile(details_path, (f"{destination}_details.json"))
         
-        self.master.PxQuPy_class.load_saved_classifier(self.master.classifier_dir + f"/{name}/{name}.json" ) 
+        self.master.PxQuPy_class.load_saved_classifier(f"{self.master.classifier_dir}/{name}/{name}.json" ) 
         self.master.classifier_type = "supervised"
 
         open_json = open(details_path, 'r' , encoding="utf-8")
@@ -1287,7 +1289,7 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.after(200, lambda: self.focus())
 
     def setup_supervised(self) -> None:
-        self.classifier_json_dir = self.master.classifier_dir + f"/{self.master.name}/{self.master.name}_details.json"
+        self.classifier_json_dir = f"{self.master.classifier_dir}/{self.master.name}/{self.master.name}_details.json"
         open_json = open(self.classifier_json_dir , 'r' , encoding="utf-8")
         loaded_json = open_json.read()
         self.dictionary = json.loads(loaded_json)
@@ -1379,7 +1381,7 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             label1 = ctk.CTkLabel(master = self, text = f"Categorical Classifier = {classifier_json_dir['categorical']}")
             label1.grid(column = 0, row = 1, padx = 3, pady = 3, sticky = "nsew")
 
-            self.internals_dict = self.master.master.classifier_dir + f"/{self.master.master.name}/{self.master.master.name}.json"
+            self.internals_dict = f"{self.master.master.classifier_dir}/{self.master.master.name}/{self.master.master.name}.json"
             open_json = open(self.internals_dict , 'r' , encoding="utf-8")
             loaded_json = open_json.read()
             self.internals = json.loads(loaded_json)["opencv_ml_ann_mlp"]
@@ -1398,8 +1400,8 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             label4.grid(column = 0, row = 4, padx = 3, pady = 3, sticky = "nsew")
 
     def setup_unsupervised(self) -> None:
-        self.classifier_panel_dir = self.master.classifier_dir + f"/{self.master.name}/flowsom_panel.csv"
-        self.classifier_json_dir = self.master.classifier_dir + f"/{self.master.name}/{self.master.name}_details.json"
+        self.classifier_panel_dir = f"{self.master.classifier_dir}/{self.master.name}/flowsom_panel.csv"
+        self.classifier_json_dir = f"{self.master.classifier_dir}/{self.master.name}/{self.master.name}_details.json"
         self.channel_df = pd.read_csv(self.classifier_panel_dir)
         open_json = open(self.classifier_json_dir , 'r' , encoding="utf-8")
         loaded_json = open_json.read()
@@ -1529,13 +1531,13 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 channel_dict[antigen] = number
             self.dictionary["channel_dictionary"] = channel_dict
             grand_master = self.master.master
-            with open(grand_master.classifier_dir + f"/{grand_master.name}/{grand_master.name}_details.json", 
+            with open(f"{grand_master.classifier_dir}/{grand_master.name}/{grand_master.name}_details.json", 
                       'w', 
                       encoding="utf-8") as write_json: 
                 json.dump(self.dictionary, write_json, indent = 4) 
 
             ## now reload the classifier
-            grand_master.PxQuPy_class.load_saved_classifier(grand_master.classifier_dir + f"/{grand_master.name}/{grand_master.name}.json" ) 
+            grand_master.PxQuPy_class.load_saved_classifier(f"{grand_master.classifier_dir}/{grand_master.name}/{grand_master.name}.json" ) 
             pixel_logger.info(f"Supervised Classifier {grand_master.name} channel dictionary: \n {str(self.dictionary)}")
             self.after(200, self.master.destroy())
 
@@ -1544,23 +1546,24 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             entry1 = ctk.CTkEntry(master = self, textvariable = ctk.StringVar(value = dictionary_key))
             entry1.configure(state = "disabled")
             entry1.grid(column = 0, row = counter, pady = 3)
-            if self.dictionary["img_directory"] != "":
+            image_dir = self.dictionary["img_directory"]
+            if image_dir != "":
                 try:
-                    image_list = [i for i in sorted(os.listdir(self.dictionary["img_directory"])) if i.lower().find(".tif") != -1]
-                    example_img = tf.imread(self.dictionary["img_directory"] + "/" + image_list[0])
+                    image_list = [i for i in sorted(os.listdir(image_dir)) if i.lower().find(".tif") != -1]
+                    example_img = tf.imread(f"{image_dir}/{image_list[0]}")
                     channel_num = len(example_img) - 1
+                    entry2 = ctk.CTkOptionMenu(master = self,
+                                           values = [str(i) for i in range(0,channel_num,1)], 
+                                           variable = ctk.StringVar(value = self.dictionary["channel_dictionary"][dictionary_key]))  
                 except FileNotFoundError:
                     entry2 = ctk.CTkEntry(master = self, 
                                           textvariable = ctk.StringVar(value = self.dictionary["channel_dictionary"][dictionary_key]))  
-                    entry2.grid(column = 1, row = counter, pady = 3) 
-                entry2 = ctk.CTkOptionMenu(master = self,
-                                           values = [str(i) for i in range(0,channel_num,1)], 
-                                           variable = ctk.StringVar(value = self.dictionary["channel_dictionary"][dictionary_key]))  
-                entry2.grid(column = 1, row = counter, pady = 3) 
+                 
             else:
                 entry2 = ctk.CTkEntry(master = self, 
                                       textvariable = ctk.StringVar(value = self.dictionary["channel_dictionary"][dictionary_key])) 
-                entry2.grid(column = 1, row = counter, pady = 3) 
+
+            entry2.grid(column = 1, row = counter, pady = 3) 
             self.row_list.append([entry1, entry2])                             
 
         def make_dict(self) -> None:
@@ -1591,7 +1594,7 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                     self.master = master
                     self.configure(height = 300)
 
-                    self.dataframe = pd.read_csv(self.master.master.master.master.main_directory + "/panel.csv")
+                    self.dataframe = pd.read_csv(f"{self.master.master.master.master.main_directory}/panel.csv")
                     self.dataframe = self.dataframe[self.dataframe['keep'] == 1].reset_index().drop(["channel", 
                                                                                                      "segmentation", 
                                                                                                      "keep", 
@@ -1673,12 +1676,12 @@ class Classifier_deets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         unique_dict = {ii:(i + 2) for i,ii in enumerate(unique_names)}
         unique_dict['background'] = 0
         df['merging'] = df['labels'].replace(unique_dict)
-        df.to_csv(self.master.classifier_dir + f"/{self.master.name}/biological_labels.csv", index = False)
+        df.to_csv(f"{self.master.classifier_dir}/{self.master.name}/biological_labels.csv", index = False)
 
         number_of_classes = len(self.class_dictionary)
         
         self.master.number_of_classes = number_of_classes    
-        self.master.PxQuPy_class.setup_classifier((self.master.name + ".json"), 
+        self.master.PxQuPy_class.setup_classifier((f"{self.master.name}.json"), 
                                                     number_of_classes, 
                                                     sigma_list, 
                                                     features_list, 
@@ -1765,7 +1768,7 @@ class Classifier_deets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.master = master
             self.configure(height = 300, width = 325)
 
-            self.dataframe = pd.read_csv(self.master.master.main_directory + "/panel.csv")
+            self.dataframe = pd.read_csv(f"{self.master.master.main_directory}/panel.csv")
             self.dataframe = self.dataframe[self.dataframe['keep'] == 1].reset_index().drop(["channel", 
                                                                                              "segmentation", 
                                                                                              "keep", 
