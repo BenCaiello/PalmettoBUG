@@ -265,13 +265,13 @@ class EntryPoint(ctk.CTkFrame):
             resY = float(resolutions[1])
 
         ### don't want the current directory to be searched (when entry field is blank)....
-        if self.master.directory is None:
-            self.master.directory = "not a directory"   ## if the directory remains None, odd behaviours can result 
+        if directory is None:
+            directory = "not a directory"   ## if the directory remains None, odd behaviours can result 
                                                             # because of default arguments in downstream functions ---> 
                                                             # like the current directory being searched
-        if len(self.master.directory) == 0:
-            self.master.directory = tk.filedialog.askdirectory()
-            if self.master.directory == "":
+        if len(directory) == 0:
+            directory = tk.filedialog.askdirectory()
+            if directory == "":
                 return
 
         self.master.directory = Path(directory)
@@ -325,8 +325,8 @@ class EntryPoint(ctk.CTkFrame):
         self.master.py_exploratory.X = self.X_Y_entry.entry_X.get()
         self.master.py_exploratory.Y = self.X_Y_entry.entry_Y.get()
         if directory == "":
-            self.master.directory = tk.filedialog.askdirectory()
-            if self.master.directory == "":
+            directory = tk.filedialog.askdirectory()
+            if directory == "":
                 return
         self.master.directory = Path(directory)
         try:
@@ -355,11 +355,11 @@ class EntryPoint(ctk.CTkFrame):
         self.master.py_exploratory.X = self.X_Y_entry.entry_X.get()
         self.master.py_exploratory.Y = self.X_Y_entry.entry_Y.get()
 
-        if self.master.directory is None:
-            self.master.directory = "not a directory"
-        if len(self.master.directory) == 0:
-            self.master.directory = tk.filedialog.askdirectory()
-            if self.master.directory == "":
+        if directory is None:
+            directory = "not a directory"
+        if len(directory) == 0:
+            directory = tk.filedialog.askdirectory()
+            if directory == "":
                 return
         self.master.directory = Path(directory)
         try:
