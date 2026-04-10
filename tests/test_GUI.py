@@ -104,8 +104,6 @@ def test_call_intersection_difference():
     assert(len(os.listdir(f"{PROJ_DIRECTORY}/masks/example_deepcell_masks_expanded_deepcell_masks")) == 10), "Mask intersection function failed!"
     intersect.destroy()
 
-'''
-
 def test_call_region_measurement():
     region_meas = app.entrypoint.image_proc_widg.call_region_measurement()
     region_meas.refresh1()
@@ -157,6 +155,8 @@ def test_setup_for_FCS():
     shutil.move(f"{FETCH_DIR}/Example_CyTOF/main/metadata.csv", f"{FETCH_DIR}/Example_CyTOF/metadata.csv") 
     palmettobug.setup_for_FCS(top_dir)
     assert True
+
+'''
 
 def test_fake_bead_norm():
     fake_bead_norm_dir = f"{FETCH_DIR}/bead_norm_fakery"
