@@ -104,6 +104,8 @@ def test_call_intersection_difference():
     assert(len(os.listdir(f"{PROJ_DIRECTORY}/masks/example_deepcell_masks_expanded_deepcell_masks")) == 10), "Mask intersection function failed!"
     intersect.destroy()
 
+'''
+
 def test_call_region_measurement():
     region_meas = app.entrypoint.image_proc_widg.call_region_measurement()
     region_meas.refresh1()
@@ -120,8 +122,6 @@ def test_call_region_measurement():
     analysis_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analyses_dir + "/test_analysis"
     assert(len(os.listdir(f"{analysis_dir}/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
     assert(len(pd.read_csv(f"{analysis_dir}/intensities/CRC_1_ROI_001.ome.csv") == 2177)), "Unexpected number of cells in image 1" 
-    
-'''
 
 def test_call_to_Analysis():
     ## pre load metadata / analysis panel into analysis directory so that Analysis loads properly
