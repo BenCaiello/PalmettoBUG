@@ -91,8 +91,6 @@ class ImageProcessingWidgets(ctk.CTkFrame):
             spacer1 = ctk.CTkLabel(self, text = "Segmentation & Denoising:")
             spacer1.grid(column = 1, row = 2)
 
-            ## now these denoising and segmentation tasks are handled by a separate program 
-            # (GPL reasons, although it does have the side benefit of multiprocessing for these often computationally intensive tasks):
             '''
             self.simple_denoise = ctk.CTkButton(self, text = "Simple Denoising")
             self.simple_denoise.grid(column = 1, row = 3)
@@ -170,11 +168,11 @@ class ImageProcessingWidgets(ctk.CTkFrame):
         return HPF_readin(self)
 
     def call_raw_to_img_part_2_run(self, hpf):
-        if not overwrite_approval(self.directory + "images/img", file_or_folder = "folder"):
+        if not overwrite_approval(self.directory / "images/img", file_or_folder = "folder"):
             return
         self.Experiment_object.raw_to_img(hpf = hpf)
         self.buttonframe.initialize_buttons()
-        image_list = [i for i in os.listdir(self.directory + "/images/img") if i.lower().find(".tif") != -1]
+        image_list = [i for i in os.listdir(self.directory / "images/img") if i.lower().find(".tif") != -1]
         if len(image_list) > 0:                         
             ### if there are images in the image directory, toggles off the keep column (creates errors if keep column is changed mid-experiment!)
             self.TableWidget.toggle_keep_column("normal")                        
@@ -299,7 +297,7 @@ class Instanseg_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.image_folder.configure(values = self.image_folders)
 
     def refresh2(self, enter = ""):
-        self.filenames = [i for i in sorted(os.listdir(self.img_dir + '/' + self.image_folder.get())) if i.find(".tif") != -1]
+        self.filenames = [i for i in sorted(os.listdir(self.img_dir / self.image_folder.get())) if i.find(".tif") != -1]
         self.single_image.configure(values = [""] + self.filenames)
 
     def read_values(self):
@@ -401,11 +399,11 @@ class intersection_difference_window(ctk.CTkToplevel, metaclass = CtkSingletonWi
 
         masks_folder1 = self.masks_folder1.get()
         masks_folder2 = self.masks_folder2.get()
-        output_folder = self.master.Experiment_object.directory_object.masks_dir + f'/{masks_folder1}_{masks_folder2}'
+        output_folder = self.master.Experiment_object.directory_object.masks_dir / f'{masks_folder1}_{masks_folder2}'
         def check_masks_or_px(path):
             if path in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir):
-                if "merged_classification_maps" in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir + "/" + path):
-                    return self.master.Experiment_object.directory_object.px_classifiers_dir +"/" + path + "/merged_classification_maps"     
+                if "merged_classification_maps" in os.listdir(self.master.Experiment_object.directory_object.px_classifiers_dir / path):
+                    return self.master.Experiment_object.directory_object.px_classifiers_dir / path / "merged_classification_maps"     
                     ## only used merged pixel class maps, so that background is 0 and outside the masks (otherwise every pixel will be 'inside' a mask)
                 else:
                     return None
@@ -505,7 +503,7 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         output_folder = self.output_folder.get()
         if folder_checker(output_folder):
             return
-        if not overwrite_approval(experiment_class.directory_object.Analyses_dir + "/" + output_folder,
+        if not overwrite_approval(experiment_class.directory_object.Analyses_dir / output_folder,
                                    file_or_folder = "folder",
                                    custom_message = "Are you sure you want to potentially overwrite intensity / regionprop files in this analysis?"):
             return
@@ -513,8 +511,8 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         experiment_class.directory_object.make_analysis_dirs(output_folder.strip())
 
         experiment_class.make_segmentation_measurements(re_do = self.re_do.get(), 
-                    input_img_folder = (self.img_dir + "/" + self.image_folder.get()),
-                    input_mask_folder = (self.masks_dir + "/" + self.masks_folder.get()),
+                    input_img_folder = (self.img_dir / self.image_folder.get()),
+                    input_mask_folder = (self.masks_dir / self.masks_folder.get()),
                     advanced_regionprops = False, # self.advanced_region.get(),     ## TODO: fix branch point calculation error (in NAVis?) and reactivate
                     statistic = self.intensity_options.get(),
                     )
@@ -525,8 +523,8 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         except Exception:
             pass
         Analysis_logger(experiment_class.directory_object.analysis_dir + "/main").return_log().info(f"""Region Measurements made with the following 
-                            image folder = {(self.img_dir + "/" + self.image_folder.get())},
-                            Masks folder = {(self.masks_dir + "/" + self.masks_folder.get())},
+                            image folder = {(self.img_dir / self.image_folder.get())},
+                            Masks folder = {(self.masks_dir / self.masks_folder.get())},
                             Intensity aggregation method = {self.intensity_options.get()}""")
         self.destroy()
 
