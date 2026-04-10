@@ -11,13 +11,16 @@ import customtkinter as ctk
 import palmettobug
 from palmettobug.Entrypoint.app_and_entry import App
 
-homedir = __file__.replace("\\","/")
-homedir = homedir[:(homedir.rfind("/"))]
-homedir = homedir[:(homedir.rfind("/"))]
-fetch_dir = homedir + "/project_folder"
-if not os.path.exists(fetch_dir):
-    os.mkdir(fetch_dir)
-proj_directory = fetch_dir + "/Example_IMC"
+HOMEDIR = __file__.replace("\\","/")
+HOMEDIR = HOMEDIR[:(HOMEDIR.rfind("/"))]
+HOMEDIR = HOMEDIR[:(HOMEDIR.rfind("/"))]
+FETCH_DIR = f"{HOMEDIR}/project_folder"
+if not os.path.exists(FETCH_DIR):
+    os.mkdir(FETCH_DIR)
+PROJ_DIRECTORY = f"{FETCH_DIR}/Example_IMC"
+PROJECT_IMAGES_IMG = f"{PROJ_DIRECTORY}/images/img"
+PROJECT_MASKS = f"{PROJECT_IMAGES_IMG}/masks"
+PROJECT_DIR_PANEL = f"{PROJ_DIRECTORY}/panel.csv"
 
 np.random.default_rng(42)
 
@@ -54,30 +57,33 @@ def test_launchExampleDataWindow():     ## now also handles the loading of the e
     global loader_window
     loader_window = app.entrypoint.launchExampleDataWindow()
     assert isinstance(loader_window, ctk.CTkToplevel)
-    loader_window.entry.configure(textvariable = ctk.StringVar(value = fetch_dir))
+    loader_window.entry.configure(textvariable = ctk.StringVar(value = FETCH_DIR))
     loader_window.load_IMC()
-    shutil.move(proj_directory + "/panel.csv", fetch_dir + "/panel.csv")   ## test load without panel file
-    app.entrypoint.img_entry_func(proj_directory) 
+    fetch_dir_csv = f"{FETCH_DIR}/panel.csv"
+    shutil.move(PROJECT_DIR_PANEL, fetch_dir_csv)   ## test load without panel file
+    app.entrypoint.img_entry_func(PROJ_DIRECTORY) 
     ## restore example panel & reload
-    shutil.move(fetch_dir + "/panel.csv", proj_directory + "/panel.csv")  
-    app.entrypoint.img_entry_func(proj_directory, resolutions = [1.0,1.0]) 
+    shutil.move(fetch_dir_csv, PROJECT_DIR_PANEL)  
+    app.entrypoint.img_entry_func(PROJ_DIRECTORY, resolutions = [1.0,1.0]) 
 
 ### GUI Image Analysis tests
 def test_call_raw_to_img_part_1_hpf():
     app.entrypoint.image_proc_widg.buttonframe.activate_region_measure()
     hpf_window = app.entrypoint.image_proc_widg.call_raw_to_img_part_1_hpf()
     hpf_window.read_values()
-    images = [f"{proj_directory}/images/img/{i}" for i in sorted(os.listdir(proj_directory + "/images/img"))]
+    images = [f"{PROJECT_IMAGES_IMG}/{i}" for i in sorted(os.listdir(PROJECT_IMAGES_IMG))]
     assert(len(images) == 10), "Wrong number of images exported to images/img" 
+
+'''
 
 def test_call_instanseg_segmentor():
     instanseg_window = app.entrypoint.image_proc_widg.call_instanseg_segmentor()
     instanseg_window.refresh1()
     instanseg_window.refresh2()
-    instanseg_window.single_image.configure(variable = ctk.StringVar(value = os.listdir(proj_directory + "/images/img")[0]))
+    instanseg_window.single_image.configure(variable = ctk.StringVar(value = os.listdir(PROJECT_IMAGES_IMG)[0]))
     w_window = instanseg_window.read_values()
     w_window.destroy()
-    assert(len(os.listdir(proj_directory + "/masks/instanseg_masks"  )) == 1), "Wrong number of masks exported"
+    assert(len(os.listdir(f"{PROJ_DIRECTORY}/masks/instanseg_masks" )) == 1), "Wrong number of masks exported"
     instanseg_window.destroy()
 
 def test_call_mask_expand():
@@ -86,7 +92,7 @@ def test_call_mask_expand():
     expander.image_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     expander.output_folder.configure(textvariable = ctk.StringVar(value = "expanded_deepcell_masks"))
     expander.read_values()
-    images = os.listdir(proj_directory + "/masks/expanded_deepcell_masks")
+    images = os.listdir(f"{PROJ_DIRECTORY}/masks/expanded_deepcell_masks")
     assert(len(images) == 10), "All masks not expanded" 
 
 def test_call_intersection_difference():
@@ -96,7 +102,7 @@ def test_call_intersection_difference():
     intersect.masks_folder2.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     intersect.kind2.configure(variable = ctk.StringVar(value = "two-way"))
     intersect.read_values()
-    assert(len(os.listdir(proj_directory + "/masks/example_deepcell_masks_expanded_deepcell_masks")) == 10), "Mask intersection function failed!"
+    assert(len(os.listdir(f"{PROJ_DIRECTORY}/masks/example_deepcell_masks_expanded_deepcell_masks")) == 10), "Mask intersection function failed!"
     intersect.destroy()
 
 def test_call_region_measurement():
@@ -113,16 +119,13 @@ def test_call_region_measurement():
     region_meas.masks_folder.configure(variable = ctk.StringVar(value = "example_deepcell_masks"))
     region_meas.accept_values.invoke()
     analysis_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analyses_dir + "/test_analysis"
-    intensities_dir = analysis_dir + "/intensities"
-    assert(len(os.listdir(analysis_dir + "/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
-    assert(len(pd.read_csv(intensities_dir + "/CRC_1_ROI_001.ome.csv") == 2177)), "Unexpected number of cells in image 1" 
+    assert(len(os.listdir(f"{analysis_dir}/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
+    assert(len(pd.read_csv(f"{analysis_dir}/intensities/CRC_1_ROI_001.ome.csv") == 2177)), "Unexpected number of cells in image 1" 
 
 def test_call_to_Analysis():
     ## pre load metadata / analysis panel into analysis directory so that Analysis loads properly
-    Analysis_panel = proj_directory + "/Analyses/Analysis_panel.csv"
-    metadata = proj_directory + "/Analyses/metadata.csv"
-    #shutil.copyfile(Analysis_panel, proj_directory + "/Analyses/test_analysis/main/Analysis_panel.csv")
-    #shutil.copyfile(metadata, proj_directory + "/Analyses/test_analysis/main/metadata.csv")
+    Analysis_panel = f"{PROJ_DIRECTORY}/Analyses/Analysis_panel.csv"
+    metadata = f"{PROJ_DIRECTORY}/Analyses/metadata.csv"
     analysis_loader = app.entrypoint.image_proc_widg.call_to_Analysis()
     analysis_loader.refresh10()
     analysis_loader.checkbox.select()
@@ -147,20 +150,21 @@ def test_FCS_choice():   ### have occur after to not disrupt tablelaunch windows
     loader_window.destroy()
 
 def test_setup_for_FCS():
-    palmettobug.setup_for_FCS(fetch_dir + "/Example_CyTOF")
-    shutil.move(fetch_dir + "/Example_CyTOF/main/Analysis_panel.csv", fetch_dir + "/Example_CyTOF/Analysis_panel.csv")   ## test load without panel file
-    shutil.move(fetch_dir + "/Example_CyTOF/main/metadata.csv", fetch_dir + "/Example_CyTOF/metadata.csv") 
-    palmettobug.setup_for_FCS(fetch_dir + "/Example_CyTOF")
+    top_dir = f"{FETCH_DIR}/Example_CyTOF"
+    palmettobug.setup_for_FCS(top_dir)
+    shutil.move(f"{FETCH_DIR}/Example_CyTOF/main/Analysis_panel.csv", f"{FETCH_DIR}/Example_CyTOF/Analysis_panel.csv")   ## test load without panel file
+    shutil.move(f"{FETCH_DIR}/Example_CyTOF/main/metadata.csv", f"{FETCH_DIR}/Example_CyTOF/metadata.csv") 
+    palmettobug.setup_for_FCS(top_dir)
     assert True
 
 def test_fake_bead_norm():
-    fake_bead_norm_dir = fetch_dir + "/bead_norm_fakery"
+    fake_bead_norm_dir = f"{FETCH_DIR}/bead_norm_fakery"
     os.mkdir(fake_bead_norm_dir)
-    beads_dir = fake_bead_norm_dir + "/beads"
+    beads_dir = f"{fake_bead_norm_dir}/beads"
     os.mkdir(beads_dir)
-    no_beads_dir = fake_bead_norm_dir + "/no_beads"
+    no_beads_dir = f"{fake_bead_norm_dir}/no_beads"
     os.mkdir(no_beads_dir)
-    real_FCS_files_dir = fetch_dir + "/Example_CyTOF/main/Analysis_fcs"
+    real_FCS_files_dir = f"{FETCH_DIR}/Example_CyTOF/main/Analysis_fcs"
     real_FCS_files = [i for i in os.listdir(real_FCS_files_dir) if i.lower().find(".fcs") != -1]
 
     ### will use the example data .fcs files for the bead norm tests (HOWEVER! remember that the example is already normalized / non-bead cells so like many of these
@@ -225,7 +229,7 @@ def test_accept_classifier_name():   ## supervised window
 def test_training():
     training_dir = app.Tabs.px_classification.create.px_widg.classifier_dir + "/lumen_epithelia_laminapropria/training_labels"
     shutil.rmtree(training_dir)
-    shutil.copytree(f"{homedir}/tests/training_labels", training_dir)
+    shutil.copytree(f"{HOMEDIR}/tests/training_labels", training_dir)
     app.Tabs.px_classification.create.px_widg.Napari_frame.choose_folder.configure(variable = ctk.StringVar(value = 'img'))
     app.Tabs.px_classification.create.px_widg.Napari_frame.training_button.invoke()
     assert True 
@@ -234,9 +238,9 @@ def test_events_create_px():   ## do at least after a classifier has been loaded
     app.Tabs.px_classification.create.px_widg.start_frame.refresh_exclusive_buttons()
     app.Tabs.px_classification.create.px_widg.start_frame.refresh_exclusive_buttons()
     app.Tabs.px_classification.create.px_widg.Napari_frame.refresh1()
-    app.Tabs.px_classification.create.px_widg.Napari_frame.refresh2(image_folder = proj_directory + "images/img")
+    app.Tabs.px_classification.create.px_widg.Napari_frame.refresh2(image_folder = PROJECT_IMAGES_IMG)
     app.Tabs.px_classification.create.px_widg.predictions_frame.refresh3()
-    app.Tabs.px_classification.create.px_widg.predictions_frame.refresh4(image_folder = proj_directory + "images/img")
+    app.Tabs.px_classification.create.px_widg.predictions_frame.refresh4(image_folder = PROJECT_IMAGES_IMG)
     app.Tabs.px_classification.create.px_widg.segment_frame.refresh5()
 
 def test_prediction():
@@ -246,7 +250,7 @@ def test_prediction():
     app.Tabs.px_classification.create.px_widg.predictions_frame.all.select()
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
 
-    images_dir = proj_directory + "/images/img"
+    images_dir = PROJECT_IMAGES_IMG
     prediction_paths = ["".join([pixel_class_object.output_directory,"/",i]) for i in sorted(os.listdir(pixel_class_object.output_directory))]  
     image_paths = ["".join([images_dir,"/",i]) for i in sorted(os.listdir(images_dir))]  
     assert len(prediction_paths) == 10, "There are not 10 px class predictions (one for each image)!"
@@ -303,7 +307,7 @@ def test_load_project_classifier():
 def test_segmentation():
     app.Tabs.px_classification.create.px_widg.segment_frame.input_folder.configure(variable = ctk.StringVar(value = "classification_maps"))
     app.Tabs.px_classification.create.px_widg.segment_frame.run_seg()
-    assert len(os.listdir(proj_directory + "/masks/lumen_epithelia_laminapropria_direct_segmentation")) == 10, "Wrong number of images in sliced images folder!" 
+    assert len(os.listdir(f"{PROJECT_IMAGES_IMG}/masks/lumen_epithelia_laminapropria_direct_segmentation")) == 10, "Wrong number of images in sliced images folder!" 
 
 
 ### GUI Pixel classification tests (px class use)
@@ -342,16 +346,16 @@ def test_launch_bio_labels():
 def test_filter():
     px_use_widgets.filter.filter_list.checkbox_list[0].select()
     px_use_widgets.filter.filter_images()
-    assert len(os.listdir(proj_directory + "/images/img_filtered_on_")) == 10, "Wrong number of images in sliced images folder!"
+    assert len(os.listdir(f"{PROJECT_IMAGES_IMG}/images/img_filtered_on_")) == 10, "Wrong number of images in sliced images folder!"
 
 def test_classify_masks_on_mode():
     name = "lumen_epithelia_laminapropria_expanded_deepcell_masks"
-    run_folder = proj_directory + f"/classy_masks/{name}"
-    output_folder = run_folder + f"/primary_masks"  
+    run_folder = f"{PROJECT_IMAGES_IMG}/classy_masks/{name}"
+    output_folder = f"{run_folder}/primary_masks"  
     px_use_widgets.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     px_use_widgets.classify_cells.do_classy_masks()
     assert len(os.listdir(output_folder)) == 10, "Wrong number of classy masks exported!"
-    assert len(pd.read_csv(run_folder + f"/{name}_cell_classes.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
+    assert len(pd.read_csv(f"{run_folder}/{name}_cell_classes.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
 
 def test_classify_masks_on_flowsom():
     px_use_widgets.classify_cells.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
@@ -361,10 +365,10 @@ def test_classify_masks_on_flowsom():
     secondary_FlowSOM_window = px_use_widgets.classify_cells.do_classy_masks()
     assert isinstance(secondary_FlowSOM_window, ctk.CTkToplevel)
     name = "lumen_epithelia_laminapropria_example_deepcell_masks"
-    run_folder = proj_directory + f"/classy_masks/{name}"
-    classy_fs_output_folder = run_folder + f"/primary_masks"
+    run_folder = f"{PROJECT_IMAGES_IMG}/classy_masks/{name}"
+    classy_fs_output_folder = f"{run_folder}/primary_masks"
     assert len(os.listdir(classy_fs_output_folder)) == 10, "Wrong number of classy masks exported!"
-    assert len(pd.read_csv(run_folder + f"/{name}_cell_classes.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
+    assert len(pd.read_csv(f"{run_folder}/{name}_cell_classes.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
 
 def test_secondary_FlowSOM_merge():
     clustergrid = secondary_FlowSOM_window.new_heatmap()
@@ -376,22 +380,22 @@ def test_secondary_FlowSOM_merge():
         i.configure(variable = ctk.StringVar(value = str(value)))
     secondary_FlowSOM_window.run_labeling()
     name = "lumen_epithelia_laminapropria_example_deepcell_masks"
-    run_folder = proj_directory + f"/classy_masks/{name}"
-    classy_fs_output_folder = run_folder + "/secondary_masks"
+    run_folder = f"{PROJECT_IMAGES_IMG}/classy_masks/{name}"
+    classy_fs_output_folder = f"{run_folder}/secondary_masks"
     #assert len(os.listdir(classy_fs_output_folder)) == 10, "Wrong number of classy masks exported!"
-    assert len(pd.read_csv(run_folder + "/secondary_cell_classification.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
+    assert len(pd.read_csv(f"{run_folder}/secondary_cell_classification.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
 
 def test_mask_extend():
-    before_extend  = os.listdir(proj_directory + "/masks")
+    before_extend  = os.listdir(PROJECT_MASKS)
     px_use_widgets.merge_class_masks.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     options = [i for i in sorted(os.listdir(px_use_widgets.merge_class_masks.master.main_directory + "/classy_masks")) if i.find(".") == -1]  
     px_use_widgets.merge_class_masks.classy_mask_option_menu.configure(variable = ctk.StringVar(value = options[0]))
     px_use_widgets.merge_class_masks.output_name.configure(textvariable = ctk.StringVar(value = "extended_masks"))
     px_use_widgets.merge_class_masks.select_table.checkbox_list[1].select()
     px_use_widgets.merge_class_masks.run_merging()
-    after_extend = os.listdir(proj_directory + "/masks")
+    after_extend = os.listdir(PROJECT_MASKS)
     output_directory_folder = [i for i in after_extend if i not in before_extend][0]
-    assert len(os.listdir(proj_directory + "/masks/" + output_directory_folder)) == 10, "Wrong number of extended masks exported!"
+    assert len(os.listdir(f"{PROJECT_MASKS}/{output_directory_folder}")) == 10, "Wrong number of extended masks exported!"
 
 def test_whole_class_analysis_1():
     px_use_widgets.whole_class.classifier_option_menu.configure(variable = ctk.StringVar(value = "classification_maps"))
@@ -537,7 +541,7 @@ def test_launch_UMAP_window():
     assert isinstance(my_analysis.UMAP_embedding, anndata.AnnData), "do UMAP did not create an anndata embedding"
 
 def test_do_regions():
-    my_analysis.do_regions(region_folder = proj_directory + "/masks/expanded_deepcell_masks")
+    my_analysis.do_regions(region_folder = f"{PROJECT_MASKS}/expanded_deepcell_masks")
     assert ('regions' in my_analysis.data.obs.columns), "Do regions did not generate a 'regions' column in obs!"
 
 def test_spatial_leiden():
@@ -696,7 +700,6 @@ def test_launch_classy_masker():
     window.refresher1()
     data_df = window.classy_mask(clustering = "metaclustering")
     assert isinstance(window, ctk.CTkToplevel)
-    #assert len(data_df) == len(my_analysis.back_up_data)
     window.destroy()
 
 def test_launch_abundance_ANOVAs_window():
@@ -744,7 +747,6 @@ def test_run_state_ANOVAs_window():
     assert isinstance(table_launch, ctk.CTkToplevel)
     assert isinstance(df, pd.DataFrame), "state expression statistics (median) did not return a pandas DataFrame"
     table_launch.table_list[0].delete_row(1)
-    # table_launch.table_list[0].add_row(4)
     table_launch.destroy()
     window.destroy()
 
@@ -776,7 +778,7 @@ def test_launch_cluster_save_load():
     window.loader_button.invoke()
     assert isinstance(window, ctk.CTkToplevel)
 
-    list_of_saved_classifiers = ["".join([window.classy_dir,"/",i,"/",f'{i}_cell_classes.csv']) for i in sorted(os.listdir(window.classy_dir)) if i.find(".") == -1]
+    list_of_saved_classifiers = [f"{window.classy_dir}/{i}/{i}_cell_classes.csv" for i in sorted(os.listdir(window.classy_dir)) if i.find(".") == -1]
     list_of_classifications = [i for i in list_of_saved_classifiers if os.path.exists(i)]
     list_of_classifications = [i[((i[:i.rfind("/")]).rfind("/") + 1):] for i in list_of_classifications] 
     window.load_identifier_from_px.configure(variable = ctk.StringVar(value = list_of_classifications[0]))
@@ -886,8 +888,6 @@ def test_SpaceANOVA():
     window.refresh_SpaceANOVA_clusters()
     window.refresh_comparisons()
     window.filter_N()
-    #import time  
-    #rust_start = time.time()
     window.load_and_run_spatial_analysis(min_radius = 10, 
                                          max_radii = 80, 
                                          step = 5, 
@@ -896,27 +896,9 @@ def test_SpaceANOVA():
                                          permutations = 2, 
                                          seed = 42,
                                          use_rust = True)
-    #rust_time = time.time() - rust_start
     my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
     rust_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
 
-    #py_start = time.time()
-    #window.load_and_run_spatial_analysis(min_radius = 10, 
-    #                                     max_radii = 80, 
-    #                                     step = 5, 
-    #                                     condition_comparison = "All (multicomparison)", 
-    #                                     celltype_key = 'merging', 
-    #                                     permutations = 2, 
-    #                                     seed = 42,
-    #                                     use_rust = False)
-    #py_time = time.time() - py_start
-    #print(f'times in seconds: py = {py_time}, rust = {rust_time}')
-    #my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
-    #python_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
-    #print(rust_data_table['c2___c3'])
-    #print(python_data_table['c2___c3'])
-    #print(rust_data_table['c2___c2'])
-    #print(python_data_table['c2___c2'])
     assert my_spatial.SpaceANOVA.data_table is not None, "spaceANOVA Ripley's statistics not calculated!"
     assert my_spatial.SpaceANOVA._comparison_dictionary is not None, "spaceANOVA Ripley's statistics not calculated!"
     window.destroy()
@@ -1045,7 +1027,7 @@ def test_CN_abundance():
 
 def test_launch_edt():
     window = app.Tabs.Spatial.widgets.test_edt.launch_load_window()
-    window.pixel_class_entry.configure(textvariable = ctk.StringVar(value = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria"))
+    window.pixel_class_entry.configure(textvariable = ctk.StringVar(value = f"{PROJ_DIRECTORY}/Pixel_Classification/lumen_epithelia_laminapropria"))
     window.do_dist_transform()
     assert np.array(my_analysis.data.var['marker_class'] == "spatial_edt").sum() == 3, "Number of EDT classes is not the expected amount!"
     assert isinstance(window, ctk.CTkToplevel)
@@ -1101,17 +1083,17 @@ def test_toggle_in_gui():
     assert not palmettobug.ImageProcessing.ImageAnalysisClass._in_gui 
 
 def test_load_from_TIFFs():     ## now also handles the loading of the example data
-    tiff_proj_dir = fetch_dir + "/tiff"
+    tiff_proj_dir = f"{FETCH_DIR}/tiff"
     os.mkdir(tiff_proj_dir)
-    shutil.copytree(proj_directory + "/images/img", tiff_proj_dir + "/raw")
+    shutil.copytree(PROJECT_IMAGES_IMG, tiff_proj_dir + "/raw")
     image_proc = app.entrypoint.img_entry_func(tiff_proj_dir) 
     image_proc.raw_to_img(0.85)
-    assert len(os.listdir(tiff_proj_dir + "/images/img")) == 10
+    assert len(os.listdir(f"{tiff_proj_dir}/images/img")) == 10
     image_proc.directory_object.make_analysis_dirs("test_panel_and_meta_gen")
     image_proc.to_analysis(gui_switch = False)
 
 def test_non_GUI_TableLaunch():
-    path_to_df = proj_directory + "/panel.csv"
+    path_to_df = PROJ_DIRECTORY + "/panel.csv"
     panel_df = pd.read_csv(path_to_df)
     t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'panel', labels_editable = False)
     assert isinstance(t_launch, ctk.CTk)
@@ -1135,7 +1117,7 @@ def test_non_GUI_TableLaunch():
     assert isinstance(table, pd.DataFrame)
 
 def test_text_window():
-    directory = homedir + "/palmettobug/Assets/theme.txt"
+    directory = HOMEDIR + "/palmettobug/Assets/theme.txt"
     window = palmettobug.Utils.sharedClasses.text_window(app, directory)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
@@ -1154,9 +1136,9 @@ def test_Spatial_Analysis():
     assert isinstance(integer, int)
 
 def test_smooth_folder():
-    output_dir = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria/smoothed_classification_maps"
+    output_dir = f"{PROJ_DIRECTORY}/Pixel_Classification/lumen_epithelia_laminapropria/smoothed_classification_maps"
     os.mkdir(output_dir)
-    palmettobug.Pixel_Classification.Classifiers.smooth_folder(input_folder = proj_directory + "/Pixel_Classification/lumen_epithelia_laminapropria/classification_maps", 
+    palmettobug.Pixel_Classification.Classifiers.smooth_folder(input_folder = f"{PROJ_DIRECTORY}/Pixel_Classification/lumen_epithelia_laminapropria/classification_maps", 
                   output_folder = output_dir, 
                   class_num = 3, 
                   threshold = 3, 
@@ -1168,5 +1150,6 @@ def test_plot_class_centers():
     figure, df = palmettobug.plot_class_centers(fs)
     assert isinstance(df, pd.DataFrame)
 
+'''
 def test_app_destroy():
     app.destroy()

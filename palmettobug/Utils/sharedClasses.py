@@ -325,7 +325,7 @@ class Project_logger(metaclass = LogSemiSingleton):
     '''
     def __init__(self, proj_dir = None):
         if proj_dir is not None:
-            self.proj_dir = proj_dir
+            self.proj_dir = str(proj_dir)
             self.log = logging.getLogger("Project_Log")
             for i in self.log.handlers:
                 self.log.removeHandler(i)
@@ -1121,7 +1121,7 @@ class text_window(ctk.CTkToplevel):
         text_frame.configure(width = 800, height = 500, wrap = 'none')
         text_frame.grid()
 
-        with open(filepath, encoding = "utf-8") as file:
+        with open(str(filepath), encoding = "utf-8") as file:
             text_to_display = file.read()
 
         text_frame.insert(0.0, text_to_display)
@@ -1258,7 +1258,7 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
 
         for i,ii in enumerate(self.table_dataframe.iloc[:,col_num]):
             if len(ii) > 25:
-                col1_label = varLabel(master = self, text = ii[:15] + "..." + ii.strip(".fcs")[-6:], real_text = ii)   
+                col1_label = varLabel(master = self, text = ii[:15] + "..." + Path(ii).stem[-6:], real_text = ii)   
                         # only display fewer characters to prevent overflow within the widget
             else:
                 col1_label = varLabel(master = self, text = ii, real_text = ii) 

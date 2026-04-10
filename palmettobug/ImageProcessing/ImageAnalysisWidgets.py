@@ -58,7 +58,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
 
     def initialize_buttons(self, directory):
         ## decoupler for widget setup and data setup
-        self.directory = directory
+        self.directory = str(directory)
         self.ImageAnalysisPortionLogger = Project_logger(directory).return_log()
         self.dir_disp.setup_with_dir(directory, self.Experiment_object)
         self.TableWidget.setup_data_table(directory, self.Experiment_object.panel, "panel")
@@ -69,7 +69,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
         self.TableWidget.toggle_keep_column("disabled") 
         try:           ### The try block is likely unneeded, 
                             #  but was meant to catch an error in case the /img folder had not been created yet
-            image_files = [i for i in os.listdir(directory + "/images/img") if i.lower().find("tif") != -1]
+            image_files = [i for i in os.listdir(f"{directory}/images/img") if i.lower().find("tif") != -1]
             if len(image_files) > 0:      ### if there are images in the image directory, 
                                                                 # toggles off the keep column (creates errors if keep column is
                                                                 #                                changed mid-experiment!)
