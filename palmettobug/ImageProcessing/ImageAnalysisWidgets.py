@@ -58,7 +58,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
 
     def initialize_buttons(self, directory):
         ## decoupler for widget setup and data setup
-        self.directory = str(directory)
+        self.directory = directory
         self.ImageAnalysisPortionLogger = Project_logger(directory).return_log()
         self.dir_disp.setup_with_dir(directory, self.Experiment_object)
         self.TableWidget.setup_data_table(directory, self.Experiment_object.panel, "panel")
@@ -201,7 +201,7 @@ class ImageProcessingWidgets(ctk.CTkFrame):
         self.call_write_panel()
         self.Experiment_object._panel_setup()        
         from multiprocessing import Process
-        p = Process(target = launch_denoise_seg_program, args = (self.directory, 
+        p = Process(target = launch_denoise_seg_program, args = (str(self.directory), 
                                                                  self.Experiment_object.resolutions))
         p.start()  
 
