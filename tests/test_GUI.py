@@ -197,7 +197,7 @@ def test_unsupervised():
     ## Predict the first image to test single image prediction:
     app.Tabs.px_classification.create.px_widg.predictions_frame.one.select()
     app.Tabs.px_classification.create.px_widg.predictions_frame.folder.configure(variable = ctk.StringVar(value = 'img'))
-    app.Tabs.px_classification.create.px_widg.predictions_frame.one_img.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.px_classification.create.px_widg.image_directory + "/img")[0]))
+    app.Tabs.px_classification.create.px_widg.predictions_frame.one_img.configure(variable = ctk.StringVar(value = os.listdir(f"{app.Tabs.px_classification.create.px_widg.image_directory}/img")[0]))
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     # app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
     assert len(os.listdir(app.Tabs.px_classification.create.px_widg.unsupervised.output_dir)) == 1, "Wrong number of classification maps generated!"
@@ -232,7 +232,7 @@ def test_training():
     app.Tabs.px_classification.create.px_widg.Napari_frame.training_button.invoke()
     assert True
 
-''' 
+
 
 def test_events_create_px():   ## do at least after a classifier has been loaded to limit risk of errors
     app.Tabs.px_classification.create.px_widg.start_frame.refresh_exclusive_buttons()
@@ -258,7 +258,7 @@ def test_prediction():
     assert (tf.imread(prediction_paths[1]).astype('int') != tf.imread(prediction_paths[1])).sum() == 0, "The pixel class maps shoul be integers!"
     assert tf.imread(prediction_paths[2]).max() <= 3, "There should be no pixels >3 (the number of prediction classes)"
 
-    merging_dir = pixel_class_object.output_directory[:pixel_class_object.output_directory.rfind("/")] + "/merged_classification_maps"
+    merging_dir = str(pixel_class_object.output_directory)[:pixel_class_object.output_directory.rfind("/")] + "/merged_classification_maps"
     assert len(os.listdir(merging_dir)) == 10, "Wrong number of merged class maps generated!"
 
 def test_detail_display():
@@ -278,6 +278,8 @@ def test_save_classifier():
     app.Tabs.px_classification.create.px_widg.save_classifier()
     loading_window.destroy()
     assert len(os.listdir(palmettobug.Pixel_Classification.Classifiers_GUI.PALMETTO_BUG_assets_classifier_folder)) == 1
+
+'''
 
 def test_load_assets_classifier():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()

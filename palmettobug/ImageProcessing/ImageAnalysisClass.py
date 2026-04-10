@@ -1393,7 +1393,7 @@ def setup_for_FCS(directory):
         Analysis_panel = pd.read_csv(Analysis_panel_dir)
     except FileNotFoundError:
         warnings.filterwarnings("ignore", message = "The default channel names")
-        _, dataframe1 = fcsparser.parse(f'{directory_object.fcs_dir}/{fcs_files[0]}')
+        _, dataframe1 = fcsparser.parse(f'{fcs_files[0]}')
         warnings.filterwarnings("default", message = "The default channel names")
         Analysis_panel = pd.DataFrame()
         Analysis_panel['fcs_colnames'] = dataframe1.columns
