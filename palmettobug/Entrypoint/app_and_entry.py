@@ -286,7 +286,7 @@ class EntryPoint(ctk.CTkFrame):
             return
         
         if from_mcds is None:
-            example_files = os.listdir(f"{self.master.directory}/raw")
+            example_files = os.listdir(self.master.directory / "raw")
             extensions = [i[(i.rfind(".") + 1):].lower() for i in example_files]
             if ("mcd" in extensions) and ("tif" not in extensions) and ("tiff" not in extensions):
                 from_mcds = True
@@ -370,14 +370,15 @@ class EntryPoint(ctk.CTkFrame):
         except FileNotFoundError:
             tk.messagebox.showwarning("Warning!", message = "This is not a valid directory!")
             return   
-        
+
         ## set up project logger:
-        project_log = Analysis_logger(self.master.directory / "main").return_log()
+        main_dir = self.master.directory / 'main'
+        project_log = Analysis_logger(main_dir).return_log()
         table_launcher = direct_to_Analysis(self.master, self.master.directory)
-        project_log.info(f"Start log of experiment from the directory {self.master.directory / "main"}/Logs after loading .fcs for direct analysis")
+        project_log.info(f"Start log of experiment from the directory {main_dir}/Logs after loading .fcs for direct analysis")
         self.master.set('Analysis')
-        self.master.master.Tabs.py_exploratory.analysiswidg.setup_dir_disp(self.master.directory / "main")  
-        self.master.master.Tabs.Spatial.widgets.setup_dir_disp(self.master.directory / "main")
+        self.master.master.Tabs.py_exploratory.analysiswidg.setup_dir_disp(main_dir)  
+        self.master.master.Tabs.Spatial.widgets.setup_dir_disp(main_dir)
         return table_launcher
 
 
