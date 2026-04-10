@@ -179,8 +179,6 @@ def test_fake_bead_norm():
     for i in channel_norm_window.checkbox_beads_list[:5]:
         i.select()
     channel_norm_window.run_button.invoke()
-
-''' 
     
 ### GUI Pixel classification tests (px class creation)
 def test_unsupervised():
@@ -226,14 +224,15 @@ def test_accept_classifier_name():   ## supervised window
     pixel_class_object = app.Tabs.px_classification.create.px_widg.PxQuPy_class   
     assert pixel_class_object.details_dict["number_of_input_neurons"] == 1 * (len(window.features_list.checkbox_list) - 7) * 2, "Number of input neurons not the expected amount"
 
-
 def test_training():
-    training_dir = app.Tabs.px_classification.create.px_widg.classifier_dir + "/lumen_epithelia_laminapropria/training_labels"
+    training_dir = f"{app.Tabs.px_classification.create.px_widg.classifier_dir}/lumen_epithelia_laminapropria/training_labels"
     shutil.rmtree(training_dir)
     shutil.copytree(f"{HOMEDIR}/tests/training_labels", training_dir)
     app.Tabs.px_classification.create.px_widg.Napari_frame.choose_folder.configure(variable = ctk.StringVar(value = 'img'))
     app.Tabs.px_classification.create.px_widg.Napari_frame.training_button.invoke()
-    assert True 
+    assert True
+
+''' 
 
 def test_events_create_px():   ## do at least after a classifier has been loaded to limit risk of errors
     app.Tabs.px_classification.create.px_widg.start_frame.refresh_exclusive_buttons()

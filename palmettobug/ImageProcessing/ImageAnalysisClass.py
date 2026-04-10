@@ -1525,17 +1525,17 @@ class TableLaunchAnalysis(TableLaunch):
                     experiment.Analysis_panel = i.table_dataframe
                 except AttributeError:
                     pass
-                self.Analysis_panel_write(i.table_dataframe)
+                self.panel_write(i.table_dataframe, panel_type = "Analysis_panel")
                 if save_or_not is True:
-                    self.Analysis_panel_write(i.table_dataframe, alt_directory = self.alt_dir)
+                    self.panel_write(i.table_dataframe, panel_type = "Analysis_panel", alt_directory = self.alt_dir)
             if i.type == "metadata":
                 try:
                     experiment.metadata = i.table_dataframe    #### this is for the whole class analysis -- it is kind of awkward though
                 except AttributeError:
                     pass
-                self.metadata_write(i.table_dataframe)
+                self.panel_write(i.table_dataframe, panel_type = "metadata")
                 if save_or_not is True:
-                    self.metadata_write(i.table_dataframe, alt_directory = self.alt_dir)
+                    self.panel_write(i.table_dataframe, alt_directory = self.alt_dir, panel_type = "metadata")
         if self.tab is not None:
             self.tab.py_exploratory.analysiswidg.initialize_experiment_and_buttons(experiment.directory_object.Analysis_internal_dir)
         self.after(200, self.destroy())
