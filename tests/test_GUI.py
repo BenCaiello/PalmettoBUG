@@ -74,7 +74,6 @@ def test_call_raw_to_img_part_1_hpf():
     images = [f"{PROJECT_IMAGES_IMG}/{i}" for i in sorted(os.listdir(PROJECT_IMAGES_IMG))]
     assert(len(images) == 10), "Wrong number of images exported to images/img" 
 
-'''
 
 def test_call_instanseg_segmentor():
     instanseg_window = app.entrypoint.image_proc_widg.call_instanseg_segmentor()
@@ -121,6 +120,8 @@ def test_call_region_measurement():
     analysis_dir = app.entrypoint.image_proc_widg.Experiment_object.directory_object.Analyses_dir + "/test_analysis"
     assert(len(os.listdir(f"{analysis_dir}/regionprops")) == 10), "Wrong number of regionprops csv exported (expecting 10 to match the number of images)"
     assert(len(pd.read_csv(f"{analysis_dir}/intensities/CRC_1_ROI_001.ome.csv") == 2177)), "Unexpected number of cells in image 1" 
+    
+'''
 
 def test_call_to_Analysis():
     ## pre load metadata / analysis panel into analysis directory so that Analysis loads properly
