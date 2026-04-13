@@ -1392,7 +1392,7 @@ class whole_class_analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             self.cluster_expression_ANOVA_df = self.master.analysis_exp_whole.whole_marker_exprs_ANOVA(marker_class = "All", 
                                                                                                        groupby_column = 'class', 
                                                                                                        statistic = statistic)
-            self.cluster_expression_ANOVA_df.to_csv(f"{self.master.analysis_exp_whole.directory}Data_tables/p_f_stat_table.csv")
+            self.cluster_expression_ANOVA_df.to_csv(f"{self.master.analysis_exp_whole.directory}/Data_tables/p_f_stat_table.csv")
             self.plot_heatmap(test_statistic)
 
             

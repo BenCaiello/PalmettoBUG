@@ -120,6 +120,7 @@ def imc_entrypoint(directory: Union[Path, str],
         a palmettobug.ImageAnalysis object
     '''
     directory = Path(directory)
+    print(directory)
     try:
         resolutions[0] = float(resolutions[0])
         resolutions[1] = float(resolutions[1])
