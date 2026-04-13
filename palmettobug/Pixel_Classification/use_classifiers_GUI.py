@@ -1346,7 +1346,7 @@ class whole_class_analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         self.plot_type_choice.grid(row = 4, column = 2, padx = 3, pady = 3)
 
         self.analysis_exp_whole.plot_percent_areas(filename = "PercentAreasBoxplot")
-        self.display2.update_image(self.analysis_exp_whole.save_dir / "PercentAreasBoxplot.png")
+        self.display2.update_image(f"{self.analysis_exp_whole.save_dir}/PercentAreasBoxplot.png")
 
         self.data_export_button = ctk.CTkButton(master = self, text = "Export Data", command = self.launch_export_window)
         self.data_export_button.grid(row = 2, column = 6, padx = 3, pady = 3)

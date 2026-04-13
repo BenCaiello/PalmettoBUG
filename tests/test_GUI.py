@@ -389,7 +389,7 @@ def test_secondary_FlowSOM_merge():
 def test_mask_extend():
     before_extend  = os.listdir(PROJECT_MASKS)
     px_use_widgets.merge_class_masks.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
-    options = [i for i in sorted(os.listdir(px_use_widgets.merge_class_masks.master.main_directory + "/classy_masks")) if i.find(".") == -1]  
+    options = [i for i in sorted(os.listdir(f"{px_use_widgets.merge_class_masks.master.main_directory}/classy_masks")) if i.find(".") == -1]  
     px_use_widgets.merge_class_masks.classy_mask_option_menu.configure(variable = ctk.StringVar(value = options[0]))
     px_use_widgets.merge_class_masks.output_name.configure(textvariable = ctk.StringVar(value = "extended_masks"))
     px_use_widgets.merge_class_masks.select_table.checkbox_list[1].select()
@@ -446,7 +446,6 @@ def test_wca_3():
 
     wca_window.destroy()
 
-'''
 
 
 ### GUI Analysis tests
@@ -777,7 +776,7 @@ def test_launch_cluster_save_load():
     window.load_type.configure(variable = ctk.StringVar(value = "metaclustering"))
     window.saver_button.invoke()
     assert len(os.listdir(my_analysis.clusterings_dir)) >= 1, "Clustering save did not export!"
-    window.load_identifier.configure(variable = ctk.StringVar(value = os.listdir(app.Tabs.py_exploratory.analysiswidg.cat_exp.directory + "/clusterings")[0]))
+    window.load_identifier.configure(variable = ctk.StringVar(value = os.listdir(f"{app.Tabs.py_exploratory.analysiswidg.cat_exp.directory}/clusterings")[0]))
     window.loader_button.invoke()
     assert isinstance(window, ctk.CTkToplevel)
 
@@ -882,7 +881,7 @@ def test_plot_cell_maps_window():
     window.destroy()
     ## non-GUI:
     my_spatial.plot_cell_maps(plot_type = "points")
-    assert(len(os.listdir(my_spatial.SpaceANOVA.output_dir + "/cell_maps")) == 10), "Plot Cell maps for all ROIs (masks) did not write a plot for each ROI to the appropriate location"
+    assert(len(os.listdir(f"{my_spatial.SpaceANOVA.output_dir}/cell_maps")) == 10), "Plot Cell maps for all ROIs (masks) did not write a plot for each ROI to the appropriate location"
 
 
 def test_SpaceANOVA():
@@ -1006,7 +1005,7 @@ def test_CN_annot():
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
     window = app.Tabs.Spatial.widgets.CN_widgets.launch_annotation()
-    window.new.table.repopulate_table(window.new.master.directory + "/mergings/CN_merge.csv")
+    window.new.table.repopulate_table(f"{window.new.master.directory}/mergings/CN_merge.csv")
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
@@ -1079,7 +1078,7 @@ def test_edt_heatmap_window():
 
 def test_reload():    ### do after spatial, to repserve merging, etc.
     app.Tabs.py_exploratory.analysiswidg.reload_experiment()
-    app.Tabs.py_exploratory.analysiswidg.launch_data_table_importation_window(directory = my_analysis.data_table_dir + "/data_table_1.csv")
+    app.Tabs.py_exploratory.analysiswidg.launch_data_table_importation_window(directory = f"{my_analysis.data_table_dir}/data_table_1.csv")
 
 def test_toggle_in_gui():
     palmettobug.ImageProcessing.ImageAnalysisClass.toggle_in_gui()   ## really here to reset --> not being in the gui after testing the App above
@@ -1088,7 +1087,7 @@ def test_toggle_in_gui():
 def test_load_from_TIFFs():     ## now also handles the loading of the example data
     tiff_proj_dir = f"{FETCH_DIR}/tiff"
     os.mkdir(tiff_proj_dir)
-    shutil.copytree(PROJECT_IMAGES_IMG, tiff_proj_dir + "/raw")
+    shutil.copytree(PROJECT_IMAGES_IMG, f"{tiff_proj_dir}/raw")
     image_proc = app.entrypoint.img_entry_func(tiff_proj_dir) 
     image_proc.raw_to_img(0.85)
     assert len(os.listdir(f"{tiff_proj_dir}/images/img")) == 10
@@ -1096,7 +1095,7 @@ def test_load_from_TIFFs():     ## now also handles the loading of the example d
     image_proc.to_analysis(gui_switch = False)
 
 def test_non_GUI_TableLaunch():
-    path_to_df = PROJ_DIRECTORY + "/panel.csv"
+    path_to_df = f"{PROJ_DIRECTORY}/panel.csv"
     panel_df = pd.read_csv(path_to_df)
     t_launch = palmettobug.Utils.sharedClasses.TableLaunch_nonGUI(panel_df, path_to_df, table_type = 'panel', labels_editable = False)
     assert isinstance(t_launch, ctk.CTk)
@@ -1120,7 +1119,7 @@ def test_non_GUI_TableLaunch():
     assert isinstance(table, pd.DataFrame)
 
 def test_text_window():
-    directory = HOMEDIR + "/palmettobug/Assets/theme.txt"
+    directory = f"{HOMEDIR}/palmettobug/Assets/theme.txt"
     window = palmettobug.Utils.sharedClasses.text_window(app, directory)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
@@ -1153,6 +1152,6 @@ def test_plot_class_centers():
     figure, df = palmettobug.plot_class_centers(fs)
     assert isinstance(df, pd.DataFrame)
 
-'''
+
 def test_app_destroy():
     app.destroy()
