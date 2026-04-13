@@ -485,8 +485,8 @@ class display_image_button(ctk.CTkButton):
         else:
             sizeX = (self.X*ratio)  
             sizeY = self.Y            
-        self._image = ctk.CTkImage(image, size = (int(sizeX),int(sizeY)))
-        self.configure(image = self._image)
+        _image = ctk.CTkImage(image, size = (int(sizeX),int(sizeY)))
+        self.configure(image = _image)
 
 class DirectoryDisplay(ctk.CTkFrame):
     """

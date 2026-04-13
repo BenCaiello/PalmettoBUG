@@ -279,7 +279,6 @@ def test_save_classifier():
     loading_window.destroy()
     assert len(os.listdir(palmettobug.Pixel_Classification.Classifiers_GUI.PALMETTO_BUG_assets_classifier_folder)) == 1
 
-'''
 
 def test_load_assets_classifier():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window()
@@ -446,6 +445,8 @@ def test_wca_3():
     assert isinstance(facet_grid.figure, matplotlib.figure.Figure), "Whole Class Analysis statistics heatmap plot did not return a matplotlib figure"
 
     wca_window.destroy()
+
+'''
 
 
 ### GUI Analysis tests
