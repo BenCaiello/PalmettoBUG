@@ -308,17 +308,15 @@ def test_load_project_classifier():
 def test_segmentation():
     app.Tabs.px_classification.create.px_widg.segment_frame.input_folder.configure(variable = ctk.StringVar(value = "classification_maps"))
     app.Tabs.px_classification.create.px_widg.segment_frame.run_seg()
-    assert len(os.listdir(f"{PROJECT_IMAGES_IMG}/masks/lumen_epithelia_laminapropria_direct_segmentation")) == 10, "Wrong number of images in sliced images folder!" 
+    assert len(os.listdir(f"{PROJECT_MASKS}/lumen_epithelia_laminapropria_direct_segmentation")) == 10, "Wrong number of images in sliced images folder!" 
 
 
 ### GUI Pixel classification tests (px class use)
-'''
 def test_load_classifier():
     global px_use_widgets
     px_use_widgets = app.Tabs.px_classification.use_class.px_widg
     px_use_widgets.load_classifier("lumen_epithelia_laminapropria")
     assert app.Tabs.px_classification.create.px_widg.name == "lumen_epithelia_laminapropria" 
-'''
 
 def test_events_use_px():   ## do at least after a classifier has been loaded to limit risk of errors
     px_use_widgets.load_and_display.refresh1()

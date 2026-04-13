@@ -133,7 +133,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             self.classifier_option_menu.grid(padx = 3, pady = 3, column = 0, row = 1, columnspan = 2)
             self.classifier_option_menu.bind("<Enter>", self.refresh1)
 
-            self.quick_display = display_image_button(self, PALMETTO_BUG_homedir + "/Assets/Capture2.png")
+            self.quick_display = display_image_button(self, f"{PALMETTO_BUG_homedir}/Assets/Capture2.png")
             self.quick_display.grid(row = 2, column = 0, padx = 3, pady = 3,  columnspan = 2) 
 
             self.dir_disp = quick_option_dir_disp(self, self.master.image_directory)
@@ -223,7 +223,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 message = "No Classifier Loaded!"
                 tk.messagebox.showwarning("No Classifier Loaded!", message = message)
                 return
-            output_folder = self.master.image_directory + "/" + self.name_output.get().strip()
+            output_folder = self.master.image_directory / self.name_output.get().strip()
             
             zero_out = self.zero_checkbox.get()
             zero_helper = ""
@@ -237,8 +237,8 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 return
             if not overwrite_approval(output_folder, file_or_folder = "folder"):
                 return
-            class_map_folder = self.master.active_classifier_dir + "/classification_maps"
-            image_folder = self.master.image_directory + "/" + self.select_image_folder.get()  
+            class_map_folder = self.master.active_classifier_dir / "classification_maps"
+            image_folder = self.master.image_directory / self.select_image_folder.get()  
             
 
             slice_folder(class_to_keep, 
@@ -259,11 +259,11 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
             def initialize_with_classifier(self) -> None:
                 try:
-                    self.biological_class_labels = pd.read_csv(self.master.master.active_classifier_dir + "/biological_labels.csv")
+                    self.biological_class_labels = pd.read_csv(self.master.master.active_classifier_dir / "biological_labels.csv")
                     self.from_labels = True
                 except Exception:
                     try:
-                        open_json = open(self.master.master.active_classifier_dir + f"/{self.master.master.name}_details.json", 
+                        open_json = open(f"{self.master.master.active_classifier_dir}/{self.master.master.name}_details.json", 
                                          'r', 
                                          encoding="utf-8")
                         loaded_json = open_json.read()
@@ -338,7 +338,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
         def refresh_panel_button(self, enter = ""):
             try:
-                if (not os.path.exists(str(self.master.active_classifier_dir) + "/Whole_class_analysis")) and (self.add_panel_button.cget('state') == "normal"):
+                if (not os.path.exists(f"{self.master.active_classifier_dir}/Whole_class_analysis")) and (self.add_panel_button.cget('state') == "normal"):
                     self.add_panel_button.configure(state = "disabled")
                 elif self.add_panel_button.cget("state") == "disabled":
                     self.add_panel_button.configure(state = "normal")
@@ -347,8 +347,8 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
         def refresh_launch_button(self, enter = ""):
             try:
-                if (not os.path.exists(str(self.master.active_classifier_dir) + "/Whole_class_analysis/Analysis_panel.csv")) and \
-                    (not os.path.exists(str(self.master.active_classifier_dir) + "/Whole_class_analysis/metadata.csv")) and \
+                if (not os.path.exists(f"{self.master.active_classifier_dir}/Whole_class_analysis/Analysis_panel.csv")) and \
+                    (not os.path.exists(f"{self.master.active_classifier_dir}/Whole_class_analysis/metadata.csv")) and \
                     (self.launch.cget('state') == "normal"):
                     
                     self.launch.configure(state = "disabled")
@@ -370,21 +370,21 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 message = "Select what kind of classification map is being used!"
                 tk.messagebox.showwarning("Error!", message = message)
                 return
-            if not overwrite_approval(self.master.active_classifier_dir + "/Whole_class_analysis", file_or_folder = "folder", custom_message = "This step"
+            if not overwrite_approval(f"{self.master.active_classifier_dir}/Whole_class_analysis", file_or_folder = "folder", custom_message = "This step"
                                       "will overwrite previously calculated intensity/regionprop \n files for the whole-class analysis of this classifier, if image filenames match -- "
                                       "\nDo you wish to proceed?"):
                 return
             
             '''
             if ((self.classifier_option_menu.get() == "merged_classification_maps") 
-                    and (not os.path.exists(self.master.active_classifier_dir + "/merged_classification_maps"))):
-                merge_folder(self.master.active_classifier_dir + "/classification_maps", 
-                             pd.read_csv(self.master.active_classifier_dir + "/biological_labels.csv"))
+                    and (not os.path.exists(self.master.active_classifier_dir / "merged_classification_maps"))):
+                merge_folder(self.master.active_classifier_dir / "classification_maps", 
+                             pd.read_csv(self.master.active_classifier_dir / "biological_labels.csv"))
             '''
 
             return RegionMeasurement(self.master, 
                               self.master.Experiment_object, 
-                              input_masks_dir = (self.master.active_classifier_dir + "/" + self.classifier_option_menu.get()))
+                              input_masks_dir = (f"{self.master.active_classifier_dir}/{self.classifier_option_menu.get()}"))
 
         def launch_analysis(self) -> None:  
             window = whole_class_analysis_window(self)
@@ -393,7 +393,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
         def add_panel(self) -> None:
             try:                ## first read from classifier directory
-                panel_file = pd.read_csv(self.master.active_classifier_dir + "/Whole_class_analysis/Analysis_panel.csv")
+                panel_file = pd.read_csv(f"{self.master.active_classifier_dir}/Whole_class_analysis/Analysis_panel.csv")
             except FileNotFoundError:
                 path_to_proj = Path(self.master.main_directory)  ## change to the appropriate path
                 analysis_panel_files = path_to_proj.rglob("*Analysis_panel.csv")  
@@ -408,7 +408,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             try: 
                         ## first read from classifier directory if it already exists 
                         # (aka, panel file has already been loaded for this whole class analysis)
-                metadata = pd.read_csv(self.master.active_classifier_dir + "/Whole_class_analysis/metadata.csv")
+                metadata = pd.read_csv(f"{self.master.active_classifier_dir}/Whole_class_analysis/metadata.csv")
             except FileNotFoundError:
                 path_to_proj = Path(self.master.main_directory)  ## change to the appropriate path
                 analysis_panel_files = path_to_proj.rglob("*metadata.csv")
@@ -420,8 +420,8 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
             if panel_file is None:
                 ## make initial panel file:
-                csv_files = [i for i in sorted(os.listdir(self.master.active_classifier_dir + "/Whole_class_analysis/intensities")) if i.lower().find(".csv") != -1]
-                dataframe1 = pd.read_csv(self.master.active_classifier_dir + "/Whole_class_analysis/intensities/" + csv_files[0])
+                csv_files = [i for i in sorted(os.listdir(f"{self.master.active_classifier_dir}/Whole_class_analysis/intensities")) if i.lower().find(".csv") != -1]
+                dataframe1 = pd.read_csv(f"{self.master.active_classifier_dir}/Whole_class_analysis/intensities/{csv_files[0]}")
                 try:
                     dataframe1 = dataframe1.drop('Object', axis = 1)
                 except KeyError:
@@ -445,7 +445,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
             ## now, launch the tables:
             table_launcher = TableLaunchAnalysis(1, 1,  
-                                self.master.active_classifier_dir + "/Whole_class_analysis",
+                                f"{self.master.active_classifier_dir}/Whole_class_analysis",
                                 panel_file, table_type = "Analysis_panel.csv", 
                                 experiment = None, 
                                 tab = None, 
@@ -453,7 +453,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                                 logger = pixel_logger, 
                                 alt_dir = self.master.main_directory / "Analyses")
             table_launcher.add_table(1, 1, 
-                                     self.master.active_classifier_dir + "/Whole_class_analysis", 
+                                     f"{self.master.active_classifier_dir}/Whole_class_analysis", 
                                      metadata, "metadata", 
                                      favor_table = True)
             return table_launcher
@@ -583,7 +583,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 self.configure(height = 50)
 
             def init_with_classifier(self) -> None:
-                bio_path = self.master.master.active_classifier_dir + "/biological_labels.csv"
+                bio_path = self.master.master.active_classifier_dir / "biological_labels.csv"
                 try:
                     self.table = pd.read_csv(bio_path)
                 except FileNotFoundError:
@@ -652,7 +652,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
         def loaded_classifier(self) -> None:
             try:
-                open_json = open(self.master.active_classifier_dir + f"/{self.master.name}_details.json", 'r' , encoding="utf-8")
+                open_json = open(f"{self.master.active_classifier_dir}/{self.master.name}_details.json", 'r' , encoding="utf-8")
                 loaded_json = open_json.read()
                 self.dictionary = json.loads(loaded_json)
                 open_json.close()
@@ -759,9 +759,9 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             
             mode_or_SOM = self.radioframe_do_secondary_flowsom.radio_variable.get()
             if mode_or_SOM == "Mode":
-                classifier_masks_folder = self.master.active_classifier_dir + "/classification_maps"
+                classifier_masks_folder = f"{self.master.active_classifier_dir}/classification_maps"
             else:
-                classifier_masks_folder = self.master.active_classifier_dir + f"/{self.classifier_option_menu.get()}"
+                classifier_masks_folder = f"{self.master.active_classifier_dir}/{self.classifier_option_menu.get()}"
 
             masks_folder = self.master.main_masks / masks_folder
 
@@ -789,7 +789,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             else:
                 number_of_classes = len(metadata)
 
-            metadata.to_csv(self.master.active_classifier_dir + "/biological_labels.csv" , index = False)  
+            metadata.to_csv(f"{self.master.active_classifier_dir}/biological_labels.csv" , index = False)  
             bio_dict = {}
             for i,ii in zip(metadata['merging'].astype('str'), metadata['labels']):
                 bio_dict[i] = ii
@@ -797,7 +797,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
             
             if not os.path.exists(output_folder):
                 os.mkdir(output_folder)
-            output_folder = output_folder + "/primary_masks"
+            output_folder = f"{output_folder}/primary_masks"
 
             self.classy_mask_name = f'{self.master.name}_{self.mask_option_menu.get()}'
 
@@ -826,15 +826,15 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                     tk.messagebox.showwarning("Warning!", message = message)
                     return
                 
-                if not os.path.exists(self.master.active_classifier_dir + "/merged_classification_maps"):
-                    os.mkdir(self.master.active_classifier_dir + "/merged_classification_maps")
+                if not os.path.exists(f"{self.master.active_classifier_dir}/merged_classification_maps"):
+                    os.mkdir(f"{self.master.active_classifier_dir}/merged_classification_maps")
                 
                 class_maps = [i for i in sorted(os.listdir(classifier_masks_folder)) if i.lower().find(".tif") != -1]
                 for i in class_maps:
-                    merged_class = merge_classes(tf.imread(classifier_masks_folder + "/" + i), metadata)
-                    tf.imwrite(self.master.active_classifier_dir + "/merged_classification_maps/" + i, 
+                    merged_class = merge_classes(tf.imread(f"{classifier_masks_folder}/{i}"), metadata)
+                    tf.imwrite(f"{self.master.active_classifier_dir}/merged_classification_maps/{i}", 
                                merged_class.astype('int32'))
-                to_use_classifier_masks_folder = self.master.active_classifier_dir + "/" + self.classifier_option_menu.get()
+                to_use_classifier_masks_folder = f"{self.master.active_classifier_dir}/{self.classifier_option_menu.get()}"
 
                 fs, anndata_df = secondary_flowsom(masks_folder, 
                                                 to_use_classifier_masks_folder, 
@@ -910,16 +910,16 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         ### Read in the values and return it to the experiment
         experiment_class.int_opt = self.intensity_options.get() 
 
-        output_dir = self.master.active_classifier_dir + "/Whole_class_analysis" 
+        output_dir = f"{self.master.active_classifier_dir}/Whole_class_analysis" 
         
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
         experiment_class.make_segmentation_measurements(re_do = self.re_do.get(), 
-                                        input_img_folder = (self.master.Experiment_object.directory_object.img_dir + "/" + self.image_folder.get()),
+                                        input_img_folder = (f"{self.master.Experiment_object.directory_object.img_dir}/{self.image_folder.get()}"),
                                         input_mask_folder = (self.input_masks_dir),
-                                        output_intensities_folder = output_dir + "/intensities",
-                                        output_regions_folder = output_dir + "/regionprops")  
+                                        output_intensities_folder = f"{output_dir}/intensities",
+                                        output_regions_folder = f"{output_dir}/regionprops")  
         
         pixel_logger.info(f"Did Region Measurements for whole class analysis into the directory = {output_dir} \n"
                           f"with the following settings: aggregation stat = {experiment_class.int_opt}")  
@@ -937,7 +937,7 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
         self.image_folder = self.master.dictionary['img_directory']
         self.heatmap_path = heatmap_path
 
-        self.disp = display_image_button(self, PALMETTO_BUG_homedir + "/Assets/Capture2.png")
+        self.disp = display_image_button(self, f"{PALMETTO_BUG_homedir}/Assets/Capture2.png")
         self.disp.save_and_display(image = heatmap_path)   
         self.disp.grid(column = 0, row = 0, rowspan = 5, padx = 3, pady = 3)
 
@@ -1026,9 +1026,9 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
 
     def napari_launch(self, image_choice: str) -> None:
         ''''''
-        mask_path = self.master.output_folder + "/" + image_choice
+        mask_path = f"{self.master.output_folder}/{image_choice}"
         mask = tf.imread(mask_path).astype('int')
-        image_path = self.image_folder  + "/" + image_choice
+        image_path = f"{self.image_folder}/{image_choice}"
         image = tf.imread(image_path)
         if mask.shape[0] != image.shape[1]:
             mask = mask.T
@@ -1071,9 +1071,9 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
             self.focus()
             if not choice:
                 return
-        merging_table.to_csv(one_folder_up + "/secondary_merging.csv", index = False)
+        merging_table.to_csv(f"{one_folder_up}/secondary_merging.csv", index = False)
 
-        read_in = pd.read_csv(one_folder_up + "/" + classifier_name + "_cell_classes.csv")
+        read_in = pd.read_csv(f"{one_folder_up}/{classifier_name}_cell_classes.csv")
         replace_dict = {}
         for i,ii in zip(merging_table['class'].astype('str'), merging_table['merging'].astype('str')):
             replace_dict[i] = ii
@@ -1084,12 +1084,12 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
         merged_classifications_per_cell = pd.DataFrame()
         merged_classifications_per_cell["classification"] = read_in["classification"].astype('str').replace(replace_dict)
         merged_classifications_per_cell["labels"] = read_in["classification"].astype('str').replace(replace_dict_labels)
-        merged_classifications_per_cell.to_csv(one_folder_up + "/secondary_cell_classification.csv", index = False)
+        merged_classifications_per_cell.to_csv(f"{one_folder_up}/secondary_cell_classification.csv", index = False)
 
-        image_path_list = ["".join([self.master.output_folder,"/",i])  for i in sorted(os.listdir(self.master.output_folder)) if i.lower().find(".tif") != -1]
-        write_path_list = ["".join([one_folder_up,"/secondary_masks/",i])  for i in sorted(os.listdir(self.master.output_folder)) if i.lower().find(".tif") != -1]
-        if not os.path.exists(one_folder_up + "/secondary_masks/"):
-            os.mkdir(one_folder_up + "/secondary_masks/")
+        image_path_list = [f"{self.master.output_folder}/{i}"  for i in sorted(os.listdir(self.master.output_folder)) if i.lower().find(".tif") != -1]
+        write_path_list = [f"{one_folder_up}/secondary_masks/{i}"  for i in sorted(os.listdir(self.master.output_folder)) if i.lower().find(".tif") != -1]
+        if not os.path.exists(f"{one_folder_up}/secondary_masks/"):
+            os.mkdir(f"{one_folder_up}/secondary_masks/")
 
         for i,ii in zip(image_path_list, write_path_list):
             mask = tf.imread(i).astype('int32')
@@ -1116,7 +1116,7 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
                                            still_do_entries: bool = False) -> None:
                 if blank_number == 0:
                     try:
-                        self.biological_class_labels = pd.read_csv(self.master.master.master.active_classifier_dir + "/biological_labels.csv")
+                        self.biological_class_labels = pd.read_csv(f"{self.master.master.master.active_classifier_dir}/biological_labels.csv")
                     except FileNotFoundError:
                         message = "The biological_labels.csv is missing from this classifier! \nPlease create Biological Labels for the classes before classifying cell masks"
                         tk.messagebox.showwarning("Warning!", message = message)
@@ -1212,14 +1212,14 @@ class bio_labels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         column2.grid(row = 1, column = 1, padx = 3, pady = 3)
 
         try:
-            self.biological_class_labels = pd.read_csv(self.master.active_classifier_dir + "/biological_labels.csv")
+            self.biological_class_labels = pd.read_csv(f"{self.master.active_classifier_dir}/biological_labels.csv")
             self.from_labels = True
             column3 = ctk.CTkLabel(master = self, 
                                     text = "Biological Merging's new number: \n (0 and 1 are a special numbers reserved for the background class)")
             column3.grid(row = 1, column = 2, padx = 3, pady = 3)
         except Exception:
             try:   
-                open_json = open(self.master.active_classifier_dir + f"/{self.master.name}_details.json", 'r' , encoding="utf-8")
+                open_json = open(f"{self.master.active_classifier_dir}/{self.master.name}_details.json", 'r' , encoding="utf-8")
                 loaded_json = open_json.read()
                 self.dictionary = json.loads(loaded_json)
                 open_json.close()
@@ -1283,17 +1283,17 @@ class bio_labels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         else:
             class_merge = [i.get() for i in self.entry_merging_list]
             df['merging'] = class_merge
-        df.to_csv(self.master.active_classifier_dir + "/biological_labels.csv", index = False)
+        df.to_csv(self.master.active_classifier_dir / "biological_labels.csv", index = False)
 
 
         if self.master.classifier_type == "supervised":
-            merge_folder(self.master.active_classifier_dir + "/classification_maps", 
-                        pd.read_csv(self.master.active_classifier_dir + "/biological_labels.csv"),
-                        self.master.active_classifier_dir + "/merged_classification_maps")
+            merge_folder(self.master.active_classifier_dir / "classification_maps", 
+                        pd.read_csv(self.master.active_classifier_dir / "biological_labels.csv"),
+                        self.master.active_classifier_dir / "merged_classification_maps")
         elif self.master.classifier_type == "unsupervised":
-            merge_folder(self.master.active_classifier_dir + "/classification_maps", 
-                        pd.read_csv(self.master.active_classifier_dir + "/biological_labels.csv"),
-                        self.master.active_classifier_dir + "/merged_classification_maps")
+            merge_folder(self.master.active_classifier_dir / "classification_maps", 
+                        pd.read_csv(self.master.active_classifier_dir / "biological_labels.csv"),
+                        self.master.active_classifier_dir / "merged_classification_maps")
         pixel_logger.info(f"Saved Biological labels and merged: \n {str(df)}")
 
         self.master.classify_cells.merge_frame.initialize_with_classifier()
@@ -1303,7 +1303,7 @@ class whole_class_analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
     def __init__(self, master):
         super().__init__(master)
         self.master = master
-        self.directory = self.master.master.active_classifier_dir + "/Whole_class_analysis"
+        self.directory = self.master.master.active_classifier_dir / "Whole_class_analysis"
 
         self.display1 = MatPlotLib_Display(self, height = 700, width = 400)
         self.display1.grid(row = 1, column = 1, padx = 30, pady = 3, rowspan = 3, columnspan = 4)
@@ -1311,9 +1311,9 @@ class whole_class_analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         self.display2.grid(row = 1, column = 6, padx = 3, pady = 3)
 
         directory = self.directory
-        biological_csv = pd.read_csv(self.master.master.active_classifier_dir + "/biological_labels.csv")
-        metadata = pd.read_csv(self.master.master.active_classifier_dir + "/Whole_class_analysis/metadata.csv")
-        Analysis_panel = pd.read_csv(self.master.master.active_classifier_dir + "/Whole_class_analysis/Analysis_panel.csv")
+        biological_csv = pd.read_csv(self.master.master.active_classifier_dir / "biological_labels.csv")
+        metadata = pd.read_csv(self.master.master.active_classifier_dir / "Whole_class_analysis/metadata.csv")
+        Analysis_panel = pd.read_csv(self.master.master.active_classifier_dir / "Whole_class_analysis/Analysis_panel.csv")
 
         self.analysis_exp_whole = WholeClassAnalysis(directory, biological_csv, metadata, Analysis_panel)
 
@@ -1327,7 +1327,7 @@ class whole_class_analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         self.analysis_exp_whole.plot_distribution_exprs(unique_class = show_class, 
                                                         plot_type = "Bar", 
                                                         filename = f"{show_class}_Bar")
-        self.display1.update_image(self.analysis_exp_whole.save_dir + f"/{show_class}_Bar.png")
+        self.display1.update_image(f"{self.analysis_exp_whole.save_dir}/{show_class}_Bar.png")
 
         self.class_to_barplot = ctk.CTkOptionMenu(master = self, 
                                                   variable = ctk.StringVar(value = show_class),
@@ -1346,7 +1346,7 @@ class whole_class_analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         self.plot_type_choice.grid(row = 4, column = 2, padx = 3, pady = 3)
 
         self.analysis_exp_whole.plot_percent_areas(filename = "PercentAreasBoxplot")
-        self.display2.update_image(self.analysis_exp_whole.save_dir + "/PercentAreasBoxplot.png")
+        self.display2.update_image(self.analysis_exp_whole.save_dir / "PercentAreasBoxplot.png")
 
         self.data_export_button = ctk.CTkButton(master = self, text = "Export Data", command = self.launch_export_window)
         self.data_export_button.grid(row = 2, column = 6, padx = 3, pady = 3)
@@ -1361,7 +1361,7 @@ class whole_class_analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
         self.analysis_exp_whole.plot_distribution_exprs(unique_class = unique_class, 
                                     plot_type = plot_type,
                                     filename = filename)
-        self.display1.update_image(self.analysis_exp_whole.save_dir + "/" + filename + ".png")
+        self.display1.update_image(f"{self.analysis_exp_whole.save_dir}/{filename}.png")
 
     def launch_export_window(self):
         self.cat_exp = self.analysis_exp_whole
@@ -1392,12 +1392,12 @@ class whole_class_analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             self.cluster_expression_ANOVA_df = self.master.analysis_exp_whole.whole_marker_exprs_ANOVA(marker_class = "All", 
                                                                                                        groupby_column = 'class', 
                                                                                                        statistic = statistic)
-            self.cluster_expression_ANOVA_df.to_csv(self.master.analysis_exp_whole.directory + "/Data_tables/p_f_stat_table.csv")
+            self.cluster_expression_ANOVA_df.to_csv(self.master.analysis_exp_whole.directory / "Data_tables/p_f_stat_table.csv")
             self.plot_heatmap(test_statistic)
 
             
             self.p_table = TableWidget(self)
-            self.p_table.setup_data_table(directory = self.master.analysis_exp_whole.directory + "/Data_tables/p_f_stat_table.csv", 
+            self.p_table.setup_data_table(directory = self.master.analysis_exp_whole.directory / "Data_tables/p_f_stat_table.csv", 
                                         dataframe = self.cluster_expression_ANOVA_df, 
                                         table_type = 'other', 
                                         favor_table = True)
@@ -1408,8 +1408,8 @@ class whole_class_analysis_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             self.after(1000, self.focus())
         
         def plot_heatmap(self, to_plot):
-            self.master.analysis_exp_whole.plot_heatmap(to_plot, filename = f"Heatmap of {to_plot}")
-            self.display3.update_image(self.master.analysis_exp_whole.save_dir + f"/Heatmap of {to_plot}.png")
+            self.master.analysis_exp_whole.plot_heatmap(to_plot, filename = f"Heatmap_of_{to_plot}")
+            self.display3.update_image(f"{self.master.analysis_exp_whole.save_dir}/Heatmap_of_{to_plot}.png")
 
 
 class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
@@ -1464,7 +1464,7 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             else:
                 path_to_folder = f"{path_to_classy_mask}/{choice}"
 
-        path_to_ouput = path_to_folder + "_PNG_conversion"
+        path_to_ouput = f"{path_to_folder}_PNG_conversion"
         if not os.path.exists(path_to_ouput):
             os.mkdir(path_to_ouput)
 
