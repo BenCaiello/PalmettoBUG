@@ -592,8 +592,8 @@ class Spatial_py(ctk.CTkFrame):
                                    file_or_folder = "folder", 
                                    GUI_object = self):
                         return
-                if not os.path.exists("".join([output_dir, "/Functional_plots"])):
-                    os.mkdir("".join([output_dir, "/Functional_plots"]))
+                if not os.path.exists(f"{output_dir}/Functional_plots"):
+                    os.mkdir(f"{output_dir}/Functional_plots")
 
                 def log_update():
                     space_logger.info(f"""Plotted pairwise function plot(s) with the following settings:

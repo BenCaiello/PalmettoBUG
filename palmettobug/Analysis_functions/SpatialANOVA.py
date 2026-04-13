@@ -452,7 +452,7 @@ class SpatialANOVA():
         tiled = np.tile(all_types,len(all_types))
         tiled_T = tiled.T
         for i,ii in zip(tiled.flatten(), tiled_T.flatten()):
-            comparison = "".join ([str(i),"___",str(ii)])
+            comparison = f"{str(i)}___{str(ii)}"
             self._comparison_list.append(comparison)
 
         ## create matrix of pairwise celltype-to-celltype comparisons for all comparisons (may not be statistically testable, but ripley's plots can be made)
@@ -462,7 +462,7 @@ class SpatialANOVA():
         tiled = np.tile(all_types,len(all_types))
         tiled_T = tiled.T
         for i,ii in zip(tiled.flatten(), tiled_T.flatten()):
-            comparison = "".join ([str(i),"___",str(ii)])
+            comparison = f"{str(i)}___{str(ii)}"
             self._all_comparison_list.append(comparison) 
 
         return self._comparison_list, self._all_comparison_list

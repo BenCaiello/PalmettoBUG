@@ -346,7 +346,7 @@ class Analysis:
         # apply the metadata filtering
         self.metadata = self.metadata[truth_array]
         self.fcs_dir_names = new_fcs_filenames
-        self.fcs_path_list = ["".join([self.fcs_directory,"/",i]) for i in self.fcs_dir_names]
+        self.fcs_path_list = [f"{self.fcs_directory}/{i}" for i in self.fcs_dir_names]
 
         ## Read in FCS files and concatenate into a single dataframe
         intensities = pd.DataFrame()
@@ -636,7 +636,7 @@ class Analysis:
             regionprops_directory = self.directory[:self.directory.rfind("/")] + "/regionprops/"
         regionprops_directory = str(regionprops_directory)
         roi_areas = [i for i in sorted(os.listdir(regionprops_directory)) if i.lower().find(".csv") != -1]
-        region_props_tables = ["".join([regionprops_directory,"/",ii]) for ii in roi_areas if (ii[:-4] + ".fcs") in self.fcs_dir_names]
+        region_props_tables = [f"{regionprops_directory}/{ii}" for ii in roi_areas if (ii[:-4] + ".fcs") in self.fcs_dir_names]
 
         ## read CSV files and concatenate together to prepare for adding to the Analysis data
         regionprops = pd.DataFrame()
@@ -1119,8 +1119,8 @@ class Analysis:
             return
         assignments = []
         for ii,i in enumerate(overlapping):
-            mask = tf.imread("".join([mask_folder,"/",i])).astype('int')
-            region_map = tf.imread("".join([region_folder,"/",i])).astype('int')
+            mask = tf.imread(f"{mask_folder}/{i}").astype('int')
+            region_map = tf.imread(f"{region_folder}/{i}").astype('int')
             if mask.shape != region_map.shape:
                 raise ValueError(f"The ROI: {i}, has a mismatch in size between the cell masks and the regions provided!")
             output = self._assign_regions(mask, region_map, image_number = ii) 
@@ -3898,7 +3898,7 @@ class Analysis:
         if filename is None:
             output_path =  None
         else:
-            output_path = "".join([self.data_table_dir, "/", str(filename), ".csv"])
+            output_path = f"{self.data_table_dir}/{str(filename)}.csv"
         data = self.data.copy()
         if untransformed:
             data.X = self.data.uns['counts'].copy()
@@ -4120,47 +4120,7 @@ class Analysis:
         table['condition'] = self.data.obs['condition'].copy()
         table['patient_id'] = self.data.obs['patient_id'].copy()
         table['file_name'] = self.data.obs['file_name'].copy()
-        
-        ## loading spaceANOVA from clustering has been superseded by loading from the Analysis onbject itself, therefore extraneous columns are no longer needed
-        '''
-        try:
-            regionprops_directory = self.directory[:self.directory.rfind("/")] + "/regionprops/"
-            roi_areas = os.listdir(regionprops_directory)
-            area = []
-            for i in roi_areas:
-                regionprops = pd.read_csv("".join([regionprops_directory,i])) 
-                area = area + list(regionprops['area'])
-            area = np.array(area)
-            table['cell_areas'] = area
-            X = []
-            Y = []
-            for i in roi_areas:
-                temp_file = pd.read_csv("".join([self.directory[:-4], "/regionprops/", i]))
-                tempX = temp_file['centroid-0']
-                tempY = temp_file['centroid-1']
-                X = X + list(tempX)
-                Y = Y + list(tempY)
-            table["x"] = X
-            table["y"] = Y
-        except Exception:
-            print("Spatial data not saved -- This save will not be usable for spatial analysis" 
-                   "(ignore if this is solution mode / not an imaging experiment)")
-            ## Stil create the columns, so that they can be dropped later & be used to see if spatial data is available without creating errors
-            table['cell_areas'] = 0
-            table["x"] = 0
-            table["y"] = 0
-        '''
-
         table["type"] = groupby_column
-        # percentages are now directly calculated from the groupings, not from saved percentages.
-        '''
-        percentages = self.data.obs.groupby(groupby_column, observed = False).count()["sample_id"] / len(self.data.obs)
-        zip_dict = {}
-        for i,ii in zip(percentages.index, percentages):
-            zip_dict[str(i)] = ii
-        table['percentages'] = table['cellType'].replace(zip_dict)
-        '''
-
         for_sampling = pd.DataFrame(self.data.X)
         table['watermark1'] = for_sampling.sample(1, random_state = 1066)[0].values[0]
         table['watermark2'] = for_sampling.sample(1, random_state = 1776)[0].values[0]

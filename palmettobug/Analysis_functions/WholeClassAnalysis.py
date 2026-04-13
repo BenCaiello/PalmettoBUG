@@ -166,7 +166,7 @@ class WholeClassAnalysis:
                 self._metadata = self._metadata[truth_array]
                 csv_dir_names = new_fcs_filenames
 
-            csv_path_list = ["".join([csv_directory,"/",i]) for i in csv_dir_names]
+            csv_path_list = [f"{csv_directory}/{i} for i in csv_dir_names]
 
             intensities = pd.DataFrame()
             length_of_images = [0]
@@ -701,7 +701,7 @@ class WholeClassAnalysis:
         if filename is None:
             output_path =  None
         else:
-            output_path = "".join([self.data_table_dir, "/", str(filename), ".csv"])
+            output_path = f"{self.data_table_dir}/{str(filename)}.csv"
         data = self.data.copy()
         if untransformed:
             data.X = self.data.uns['counts'].copy()

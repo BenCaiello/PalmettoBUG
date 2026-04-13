@@ -186,7 +186,7 @@ class SupervisedClassifier:
             print("Error! Home Directory does not exist!")
             return
             
-        self._px_dir = self._homedir + "/Pixel_Classification"
+        self._px_dir =  f"{self._homedir}/Pixel_Classification"
         if not os.path.exists(self._px_dir):
             os.mkdir(self._px_dir)
 
@@ -215,14 +215,14 @@ class SupervisedClassifier:
             classifier_name = classifier_name[end:]
         self.classifier_name = classifier_name
         
-        self.classifier_dir = self._px_dir + classifier_name
-        self.output_directory = self.classifier_dir + "/classification_maps"
+        self.classifier_dir = f"{self._px_dir}{classifier_name}"
+        self.output_directory = f"{self.classifier_dir}/classification_maps"
         if not os.path.exists(self.classifier_dir):
             os.mkdir(self.classifier_dir)
         if not os.path.exists(self.output_directory):
             os.mkdir(self.output_directory)
 
-        self.classifier_training_labels = self._px_dir + classifier_name + "/training_labels"   
+        self.classifier_training_labels = f"{self._px_dir}{classifier_name}/training_labels"   
         if not os.path.exists(self.classifier_training_labels):
             os.mkdir(self.classifier_training_labels)
 
@@ -335,7 +335,7 @@ class SupervisedClassifier:
         details_dict['categorical'] = categorical
         details_dict["classes_dict"] = classes_dictionary
         details_dict["img_directory"] = image_directory
-        with open(self._px_dir + "/" + classifier_name.replace(".json","") + "/" + classifier_name.replace(".json","_details.json"), 
+        with open(f"{self._px_dir}/{classifier_name.replace('.json','')}/{classifier_name.replace('.json','_details.json')}", 
                                 'w', 
                                 encoding="utf-8") as write_json:
             json.dump(details_dict, write_json, indent = 4)
@@ -362,7 +362,7 @@ class SupervisedClassifier:
             zip_dict[ii] = i + 1
         zip_dict['background'] = 0
         seed_df['merging'] = seed_df['labels'].replace(zip_dict)
-        seed_df.to_csv(self._px_dir + "/" + self.classifier_name.replace(".json","") + "/biological_labels.csv")
+        seed_df.to_csv(f"{self._px_dir}/{self.classifier_name.replace('.json','')}/biological_labels.csv")
         
     def _initialize_classifier_dict_and_ANN_MLP(self, 
                                                 number_of_channels: int, 
@@ -379,7 +379,7 @@ class SupervisedClassifier:
         This helper method write the dictionary of the main .json file containing information like the classifier neuron weights. 
         See self.setup_classifier method for more details on arguments
         '''
-        self.classifier_path = self._px_dir + "/" + classifier_name.replace(".json","") + "/" + classifier_name
+        self.classifier_path = f"{self._px_dir}/{classifier_name.replace('.json','')}/{classifier_name}"
         self.classifier_name = classifier_name
         
         ### I create an empty classifier dictionary assuming no intenral architecture -- that can be added after the fact
@@ -466,7 +466,7 @@ class SupervisedClassifier:
                                                                           ## adding this argument this would cause Napari to display 
                                                                           # all channels at once
 
-        labels_path = self.classifier_training_labels + "/" + self._image_name   
+        labels_path = f"{self.classifier_training_labels}/{self._image_name}"  
             ### check to see if the user has already made a labels layer for this images --> always reload an existing layer, if available
         if os.path.exists(labels_path):
             self._user_labels = viewer.add_labels(tf.imread(labels_path).astype('int'), name = "layer")
@@ -490,7 +490,7 @@ class SupervisedClassifier:
             output_folder = self.classifier_training_labels
         output_folder = str(output_folder)
         new_labels = self._user_labels.data
-        tf.imwrite(output_folder + "/" + self._image_name, new_labels.astype('int32'))  
+        tf.imwrite(f"{output_folder}/{self._image_name}", new_labels.astype('int32'))  
                     ## labels have the same name as the original image
         print('Training labels written!')
         self._image_name = None
@@ -535,7 +535,7 @@ class SupervisedClassifier:
             training_label_directory = str(labels_dir)
 
         self.details_dict['img_directory'] = image_folder
-        with open(self._px_dir + "/" + self.classifier_name.replace(".json","") + "/" + self.classifier_name.replace(".json","_details.json"), 
+        with open(f"{self._px_dir}/{self.classifier_name.replace('.json','')}/{self.classifier_name.replace('.json','_details.json')}", 
                                     'w', 
                                     encoding="utf-8") as write_json:
             json.dump(self.details_dict, write_json, indent = 4)
@@ -549,7 +549,7 @@ class SupervisedClassifier:
             label_layer = tf.imread(training_label_directory + "/" + i)
             if len(label_layer.shape) > 2:     ## this handles cases where a napari layer was generated with >1 dimension
                 label_layer = np.apply_along_axis(np.sum, axis = 0, arr = label_layer) 
-            image = tf.imread(image_folder + "/" + i).T
+            image = tf.imread(f"{image_folder}/{i}").T
     
             ## generate input training data set:
             if try_rust and _RUST_OK:
@@ -644,9 +644,9 @@ class SupervisedClassifier:
         '''
         # first get the name of the ANN_MLP classifier -- it'll be useful for naming things
         if output_folder is None:
-            output_file_name = self.output_directory + "/" + image_name
+            output_file_name = f"{self.output_directory}/{image_name}"
         else:
-            output_file_name = output_folder + "/" + image_name
+            output_file_name = f"{output_folder}/{image_name}"
         classifier_details = self.details_dict
         algorithm1 = self.algorithm
     
@@ -694,7 +694,7 @@ class SupervisedClassifier:
         img_folder = str(img_folder)
         images = [i for i in sorted(os.listdir(img_folder)) if i.lower().find(".tif") != -1]
         for image_name in images:
-            image = tf.imread(img_folder + "/" + image_name).T
+            image = tf.imread(f"{img_folder}/{image_name}").T
             self.predict(image, image_name, output_folder = output_folder)
 
 ######################### Functions that the class calls, but do not need to be inside the class itself ###########################
@@ -1085,12 +1085,12 @@ class UnsupervisedClassifier():
         if not os.path.exists(self._homedir):
             print("Error! Home Directory does not exist!")
             return
-        self._px_dir = self._homedir + "/Pixel_Classification"
+        self._px_dir = f"{self._homedir}/Pixel_Classification"
         if not os.path.exists(self._px_dir):
             os.mkdir(self._px_dir)   
 
-        self.classifier_dir = self._px_dir + "/" + classifier_name
-        self.output_dir = self.classifier_dir + "/classification_maps"
+        self.classifier_dir = f"{self._px_dir}/{classifier_name}"
+        self.output_dir = f"{self.classifier_dir}/classification_maps"
         if not os.path.exists(self.classifier_dir):
             os.mkdir(self.classifier_dir)
         if not os.path.exists(self.output_dir):
@@ -1279,7 +1279,7 @@ class UnsupervisedClassifier():
             output_directory = str(output_folder)
         image = _read_image(img_directory, image_name)
         classification = classify_one(image, flowsom_dictionary, quantile = self.quantile)
-        tf.imwrite((output_directory + "/" + image_name), (classification.T.astype('int32')))
+        tf.imwrite(f"{output_directory}/{image_name}", (classification.T.astype('int32')))
 
     def predict_folder(self, 
                        img_directory: Union[Path, str], 
@@ -1324,7 +1324,7 @@ class UnsupervisedClassifier():
         for i in list_of_images:
             image = _read_image(img_directory, i)
             classification = classify_one(image, flowsom_dictionary, quantile = self.quantile)
-            tf.imwrite((output_directory + "/" + i), (classification.T.astype('int32')))
+            tf.imwrite(f"{output_directory}/{i}"", (classification.T.astype('int32')))
 
 
 def make_feature_dict_from_panel(panel: pd.DataFrame) -> dict:
@@ -1474,7 +1474,7 @@ def get_quantile_averages(img_directory: Union[Path, str],
     quantile_list = []
     image_list = [i for i in sorted(os.listdir(img_directory)) if i.lower().find(".tif") != -1]
     for i in image_list:
-        img = tf.imread("".join([img_directory, "/", i]))
+        img = tf.imread(f"{img_directory}/{i}")
         if  img.shape[0] > img.shape[1]:    ##### Presumes the channels have the fewest dimensions 
                                             # (as in, the ROI is not thinner in one dimensions than the number of channels)
             img = img.T
@@ -1705,7 +1705,7 @@ def _read_image(img_directory: Union[Path, str],
     It presumes the channels have the fewest dimensions (aka the ROI is not thinner in one spatial dimensions than the number of channels)
     '''
     img_directory = str(img_directory)
-    img = tf.imread("".join([img_directory, "/", image_name]))
+    img = tf.imread(f"{img_directory}/{image_name}")
     if  img.shape[0] > img.shape[1]: 
         img = img.T
     return img
@@ -1889,9 +1889,9 @@ def plot_pixel_heatmap(pixel_folder: Union[str, Path],
     image_files = [i for i in sorted(os.listdir(image_folder)) if i.lower().find(".tif") != -1]
     to_use_files = [i for i in pixel_files if i in image_files]
     for i in to_use_files:
-        pixel_map = tf.imread("".join([pixel_folder, "/", i]))
+        pixel_map = tf.imread(f"{pixel_folder}/{i}")
         temp_df_class = pixel_map.reshape(pixel_map.shape[0]*pixel_map.shape[1])
-        image = tf.imread("".join([image_folder, "/", i]))
+        image = tf.imread(f"{image_folder}/{i}"]))
         ravel_image = image.reshape([image.shape[0], image.shape[1]*image.shape[2]])
         temp_df = pd.DataFrame(ravel_image[slicer].T, columns = channels)  
         temp_df['pixel_class'] = temp_df_class
@@ -1908,7 +1908,7 @@ def plot_pixel_heatmap(pixel_folder: Union[str, Path],
     fractional_percentages = output_df.groupby('pixel_class').count() / len(output_df)
     percentages = 100 * fractional_percentages
 
-    for_heatmap.index = [str(i) + f' ({str(np.round(j,2))}%)' for i,j in zip(for_heatmap.index, percentages.iloc[:,0])]
+    for_heatmap.index = [f'{str(i)} ({str(np.round(j,2))}%)' for i,j in zip(for_heatmap.index, percentages.iloc[:,0])]
     try:
         plot = sns.clustermap(for_heatmap, cmap = "coolwarm", linewidths = 0.01, xticklabels = True)
     finally:
@@ -1939,7 +1939,7 @@ def smooth_folder(input_folder: Union[Path, str],
     output_folder = str(output_folder)
     input_file_names = [i for i in sorted(os.listdir(input_folder)) if i.lower().find(".tif") != -1]
     for i in input_file_names:
-        path_to_file = "".join([input_folder,"/",i])
+        path_to_file = f"{input_folder}/{i}"
         class_map = tf.imread(path_to_file)
         if _RUST_OK:
             smoothed_img = rm.smooth_isolated_pixels(np.ascontiguousarray(class_map, dtype = np.uintp), 
@@ -1954,7 +1954,7 @@ def smooth_folder(input_folder: Union[Path, str],
                                               class_num = class_num, 
                                               threshold = threshold, 
                                               search_radius = search_radius)
-        tf.imwrite(output_folder + "/" + i, smoothed_img.astype('int32'))
+        tf.imwrite(f"{output_folder}/{i}", smoothed_img.astype('int32'))
 
 
 def smooth_isolated_pixels(unsupervised_class_map: np.ndarray[int], 
@@ -2115,7 +2115,7 @@ def segment_class_map_folder(pixel_classifier_directory: Union[Path, str],
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
     class_map_names = [i for i in sorted(os.listdir(pixel_classifier_directory)) if i.lower().find(".tif") != -1]
-    class_maps_paths = ["".join([pixel_classifier_directory,"/",i]) for i in sorted(os.listdir(pixel_classifier_directory)) if i.lower().find(".tif") != -1]
+    class_maps_paths = [f"{pixel_classifier_directory}/{i}" for i in sorted(os.listdir(pixel_classifier_directory)) if i.lower().find(".tif") != -1]
     for i, ii in zip(class_map_names, class_maps_paths):
         mask_map = tf.imread(ii)
         mask_map[mask_map == background] = 0
@@ -2140,4 +2140,4 @@ def segment_class_map_folder(pixel_classifier_directory: Union[Path, str],
 
         #segmentation = skimage.segmentation.watershed(-watershed_map, mask = all_isolated_pixels_removed)
 
-        tf.imwrite("".join([output_folder,"/",i]), segmentation.astype('float'))
+        tf.imwrite(f"{output_folder}/{i}"]), segmentation.astype('float'))
