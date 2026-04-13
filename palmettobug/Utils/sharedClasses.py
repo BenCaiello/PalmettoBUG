@@ -678,7 +678,8 @@ class TableLaunch(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         ''' '''
         super().__init__()
         self.title('Table Examination')
-        self.directory = Path(directory)
+        directory = Path(directory)
+        self.directory = directory
         self.logger = logger
 
         if logger is None:
@@ -693,7 +694,7 @@ class TableLaunch(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         label1.grid(column = 0, row = 0, padx = 5, pady = 5, sticky = "ew")
         label1.configure(anchor = 'w')
         self.tablewidget = TableWidget(self)
-        self.tablewidget.setup_data_table(directory, dataframe, table_type[:-4], favor_table = favor_table)
+        self.tablewidget.setup_data_table(directory, dataframe, str(table_type)[:-4], favor_table = favor_table)
         self.tablewidget.setup_width_height(width, height, scale_width_height = True)
 
         self.tablewidget.grid(column = 0, row = 1, padx = 5, pady = 5)

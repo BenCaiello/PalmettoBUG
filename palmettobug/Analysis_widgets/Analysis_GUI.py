@@ -599,7 +599,8 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             \n\n This is the initial loading from the classy masks folder of the project 
             \n Once loaded to inside this analysis AND SAVED, you can load it in the same way as a merging/metaclustering""")
         label_2.grid(column = 4, row = 2)
-        master_dir = self.master.directory[:self.master.directory.rfind("/Analyses")]
+        master_dir = str(self.master.directory)
+        master_dir = master_dir[:master_dir.rfind("/Analyses")]
         self.classy_dir = f"{master_dir}/classy_masks"
 
         self.load_identifier_from_px = ctk.CTkOptionMenu(master = self, values = [""], variable = ctk.StringVar(value = ""))

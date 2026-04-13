@@ -1088,6 +1088,7 @@ def test_load_from_TIFFs():     ## now also handles the loading of the example d
     tiff_proj_dir = f"{FETCH_DIR}/tiff"
     os.mkdir(tiff_proj_dir)
     shutil.copytree(PROJECT_IMAGES_IMG, f"{tiff_proj_dir}/raw")
+    print(tiff_proj_dir)
     image_proc = app.entrypoint.img_entry_func(tiff_proj_dir) 
     image_proc.raw_to_img(0.85)
     assert len(os.listdir(f"{tiff_proj_dir}/images/img")) == 10

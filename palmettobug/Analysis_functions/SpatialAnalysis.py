@@ -834,6 +834,7 @@ class SpatialEDT:
 
         for i,ii in zipper:
             if ((i != "background") or (background is True)) and (ii != 0):
+                output_edt_folder_i = output_edt_folder
                 if output_edt_folder is not None:
                     output_edt_folder_i = f"{output_edt_folder}_{i}"
                 distances = spatial_by_edt_folder(masks_folder, 
