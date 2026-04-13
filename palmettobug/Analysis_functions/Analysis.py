@@ -2716,6 +2716,7 @@ class Analysis:
         else:    ## only 1 panel /facet / ax
             axs = np.array([axs]) 
 
+        warnings.filterwarnings("ignore", message = "Setting an item of incompatible dtype")
         for i,ii in enumerate(abundance_plot_prep['condition'].unique()):
             for_facet = abundance_plot_prep[abundance_plot_prep['condition'] == ii].copy()
             for_facet[bars_by] = for_facet[bars_by].astype('str')
@@ -2731,6 +2732,7 @@ class Analysis:
         if filename is not None:
             figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
+        warnings.filterwarnings("default", message = "Setting an item of incompatible dtype")
         return figure
 
     def plot_cluster_abundance_2(self, 
