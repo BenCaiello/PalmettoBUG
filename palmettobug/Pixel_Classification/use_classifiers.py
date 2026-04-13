@@ -144,14 +144,14 @@ def merge_folder(folder_to_merge: Union[Path, str],
         print('Warning! One of your merging classes == 1. This can create errors when running mode-based cell classification,' 
               'and 1 is preferably reserved as a merging number.')
     if output_folder is None:
-        output_folder = f"{folder_to_merge[:folder_to_merge.rfind("/")]}/merged_classification_maps"
+        output_folder = f"{folder_to_merge[:folder_to_merge.rfind('/')]}/merged_classification_maps"
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
     class_maps = [i for i in sorted(os.listdir(folder_to_merge)) if i.lower().find(".tif") != -1]
     for i in class_maps:
         class_map = tf.imread(f"{folder_to_merge}/{i}").astype('int32')
         merged = merge_classes(class_map, merging_table = merging_table)
-        tf.imwrite(f"{output_folder}/{i}, merged.astype('int32')) 
+        tf.imwrite(f"{output_folder}/{i}", merged.astype('int32'))
 
 
 def slice_folder(class_to_keep: Union[int, list[int]], 
@@ -372,7 +372,7 @@ def mode_classify_folder(mask_folder: Union[Path, str],
         print("warning! the files in the masks and classifier maps folders do not all match! \n"
               f"The files that are present in both folders are the only ones that will be used: \n\n {str(overlapping)}")
 
-    merged_classifier_map_folder = f"{classifier_map_folder[:classifier_map_folder.rfind("/")]}/merged_classification_maps"
+    merged_classifier_map_folder = f"{classifier_map_folder[:classifier_map_folder.rfind('/')]}/merged_classification_maps"
     if not os.path.exists(merged_classifier_map_folder):
         os.mkdir(merged_classifier_map_folder)
 
