@@ -634,7 +634,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             all_classifications = []
             for i in list_of_saved_classifiers:
                 list_of_classifications = [f"{self.classy_dir}/{i}/{i}_cell_classes.csv",
-                                            f"{self.classy_dir}/{i}/{secondary_cell_classification.csv}"]
+                                            f"{self.classy_dir}/{i}/secondary_cell_classification.csv"]
                 list_of_classifications = [i for i in list_of_classifications if os.path.exists(i)]
                 list_of_classifications = [i[((i[:i.rfind("/")]).rfind("/") + 1):] for i in list_of_classifications]  
                                                                                 ## grab the first folder and the file name for display

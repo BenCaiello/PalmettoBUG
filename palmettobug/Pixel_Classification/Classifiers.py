@@ -1324,7 +1324,7 @@ class UnsupervisedClassifier():
         for i in list_of_images:
             image = _read_image(img_directory, i)
             classification = classify_one(image, flowsom_dictionary, quantile = self.quantile)
-            tf.imwrite(f"{output_directory}/{i}"", (classification.T.astype('int32')))
+            tf.imwrite(f"{output_directory}/{i}", (classification.T.astype('int32')))
 
 
 def make_feature_dict_from_panel(panel: pd.DataFrame) -> dict:
@@ -1891,7 +1891,7 @@ def plot_pixel_heatmap(pixel_folder: Union[str, Path],
     for i in to_use_files:
         pixel_map = tf.imread(f"{pixel_folder}/{i}")
         temp_df_class = pixel_map.reshape(pixel_map.shape[0]*pixel_map.shape[1])
-        image = tf.imread(f"{image_folder}/{i}"]))
+        image = tf.imread(f"{image_folder}/{i}")
         ravel_image = image.reshape([image.shape[0], image.shape[1]*image.shape[2]])
         temp_df = pd.DataFrame(ravel_image[slicer].T, columns = channels)  
         temp_df['pixel_class'] = temp_df_class
@@ -2140,4 +2140,4 @@ def segment_class_map_folder(pixel_classifier_directory: Union[Path, str],
 
         #segmentation = skimage.segmentation.watershed(-watershed_map, mask = all_isolated_pixels_removed)
 
-        tf.imwrite(f"{output_folder}/{i}"]), segmentation.astype('float'))
+        tf.imwrite(f"{output_folder}/{i}", segmentation.astype('float'))

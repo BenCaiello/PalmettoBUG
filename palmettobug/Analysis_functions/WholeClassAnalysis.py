@@ -95,13 +95,13 @@ class WholeClassAnalysis:
             pass
         self._panel = Analysis_panel
 
-        self.save_dir = self.directory + "/python_plots"
-        self.data_table_dir = self.directory + "/Data_tables"
+        self.save_dir = f"{self.directory}/python_plots"
+        self.data_table_dir = f"{self.directory}/Data_tables"
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
 
-        if not os.path.exists(self.directory + "/Data_tables"):
-            os.mkdir(self.directory + "/Data_tables")
+        if not os.path.exists(data_table_dir):
+            os.mkdir(data_table_dir)
         
         self.percent_areas = None
         if csv is None:
@@ -149,7 +149,7 @@ class WholeClassAnalysis:
             self._object_column = to_obs['Object']
         
         else:
-            csv_directory = self.directory  + "/intensities"
+            csv_directory = f"{self.directory}/intensities"
             csv_dir_names = [i for i in sorted(os.listdir(csv_directory)) if i.lower().find(".csv") != -1]
 
             if len(csv_dir_names) != len(self._metadata):
@@ -166,7 +166,7 @@ class WholeClassAnalysis:
                 self._metadata = self._metadata[truth_array]
                 csv_dir_names = new_fcs_filenames
 
-            csv_path_list = [f"{csv_directory}/{i} for i in csv_dir_names]
+            csv_path_list = [f"{csv_directory}/{i}" for i in csv_dir_names]
 
             intensities = pd.DataFrame()
             length_of_images = [0]
@@ -250,9 +250,9 @@ class WholeClassAnalysis:
 
     def input_tables_to_csv(self) -> None:
         '''Allows the saving of the primary csv files within this class to the disk inside the self.directory folder'''
-        self.class_labels.to_csv(self.directory + "/classifier_labels.csv", index = False)
-        self._metadata.to_csv(self.directory + "/metadata.csv", index = False)
-        self._panel.to_csv(self.directory + "/Analysis_panel.csv", index = False)
+        self.class_labels.to_csv(f"{self.directory}/classifier_labels.csv", index = False)
+        self._metadata.to_csv(f"{self.directory}/metadata.csv", index = False)
+        self._panel.to_csv(f"{self.directory}/Analysis_panel.csv", index = False)
 
     def plot_percent_areas(self, filename: Union[str, None] = None, 
                                  N_column: str = "sample_id", 
@@ -281,7 +281,7 @@ class WholeClassAnalysis:
             prior calculation of the % areas has been done)
         '''
         if self.percent_areas is None:
-            whole_regionprops_dir = self.directory  + "/regionprops"
+            whole_regionprops_dir = f"{self.directory}/regionprops"
             data_whole = self.data.copy()
             data_whole_df = pd.DataFrame(data_whole.X, columns = data_whole.var.index, index  = data_whole.obs.index)
             data_whole_df[N_column] = data_whole.obs[N_column]
@@ -299,7 +299,7 @@ class WholeClassAnalysis:
             grand_csv = pd.DataFrame()
             regionprop_file_list = [i for i in sorted(os.listdir(whole_regionprops_dir)) if i.lower().find(".csv") != -1]
             for i in regionprop_file_list:
-                csv = pd.read_csv(whole_regionprops_dir + "/" + i)
+                csv = pd.read_csv(f"{whole_regionprops_dir}/{i}")
                 grand_csv = pd.concat([grand_csv,csv], axis = 0)
                 
             grand_csv['class'] = list(data_whole_df['class'])
@@ -334,7 +334,7 @@ class WholeClassAnalysis:
         sns.boxplot(percent_areas, x = 'class', y = 'area', hue = 'condition', ax = ax)
         ax.set_title("% Area of each class type in each condition:")
         if filename is not None:
-            figure.savefig(self.save_dir + f"/{filename}.png", bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
         plt.close()
         return figure
     
@@ -414,7 +414,7 @@ class WholeClassAnalysis:
             i.set_xticks(i.get_xticks(), labels = i.get_xticklabels(), size = text_size)
         self.grid_object = griddy
         if filename is not None:
-            griddy.savefig(self.save_dir + f"/{filename}.png", bbox_inches = "tight") 
+            griddy.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
         plt.close()
         return griddy
     
@@ -475,10 +475,10 @@ class WholeClassAnalysis:
         data_whole_means['condition'] = data_whole_means[N_column].astype('str').replace(ind_var_to_sample_id)
         data_whole_means = pd.melt(data_whole_means, id_vars = ['condition',"class",N_column])
         grand_csv = pd.DataFrame()
-        whole_regionprops_dir = self.directory  + "/regionprops"
+        whole_regionprops_dir = f"{self.directory}/regionprops"
         regionprops_list = [i for i in sorted(os.listdir(whole_regionprops_dir)) if i.lower().find(".csv") != -1]
         for i in regionprops_list:
-            csv = pd.read_csv(whole_regionprops_dir + "/" + i)
+            csv = pd.read_csv(f"{whole_regionprops_dir}/{i}")
             grand_csv = pd.concat([grand_csv,csv], axis = 0)
         grand_csv['class'] = list(data_whole_df['class'])
         grand_csv[N_column] = list(data_whole_df[N_column])
@@ -615,7 +615,7 @@ class WholeClassAnalysis:
         sns.heatmap(heatmap_df, cmap = "coolwarm", ax = ax, linewidths = 0.01, vmin = 0, vmax = 7, xticklabels = True, yticklabels = True)
         ax.set_title(f"{title_helper}{type_of_stat} Heatmap")
         if filename is not None:
-            figure2.savefig(self.save_dir + f"/{filename}.png", bbox_inches = "tight") 
+            figure2.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
         plt.close()
         return figure2
     
