@@ -100,8 +100,8 @@ class WholeClassAnalysis:
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
 
-        if not os.path.exists(data_table_dir):
-            os.mkdir(data_table_dir)
+        if not os.path.exists(self.data_table_dir):
+            os.mkdir(self.data_table_dir)
         
         self.percent_areas = None
         if csv is None:

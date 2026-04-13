@@ -84,7 +84,7 @@ homedir = __file__.replace("\\","/")
 homedir = homedir[:(homedir.rfind("/"))]
 ## do it twice to get up to the top level directory:
 homedir = homedir[:(homedir.rfind("/"))]
-temp_img_dir = homedir + "/Assets/temp_image.png"
+temp_img_dir = f"{homedir}/Assets/temp_image.png"
 
 def _py_catalyst_quantile_norm(pd_groupby) -> np.ndarray[float]:
     ''' 
@@ -232,16 +232,16 @@ class Analysis:
         self.directory  = self.directory.replace("\\" , "/")
 
         ## Create expected directories to save plots, data tables, etc.
-        self.save_dir = self.directory + f"/{save_dir}"
+        self.save_dir = f"{self.directory}/{save_dir}"
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
-        self.data_table_dir = self.directory + f"/{data_table_dir}"
+        self.data_table_dir = f"{self.directory}/{data_table_dir}"
         if not os.path.exists(self.data_table_dir):
             os.mkdir(self.data_table_dir)
-        self.mergings_dir  = self.directory + "/mergings"
+        self.mergings_dir = f"{self.directory}/mergings"
         if not os.path.exists(self.mergings_dir ):
             os.mkdir(self.mergings_dir )
-        self.clusterings_dir  = self.directory + "/clusterings"
+        self.clusterings_dir = f"{self.directory}/clusterings"
 
         ## Setup logger if in GUI mode of PalmettoBUG
         if self._in_gui:
@@ -257,24 +257,24 @@ class Analysis:
         csv_check1 = csv is None
         csv_check2 = "Analysis_fcs" in os.listdir(directory)
         if csv_check2:
-            csv_check3 = len([i for i in os.listdir(directory + "/Analysis_fcs") if i.find('.fcs') != -1]) > 0
+            csv_check3 = len([i for i in os.listdir(f"{directory}/Analysis_fcs") if i.find('.fcs') != -1]) > 0
         else:
             csv_check3 = False
         if csv_check1 and csv_check2 and csv_check3:    
-            self.metadata = pd.read_csv(self.directory + '/metadata.csv')
+            self.metadata = pd.read_csv(f"{self.directory}/metadata.csv")
             self.metadata['condition'] = self.metadata['condition'].astype('str')
             metadata_cat = pd.CategoricalDtype(categories = self.metadata['condition'].unique(), ordered = True)
             self.metadata['condition'] = self.metadata['condition'].astype(metadata_cat)
             self.metadata['patient_id'] = self.metadata['patient_id'].astype('str')
             self.metadata['sample_id'] = self.metadata['sample_id'].astype('str')
-            self.panel = pd.read_csv(self.directory + '/Analysis_panel.csv')
+            self.panel = pd.read_csv(f"{self.directory}/Analysis_panel.csv")
             self._load_fcs(arcsinh_cofactor = arcsinh_cofactor)
         elif csv:
             self._load_csv(csv, additional_columns = csv_additional_columns, arcsinh_cofactor = arcsinh_cofactor)
         else:
             print("An /Analysis_fcs folder either doesn't exist or is empty -- and no CSV was provided." 
                   "\nAssuming this is a reload of a CSV-based analysis, and will attempt to load from a 'source_CSV.csv' file in the analysis directory.")
-            csv = pd.read_csv(directory + "/source_CSV.csv")
+            csv = pd.read_csv(f"{directory}/source_CSV.csv")
             self._load_csv(csv, additional_columns = csv_additional_columns, arcsinh_cofactor = arcsinh_cofactor)
         
         ## Handle spatial experiment information
@@ -315,7 +315,7 @@ class Analysis:
         panel.index = panel['antigen']
         self.UMAP_embedding = None
         self.PCA_embedding = None
-        self.fcs_directory = self.directory  + "/Analysis_fcs"
+        self.fcs_directory = f"{self.directory}/Analysis_fcs"
         self.fcs_dir_names = [i for i in sorted(os.listdir(self.fcs_directory)) if i.lower().find(".fcs") != -1]
 
         ## only keep rows in the metadata that match available FCS files (includes the warning and subsequent code block)
@@ -446,7 +446,7 @@ class Analysis:
         self.PCA_embedding = None
         csv_path = str(csv_path)
         data = pd.read_csv(csv_path)
-        data.to_csv(self.directory + "/source_CSV.csv")
+        data.to_csv(f"{self.directory}/source_CSV.csv")
 
         ## See if the last row has marker_class information (this is the special type/state/none applied to each antigen)
         ## if present, we want to save this information, but also remove the last row of the data table
@@ -504,7 +504,7 @@ class Analysis:
         ## If loaded previously, then a metadata file will already exist at the specified location
         ## Otherwise a new metadata file should be created
         try:
-            self.metadata = pd.read_csv(self.directory + '/metadata.csv') 
+            self.metadata = pd.read_csv(f"{self.directory}/metadata.csv") 
         except Exception:
             filenames = obs['file_name'].unique()
             self.metadata = pd.DataFrame()
@@ -526,11 +526,11 @@ class Analysis:
             metadata_cat = pd.CategoricalDtype(categories = self.metadata['condition'].unique(), ordered = True)
             self.metadata['condition'] = self.metadata['condition'].astype(metadata_cat)
 
-            self.metadata.to_csv(self.directory + '/metadata.csv', index = False) 
+            self.metadata.to_csv(f"{self.directory}/metadata.csv", index = False) 
 
         # Do a similar re-load or create process for the panel file.
         try:
-            self.panel  = pd.read_csv(self.directory + '/Analysis_panel.csv') 
+            self.panel  = pd.read_csv(f"{self.directory}/Analysis_panel.csv") 
         except Exception:
             self.panel = pd.DataFrame()
             self.panel['fcs_colname'] = data_X.columns
@@ -546,7 +546,7 @@ class Analysis:
                     print("All antigens from the csv have been set to 'type' in the panel file! \n" +
                            "Open the Analysis_panel.csv file, edit, & reload the experiment to change this!")
 
-            self.panel.to_csv(self.directory + '/Analysis_panel.csv', index = False) 
+            self.panel.to_csv(f"{self.directory}/Analysis_panel.csv", index = False) 
         
         ## Setup the AnnData object
         var = self.panel.copy()
@@ -633,10 +633,10 @@ class Analysis:
 
         ## setup directory expectations, find CSV files in the regionprops folder that match an FCS file in the Analysis
         if regionprops_directory is None:
-            regionprops_directory = self.directory[:self.directory.rfind("/")] + "/regionprops/"
+            regionprops_directory = f"{self.directory[:self.directory.rfind('/')]}/regionprops/"
         regionprops_directory = str(regionprops_directory)
         roi_areas = [i for i in sorted(os.listdir(regionprops_directory)) if i.lower().find(".csv") != -1]
-        region_props_tables = [f"{regionprops_directory}/{ii}" for ii in roi_areas if (ii[:-4] + ".fcs") in self.fcs_dir_names]
+        region_props_tables = [f"{regionprops_directory}/{ii}" for ii in roi_areas if f"{ii[:-4]}.fcs" in self.fcs_dir_names]
 
         ## read CSV files and concatenate together to prepare for adding to the Analysis data
         regionprops = pd.DataFrame()
@@ -670,7 +670,7 @@ class Analysis:
         ## Create a panel for the new regionprops "antigens" so that a marker_class can be assigned to them
             ## (or read in a prior panel if already available)
         try:
-            regionprops_panel = pd.read_csv(self.directory + '/Regionprops_panel.csv')
+            regionprops_panel = pd.read_csv(f"{self.directory}/Regionprops_panel.csv")
             if (self._in_gui) and (len(regionprops_panel.index) != len(regionprops.columns)):
                 raise Exception 
         except Exception:
@@ -678,7 +678,7 @@ class Analysis:
             regionprops_panel['fcs_colname'] = regionprops.columns
             regionprops_panel['antigen'] = regionprops.columns
             regionprops_panel['marker_class'] = 'type'
-            regionprops_panel.to_csv(self.directory + '/Regionprops_panel.csv', index = False) 
+            regionprops_panel.to_csv(f"{self.directory}/Regionprops_panel.csv", index = False) 
         if auto_panel is True:
             self.append_regionprops()
         return regionprops_panel
@@ -706,7 +706,7 @@ class Analysis:
                       "\nAborting regionprops load")
             return
         if regionprops_panel is None:
-            self.regionprops_panel = pd.read_csv(self.directory + '/Regionprops_panel.csv')
+            self.regionprops_panel = pd.read_csv(f"{self.directory}/Regionprops_panel.csv")
         else:
             if isinstance(regionprops_panel, pd.DataFrame):
                 self.regionprops_panel = regionprops_panel
@@ -1093,7 +1093,7 @@ class Analysis:
         figure.set_size_inches(18,18)
         sns.move_legend(figure.axes[0], loc = 'lower right')
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
         return figure
 
@@ -1273,7 +1273,7 @@ class Analysis:
         plot = so.Plot(group_by, metadata["number_of_cells"], color = color_by, **kwargs)
         plot = plot.add(so.Bar(), so.Stack(), legend=True).label(title = "Countplot")
         if filename is not None:
-            plot.save(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            plot.save(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         fig = plt.figure()
         plot.on(fig).plot()
         plt.close()
@@ -1333,7 +1333,7 @@ class Analysis:
         output["number_of_cells"] = metadata["number_of_cells"]
         output[color_by] = output[color_by].astype('category')
         if print_stat is True:
-            output.to_csv(self.data_table_dir + "/MDS.csv", index = False)
+            output.to_csv(f"{self.data_table_dir}/MDS.csv", index = False)
 
         figure = plt.figure()
         plt.style.use('ggplot')
@@ -1348,7 +1348,7 @@ class Analysis:
         sns.move_legend(plot, loc = "center right", bbox_to_anchor = (1.35,0.6))
         figure.suptitle("MDS plot by sample_id")
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()   
         return figure, output
 
@@ -1407,7 +1407,7 @@ class Analysis:
         ax.tick_params("x", labelrotation = 90)
         figure.suptitle(f"NRS Plot of {marker_class} markers")
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()   
         return figure
     
@@ -1544,7 +1544,7 @@ class Analysis:
             fig.suptitle("KDE / Histogram plots of normalized Exprs of each marker \n facetted by sample_id ", y = sup_Y)
         fig.supxlabel("normalized Exprs")
         if filename is not None:
-            fig.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            fig.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
         return fig
 
@@ -1721,7 +1721,7 @@ class Analysis:
         sc.pl.scatter(data, antigen1, antigen2, color = hue, alpha = alpha, size = size, ax = ax, show = False)
 
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight")
         plt.close() 
         return figure 
 
@@ -1765,7 +1765,7 @@ class Analysis:
                    show = False, 
                    **kwargs)  
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight")
         plt.close()  
         return figure
     
@@ -1812,7 +1812,7 @@ class Analysis:
         ax.set_xlabel('PC1')
         ax.set_ylabel('PC2')
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight")
         plt.close()  
         return figure
 
@@ -1932,7 +1932,7 @@ class Analysis:
         if suptitle:
             figure.suptitle(f'{kind} plots subsetted by Antigen', y = sup_Y)
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight")
         plt.close()  
         return figure      
 
@@ -2109,7 +2109,7 @@ class Analysis:
         if suptitle:
             figure.suptitle(f'{kind} plots subsetted by {subsetting_column}', y = sup_Y)
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight")
         plt.close()  
         return figure      
 
@@ -2236,7 +2236,7 @@ class Analysis:
         warnings.filterwarnings("default", message = "invalid value encountered in divide") 
 
         if filename is not None:
-            plot.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            plot.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()  
         if subset_df is None:
             return plot.figure
@@ -2301,8 +2301,8 @@ class Analysis:
         temp_img_dir = tp.TemporaryDirectory().name
         if not os.path.exists(temp_img_dir):
             os.mkdir(temp_img_dir)
-        temp_img_dir_svg = temp_img_dir + "/temp_image.svg"
-        temp_img_dir_svg_all = temp_img_dir + "/temp_image_concat.svg"
+        temp_img_dir_svg = f"{temp_img_dir}/temp_image.svg"
+        temp_img_dir_svg_all = f"{temp_img_dir}/temp_image_concat.svg"
 
         plt.style.use('ggplot')
         HeatFig = plt.figure()
@@ -2377,8 +2377,9 @@ class Analysis:
         layer.addSVG(temp_img_dir_svg, alignment = svg_stack.AlignCenter)
         layer.addSVG(temp_img_dir_svg_all, alignment = svg_stack.AlignCenter)
         document.setLayout(layer)
-        document.save(self.save_dir + "/" + filename + ".svg")
-        return self.save_dir + "/" + filename + ".svg"
+        return_path = f"{self.save_dir}/{filename}.svg"
+        document.save(return_path)
+        return return_path
        
     def do_cluster_merging(self, 
                             file_path: Union[str, Path], 
@@ -2492,7 +2493,7 @@ class Analysis:
 
         elif comp_type == "raw":
             manipul_df[groupby_column] = list(self.data.obs[groupby_column])
-            facet_title = scale  + " Expression"
+            facet_title = f"{scale} Expression"
             sharey = True
             title_assistant = ""
         
@@ -2655,7 +2656,7 @@ class Analysis:
         x_anchor = (1.0 + (maximum_legend * 0.02)) - ((colwrap - 3)*0.035)
         figure.legend(handles = [i for i in patch_bank1], bbox_to_anchor = (x_anchor, 0.9))
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename + ".png", bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
         plt.close()
         return figure
         
@@ -2727,7 +2728,7 @@ class Analysis:
         sup_Y = 1.03 + (number_of_rows * -0.01)
         figure.suptitle("Proportion of each cluster each in sample", y = sup_Y)
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
         return figure
 
@@ -2824,7 +2825,7 @@ class Analysis:
             griddy.add_legend()
         plt.style.use('ggplot')
         if filename is not None:
-            griddy.figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            griddy.figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
         return griddy.figure
 
@@ -3035,7 +3036,7 @@ class Analysis:
         output_df = output_df.sort_values('f statistics', ascending = False)        
         self.abundance_ANOVA_stat_table = output_df
         if filename is not None:
-            output_df.to_csv(self.data_table_dir + f"/{filename}.csv", index = False)
+            output_df.to_csv(f"{self.data_table_dir}/{filename}.csv", index = False)
         return output_df
     
     def do_count_GLM(self, 
@@ -3352,7 +3353,7 @@ class Analysis:
         to_return = to_return.iloc[:,:]
 
         if filename is not None:
-            to_return.to_csv(self.data_table_dir + f"/{filename}.csv", index = False)
+            to_return.to_csv(f"{self.data_table_dir}/{filename}.csv", index = False)
         return to_return
 
     def plot_state_distributions(self, marker_class: str = 'state', 
@@ -3814,7 +3815,7 @@ class Analysis:
 
         output_stat_table = final_df.reset_index().sort_values(stat_label, ascending = False)
         if filename is not None:
-            output_stat_table.to_csv(self.data_table_dir + f"/{filename}.csv", index = False)
+            output_stat_table.to_csv(f"{self.data_table_dir}/{filename}.csv", index = False)
         return output_stat_table
     
     def export_data(self, 
@@ -4069,7 +4070,7 @@ class Analysis:
             print("kind must == 'umap', or 'pca'!")
             return
         if filename is not None:
-            to_export.to_csv(self.data_table_dir + "/" + filename + ".csv", index = False)
+            to_export.to_csv(f"{self.data_table_dir}/{filename}.csv", index = False)
         return to_export
     
     def export_clustering(self,  
@@ -4124,8 +4125,8 @@ class Analysis:
         for_sampling = pd.DataFrame(self.data.X)
         table['watermark1'] = for_sampling.sample(1, random_state = 1066)[0].values[0]
         table['watermark2'] = for_sampling.sample(1, random_state = 1776)[0].values[0]
-        table.to_csv(self.clusterings_dir + f"/{groupby_column}{identifier}.csv", index = False)
-        return table, self.clusterings_dir + f"/{groupby_column}{identifier}.csv"
+        table.to_csv(f"{self.clusterings_dir}/{groupby_column}{identifier}.csv", index = False)
+        return table, f"{self.clusterings_dir}/{groupby_column}{identifier}.csv"
 
     def export_clustering_classy_masks(self, clustering = "merging", identifier = ""):
         '''
@@ -4164,11 +4165,11 @@ class Analysis:
         # Step 0: set up naming & directory
         analyses_folder = self.directory[:self.directory.rfind("/")]
         interim = analyses_folder[:analyses_folder.rfind("/")]
-        classy_mask_folder = interim[:interim.rfind("/")] + "/classy_masks"
+        classy_mask_folder = f"{interim[:interim.rfind('/')]}/classy_masks"
         if len(identifier) > 0:
             identifier = f"_{identifier}"
         name = f'{clustering}_{self.input_mask_folder[(self.input_mask_folder.rfind("/") + 1):]}{identifier}'
-        destination_folder = classy_mask_folder + f"/{name}"
+        destination_folder = f"{classy_mask_folder}/{name}"
         if not os.path.exists(destination_folder):
             os.mkdir(destination_folder)
         internal_folder = f'{destination_folder}/{name}'   ## this holds the .tiff files themselves
@@ -4206,7 +4207,7 @@ class Analysis:
         mask_file_names = [i for i in sorted(os.listdir(self.input_mask_folder)) if i.lower().find(".tif") != -1]
         for i in mask_file_names:
             mask = tf.imread(f"{self.input_mask_folder}/{i}").astype('int32')
-            as_fcs = i[:i.rfind(".")] + ".fcs"
+            as_fcs = f"{i[:i.rfind('.')]}.fcs"
             temp_labels = list(data[data["file_name"] == as_fcs]['label'])
             regionprops = skimage.measure.regionprops(mask)
             if len(regionprops) != len(temp_labels):
@@ -4242,7 +4243,7 @@ class Analysis:
         '''
         path = str(path)
         if path.rfind("/") == -1:
-            path = self.clusterings_dir + "/" + path
+            path = f"{self.clusterings_dir}/{path}"
         if not os.path.exists(path):
             print("This clustering does not exist!")
             return

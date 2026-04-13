@@ -86,7 +86,7 @@ class SpatialAnalysis:
         '''
         self.exp = Analysis
         self.edt.add_Analysis(Analysis)
-        self.SpaceANOVA.init_analysis(Analysis, output_directory = (self.exp.directory + "/Spatial_plots"))
+        self.SpaceANOVA.init_analysis(Analysis, output_directory = f"{self.exp.directory}/Spatial_plots")
         self.neighbors.add_Analysis(Analysis)
 
     def plot_cell_maps(self,
@@ -504,7 +504,7 @@ class SpatialAnalysis:
                                             seed = seed, 
                                             f_list = f_stat, 
                                             hline = hline)
-                plot.savefig(self.SpaceANOVA.output_dir + f"/Functional_plots/{comparison}_{stat}.png", bbox_inches = "tight")
+                plot.savefig(f"{self.SpaceANOVA.output_dir}/Functional_plots/{comparison}_{stat}.png", bbox_inches = "tight")
                 return plot
         else:
             if comparison is None:
@@ -520,7 +520,7 @@ class SpatialAnalysis:
                                                        stat = stat, 
                                                        f_p_padj = f_stat, 
                                                        hline = hline)
-                plot.savefig(self.SpaceANOVA.output_dir + f"/Functional_plots/{comparison}_{stat}.png", bbox_inches = "tight")
+                plot.savefig(f"{self.SpaceANOVA.output_dir}/Functional_plots/{comparison}_{stat}.png", bbox_inches = "tight")
                 return plot 
 
     def run_SpaceANOVA_statistics(self, 
@@ -550,7 +550,7 @@ class SpatialAnalysis:
                                   vmax = 7)
         
         if filename is not None:
-            figure.savefig(self.SpaceANOVA.output_dir + "/" + filename + ".png", bbox_inches = "tight")
+            figure.savefig(f"{self.SpaceANOVA.output_dir}/{filename}.png", bbox_inches = "tight")
         
         return figure
 
@@ -685,7 +685,7 @@ class SpatialAnalysis:
         if filename is not None:
             plot = self.edt.plot_edt_heatmap(groupby_col = groupby_col, 
                                          marker_class = marker_class, 
-                                         filename = self.SpaceANOVA.output_dir + "/" + filename + ".png")
+                                         filename = f"{self.SpaceANOVA.output_dir}/{filename}.png")
         else:
             plot = self.edt.plot_edt_heatmap(groupby_col = groupby_col, 
                                          marker_class = marker_class, 
@@ -729,7 +729,7 @@ class SpatialAnalysis:
                                                 subset_col = groupby_col, 
                                                 facet_col = facet_col, 
                                                 col_num = col_num, 
-                                                filename = self.SpaceANOVA.output_dir + "/" + filename + ".png")
+                                                filename = f"{self.SpaceANOVA.output_dir}/{filename}.png")
         else:
             plot = self.edt.plot_horizontal_boxplot(var_column = var_column, 
                                                 subset_col = groupby_col, 
@@ -770,7 +770,7 @@ class SpatialAnalysis:
             a pandas dataframe, containing the statistics
         '''
         if filename is not None:
-            filename = self.SpaceANOVA.output_dir + "/" + filename + ".csv"
+            filename = f"{self.SpaceANOVA.output_dir}/{filename}.csv"
         df = self.edt.plot_edt_statistics(groupby_column = groupby_column, 
                                           marker_class = marker_class,\
                                           N_column = N_column, 
@@ -810,16 +810,19 @@ class SpatialEDT:
         it can be used in clustering with the rest of the type markers, for example.
         '''
         distance_transforms = pd.DataFrame()   
-        class_maps = pixel_classifier_folder + maps
+        class_maps = f"{pixel_classifier_folder}{maps}"
         if marker_class is None:
             marker_class = "state"
 
-        biological_labels = pd.read_csv(pixel_classifier_folder + "/biological_labels.csv")
+        bio_labels_path = f"{pixel_classifier_folder}/biological_labels.csv"
+        merged_class_maps_path = f"{pixel_classifier_folder}/merged_classification_maps"
+
+        biological_labels = pd.read_csv(bio_labels_path)
         if maps == "/merged_classification_maps":
-            if not os.path.exists(pixel_classifier_folder + "/merged_classification_maps"):
-                merge_folder(pixel_classifier_folder + "/classification_maps",
-                            pd.read_csv(pixel_classifier_folder + "/biological_labels.csv"),
-                            pixel_classifier_folder + "/merged_classification_maps")
+            if not os.path.exists(merged_class_maps_path):
+                merge_folder(f"{pixel_classifier_folder}/classification_maps",
+                            pd.read_csv(bio_labels_path),
+                            merged_class_maps_path)
             zipper = zip(biological_labels['labels'].unique(), biological_labels['merging'].unique())
         elif maps == "/classification_maps":
             zipper = zip(biological_labels['labels'], biological_labels['class'])
@@ -832,7 +835,7 @@ class SpatialEDT:
         for i,ii in zipper:
             if ((i != "background") or (background is True)) and (ii != 0):
                 if output_edt_folder is not None:
-                    output_edt_folder = output_edt_folder + f"_{i}"
+                    output_edt_folder_i = f"{output_edt_folder}_{i}"
                 distances = spatial_by_edt_folder(masks_folder, 
                                                   class_maps, 
                                                   available_file_names = available_file_names,
@@ -840,7 +843,7 @@ class SpatialEDT:
                                                   stat = stat, 
                                                   normalized = normalized, 
                                                   smoothing = smoothing,
-                                                  output_edt_folder = output_edt_folder)
+                                                  output_edt_folder = output_edt_folder_i)
                 distance_transforms[f'distance to {i}'] = distances[0]
 
         if save_path is not None:
@@ -870,7 +873,7 @@ class SpatialEDT:
         distances_panel['fcs_colnames'] = distance_transforms.columns
         distances_panel['antigen'] = distance_transforms.columns
         distances_panel['marker_class'] = marker_class
-        distances_panel.to_csv(self.exp.directory + '/distances_edt_panel.csv', index = False) 
+        distances_panel.to_csv(f"{self.exp.directory}/distances_edt_panel.csv", index = False) 
         if auto_panel:
             self.append_distance_transform(distances_panel = distances_panel) ## specifying distances panel in this call overwrites any prior panel
         return distances_panel
@@ -880,7 +883,7 @@ class SpatialEDT:
         Adds a distance transform statistic loaded by load_distance_transform to self.data so that it can be accessed.
         '''
         if distances_panel is None:
-            self.distances_panel = pd.read_csv(self.exp.directory + '/distances_edt_panel.csv')
+            self.distances_panel = pd.read_csv(f"{self.exp.directory}/distances_edt_panel.csv")
         else:
             if isinstance(distances_panel, pd.DataFrame):
                 self.distances_panel = distances_panel
@@ -1092,8 +1095,8 @@ def spatial_by_edt_folder(masks_folder: Union[str, Path],
         if not os.path.exists(output_edt_folder):
             os.mkdir(output_edt_folder)
     edt_list = []
-    masks = [masks_folder + "/" + i for i in sorted(os.listdir(masks_folder)) if i.lower().find(".tif") != -1]
-    class_maps = [class_map_folder + "/" + i for i in sorted(os.listdir(class_map_folder)) if i.lower().find(".tif") != -1]
+    masks = [f"{masks_folder}/{i}" for i in sorted(os.listdir(masks_folder)) if i.lower().find(".tif") != -1]
+    class_maps = [f"{class_map_folder}/{i}" for i in sorted(os.listdir(class_map_folder)) if i.lower().find(".tif") != -1]
     #print(available_file_names)
     if available_file_names is not None:
         mask_short = [i for i in sorted(os.listdir(masks_folder)) if i.lower().find(".tif") != -1]
@@ -1105,7 +1108,7 @@ def spatial_by_edt_folder(masks_folder: Union[str, Path],
         mask = tf.imread(i).astype('int')
         class_map = tf.imread(ii).astype('int')
         if output_edt_folder is not None:
-            output_edt_path = output_edt_folder + f"/{i[i.rfind('/'):]}"
+            output_edt_path = f"{output_edt_folder}/{i[i.rfind('/'):]}"
         else:
             output_edt_path = None
         if do_all_classes != 0:
@@ -1209,11 +1212,11 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         ''''''
         self.exp = Analysis
         self.masks_paths = None
-        save_directory = (self.exp.directory + "/Spatial_plots") 
+        save_directory = f"{self.exp.directory}/Spatial_plots"
         self.save_dir = str(save_directory)
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
-        self.save_cell_maps_dir = self.save_dir + "/cell_maps"
+        self.save_cell_maps_dir = f"{self.save_dir}/cell_maps"
         if not os.path.exists(self.save_cell_maps_dir):
             os.mkdir(self.save_cell_maps_dir)
 
@@ -1318,7 +1321,7 @@ class SpatialNeighbors:        ## formerly SquipySpatial
             figure.suptitle("Leiden clustering of neighborhoods defined by % cell types")
             plt.close()
         if plot_filename is not None:
-            figure.savefig(self.save_dir + "/" + plot_filename + ".png", bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{plot_filename}.png", bbox_inches = "tight") 
         return figure
         
     def plot_CN_heatmap(self, clustering_col: str = "merging", **kwargs):
@@ -1405,7 +1408,7 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         figure.set_size_inches(18,18)
         sns.move_legend(figure.axes[0], loc = 'lower right')
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
         return figure
 
@@ -1457,7 +1460,7 @@ class SpatialNeighbors:        ## formerly SquipySpatial
                 axs[ii + j].set_axis_off()
                 
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
         return figure
     
@@ -1511,7 +1514,7 @@ class SpatialNeighbors:        ## formerly SquipySpatial
                 axs[ii + j].set_axis_off()
                 
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
         return figure
     
@@ -1527,7 +1530,7 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         data.obs[clustering] = data.obs[clustering].astype('category')
         sq.gr.centrality_scores(data, cluster_key = clustering, score = score, show_progress_bar = False)
         if filename is not None:
-            sq.pl.centrality_scores(data, cluster_key = clustering, score = score, save = self.save_dir + "/" + filename)
+            sq.pl.centrality_scores(data, cluster_key = clustering, score = score, save = f"{self.save_dir}/{filename}")
         else:
             sq.pl.centrality_scores(data, cluster_key = clustering, score = score)
         figure = plt.gcf()
@@ -1544,7 +1547,7 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         '''
         if self.masks_paths is None:
             masks_path = self.exp.input_mask_folder
-            self.masks_paths = [masks_path + "/" + i for i in os.listdir(str(masks_path)) if i.lower().find(".tif") != -1]
+            self.masks_paths = [f"{masks_path}/{i}" for i in os.listdir(str(masks_path)) if i.lower().find(".tif") != -1]
         if (filename is None) and (sample_id is not None):
             filename = self.exp.data.obs[self.exp.data.obs['sample_id'] == sample_id]['file_name'].values[0]
 
@@ -1585,8 +1588,8 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         ax = plt.gca()
         sq.pl.spatial_segment(subset_anndata, seg_cell_id = 'cell_id', library_key = 'library', color = clustering, seg = True, ax = ax)
         if filename is not None:
-            filename = filename + ".png"
-            figure.savefig(self.save_cell_maps_dir + "/" + filename, bbox_inches = "tight")
+            filename = f"{filename}.png"
+            figure.savefig(f"{self.save_cell_maps_dir}/{filename}", bbox_inches = "tight")
         plt.close()
         return figure, filename
     

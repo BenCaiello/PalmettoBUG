@@ -134,10 +134,10 @@ class SpatialANOVA():
         self.output_dir = output_directory
         if not os.path.exists(output_directory):
             os.mkdir(output_directory)
-        if not os.path.exists(output_directory + "/cell_maps"):
-            os.mkdir(output_directory + "/cell_maps")
-        if not os.path.exists(output_directory + "/Functional_plots"):
-            os.mkdir(output_directory + "/Functional_plots")
+        if not os.path.exists(f"{output_directory}/cell_maps"):
+            os.mkdir(f"{output_directory}/cell_maps")
+        if not os.path.exists(f"{output_directory}/Functional_plots"):
+            os.mkdir(f"{output_directory}/Functional_plots")
     
     def init_analysis(self, analysis, output_directory, cellType_key = None):
         '''
@@ -162,10 +162,10 @@ class SpatialANOVA():
         self.output_dir = output_directory
         if not os.path.exists(output_directory):
             os.mkdir(output_directory)
-        if not os.path.exists(output_directory + "/cell_maps"):
-            os.mkdir(output_directory + "/cell_maps")
-        if not os.path.exists(output_directory + "/Functional_plots"):
-            os.mkdir(output_directory + "/Functional_plots")
+        if not os.path.exists(f"{output_directory}/cell_maps"):
+            os.mkdir(f"{output_directory}/cell_maps")
+        if not os.path.exists(f"{output_directory}/Functional_plots"):
+            os.mkdir(f"{output_directory}/Functional_plots")
 
     def _retrieve_data_table(self):
         ''''''
@@ -830,7 +830,7 @@ class SpatialANOVA():
             seed = self.seed
         comparison_list = self._comparison_list
         if output_directory is None:
-            output_directory = self.output_dir + "/Functional_plots"
+            output_directory = f"{self.output_dir}/Functional_plots"
         output_directory = str(output_directory)
         if write is False:
             output_directory = None
@@ -933,7 +933,7 @@ class SpatialANOVA():
             seed = self.seed
         comparison_list = self._comparison_list
         if output_directory is None:
-            output_directory = self.output_dir + "/Functional_plots"
+            output_directory = f"{self.output_dir}/Functional_plots"
         output_directory = str(output_directory)
 
         if write is False:
@@ -1038,7 +1038,7 @@ class SpatialANOVA():
         sns.heatmap(for_heatmap, annot = True, ax = ax)
         figure.suptitle(title_string)
         if filename:
-            figure.savefig(self.output_dir + f"/{filename}.png", bbox_inches = "tight")
+            figure.savefig(f"{self.output_dir}/{filename}.png", bbox_inches = "tight")
         return figure
 
     def plot_cell_maps(self, 
@@ -1078,7 +1078,7 @@ class SpatialANOVA():
         space_anova = self._retrieve_data_table()
 
         if output_directory is None:
-            output_directory = self.output_dir + "/cell_maps"
+            output_directory = f"{self.output_dir}/cell_maps"
         output_directory = str(output_directory)
 
         if write is False:
@@ -1111,7 +1111,7 @@ class SpatialANOVA():
                 ratio = 0.1 # - np.log(img['x'].max() / img['y'].max()) / 8
                 mpl_figure.legend(handles, labels, loc = "upper right", bbox_to_anchor = (1 + ratio, 0.88), fontsize = 'x-small')
                 if write is True:
-                    mpl_figure.savefig(output_directory + "/" +  filename_without_extension + ".png", bbox_inches = "tight") 
+                    mpl_figure.savefig(f"{output_directory}/{filename_without_extension}.png", bbox_inches = "tight") 
                 plt.close()
                 plot_list.append(mpl_figure)
             return plot_list
@@ -1149,7 +1149,7 @@ class SpatialANOVA():
             ratio = 0.1
             mpl_figure.legend(handles, labels, loc = "upper right", bbox_to_anchor = (1 + ratio, 0.88), fontsize = 'x-small')
             if write is True:
-                mpl_figure.savefig(output_directory + "/" + filename_without_extension + ".png", bbox_inches = "tight")
+                mpl_figure.savefig(f"{output_directory}/{filename_without_extension}.png", bbox_inches = "tight")
             plt.close()
             return mpl_figure
 
