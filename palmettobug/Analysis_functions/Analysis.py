@@ -959,6 +959,7 @@ class Analysis:
             for_fs.obs['true_index'] = for_fs.obs.index.astype('int').copy()
             self.UMAP_embedding = for_fs
 
+        warnings.filterwarnings("ignore", message = "In the future, the default backend for leiden will be igraph") 
         sc.tl.leiden(for_fs, 
                     resolution = resolution, 
                     random_state = seed,

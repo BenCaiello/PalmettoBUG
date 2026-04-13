@@ -18,6 +18,7 @@ Changes (date: precise day uncertain, edits made January-March 2025):
 -- Move a __future__ import from the BSD-3 licensed section to the top of the file
 -- replaced assert --> if not...raise    (or similar replacement)
 -- add __all__ (for docs)
+-- commented-out print statements (key not found: {error message})
 
 '''
 # This file is part of the pyometiff library.
@@ -150,7 +151,7 @@ class OMETIFFReader:
         try:
             metadata["InstrumentID"] = self.ox.instrument(self.imageseries).get_ID()
         except (KeyError, AttributeError, IndexError) as e:
-            print("Key not found:", e)
+            #print("Key not found:", e)
             metadata["InstrumentID"] = None
         try:
             metadata["DetectorModel"] = self.ox.instrument(
@@ -163,7 +164,7 @@ class OMETIFFReader:
                 self.imageseries
             ).Detector.get_Type()
         except (KeyError, AttributeError, IndexError) as e:
-            print("Key not found:", e)
+            #print("Key not found:", e)
             metadata["DetectorModel"] = None
             metadata["DetectorID"] = None
             metadata["DetectorType"] = None
@@ -173,7 +174,7 @@ class OMETIFFReader:
                 self.imageseries
             ).Microscope.get_Type()
         except (KeyError, AttributeError, IndexError) as e:
-            print("key not found", e)
+            #print("key not found", e)
 
         try:
             metadata["ObjNA"] = self.ox.instrument(
@@ -184,7 +185,7 @@ class OMETIFFReader:
                 self.imageseries
             ).Objective.get_NominalMagnification()
         except (KeyError, AttributeError, IndexError) as e:
-            print("Key not found:", e)
+            #print("Key not found:", e)
             metadata["ObjNA"] = None
             metadata["ObjID"] = None
             metadata["ObjMag"] = None

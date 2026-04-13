@@ -96,7 +96,7 @@ class App(ctk.CTk):
         self.entrypoint = EntryPoint(self.Tabs)
         self.entrypoint.grid(row = 0, column = 0, padx = 10, pady = 10)
 
-    ##>>##>>
+    ##>>##>>   
     def destroy(self) -> None:   ## overwrite base class destroy method to ensure that matplotlib is closed
                          ## modified directly from the original customtkinter code for ctk.CTk.destroy()
         plt.close()

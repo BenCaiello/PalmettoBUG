@@ -1308,6 +1308,7 @@ class SpatialNeighbors:        ## formerly SquipySpatial
             sc.tl.umap(new_anndata, 
                         min_dist = min_dist, 
                         random_state = seed)
+            warnings.filterwarnings("ignore", message = "In the future, the default backend for leiden will be igraph") 
             sc.tl.leiden(new_anndata, 
                         resolution = resolution, 
                         random_state = seed,
