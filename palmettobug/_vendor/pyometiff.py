@@ -18,7 +18,7 @@ Changes (date: precise day uncertain, edits made January-March 2025):
 -- Move a __future__ import from the BSD-3 licensed section to the top of the file
 -- replaced assert --> if not...raise    (or similar replacement)
 -- add __all__ (for docs)
--- commented-out print statements (key not found: {error message})
+-- commented-out print statements (key not found: {error message}), replacing with pass as needed
 
 '''
 # This file is part of the pyometiff library.
@@ -174,6 +174,7 @@ class OMETIFFReader:
                 self.imageseries
             ).Microscope.get_Type()
         except (KeyError, AttributeError, IndexError) as e:
+            pass
             #print("key not found", e)
 
         try:
