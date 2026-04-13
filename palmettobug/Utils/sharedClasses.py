@@ -707,7 +707,7 @@ class TableLaunch(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                     command = lambda: self.accept_and_return(experiment))
             self.accept_button.grid(column = 0, row = 2, pady = 15)
 
-        if table_type.find("Regionprops_panel") != -1:
+        if str(table_type).find("Regionprops_panel") != -1:
             self.leiden_check = ctk.CTkCheckBox(master = self, 
                     text = "Check to run Leiden Clustering \n from centroids (spatial neighborhoods)", 
                     onvalue = True, 

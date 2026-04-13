@@ -433,7 +433,6 @@ def test_wca_3():
     assert isinstance(stats_window, ctk.CTkToplevel)
     assert isinstance(wca_window, ctk.CTkToplevel)
     stats_window.destroy()
-
     ## non-GUI tests
     fig = wca_window.analysis_exp_whole.plot_percent_areas()
     assert isinstance(fig, matplotlib.figure.Figure), "Whole Class Analysis percent areas did not return a matplotlib figure"
@@ -443,9 +442,7 @@ def test_wca_3():
     assert isinstance(df, pd.DataFrame), "Whole Class Stats did not return a pandas dataframe!"
     facet_grid = wca_window.analysis_exp_whole.plot_heatmap("p_adj")
     assert isinstance(facet_grid.figure, matplotlib.figure.Figure), "Whole Class Analysis statistics heatmap plot did not return a matplotlib figure"
-
     wca_window.destroy()
-
 
 
 ### GUI Analysis tests
@@ -1088,7 +1085,6 @@ def test_load_from_TIFFs():     ## now also handles the loading of the example d
     tiff_proj_dir = f"{FETCH_DIR}/tiff"
     os.mkdir(tiff_proj_dir)
     shutil.copytree(PROJECT_IMAGES_IMG, f"{tiff_proj_dir}/raw")
-    print(tiff_proj_dir)
     image_proc = app.entrypoint.img_entry_func(tiff_proj_dir) 
     image_proc.raw_to_img(0.85)
     assert len(os.listdir(f"{tiff_proj_dir}/images/img")) == 10

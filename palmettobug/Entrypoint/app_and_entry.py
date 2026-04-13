@@ -273,7 +273,7 @@ class EntryPoint(ctk.CTkFrame):
             directory = tk.filedialog.askdirectory()
             if directory == "":
                 return
-
+        print(directory)
         self.master.directory = Path(directory)
         ## This is a check of the entered directory existing:
         try:
@@ -287,6 +287,7 @@ class EntryPoint(ctk.CTkFrame):
         
         if from_mcds is None:
             example_files = os.listdir(self.master.directory / "raw")
+            print(directory)
             extensions = [i[(i.rfind(".") + 1):].lower() for i in example_files]
             if ("mcd" in extensions) and ("tif" not in extensions) and ("tiff" not in extensions):
                 from_mcds = True
@@ -296,6 +297,7 @@ class EntryPoint(ctk.CTkFrame):
                 tk.messagebox.showwarning("Warning!", message = "The /raw sub-folder must contain .mcd or .tiff files, and ONLY .mcd or ONLY .tiff files (not a mixture)!")
                 return
 
+        print(directory)
         Experiment = imc_entrypoint(directory = self.master.directory, 
                                       resolutions = [resX, resY], 
                                       from_mcds = from_mcds)
