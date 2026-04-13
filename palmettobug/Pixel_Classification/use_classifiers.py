@@ -144,14 +144,14 @@ def merge_folder(folder_to_merge: Union[Path, str],
         print('Warning! One of your merging classes == 1. This can create errors when running mode-based cell classification,' 
               'and 1 is preferably reserved as a merging number.')
     if output_folder is None:
-        output_folder = folder_to_merge[:folder_to_merge.rfind("/")] + "/merged_classification_maps"
+        output_folder = f"{folder_to_merge[:folder_to_merge.rfind("/")]}/merged_classification_maps"
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
     class_maps = [i for i in sorted(os.listdir(folder_to_merge)) if i.lower().find(".tif") != -1]
     for i in class_maps:
-        class_map = tf.imread("".join([folder_to_merge,"/",i])).astype('int32')
+        class_map = tf.imread(f"{folder_to_merge}/{i}").astype('int32')
         merged = merge_classes(class_map, merging_table = merging_table)
-        tf.imwrite("".join([output_folder, "/", i]), merged.astype('int32')) 
+        tf.imwrite(f"{output_folder}/{i}, merged.astype('int32')) 
 
 
 def slice_folder(class_to_keep: Union[int, list[int]], 
@@ -227,8 +227,8 @@ def slice_folder(class_to_keep: Union[int, list[int]],
                   "or if a filename was altered so it no longer matches. \n\n"
                   f"This warning can be ignored if this is intentional, files being used = {str(shared)}.")
     for i in shared:
-        class_map = tf.imread("".join([class_map_folder,"/",i])).astype('int')
-        reader =  pot.OMETIFFReader("".join([image_folder,"/",i]))
+        class_map = tf.imread(f"{class_map_folder}/{i}").astype('int')
+        reader =  pot.OMETIFFReader(f"{image_folder}/{i}")
         image, metadata, xml_metadata = reader.read()
         sliced_image = slice_image_by_region(class_to_keep, class_map, image, padding = padding, zero_out = zero_out)
         if len(sliced_image) == 0:
@@ -238,7 +238,7 @@ def slice_folder(class_to_keep: Union[int, list[int]],
             metadata['SizeY'] = sliced_image.shape[2]
             ## for some reason, when dropped all non-class pixels to 0, the size of the files double & display differently in the directory
             writer = pot.OMETIFFWriter(
-                fpath= "".join([output_folder,"/",i]),
+                fpath= f"{output_folder}/{i}",
                 dimension_order='CYX',
                 array=sliced_image,
                 metadata=metadata,
@@ -372,21 +372,21 @@ def mode_classify_folder(mask_folder: Union[Path, str],
         print("warning! the files in the masks and classifier maps folders do not all match! \n"
               f"The files that are present in both folders are the only ones that will be used: \n\n {str(overlapping)}")
 
-    merged_classifier_map_folder = classifier_map_folder[:classifier_map_folder.rfind("/")] + "/merged_classification_maps"
+    merged_classifier_map_folder = f"{classifier_map_folder[:classifier_map_folder.rfind("/")]}/merged_classification_maps"
     if not os.path.exists(merged_classifier_map_folder):
         os.mkdir(merged_classifier_map_folder)
 
     cell_class_df_total = pd.DataFrame()
     for i in overlapping:
-        mask = tf.imread("".join([mask_folder,"/",i])).astype('int')
-        class_map = tf.imread("".join([classifier_map_folder,"/",i])).astype('int')
+        mask = tf.imread(f"{mask_folder}/{i}").astype('int')
+        class_map = tf.imread(f"{classifier_map_folder}/{i}").astype('int')
         output, merged_classifier_mask, cell_class_df = make_cell_classification_mask(mask, 
                                                                                       class_map, 
                                                                                       merging_table = merging_table)
         if merged_classifier_mask is not None:
-            tf.imwrite("".join([merged_classifier_map_folder, "/", i]), merged_classifier_mask.astype('int32')) 
+            tf.imwrite(f"{merged_classifier_map_folder}/{i}", merged_classifier_mask.astype('int32')) 
         cell_class_df_total = pd.concat([cell_class_df_total, cell_class_df], axis = 0)
-        tf.imwrite("".join([output_folder, "/", i]), output.astype('int32'))  
+        tf.imwrite(f"{output_folder}/{i}", output.astype('int32'))  
     return cell_class_df_total 
 
 def make_cell_classification_mask(mask: np.ndarray[Union[float, int]], 
@@ -588,7 +588,7 @@ def secondary_flowsom(mask_folder: Union[Path, str],
 
     if number_of_classes is None:
         for i in classifier_maps:
-            classifier_map = tf.imread("".join([classifier_map_folder,"/",i])).astype("int")
+            classifier_map = tf.imread(f"{classifier_map_folder}/{i}").astype("int")
             if number_of_classes is None:                    ## the first classification map
                 number_of_classes = np.max(classifier_map)    
             if number_of_classes < np.max(classifier_map):
@@ -596,8 +596,8 @@ def secondary_flowsom(mask_folder: Union[Path, str],
 
     counter = 0
     for i in overlapping: 
-        mask = tf.imread("".join([mask_folder,"/",i])).astype("int")
-        classifier_map = tf.imread("".join([classifier_map_folder,"/",i])).astype("int")
+        mask = tf.imread(f"{mask_folder}/{i}").astype("int")
+        classifier_map = tf.imread(f"{classifier_map_folder}/{i}").astype("int")
         mask_probabilities = _find_region_probabilities(mask, classifier_map, number_of_classes = number_of_classes)
         if counter == 0:
             output_array = mask_probabilities.copy()
@@ -673,7 +673,7 @@ def classify_from_secondary_flowsom(mask_folder: Union[Path, str],
     start = 0
     cell_class_list = []
     for j in mesmer_masks:
-        mask = tf.imread("".join([mask_folder,"/",j])).astype('int')   
+        mask = tf.imread(f"{mask_folder}/{j}").astype('int')   
         regionprops = skimage.measure.regionprops(mask)
         end = start + len(regionprops)
         metaclusterings = metaclustering_for_all_cells[start:end]
@@ -683,7 +683,7 @@ def classify_from_secondary_flowsom(mask_folder: Union[Path, str],
             slice = i.image
             mask[box[0]:box[2],box[1]:box[3]][slice] = ii
             cell_class_list.append(ii)
-        tf.imwrite("".join([output_folder, "/", j]), mask.astype('int32'))   
+        tf.imwrite(f"{output_folder}/{j}", mask.astype('int32'))   
 
     cell_class_df = pd.DataFrame()
     cell_class_df['classification'] = cell_class_list  
@@ -770,13 +770,13 @@ def extend_masks_folder(classifier_map_folder: Union[Path, str],
               f"The files that are present in all three folders are the only ones that will be used: \n\n {str(overlapping)}")
 
     for i in overlapping:
-        classifier_mask = tf.imread("".join([classifier_map_folder,"/",i])).astype('int')
-        cell_mask = tf.imread("".join([mask_folder,"/",i])).astype('int')
-        classified_cell_mask = tf.imread("".join([classy_mask_folder,"/",i])).astype('int')
+        classifier_mask = tf.imread(f"{classifier_map_folder}/{i}").astype('int')
+        cell_mask = tf.imread(f"{mask_folder}/{i}").astype('int')
+        classified_cell_mask = tf.imread(f"{classy_mask_folder}/{i}").astype('int')
         merged_class_mask = extend_classifier_masks(classifier_mask, cell_mask, classified_cell_mask, 
                                                     connectivity = connectivity, 
                                                     merge_list = merge_list)
-        tf.imwrite("".join([output_directory_folder,"/",i]), merged_class_mask.astype('int32'))
+        tf.imwrite(f"{output_directory_folder}/{i}", merged_class_mask.astype('int32'))
 
 
 def extend_classifier_masks(classifier_map: np.ndarray[int], 

@@ -19,7 +19,7 @@ if not os.path.exists(FETCH_DIR):
     os.mkdir(FETCH_DIR)
 PROJ_DIRECTORY = f"{FETCH_DIR}/Example_IMC"
 PROJECT_IMAGES_IMG = f"{PROJ_DIRECTORY}/images/img"
-PROJECT_MASKS = f"{PROJECT_IMAGES_IMG}/masks"
+PROJECT_MASKS = f"{PROJ_DIRECTORY}/masks"
 PROJECT_DIR_PANEL = f"{PROJ_DIRECTORY}/panel.csv"
 
 np.random.default_rng(42)
@@ -251,8 +251,8 @@ def test_prediction():
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
 
     images_dir = PROJECT_IMAGES_IMG
-    prediction_paths = ["".join([pixel_class_object.output_directory,"/",i]) for i in sorted(os.listdir(pixel_class_object.output_directory))]  
-    image_paths = ["".join([images_dir,"/",i]) for i in sorted(os.listdir(images_dir))]  
+    prediction_paths = [f"{pixel_class_object.output_directory}/{i}" for i in sorted(os.listdir(pixel_class_object.output_directory))]  
+    image_paths = [f"{images_dir}/{i}" for i in sorted(os.listdir(images_dir))]  
     assert len(prediction_paths) == 10, "There are not 10 px class predictions (one for each image)!"
     assert (tf.imread(prediction_paths[0]).shape == tf.imread(image_paths[0]).shape[1:]), "The X/Y dimensions of the source images and output class maps should be the same!"
     assert (tf.imread(prediction_paths[1]).astype('int') != tf.imread(prediction_paths[1])).sum() == 0, "The pixel class maps shoul be integers!"
