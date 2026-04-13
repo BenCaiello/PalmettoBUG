@@ -347,11 +347,11 @@ def test_launch_bio_labels():
 def test_filter():
     px_use_widgets.filter.filter_list.checkbox_list[0].select()
     px_use_widgets.filter.filter_images()
-    assert len(os.listdir(f"{PROJECT_IMAGES_IMG}/images/img_filtered_on_")) == 10, "Wrong number of images in sliced images folder!"
+    assert len(os.listdir(f"{PROJ_DIRECTORY}/images/img_filtered_on_")) == 10, "Wrong number of images in sliced images folder!"
 
 def test_classify_masks_on_mode():
     name = "lumen_epithelia_laminapropria_expanded_deepcell_masks"
-    run_folder = f"{PROJECT_IMAGES_IMG}/classy_masks/{name}"
+    run_folder = f"{PROJ_DIRECTORY}/classy_masks/{name}"
     output_folder = f"{run_folder}/primary_masks"  
     px_use_widgets.classify_cells.mask_option_menu.configure(variable = ctk.StringVar(value = "expanded_deepcell_masks"))
     px_use_widgets.classify_cells.do_classy_masks()
@@ -366,7 +366,7 @@ def test_classify_masks_on_flowsom():
     secondary_FlowSOM_window = px_use_widgets.classify_cells.do_classy_masks()
     assert isinstance(secondary_FlowSOM_window, ctk.CTkToplevel)
     name = "lumen_epithelia_laminapropria_example_deepcell_masks"
-    run_folder = f"{PROJECT_IMAGES_IMG}/classy_masks/{name}"
+    run_folder = f"{PROJ_DIRECTORY}/classy_masks/{name}"
     classy_fs_output_folder = f"{run_folder}/primary_masks"
     assert len(os.listdir(classy_fs_output_folder)) == 10, "Wrong number of classy masks exported!"
     assert len(pd.read_csv(f"{run_folder}/{name}_cell_classes.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
@@ -381,7 +381,7 @@ def test_secondary_FlowSOM_merge():
         i.configure(variable = ctk.StringVar(value = str(value)))
     secondary_FlowSOM_window.run_labeling()
     name = "lumen_epithelia_laminapropria_example_deepcell_masks"
-    run_folder = f"{PROJECT_IMAGES_IMG}/classy_masks/{name}"
+    run_folder = f"{PROJ_DIRECTORY}/classy_masks/{name}"
     classy_fs_output_folder = f"{run_folder}/secondary_masks"
     #assert len(os.listdir(classy_fs_output_folder)) == 10, "Wrong number of classy masks exported!"
     assert len(pd.read_csv(f"{run_folder}/secondary_cell_classification.csv")) == 36927, 'Wrong number of cells in classy mask .csv!'
