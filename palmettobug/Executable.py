@@ -10,6 +10,11 @@ It also serves as a ``central`` place for modifying / filtering warnings & loggi
 
 import warnings
 
+warnings.filterwarnings("ignore", message = "invalid escape sequence") 
+warnings.filterwarnings("ignore", message = "'shapely.geos' module is deprecated") 
+warnings.filterwarnings("ignore", message = "vert: bool will be deprecated") 
+warnings.filterwarnings("ignore", message = "pkg_resources is deprecated") 
+warnings.filterwarnings("ignore", message = "In the future, the default backend for leiden will be igraph") 
 warnings.filterwarnings("ignore", message = "The legacy Dask DataFrame implementation is deprecated") 
 warnings.filterwarnings("ignore", message = "Transforming to str index")   ## anndata implicit modification warning that is not necessary
 warnings.filterwarnings("ignore", message = "Observation names are not unique")  ## anndata UserWarning that is not necessary

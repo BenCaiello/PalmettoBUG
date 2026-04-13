@@ -120,7 +120,6 @@ def imc_entrypoint(directory: Union[Path, str],
         a palmettobug.ImageAnalysis object
     '''
     directory = Path(directory)
-    print(directory)
     try:
         resolutions[0] = float(resolutions[0])
         resolutions[1] = float(resolutions[1])
@@ -545,10 +544,8 @@ class ImageAnalysis:
                 self.panel = pd.read_csv(read_dir)      
             except FileNotFoundError:
                 raw_dir = Path(self.directory_object.main) / "raw"
-                image_list = sorted(raw_dir.glob("*.tif*"))
-
-                reader_string = f"{self.directory_object.main}/raw/{image_list[0]}"
-                if image_list[0].name.lower().endswith(".ome.tiff"): 
+                reader_string = sorted(raw_dir.glob("*.tif*"))[0]
+                if reader_string.name.lower().endswith(".ome.tiff"): 
                     # when dealing with an .ome.tiff, I'd like to try to recover some useful metadata (only uses first image):
                     reader = pot.OMETIFFReader(reader_string) 
                     img_array, metadata, xml_metadata = reader.read()
