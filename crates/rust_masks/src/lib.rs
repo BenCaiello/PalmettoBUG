@@ -294,7 +294,11 @@ fn find_mode(
 
         // Find maximum frequency
         let max_count = *counts.values().max().unwrap();
-        let mode = counts.iter().filter(|(_, &c)| c == max_count).max_by_key(|(&v, _)| stable_hash(&(v, x, y))).map(|(&v, _)| v).unwrap();
+        let mode = counts.iter()
+                         .filter(|(_, &c)| c == max_count)
+                         .map(|(&v, _)| v)
+                         .max_by_key(|(&v, _)| stable_hash(&(v, x, y)))
+                         .unwrap();
         return mode;
     }
 }
