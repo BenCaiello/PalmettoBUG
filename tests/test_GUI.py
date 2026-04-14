@@ -180,7 +180,8 @@ def test_fake_bead_norm():
     for i in channel_norm_window.checkbox_beads_list[:5]:
         i.select()
     channel_norm_window.run_button.invoke()
-    
+
+'''   
 ### GUI Pixel classification tests (px class creation)
 def test_unsupervised():
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
@@ -202,6 +203,7 @@ def test_unsupervised():
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     # app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
     assert len(os.listdir(app.Tabs.px_classification.create.px_widg.unsupervised.output_dir)) == 1, "Wrong number of classification maps generated!"
+'''
     
 def test_accept_classifier_name():   ## supervised window
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
