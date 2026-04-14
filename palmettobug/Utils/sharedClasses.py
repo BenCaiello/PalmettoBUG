@@ -29,7 +29,7 @@ import logging
 from typing import Union
 import re
 import threading
-from multiprocessing import Process
+import multiprocessing
 
 import numpy as np
 import pandas as pd
@@ -590,13 +590,13 @@ class DirectoryDisplay(ctk.CTkFrame):
                     if parent.napari_launch is not None:
                         parent.napari_launch.run_napari(filepath)
                     else:
-                        p = Process(target = run_napari, args = (image, None))
+                        p = multiprocessing.Process(target = run_napari, args = (image, None))
                         p.start()
                 elif image.dtype == 'int':
                     if parent.napari_launch is not None:
                         parent.napari_launch.run_napari(filepath)
                     else:
-                        p = Process(target = run_napari, args = (np.zeros(image.shape), image))
+                        p = multiprocessing.Process(target = run_napari, args = (np.zeros(image.shape), image))
                         p.start()         
             # if ending in .fcs, convert to DataFrame and display (no metadata?)
             elif identifier == ".fcs":

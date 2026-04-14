@@ -15,7 +15,7 @@ from typing import Union
 import shutil
 import json
 import tkinter as tk
-from multiprocessing import Process
+import multiprocessing
 
 
 import customtkinter as ctk
@@ -788,9 +788,9 @@ class quick_option_dir_disp(DirectoryDisplay):
                     masks = masks.T
                     if masks.shape[0] != image.shape[1]:   ## this check only works if the image X dimensions != image Y dimensions (non-squares)
                         masks = masks.T
-                    p = Process(target = run_napari, args = (image, masks))
+                    p = multiprocessing.Process(target = run_napari, args = (image, masks))
                 else:
-                    p = Process(target = run_napari, args = (input_img.T, None))
+                    p = multiprocessing.Process(target = run_napari, args = (input_img.T, None))
                 p.start()
 
             elif (identifier == ".tiff") and (self.parent.mode == "quick"):
