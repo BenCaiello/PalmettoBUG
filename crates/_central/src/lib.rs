@@ -45,16 +45,6 @@ fn ensure_c_contiguous3_f32(a: &PyReadonlyArray3<f32>) -> PyResult<()> {
 
 // ------------------------- Converters (ndarray-powered) -------------------------
 #[inline]
-fn array2_to_vec2_int32(a: &PyReadonlyArray2<i32>) -> PyResult<Vec<Vec<i32>>> {
-    let view = a.as_array();
-    let mut out = Vec::with_capacity(view.len_of(Axis(0)));
-    for row in view.rows() {
-        out.push(row.to_vec());
-    }
-    Ok(out)
-}
-
-#[inline]
 fn array2_to_vec2_usize(a: &PyReadonlyArray2<usize>) -> PyResult<Vec<Vec<usize>>> {
     let view = a.as_array();
     let mut out = Vec::with_capacity(view.len_of(Axis(0)));
@@ -273,25 +263,25 @@ fn get_gaussian_derivs <'py>(
 #[pyfunction]
 fn mask_boolean_rust<'py>(
     py: Python<'py>,
-    mask1: PyReadonlyArray2<i32>,
-    mask2: PyReadonlyArray2<i32>,
+    mask1: PyReadonlyArray2<usize>,
+    mask2: PyReadonlyArray2<usize>,
     kind: &str,
     object_threshold: usize,
     pixel_threshold: usize,
     re_order: bool
-)  -> PyResult<Bound<'py, PyArray2<i32>>>{
-    let mask1: Vec<Vec<i32>> = array2_to_vec2_int32(&mask1)?;
-    let mask2: Vec<Vec<i32>> = array2_to_vec2_int32(&mask2)?;
+)  -> PyResult<Bound<'py, PyArray2<usize>>>{
+    let mask1: Vec<Vec<usize>> = array2_to_vec2_usize(&mask1)?;
+    let mask2: Vec<Vec<usize>> = array2_to_vec2_usize(&mask2)?;
     
-    let output_mask: Vec<Vec<i32>> = rm::mask_boolean(&mask1, &mask2, kind,
+    let output_mask: Vec<Vec<usize>> = rm::mask_boolean(&mask1, &mask2, kind,
         object_threshold, pixel_threshold, re_order);
 
     let rows = output_mask.len();
     let cols = if rows == 0 { 0 } else { output_mask[0].len() };
     // Flatten row-major
-    let flat: Vec<i32> = output_mask.into_iter().flatten().collect();
+    let flat: Vec<usize> = output_mask.into_iter().flatten().collect();
 
-    let out_array: Array2<i32> =
+    let out_array: Array2<usize> =
         Array2::from_shape_vec((rows, cols), flat)
             .expect("inconsistent row lengths in output");
 
@@ -304,22 +294,22 @@ fn mask_boolean_rust<'py>(
 #[pyfunction]
 fn smooth_isolated_pixels<'py>(
     py: Python<'py>,
-    class_map: PyReadonlyArray2<i32>,
+    class_map: PyReadonlyArray2<usize>,
     class_num: usize,
     threshold: usize,
     search_radius: usize,
     mode_mode: &str,
     fill_in: bool,
     warn: bool,
-) -> PyResult<Bound<'py, PyArray2<i32>>>{
-    let input: Vec<Vec<i32>> = array2_to_vec2_int32(&class_map)?;
-    let output: Vec<Vec<i32>> = rm::smooth_isolated_pixels(input, class_num, threshold, search_radius, mode_mode, fill_in, warn);
+) -> PyResult<Bound<'py, PyArray2<usize>>>{
+    let input: Vec<Vec<usize>> = array2_to_vec2_usize(&class_map)?;
+    let output: Vec<Vec<usize>> = rm::smooth_isolated_pixels(input, class_num, threshold, search_radius, mode_mode, fill_in, warn);
 
     let rows = output.len();
     let cols = if rows == 0 { 0 } else { output[0].len() };
-    let flat: Vec<i32> = output.into_iter().flatten().collect();
+    let flat: Vec<usize> = output.into_iter().flatten().collect();
 
-    let out_array: Array2<i32> =
+    let out_array: Array2<usize> =
         Array2::from_shape_vec((rows, cols), flat)
             .expect("inconsistent row lengths in output");
     let out_array = PyArray2::from_owned_array(py, out_array);

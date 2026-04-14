@@ -1942,7 +1942,7 @@ def smooth_folder(input_folder: Union[Path, str],
         path_to_file = f"{input_folder}/{i}"
         class_map = tf.imread(path_to_file)
         if _RUST_OK:
-            smoothed_img = rm.smooth_isolated_pixels(np.ascontiguousarray(class_map, dtype = np.int32), 
+            smoothed_img = rm.smooth_isolated_pixels(np.ascontiguousarray(class_map, dtype = np.uintp), 
                                               class_num = class_num, 
                                               threshold = threshold, 
                                               search_radius = search_radius,
