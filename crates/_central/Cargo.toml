@@ -1,7 +1,7 @@
 [package]
 name = "_central"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 license = "GPL-3.0-or-later"
 authors = ["PalmettoBUG contributors"]
 description = "PyO3 thin wrapper exposing palmettobug.rust_spaceanova and palmettobug.rust_sup_classifier"
@@ -11,18 +11,18 @@ name = "_central"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.21", features = ["extension-module"] }
+pyo3 = { version = "0.28", features = ["extension-module"] }
 rust_spaceanova = { path = "../rust_spaceanova" }
 rust_sup_classifier = { path = "../rust_sup_classifier" }
 rust_masks = { path = "../rust_masks" }
-numpy = "0.21"
+numpy = "0.28"
 ndarray = "0.16"
 
 # all sub-depencies of lower crates copyied here for the sake of caro-about to find licenses easily (I think)
 rayon = "1.10"
 rand = "0.10"
 rand_pcg = "0.10"
-image = "0.25"
+image = "0.26"
 imageproc = "0.23.0"
 
 [features]
