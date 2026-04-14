@@ -89,14 +89,14 @@ print("The PalmettoBUG package is copyrighted 2024-2025 by the Medical Universit
     "\nabout the licenses and copyright of 3rd party software used in PalmettoBUG itself or in the creation of PalmettoBUG.")
 
 def print_license():
-    license_dir = homedir + "/Assets/LICENSE.txt"
+    license_dir = f"{homedir}/Assets/LICENSE.txt"
     with open(license_dir) as file:
         license = file.read()
     print(license)
 
 
 def print_3rd_party_license_info():
-    license_dir = homedir + "/Assets/Other_License_Details.txt"
+    license_dir = f"{homedir}/Assets/Other_License_Details.txt"
     with open(license_dir) as file:
         license = file.read()
     print(license)

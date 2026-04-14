@@ -46,7 +46,7 @@ def toggle_in_gui():
     global _in_gui
     _in_gui = not _in_gui
 
-def plot_classes(class_map_folder, output_folder, **kwargs):
+def plot_classes(class_map_folder: Union[str, Path], output_folder: Union[str, Path], **kwargs):
     '''
     Allows classy masks and pixel classification outputs to be written as .png files
 
@@ -60,15 +60,15 @@ def plot_classes(class_map_folder, output_folder, **kwargs):
         **kwargs:
             are passed to matplotlib.pyplot.imshow()
     '''
-    class_map_folder = str(class_map_folder)
-    output_folder = str(output_folder)
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
+    class_map_folder = Path(class_map_folder)
+    output_folder = Path(output_folder)
+    output_folder.mkdir(parents=True, exist_ok=True)
+
     class_maps = [i for i in sorted(os.listdir(class_map_folder)) if i.lower().find(".tif") != -1]
-    for i in class_maps:
+    for Path(i) in class_maps:
         px_class = tf.imread(f"{class_map_folder}/{i}").astype('int')
         figure = tf.imshow(px_class, **kwargs)[0]
-        figure.savefig(f"{output_folder}/{i[:-5]}.png", bbox_inches = "tight")
+        figure.savefig(f"{output_folder}/{i.stem}.png", bbox_inches = "tight")
         plt.close()
 
 def merge_classes(classifier_mask: np.ndarray[int], 

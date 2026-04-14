@@ -1142,6 +1142,7 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     class keep_channel_table(ctk.CTkScrollableFrame):
         def __init__(self, master):
             super().__init__(master)
+            self.master = master
             self.panel = master.panel
             self.configure(height = 400, width = 1000)
             features_list = ['GRAD_MAG',
@@ -1435,6 +1436,7 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     class unsup_channel_details_frame(ctk.CTkScrollableFrame):
         def __init__(self, master, classifier_type):
             super().__init__(master)
+            self.master = master
             if classifier_type == "unsupervised":
                 keep_panel = self.master.channel_df[self.master.channel_df['keep'] == 1]
 
@@ -1476,6 +1478,7 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master, seed_dictionary: dict):
         super().__init__(master)
+        self.master = master
 
         label = ctk.CTkLabel(master= self, 
             text = "If the pixel classifier was trained on a different dataset, \n"
@@ -1491,6 +1494,7 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         def __init__(self, master, dictionary: dict):
             super().__init__(master)
             self.dictionary = dictionary
+            self.master = master
             self.configure(height = 300, width = 650)
 
             label_names = ctk.CTkLabel(master = self, text = "Channel Name")
