@@ -12,7 +12,7 @@ fn stable_hash<T: Hash>(t: &T) -> u64 {
 }
 
 
-fn find_unique2(mask: &Vec<Vec<usize>>, max_label: usize) -> Vec<usize> {
+fn find_unique2(mask: &Vec<Vec<i32>>, max_label: i32) -> Vec<i32> {
     let mut seen = vec![false; max_label + 1];
     for &px in mask.iter().flatten() {
         seen[px] = true;
@@ -25,25 +25,25 @@ fn find_unique2(mask: &Vec<Vec<usize>>, max_label: usize) -> Vec<usize> {
 }
 
 pub fn mask_boolean (
-    mask1: &Vec<Vec<usize>>,
-    mask2: &Vec<Vec<usize>>,
+    mask1: &Vec<Vec<i32>>,
+    mask2: &Vec<Vec<i32>>,
     kind: &str,
-    object_threshold: usize,
-    pixel_threshold: usize,
+    object_threshold: i32,
+    pixel_threshold: i32,
     re_order: bool
-) -> Vec<Vec<usize>> {
+) -> Vec<Vec<i32>> {
     
-    let mut output: Vec<Vec<usize>> = mask1.clone();
-    let mask1_flat: Vec<usize> = mask1.iter().flatten().copied().collect();
-    let mask2_flat: Vec<usize> = mask2.iter().flatten().copied().collect();
+    let mut output: Vec<Vec<i32>> = mask1.clone();
+    let mask1_flat: Vec<i32> = mask1.iter().flatten().copied().collect();
+    let mask2_flat: Vec<i32> = mask2.iter().flatten().copied().collect();
 
-    let maximum_mask1: usize = *mask1.iter().flatten().max().unwrap_or(&0);
-    let maximum_mask2: usize = *mask2.iter().flatten().max().unwrap_or(&0);
+    let maximum_mask1: i32 = *mask1.iter().flatten().max().unwrap_or(&0);
+    let maximum_mask2: i32 = *mask2.iter().flatten().max().unwrap_or(&0);
 
-    let mask1_values: Vec<usize> = find_unique2(&mask1, maximum_mask1);
-    let mask2_values: Vec<usize> = find_unique2(&mask2, maximum_mask2);
-    let length_mask1_values: usize = mask1_values.len();
-    let length_mask2_values: usize = mask2_values.len();
+    let mask1_values: Vec<i32> = find_unique2(&mask1, maximum_mask1);
+    let mask2_values: Vec<i32> = find_unique2(&mask2, maximum_mask2);
+    let length_mask1_values: i32 = mask1_values.len();
+    let length_mask2_values: i32 = mask2_values.len();
 
     
 
@@ -56,18 +56,18 @@ pub fn mask_boolean (
     }
 
     // Loops to find overlapping pixels, then overlapping objects
-    let mut px_overlap_array: Vec<Vec<usize>> = vec![vec![0;maximum_mask2 + 1];maximum_mask1 + 1]; // Instatiate an array 
+    let mut px_overlap_array: Vec<Vec<i32>> = vec![vec![0;maximum_mask2 + 1];maximum_mask1 + 1]; // Instatiate an array 
     for (m1,m2) in mask1_flat.iter().zip(mask2_flat.iter()){ // iterate through every pixel
         if (*m1 != 0) && (*m2 != 0){
             px_overlap_array[*m1][*m2] += 1;                     // count overlaps for every mask1 value (will need to ignore 0's later)
         }
     }
 
-    let mut obj_overlap_array: Vec<usize> = vec![0;maximum_mask1 + 1];   // This array serves a dual purpose: first we track object overlaps & check the object threshold, 
+    let mut obj_overlap_array: Vec<i32> = vec![0;maximum_mask1 + 1];   // This array serves a dual purpose: first we track object overlaps & check the object threshold, 
                                                                     // then we store the value to replace pixels in mask1 with:
                                                                     // either the array index if passing the threshold test (restoring the value with itself), 
                                                                     // or 0 if failing the threshold, thereby eliminating the failed mask from the output
-    let mut obj_overlap_array_2: Vec<usize> = vec![0;maximum_mask2 + 1];
+    let mut obj_overlap_array_2: Vec<i32> = vec![0;maximum_mask2 + 1];
 
     for &m1 in mask1_values.iter(){                      // now iterate over every unique value combination to see if they pass the pixel threshold
         for &m2 in mask2_values.iter(){  
@@ -140,10 +140,10 @@ pub fn mask_boolean (
         }
 
         // Build LUT: old label -> new label
-        let increment: usize =
+        let increment: i32 =
             if seen[0] { 0 } else { 1 };
 
-        let mut lut = vec![0usize; max_label + 1];
+        let mut lut = vec![0i32; max_label + 1];
         let mut new_id = increment;
 
         for (label, &exists) in seen.iter().enumerate() {
@@ -165,14 +165,14 @@ pub fn mask_boolean (
 
 
 pub fn smooth_isolated_pixels(
-    mut class_map: Vec<Vec<usize>>,
-    class_num: usize,
-    threshold: usize,
-    search_radius: usize,
+    mut class_map: Vec<Vec<i32>>,
+    class_num: i32,
+    threshold: i32,
+    search_radius: i32,
     mode_mode: &str,
     fill_in: bool,
     warn: bool,
-) -> Vec<Vec<usize>> {
+) -> Vec<Vec<i32>> {
 
     let height = class_map.len();
     let width = class_map[0].len();
@@ -190,7 +190,7 @@ pub fn smooth_isolated_pixels(
         }
     }
 
-    let mut kept = vec![vec![0usize; width]; height];
+    let mut kept = vec![vec![0i32; width]; height];
 
     // --- Phase 1: remove small objects per class
     for class_id in 1..=class_num {
@@ -246,11 +246,11 @@ pub fn smooth_isolated_pixels(
 }
 
 fn find_mode(
-    array: &[Vec<usize>],
-    point: &[usize],
-    mut radius: usize,
+    array: &[Vec<i32>],
+    point: &[i32],
+    mut radius: i32,
     warn: bool,
-) -> usize {
+) -> i32 {
     let height = array.len();
     let width = array[0].len();
 
@@ -269,7 +269,7 @@ fn find_mode(
         let y_min = y.saturating_sub(radius);
         let y_max = (y + radius).min(width - 1);
 
-        let mut counts: HashMap<usize, usize> = HashMap::new();  
+        let mut counts: HashMap<i32, i32> = HashMap::new();  
         for i in x_min..=x_max {
             for j in y_min..=y_max {
                 let v = array[i][j];
@@ -308,8 +308,8 @@ fn find_mode(
 // Written by AI, consciously meant to emulate the behaviour of skimage's remove small objects function
 fn remove_small_objects_binary(
     mask: &Vec<Vec<bool>>,
-    min_size: usize,
-    connectivity: usize,
+    min_size: i32,
+    connectivity: i32,
 ) -> Vec<Vec<bool>> {
 
     let height = mask.len();
@@ -333,7 +333,7 @@ fn remove_small_objects_binary(
 
     let labels = connected_components(&img, conn, Luma([0]));
 
-    let mut counts: HashMap<u32, usize> = HashMap::new();
+    let mut counts: HashMap<u32, i32> = HashMap::new();
     for p in labels.pixels() {
         let label = p.0[0];
         if label != 0 {

@@ -902,11 +902,11 @@ class ImageAnalysis:
                 print(f"Warning! Mask file: {i} did  not have a matching shape between the two folders of masks. Skipping this file!")
             else:
                 if _RUST_OK:
-                    output = rsc.mask_boolean_rust(np.ascontiguousarray(mask1, dtype=np.uint), 
-                                                   np.ascontiguousarray(mask2, dtype=np.uint), 
+                    output = rsc.mask_boolean_rust(np.ascontiguousarray(mask1, dtype=np.int32), 
+                                                   np.ascontiguousarray(mask2, dtype=np.int32), 
                                                    kind = kind, 
-                                                   object_threshold = np.uint(object_threshold), 
-                                                   pixel_threshold = np.uint(pixel_threshold), 
+                                                   object_threshold = np.int32(object_threshold), 
+                                                   pixel_threshold = np.int32(pixel_threshold), 
                                                    re_order = True)
                 else:
                     output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
