@@ -65,7 +65,8 @@ def plot_classes(class_map_folder: Union[str, Path], output_folder: Union[str, P
     output_folder.mkdir(parents=True, exist_ok=True)
 
     class_maps = [i for i in sorted(os.listdir(class_map_folder)) if i.lower().find(".tif") != -1]
-    for Path(i) in class_maps:
+    for i in class_maps:
+        i = Path(i)
         px_class = tf.imread(f"{class_map_folder}/{i}").astype('int')
         figure = tf.imshow(px_class, **kwargs)[0]
         figure.savefig(f"{output_folder}/{i.stem}.png", bbox_inches = "tight")
