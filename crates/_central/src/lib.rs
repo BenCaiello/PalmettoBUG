@@ -351,7 +351,7 @@ fn sep_filter_2d(
     let flat: Vec<f32> = out.into_iter().flatten().collect();
     let arr = Array2::from_shape_vec((h, w), flat)
         .map_err(|e| PyValueError::new_err(format!("shape error: {e}")))?;
-    let py_arr: Py<PyArray2<f32>> = PyArray2::from_owned_array(py, arr);
+    let py_arr = PyArray2::from_owned_array(py, arr);
 
     Ok(py_arr) // Py<PyArray2<f32>>
 }
