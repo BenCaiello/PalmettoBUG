@@ -12,10 +12,9 @@ authors = ["PalmettoBUG contributors"]
 name = "rust_spaceanova"
 
 [dependencies]
-# numpy = "0.21"
-rayon = "1.8"
-rand = "0.8"
-rand_pcg = "0.3"
+rayon = "1.10"
+rand = "0.10"
+rand_pcg = "0.10"
 
 [profile.release]
 codegen-units = 1
