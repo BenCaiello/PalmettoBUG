@@ -155,9 +155,9 @@ fn k_all_at_once_optimized<'py>(
 
     let dict = PyDict::new_bound(py);
     for (key, triple) in out_map {
-        let k_obs = PyArray1::from_vec_bound(py, triple.k_obs);
-        let k_theo = PyArray1::from_vec_bound(py, triple.k_theo);
-        let permacc = PyArray1::from_vec_bound(py, triple.perm_acc);
+        let k_obs = PyArray1::from_vec(py, triple.k_obs);
+        let k_theo = PyArray1::from_vec(py, triple.k_theo);
+        let permacc = PyArray1::from_vec(py, triple.perm_acc);
         dict.set_item(key, (k_obs, k_theo, permacc))?;
     }
 
@@ -269,7 +269,7 @@ fn mask_boolean_rust<'py>(
     object_threshold: usize,
     pixel_threshold: usize,
     re_order: bool
-)  -> PyResult<&'py PyArray2<usize>>{
+)  -> PyResult<Bound<'py, PyArray2<usize>>>{
     let mask1: Vec<Vec<usize>> = array2_to_vec2_usize(&mask1)?;
     let mask2: Vec<Vec<usize>> = array2_to_vec2_usize(&mask2)?;
     
@@ -285,7 +285,7 @@ fn mask_boolean_rust<'py>(
         Array2::from_shape_vec((rows, cols), flat)
             .expect("inconsistent row lengths in output");
 
-    let out_array = PyArray2::from_owned_array(py, out_array);
+    let out_array = PyArray2::from_owned_array_bound(py, out_array);
 
     // Return as a NumPy array bound to `py`
     Ok(out_array)
@@ -301,7 +301,7 @@ fn smooth_isolated_pixels<'py>(
     mode_mode: &str,
     fill_in: bool,
     warn: bool,
-) -> PyResult<&'py PyArray2<usize>>{
+) -> PyResult<Bound<'py, PyArray2<usize>>>{
     let input: Vec<Vec<usize>> = array2_to_vec2_usize(&class_map)?;
     let output: Vec<Vec<usize>> = rm::smooth_isolated_pixels(input, class_num, threshold, search_radius, mode_mode, fill_in, warn);
 
@@ -312,7 +312,7 @@ fn smooth_isolated_pixels<'py>(
     let out_array: Array2<usize> =
         Array2::from_shape_vec((rows, cols), flat)
             .expect("inconsistent row lengths in output");
-    let out_array = PyArray2::from_owned_array(py, out_array);
+    let out_array = PyArray2::from_owned_array_bound(py, out_array);
     Ok(out_array)
 }
 
@@ -323,7 +323,7 @@ fn sep_filter_2d<'py>(
     image: PyReadonlyArray2<'_, f32>,   // H x W
     kernel_x: PyReadonlyArray1<'_, f32>,// W-kernel
     kernel_y: PyReadonlyArray1<'_, f32>,// H-kernel
-) -> PyResult<Py<PyArray2<f32>>> {
+) -> PyResult<Bound<'py, PyArray2<f32>>> {
     // Convert inputs to Rust-owned containers (zero-copy views -> owned Vecs)
     let img2d = image.as_array();
     let img_vec: Vec<Vec<f32>> = img2d
@@ -351,7 +351,7 @@ fn sep_filter_2d<'py>(
     let flat: Vec<f32> = out.into_iter().flatten().collect();
     let arr = Array2::from_shape_vec((h, w), flat)
         .map_err(|e| PyValueError::new_err(format!("shape error: {e}")))?;
-    let py_arr: &PyArray2<f32> = PyArray2::from_owned_array(py, arr);
+    let py_arr: &PyArray2<f32> = PyArray2::from_owned_array_bound(py, arr);
 
     Ok(py_arr.to_owned()) // Py<PyArray2<f32>>
 }
