@@ -125,7 +125,7 @@ fn vec3_to_pyarray3_f32<'py>(
 
     // Build ndarray then hand it to numpy without unsafe memcopy
     let arr = Array3::from_shape_vec((a, b, c), flat).map_err(to_py_err)?;
-    let out = PyArray3::from_owned_array_bound(py, arr);
+    let out = PyArray3::from_owned_array(py, arr);
     Ok(out)
 }
 
@@ -153,7 +153,7 @@ fn k_all_at_once_optimized<'py>(
     )
     .map_err(to_py_err)?;
 
-    let dict = PyDict::new_bound(py);
+    let dict = PyDict::new(py);
     for (key, triple) in out_map {
         let k_obs = PyArray1::from_vec(py, triple.k_obs);
         let k_theo = PyArray1::from_vec(py, triple.k_theo);
@@ -183,7 +183,7 @@ fn all_features_together_rust<'py>(
     // Empty -> (0, H, W)
     let (_c, h, w) = x.as_array().dim();
     if layers.is_empty() {
-        let out = PyArray3::<f32>::zeros_bound(py, (0, h, w), false);
+        let out = PyArray3::<f32>::zeros(py, (0, h, w), false);
         return Ok(out);
     }
 
@@ -221,7 +221,7 @@ fn make_features_rust<'py>(
     // Empty -> (0, H, W)
     let (h, w) = x.as_array().dim();
     if layers.is_empty() {
-        let out = PyArray3::<f32>::zeros_bound(py, (0, h, w), false);
+        let out = PyArray3::<f32>::zeros(py, (0, h, w), false);
         return Ok(out);
     }
 
@@ -252,9 +252,9 @@ fn get_gaussian_derivs <'py>(
     let (g, dg, d2g) = clf::get_gaussian_derivs(sigma);
 
     // Construct NumPy arrays (1D)
-    let g_arr  = PyArray1::from_vec_bound(py, g);
-    let dg_arr = PyArray1::from_vec_bound(py, dg);
-    let d2g_arr= PyArray1::from_vec_bound(py, d2g);
+    let g_arr  = PyArray1::from_vec(py, g);
+    let dg_arr = PyArray1::from_vec(py, dg);
+    let d2g_arr= PyArray1::from_vec(py, d2g);
 
     Ok((g_arr, dg_arr, d2g_arr))
 }
@@ -285,7 +285,7 @@ fn mask_boolean_rust<'py>(
         Array2::from_shape_vec((rows, cols), flat)
             .expect("inconsistent row lengths in output");
 
-    let out_array = PyArray2::from_owned_array_bound(py, out_array);
+    let out_array = PyArray2::from_owned_array(py, out_array);
 
     // Return as a NumPy array bound to `py`
     Ok(out_array)
@@ -312,7 +312,7 @@ fn smooth_isolated_pixels<'py>(
     let out_array: Array2<usize> =
         Array2::from_shape_vec((rows, cols), flat)
             .expect("inconsistent row lengths in output");
-    let out_array = PyArray2::from_owned_array_bound(py, out_array);
+    let out_array = PyArray2::from_owned_array(py, out_array);
     Ok(out_array)
 }
 
@@ -351,7 +351,7 @@ fn sep_filter_2d<'py>(
     let flat: Vec<f32> = out.into_iter().flatten().collect();
     let arr = Array2::from_shape_vec((h, w), flat)
         .map_err(|e| PyValueError::new_err(format!("shape error: {e}")))?;
-    let py_arr: &PyArray2<f32> = PyArray2::from_owned_array_bound(py, arr);
+    let py_arr: &PyArray2<f32> = PyArray2::from_owned_array(py, arr);
 
     Ok(py_arr.to_owned()) // Py<PyArray2<f32>>
 }
@@ -360,18 +360,18 @@ fn sep_filter_2d<'py>(
 #[pymodule]
 fn _central(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     // palmettobug.rust_spaceanova
-    let sa_mod = PyModule::new_bound(py, "rust_spaceanova")?;
+    let sa_mod = PyModule::new(py, "rust_spaceanova")?;
     sa_mod.add_function(wrap_pyfunction!(k_all_at_once_optimized, &sa_mod)?)?;
     m.add_submodule(&sa_mod)?;
 
     // palmettobug.rust_masks
-    let rm_mod = PyModule::new_bound(py, "rust_masks")?;
+    let rm_mod = PyModule::new(py, "rust_masks")?;
     rm_mod.add_function(wrap_pyfunction!(mask_boolean_rust, &rm_mod)?)?;
     rm_mod.add_function(wrap_pyfunction!(smooth_isolated_pixels, &rm_mod)?)?;
     m.add_submodule(&rm_mod)?;
 
     // palmettobug.rust_sup_classifier
-    let clf_mod = PyModule::new_bound(py, "rust_sup_classifier")?;
+    let clf_mod = PyModule::new(py, "rust_sup_classifier")?;
     clf_mod.add_function(wrap_pyfunction!(all_features_together_rust, &clf_mod)?)?;
     clf_mod.add_function(wrap_pyfunction!(make_features_rust, &clf_mod)?)?;
     clf_mod.add_function(wrap_pyfunction!(get_gaussian_derivs, &clf_mod)?)?;
