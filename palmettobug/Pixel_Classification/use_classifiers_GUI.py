@@ -1033,6 +1033,10 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
         if mask.shape[0] != image.shape[1]:
             mask = mask.T
         import multiprocessing
+        
+        if sys.platform == "darwin":
+            multiprocessing.set_start_method("spawn", force=True)
+
         p = multiprocessing.Process(target = run_napari, args = (image, mask))
         p.start()
 

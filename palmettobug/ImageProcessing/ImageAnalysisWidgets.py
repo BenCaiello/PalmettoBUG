@@ -201,6 +201,8 @@ class ImageProcessingWidgets(ctk.CTkFrame):
         self.call_write_panel()
         self.Experiment_object._panel_setup()        
         from multiprocessing import Process
+        if sys.platform == "darwin":
+            multiprocessing.set_start_method("spawn", force=True)
         p = Process(target = launch_denoise_seg_program, args = (str(self.directory), 
                                                                  self.Experiment_object.resolutions))
         p.start()  

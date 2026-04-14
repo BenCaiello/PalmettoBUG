@@ -16,6 +16,7 @@ import json
 import tkinter as tk
 from multiprocessing import Process
 
+
 import customtkinter as ctk
 import pandas as pd
 import numpy as np
@@ -37,7 +38,9 @@ from ..Utils.sharedClasses import (DirectoryDisplay,
                                    warning_window, 
                                    overwrite_approval, 
                                    display_image_button)
-
+                                   
+if sys.platform == "darwin":
+    multiprocessing.set_start_method("spawn", force=True)
 pd.set_option('future.no_silent_downcasting', True)
 
 __all__ = []

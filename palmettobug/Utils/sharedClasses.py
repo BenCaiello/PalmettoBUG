@@ -38,6 +38,9 @@ import napari
 
 from .._vendor import fcsparser
 
+if sys.platform == "darwin":
+    multiprocessing.set_start_method("spawn", force=True)
+
 __all__ = ["run_napari", "TableLaunch_nonGUI"]
 
 homedir = __file__.replace("\\","/")
