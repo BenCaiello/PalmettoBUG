@@ -8,7 +8,7 @@ This file is licensed under the GPL3 license. No significant portion of the code
 
 import os
 import tkinter as tk
-
+import sys
 import customtkinter as ctk
 
 from ..Utils.sharedClasses import (CtkSingletonWindow, 

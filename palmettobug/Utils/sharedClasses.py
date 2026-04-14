@@ -22,6 +22,8 @@ classes used in the GUI itself.
 
 import tkinter as tk
 import os
+import sys
+
 from pathlib import Path
 import logging
 from typing import Union

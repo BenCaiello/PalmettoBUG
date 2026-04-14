@@ -9,6 +9,7 @@ This file is licensed under the GPL3 license. No significant portion of the code
 '''
 
 import os
+import sys
 from pathlib import Path
 from typing import Union
 import shutil
@@ -38,7 +39,7 @@ from ..Utils.sharedClasses import (DirectoryDisplay,
                                    warning_window, 
                                    overwrite_approval, 
                                    display_image_button)
-                                   
+
 if sys.platform == "darwin":
     multiprocessing.set_start_method("spawn", force=True)
 pd.set_option('future.no_silent_downcasting', True)

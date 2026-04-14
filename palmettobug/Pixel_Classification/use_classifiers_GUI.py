@@ -10,6 +10,7 @@ This file is licensed under the GPL3 license. No significant portion of the code
 '''
 
 import os
+import sys
 from pathlib import Path
 import json
 import tkinter as tk
