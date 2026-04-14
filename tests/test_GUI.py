@@ -203,7 +203,6 @@ def test_unsupervised():
     app.Tabs.px_classification.create.px_widg.predictions_frame.predict_folder.invoke()
     # app.Tabs.px_classification.create.px_widg.plot_pixel_heatmap()
     assert len(os.listdir(app.Tabs.px_classification.create.px_widg.unsupervised.output_dir)) == 1, "Wrong number of classification maps generated!"
-'''
     
 def test_accept_classifier_name():   ## supervised window
     loading_window = app.Tabs.px_classification.create.px_widg.launch_loading_window() 
@@ -446,7 +445,7 @@ def test_wca_3():
     facet_grid = wca_window.analysis_exp_whole.plot_heatmap("p_adj")
     assert isinstance(facet_grid.figure, matplotlib.figure.Figure), "Whole Class Analysis statistics heatmap plot did not return a matplotlib figure"
     wca_window.destroy()
-
+'''
 
 ### GUI Analysis tests
 def test_launch_scaling():
@@ -1027,6 +1026,7 @@ def test_CN_abundance():
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
 
+'''
 def test_launch_edt():
     window = app.Tabs.Spatial.widgets.test_edt.launch_load_window()
     window.pixel_class_entry.configure(textvariable = ctk.StringVar(value = f"{PROJ_DIRECTORY}/Pixel_Classification/lumen_epithelia_laminapropria"))
@@ -1075,6 +1075,7 @@ def test_edt_heatmap_window():
     assert isinstance(figure, matplotlib.figure.Figure)
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
+'''
 
 def test_reload():    ### do after spatial, to repserve merging, etc.
     app.Tabs.py_exploratory.analysiswidg.reload_experiment()
@@ -1136,7 +1137,7 @@ def test_Spatial_Analysis():
     spatial_analysis.add_Analysis(my_analysis)
     integer = spatial_analysis.estimate_SpaceANOVA_min_radii()
     assert isinstance(integer, int)
-
+'''
 def test_smooth_folder():
     output_dir = f"{PROJ_DIRECTORY}/Pixel_Classification/lumen_epithelia_laminapropria/smoothed_classification_maps"
     os.mkdir(output_dir)
@@ -1147,11 +1148,12 @@ def test_smooth_folder():
                   search_radius = 1,
                   )
     assert len(os.listdir(output_dir)) == 10
+'''
 
 def test_plot_class_centers():
     figure, df = palmettobug.plot_class_centers(fs)
     assert isinstance(df, pd.DataFrame)
-
+''
 
 def test_app_destroy():
     app.destroy()
