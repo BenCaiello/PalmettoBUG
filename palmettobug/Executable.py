@@ -12,6 +12,7 @@ import warnings
 
 warnings.filterwarnings("ignore", message = "invalid escape sequence") 
 warnings.filterwarnings("ignore", message = "module is deprecated") 
+warnings.filterwarnings("ignore", message = "Sparse CSR tensor support") 
 warnings.filterwarnings("ignore", message = "vert: bool will be deprecated") 
 warnings.filterwarnings("ignore", message = "pkg_resources is deprecated") 
 warnings.filterwarnings("ignore", message = "Deprecated call to")

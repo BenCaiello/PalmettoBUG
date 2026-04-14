@@ -46,10 +46,10 @@ pd.set_option('future.no_silent_downcasting', True)
 
 __all__ = []
 
-PALMETTO_BUG_homedir = __file__.replace("\\","/")
-PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
+PALMETTO_BUG_homedir = Path(__file__)
+PALMETTO_BUG_homedir = PALMETTO_BUG_homedir.parent
 ## do it twice to get up to the top level directory:
-PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))] 
+PALMETTO_BUG_homedir = PALMETTO_BUG_homedir.parent
 
 class Pixel_usage_widgets(ctk.CTkFrame):
 

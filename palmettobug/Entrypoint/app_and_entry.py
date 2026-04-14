@@ -38,11 +38,11 @@ from ..Pixel_Classification.use_classifiers_GUI import Pixel_usage_widgets
 __all__ = ["fetch_CyTOF_example", 
            "fetch_IMC_example"]
 
-homedir = __file__.replace("\\","/")
-homedir = homedir[:(homedir.rfind("/"))]
+HOMEDIR = Path(__file__)
+HOMEDIR = HOMEDIR.parent
 ## do it twice to get up to the top level directory:
-homedir = homedir[:(homedir.rfind("/"))] 
-Theme_link = homedir + '/Assets/theme.txt'
+HOMEDIR = HOMEDIR.parent
+Theme_link = f"{HOMEDIR}/Assets/theme.txt"
 
 class App(ctk.CTk):
     '''
@@ -57,7 +57,7 @@ class App(ctk.CTk):
             toggle_in_gui()
         ctk.set_appearance_mode("dark")
         if sys.platform == "win32":
-            self.iconbitmap(f"{homedir}/Assets/Capture.ico")    ## Thanks to: https://www.freeconvert.com/jpg-to-ico for converting .jpg to 
+            self.iconbitmap(f"{HOMEDIR}/Assets/Capture.ico")    ## Thanks to: https://www.freeconvert.com/jpg-to-ico for converting .jpg to 
                                                                             # .ico file
         with open(Theme_link) as theme:
             self.theme = theme.read()
@@ -66,7 +66,7 @@ class App(ctk.CTk):
         elif (self.theme == "green") or (self.theme == "blue"):
             ctk.set_default_color_theme(self.theme)       ## green and blue are themes bundled with customtkinter (don't require a link)
         else:
-            theme_dir = f"{homedir}/Assets/ctkThemeBuilderThemes/"
+            theme_dir = f"{HOMEDIR}/Assets/ctkThemeBuilderThemes/"
             ctk.set_default_color_theme(f"{theme_dir}{self.theme}.json")
 
         ### The 1200 by 1920 ratio is from the computer I was using to develop this program:
@@ -217,7 +217,7 @@ class EntryPoint(ctk.CTkFrame):
         def __init__(self, master):
             super().__init__(master)
             self.master = master
-            image = Image.open(f"{homedir}/Assets/Capture3.jpg")
+            image = Image.open(f"{HOMEDIR}/Assets/Capture3.jpg")
             self.configure(text = "", image = ctk.CTkImage(image, 
                                             size = (500,500)), 
                                             height = 550, 
@@ -400,7 +400,7 @@ class configGUI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.slider.grid(padx = 5, pady = 5)
         self.slider.set(App_instance.scaling)
 
-        self.theme_dir = f"{homedir}/Assets/ctkThemeBuilderThemes"
+        self.theme_dir = f"{HOMEDIR}/Assets/ctkThemeBuilderThemes"
         to_display = [str(i).replace(".json","").replace("\\","/") for i in Path(self.theme_dir).rglob("*.json")]
         to_display = ["green","blue"] + [i[(i.rfind("/") + 1):] for i in to_display] 
 
@@ -451,7 +451,7 @@ class GPL_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
         super().__init__(master)
         self.alt_license = None
-        license_dir = f"{homedir}/Assets/LICENSE.txt"
+        license_dir = f"{HOMEDIR}/Assets/LICENSE.txt"
         with open(license_dir) as file:
             self.license = file.read()
 
@@ -514,7 +514,7 @@ class GPL_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def display_3rd(self):
         ''''''
         if self.alt_license is None:
-            license_dir = f"{homedir}/Assets/Other_License_Details.txt"
+            license_dir = f"{HOMEDIR}/Assets/Other_License_Details.txt"
             with open(license_dir) as file:
                 self.alt_license = file.read()
         self.button_main_license_text.configure(state = 'normal')

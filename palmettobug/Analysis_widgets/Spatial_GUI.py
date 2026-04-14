@@ -25,11 +25,6 @@ from ..Analysis_functions.SpatialANOVA import SpatialANOVA, plot_spatial_stat_he
 from ..Analysis_functions.SpatialAnalysis import SpatialNeighbors, SpatialEDT
 from .Analysis_GUI import Plot_window_display, MatPlotLib_Display, CLUSTER_NAMES_append_CN, MARKER_CLASSES_append_spatial_edt
 
-homedir = __file__.replace("\\","/")
-homedir = homedir[:(homedir.rfind("/"))]
-## do it twice to get up to the top level directory:
-homedir = homedir[:(homedir.rfind("/"))]  
-
 __all__ = []
 
 CLUSTER_NAMES = ["metaclustering", "merging", "classification", "leiden", "CN"] 

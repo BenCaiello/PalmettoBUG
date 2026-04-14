@@ -20,6 +20,7 @@ FLOWSOM_Python: https://github.com/saeyslab/FlowSOM_Python
 '''
 
 import os
+from pathlib import Path
 from typing import Union
 import tkinter as tk
 import customtkinter as ctk
@@ -37,10 +38,10 @@ from ..Utils.sharedClasses import DirectoryDisplay, CtkSingletonWindow, Analysis
 __all__ = []
 
 
-HOMEDIR = __file__.replace("\\","/")
-HOMEDIR = HOMEDIR[:(HOMEDIR.rfind("/"))]
+HOMEDIR = Path(__file__)
+HOMEDIR = HOMEDIR.parent
 ## do it twice to get up to the top level directory:
-HOMEDIR = HOMEDIR[:(HOMEDIR.rfind("/"))]                         ############## Needed for accessing asset folder for image display
+HOMEDIR = HOMEDIR.parent                       ############## Needed for accessing asset folder for image display
 
 CLUSTER_NAMES = ["metaclustering", "merging", "classification", "leiden"]
 MARKER_CLASSES = ["type","state","none"]

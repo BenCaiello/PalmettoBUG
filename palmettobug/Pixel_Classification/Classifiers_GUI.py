@@ -9,6 +9,7 @@ This file is licensed under the GPL3 license. No significant portion of the code
 '''
 
 import os
+from pathlib import Path
 from typing import Union
 import shutil
 import json
@@ -42,13 +43,12 @@ pd.set_option('future.no_silent_downcasting', True)
 __all__ = []
 
 
-PALMETTO_BUG_homedir = __file__.replace("\\","/")
-PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
+PALMETTO_BUG_homedir = Path(__file__)
+PALMETTO_BUG_homedir = PALMETTO_BUG_homedir.parent
 ## do it twice to get up to the top level directory:
-PALMETTO_BUG_homedir = PALMETTO_BUG_homedir[:(PALMETTO_BUG_homedir.rfind("/"))]
-PALMETTO_BUG_assets_classifier_folder = f"{PALMETTO_BUG_homedir}/Assets/Px_classifiers"
-if not os.path.exists(PALMETTO_BUG_assets_classifier_folder):
-    os.mkdir(PALMETTO_BUG_assets_classifier_folder)
+PALMETTO_BUG_homedir = PALMETTO_BUG_homedir.parent
+PALMETTO_BUG_assets_classifier_folder = PALMETTO_BUG_homedir / "Assets/Px_classifiers"
+PALMETTO_BUG_assets_classifier_folder.mkdir(parents=True, exist_ok=True)
 
 class Pixel_class_widgets(ctk.CTkFrame):
 

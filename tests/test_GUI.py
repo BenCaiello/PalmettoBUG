@@ -1,6 +1,7 @@
 import os
 import shutil
 
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import tifffile as tf
@@ -11,9 +12,9 @@ import customtkinter as ctk
 import palmettobug
 from palmettobug.Entrypoint.app_and_entry import App
 
-HOMEDIR = __file__.replace("\\","/")
-HOMEDIR = HOMEDIR[:(HOMEDIR.rfind("/"))]
-HOMEDIR = HOMEDIR[:(HOMEDIR.rfind("/"))]
+HOMEDIR = Path(__file__)
+HOMEDIR = HOMEDIR.parent
+HOMEDIR = HOMEDIR.parent
 FETCH_DIR = f"{HOMEDIR}/project_folder"
 if not os.path.exists(FETCH_DIR):
     os.mkdir(FETCH_DIR)

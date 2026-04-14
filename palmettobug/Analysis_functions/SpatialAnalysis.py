@@ -1293,7 +1293,9 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         var.index = var['antigen']
         new_anndata = ann.AnnData(final_array, var = var)
         if leiden_or_flowsom.lower() == "flowsom":
+            warnings.filterwarnings("ignore", message = "From 0.4 .update() will not pull")
             self.neighbors_flowsom = FlowSOM(new_anndata, seed = seed, n_clusters = n_clusters, **kwargs) 
+            warnings.filterwarnings("default", message = "From 0.4 .update() will not pull")
             self.exp.data.obs['CN'] = list(self.neighbors_flowsom.get_cell_data().obs['metaclustering'])
             self.exp.data.obs['CN'] = self.exp.data.obs['CN'].astype('int') + 1
             figure = self._plot_stars_CNs()
