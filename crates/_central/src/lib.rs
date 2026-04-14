@@ -353,7 +353,7 @@ fn sep_filter_2d(
         .map_err(|e| PyValueError::new_err(format!("shape error: {e}")))?;
     let py_arr = PyArray2::from_owned_array(py, arr);
 
-    Ok(py_arr) // Py<PyArray2<f32>>
+    Ok(py_arr.into()) // Py<PyArray2<f32>>
 }
 
 
