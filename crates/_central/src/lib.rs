@@ -318,12 +318,12 @@ fn smooth_isolated_pixels<'py>(
 
 
 #[pyfunction]
-fn sep_filter_2d<'py>(
-    py: Python<'py>,
-    image: PyReadonlyArray2<'_, f32>,   // H x W
-    kernel_x: PyReadonlyArray1<'_, f32>,// W-kernel
-    kernel_y: PyReadonlyArray1<'_, f32>,// H-kernel
-) -> PyResult<Bound<'py, PyArray2<f32>>> {
+fn sep_filter_2d(
+    py: Python,
+    image: PyReadonlyArray2<f32>,   // H x W
+    kernel_x: PyReadonlyArray1<f32>,// W-kernel
+    kernel_y: PyReadonlyArray1<f32>,// H-kernel
+) -> PyResult<PyArray2<f32>> {
     // Convert inputs to Rust-owned containers (zero-copy views -> owned Vecs)
     let img2d = image.as_array();
     let img_vec: Vec<Vec<f32>> = img2d
