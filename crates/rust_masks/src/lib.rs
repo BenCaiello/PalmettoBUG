@@ -297,7 +297,7 @@ fn find_mode(
         let mode = counts.iter()
                          .filter(|(_, &c)| c == max_count)
                          .map(|(&v, _)| v)
-                         .max_by_key(|(&v, _)| stable_hash(&(v, x, y)))
+                         .max_by_key(|&v| stable_hash(&(v, x, y)))
                          .unwrap();
         return mode;
     }
