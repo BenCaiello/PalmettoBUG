@@ -824,8 +824,7 @@ class quick_option_dir_disp(DirectoryDisplay):
 
 class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
-        super().__init__()
-        self.master = master
+        super().__init__(master)
         label = ctk.CTkLabel(master = self, 
             text = "To Overwrite a Prior Classifier -- enter the same name \n"
                     "then create the same type (supervised / unsupervised) as the classifier to be overwritten")
@@ -942,7 +941,6 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     class load_project_frame(ctk.CTkFrame):
         def __init__(self, master):
             super().__init__(master)
-            self.master = master
             label = ctk.CTkLabel(master = self, text = "Selecting automatically loads \n (re-loaded unsupervised classifiers cannot predict):")
             label.grid(row = 0, column = 0, padx = 3, pady = 3)
 
@@ -964,7 +962,6 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     class load_or_save(ctk.CTkFrame):
         def __init__(self, master, higher):
             super().__init__(master)
-            self.master = master
             self.configure(height = 200, width = 250)
 
             label = ctk.CTkLabel(self, text = "Load a Pixel Classifier \n From PalmettoBUG Assets:")
@@ -977,8 +974,7 @@ class loading_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
 class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
-        super().__init__()
-        self.master = master
+        super().__init__(master)
         self.title("Select Options for Unsupervised FlowSOM-based Pixel Classifier")
         self.additional_features = False
         self.panel = pd.read_csv(f"{self.master.main_directory}/panel.csv").drop(["channel", "segmentation"], axis = 1)
@@ -1142,7 +1138,6 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     class keep_channel_table(ctk.CTkScrollableFrame):
         def __init__(self, master):
             super().__init__(master)
-            self.master = master
             self.panel = master.panel
             self.configure(height = 400, width = 1000)
             features_list = ['GRAD_MAG',
@@ -1210,7 +1205,6 @@ class unsupervised_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         self.title("Load a Pixel Classifier from Program Assets")
 
         label =  ctk.CTkLabel(master = self, text = "Select a Classifier to load:")
@@ -1282,7 +1276,6 @@ class load_from_assets_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
         super().__init__(master)
-        self.master = master
         if master.classifier_type == "supervised":
             self.setup_supervised()
         elif master.classifier_type == "unsupervised":
@@ -1314,7 +1307,6 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     class channel_frame(ctk.CTkScrollableFrame):
         def __init__(self, master):
             super().__init__(master)
-            self.master = master
             classifier_json_dir = self.master.dictionary
             channel_label = ctk.CTkButton(master = self, text = "Channel Name : Channel Number")
             channel_label.grid(column = 0, row = 0, padx = 3, pady = 3, sticky = "nsew")
@@ -1328,7 +1320,6 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     class Feature_frame(ctk.CTkFrame):
         def __init__(self, master):
             super().__init__(master)
-            self.master = master
             classifier_json_dir = self.master.dictionary
             features_label = ctk.CTkButton(master = self, text = "Features List:")
             features_label.grid(column = 0, row = 0, padx = 3, pady = 3, sticky = "nsew")
@@ -1342,7 +1333,6 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     class sigma_frame(ctk.CTkFrame):
         def __init__(self, master):
             super().__init__(master)
-            self.master = master
             classifier_json_dir = self.master.dictionary
 
             sigma_label = ctk.CTkButton(master = self, text = "Sigmas:")
@@ -1357,7 +1347,6 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     class classes_frame(ctk.CTkFrame):
         def __init__(self, master):
             super().__init__(master)
-            self.master = master
             classifier_json_dir = self.master.dictionary
 
             channel_label = ctk.CTkButton(master = self, text = "Class Number : Class Label")
@@ -1372,7 +1361,6 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     class advanced_frame(ctk.CTkFrame):
         def __init__(self, master):
             super().__init__(master)
-            self.master = master
             classifier_json_dir = self.master.dictionary
 
             label0 = ctk.CTkButton(master = self, text = "Advanced feature settings:")
@@ -1436,7 +1424,6 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     class unsup_channel_details_frame(ctk.CTkScrollableFrame):
         def __init__(self, master, classifier_type):
             super().__init__(master)
-            self.master = master
             if classifier_type == "unsupervised":
                 keep_panel = self.master.channel_df[self.master.channel_df['keep'] == 1]
 
@@ -1478,7 +1465,6 @@ class detail_display_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master, seed_dictionary: dict):
         super().__init__(master)
-        self.master = master
 
         label = ctk.CTkLabel(master= self, 
             text = "If the pixel classifier was trained on a different dataset, \n"
@@ -1494,7 +1480,6 @@ class check_channels_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         def __init__(self, master, dictionary: dict):
             super().__init__(master)
             self.dictionary = dictionary
-            self.master = master
             self.configure(height = 300, width = 650)
 
             label_names = ctk.CTkLabel(master = self, text = "Channel Name")

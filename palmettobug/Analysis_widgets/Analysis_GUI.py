@@ -631,7 +631,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def refresh2(self, enter = ""):
         try:
-            list_of_saved_classifiers = [i for i in sorted(os.listdir(self.classy_dir)) if i.find(".") == -1]
+            list_of_saved_classifiers = [i.replace("\\","/") for i in sorted(os.listdir(self.classy_dir)) if i.find(".") == -1]
             all_classifications = []
             for i in list_of_saved_classifiers:
                 list_of_classifications = [f"{self.classy_dir}/{i}/{i}_cell_classes.csv",

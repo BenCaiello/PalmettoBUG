@@ -16,7 +16,7 @@ rust_spaceanova = { path = "../rust_spaceanova" }
 rust_sup_classifier = { path = "../rust_sup_classifier" }
 rust_masks = { path = "../rust_masks" }
 numpy = "0.21"
-ndarray = "0.15"
+ndarray = "0.16"
 
 # all sub-depencies of lower crates copyied here for the sake of caro-about to find licenses easily (I think)
 rayon = "1.8"

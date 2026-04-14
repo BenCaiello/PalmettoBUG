@@ -4166,12 +4166,12 @@ class Analysis:
                 the classy masks & their corresponding labels.
         '''
         # Step 0: set up naming & directory
-        analyses_folder = self.directory[:self.directory.rfind("/")]
-        interim = analyses_folder[:analyses_folder.rfind("/")]
-        classy_mask_folder = f"{interim[:interim.rfind('/')]}/classy_masks"
+        analyses_folder = Path(self.directory).parent
+        interim = analyses_folder.parent
+        classy_mask_folder = f"{interim.parent}/classy_masks"
         if len(identifier) > 0:
             identifier = f"_{identifier}"
-        name = f'{clustering}_{self.input_mask_folder[(self.input_mask_folder.rfind("/") + 1):]}{identifier}'
+        name = f'{clustering}_{Path(self.input_mask_folder).name}{identifier}'
         destination_folder = f"{classy_mask_folder}/{name}"
         if not os.path.exists(destination_folder):
             os.mkdir(destination_folder)
