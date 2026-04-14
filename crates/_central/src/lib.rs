@@ -276,8 +276,8 @@ fn mask_boolean_rust<'py>(
     mask1: PyReadonlyArray2<i32>,
     mask2: PyReadonlyArray2<i32>,
     kind: &str,
-    object_threshold: i32,
-    pixel_threshold: i32,
+    object_threshold: usize,
+    pixel_threshold: usize,
     re_order: bool
 )  -> PyResult<Bound<'py, PyArray2<i32>>>{
     let mask1: Vec<Vec<i32>> = array2_to_vec2_int32(&mask1)?;
@@ -305,9 +305,9 @@ fn mask_boolean_rust<'py>(
 fn smooth_isolated_pixels<'py>(
     py: Python<'py>,
     class_map: PyReadonlyArray2<i32>,
-    class_num: i32,
-    threshold: i32,
-    search_radius: i32,
+    class_num: usize,
+    threshold: usize,
+    search_radius: usize,
     mode_mode: &str,
     fill_in: bool,
     warn: bool,

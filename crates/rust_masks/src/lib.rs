@@ -12,7 +12,7 @@ fn stable_hash<T: Hash>(t: &T) -> u64 {
 }
 
 
-fn find_unique2(mask: &Vec<Vec<i32>>, max_label: i32) -> Vec<i32> {
+fn find_unique2(mask: &Vec<Vec<i32>>, max_label: usize) -> Vec<i32> {
     let mut seen = vec![false; max_label + 1];
     for &px in mask.iter().flatten() {
         seen[px] = true;
@@ -28,8 +28,8 @@ pub fn mask_boolean (
     mask1: &Vec<Vec<i32>>,
     mask2: &Vec<Vec<i32>>,
     kind: &str,
-    object_threshold: i32,
-    pixel_threshold: i32,
+    object_threshold: usize,
+    pixel_threshold: usize,
     re_order: bool
 ) -> Vec<Vec<i32>> {
     
@@ -42,8 +42,8 @@ pub fn mask_boolean (
 
     let mask1_values: Vec<i32> = find_unique2(&mask1, maximum_mask1);
     let mask2_values: Vec<i32> = find_unique2(&mask2, maximum_mask2);
-    let length_mask1_values: i32 = mask1_values.len();
-    let length_mask2_values: i32 = mask2_values.len();
+    let length_mask1_values: usize = mask1_values.len();
+    let length_mask2_values: usize = mask2_values.len();
 
     
 
@@ -140,10 +140,10 @@ pub fn mask_boolean (
         }
 
         // Build LUT: old label -> new label
-        let increment: i32 =
+        let increment: usize =
             if seen[0] { 0 } else { 1 };
 
-        let mut lut = vec![0i32; max_label + 1];
+        let mut lut = vec![0usize; max_label + 1];
         let mut new_id = increment;
 
         for (label, &exists) in seen.iter().enumerate() {
@@ -166,9 +166,9 @@ pub fn mask_boolean (
 
 pub fn smooth_isolated_pixels(
     mut class_map: Vec<Vec<i32>>,
-    class_num: i32,
-    threshold: i32,
-    search_radius: i32,
+    class_num: usize,
+    threshold: usize,
+    search_radius: usize,
     mode_mode: &str,
     fill_in: bool,
     warn: bool,
@@ -190,7 +190,7 @@ pub fn smooth_isolated_pixels(
         }
     }
 
-    let mut kept = vec![vec![0i32; width]; height];
+    let mut kept = vec![vec![0usize; width]; height];
 
     // --- Phase 1: remove small objects per class
     for class_id in 1..=class_num {
@@ -248,7 +248,7 @@ pub fn smooth_isolated_pixels(
 fn find_mode(
     array: &[Vec<i32>],
     point: &[i32],
-    mut radius: i32,
+    mut radius: usize,
     warn: bool,
 ) -> i32 {
     let height = array.len();
@@ -308,8 +308,8 @@ fn find_mode(
 // Written by AI, consciously meant to emulate the behaviour of skimage's remove small objects function
 fn remove_small_objects_binary(
     mask: &Vec<Vec<bool>>,
-    min_size: i32,
-    connectivity: i32,
+    min_size: usize,
+    connectivity: usize,
 ) -> Vec<Vec<bool>> {
 
     let height = mask.len();
