@@ -132,12 +132,11 @@ class SpatialANOVA():
         self.data_table[self.alt_N] = self.data_table[self.alt_N].astype('str')
         output_directory = str(output_directory)
         self.output_dir = output_directory
-        if not os.path.exists(output_directory):
-            os.mkdir(output_directory)
-        if not os.path.exists(f"{output_directory}/cell_maps"):
-            os.mkdir(f"{output_directory}/cell_maps")
-        if not os.path.exists(f"{output_directory}/Functional_plots"):
-            os.mkdir(f"{output_directory}/Functional_plots")
+        
+        os.makedirs(output_directory, exist_ok = True)
+        os.makedirs(f"{output_directory}/cell_maps", exist_ok = True)
+        os.makedirs(f"{output_directory}/Functional_plots", exist_ok = True)
+
     
     def init_analysis(self, analysis, output_directory, cellType_key = None):
         '''
@@ -160,12 +159,11 @@ class SpatialANOVA():
 
         output_directory = str(output_directory)
         self.output_dir = output_directory
-        if not os.path.exists(output_directory):
-            os.mkdir(output_directory)
-        if not os.path.exists(f"{output_directory}/cell_maps"):
-            os.mkdir(f"{output_directory}/cell_maps")
-        if not os.path.exists(f"{output_directory}/Functional_plots"):
-            os.mkdir(f"{output_directory}/Functional_plots")
+
+        os.makedirs(output_directory, exist_ok = True)
+        os.makedirs(f"{output_directory}/cell_maps", exist_ok = True)
+        os.makedirs(f"{output_directory}/Functional_plots", exist_ok = True)
+
 
     def _retrieve_data_table(self):
         ''''''
@@ -938,8 +936,8 @@ class SpatialANOVA():
 
         if write is False:
             output_directory = None
-        elif not os.path.exists(output_directory):
-            os.mkdir(output_directory)
+        else:
+            os.makedirs(output_directory, exist_ok = True)
 
         fig_list = []
         for comparison in comparison_list:
@@ -1083,8 +1081,8 @@ class SpatialANOVA():
 
         if write is False:
             output_directory = None
-        elif not os.path.exists(output_directory):
-            os.mkdir(output_directory)
+        else:
+            os.makedirs(output_directory, exist_ok = True)
         
         area = np.array(self.areas)
         roi_areas = list(self.filenames.unique())

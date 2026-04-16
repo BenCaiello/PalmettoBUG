@@ -796,8 +796,8 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                 bio_dict[i] = ii
             bio_dict['1'] = 'unassigned'
             
-            if not os.path.exists(output_folder):
-                os.mkdir(output_folder)
+            os.makedirs(output_folder, exist_ok = True)
+
             output_folder = f"{output_folder}/primary_masks"
 
             self.classy_mask_name = f'{self.master.name}_{self.mask_option_menu.get()}'
@@ -826,9 +826,8 @@ class Pixel_usage_widgets(ctk.CTkFrame):
                     message = "XY dimensions, number of clusters, training iterations, and random seed must all be integers, \nbut one of the provided values was not an integer!"
                     tk.messagebox.showwarning("Warning!", message = message)
                     return
-                
-                if not os.path.exists(f"{self.master.active_classifier_dir}/merged_classification_maps"):
-                    os.mkdir(f"{self.master.active_classifier_dir}/merged_classification_maps")
+
+                os.makedirs(f"{self.master.active_classifier_dir}/merged_classification_maps", exist_ok = True)
                 
                 class_maps = [i for i in sorted(os.listdir(classifier_masks_folder)) if i.lower().find(".tif") != -1]
                 for i in class_maps:
@@ -912,9 +911,8 @@ class RegionMeasurement(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         experiment_class.int_opt = self.intensity_options.get() 
 
         output_dir = f"{self.master.active_classifier_dir}/Whole_class_analysis" 
-        
-        if not os.path.exists(output_dir):
-            os.mkdir(output_dir)
+
+        os.makedirs(output_dir, exist_ok = True)
 
         experiment_class.make_segmentation_measurements(re_do = self.re_do.get(), 
                                         input_img_folder = (f"{self.master.Experiment_object.directory_object.img_dir}/{self.image_folder.get()}"),
@@ -1093,8 +1091,8 @@ class Secondary_FlowSOM_Analysis_window(ctk.CTkToplevel, metaclass = CtkSingleto
 
         image_path_list = [f"{self.master.output_folder}/{i}"  for i in sorted(os.listdir(self.master.output_folder)) if i.lower().find(".tif") != -1]
         write_path_list = [f"{one_folder_up}/secondary_masks/{i}"  for i in sorted(os.listdir(self.master.output_folder)) if i.lower().find(".tif") != -1]
-        if not os.path.exists(f"{one_folder_up}/secondary_masks/"):
-            os.mkdir(f"{one_folder_up}/secondary_masks/")
+
+        os.makedirs(f"{one_folder_up}/secondary_masks/", exist_ok = True)
 
         for i,ii in zip(image_path_list, write_path_list):
             mask = tf.imread(i).astype('int32')
@@ -1470,8 +1468,7 @@ class classes_as_png_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 path_to_folder = f"{path_to_classy_mask}/{choice}"
 
         path_to_ouput = f"{path_to_folder}_PNG_conversion"
-        if not os.path.exists(path_to_ouput):
-            os.mkdir(path_to_ouput)
+        os.makedirs(path_to_ouput, exist_ok = True)
 
         ## Step 2: convert folder & write png's to a parallel folder to the original (with _PNG appended to the name or somesuch)
         if self.checkbox.get():

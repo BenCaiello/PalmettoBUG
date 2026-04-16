@@ -187,8 +187,8 @@ class SupervisedClassifier:
             return
             
         self._px_dir =  f"{self._homedir}/Pixel_Classification"
-        if not os.path.exists(self._px_dir):
-            os.mkdir(self._px_dir)
+        os.makedirs(self._px_dir, exist_ok = True)
+
 
     def _setup_classifier_directory(self, 
                                     classifier_name: Union[str, None] = None, 
@@ -217,14 +217,12 @@ class SupervisedClassifier:
         
         self.classifier_dir = f"{self._px_dir}{classifier_name}"
         self.output_directory = f"{self.classifier_dir}/classification_maps"
-        if not os.path.exists(self.classifier_dir):
-            os.mkdir(self.classifier_dir)
-        if not os.path.exists(self.output_directory):
-            os.mkdir(self.output_directory)
+        os.makedirs(self.classifier_dir, exist_ok = True)
+        os.makedirs(self.output_directory, exist_ok = True)
 
-        self.classifier_training_labels = f"{self._px_dir}{classifier_name}/training_labels"   
-        if not os.path.exists(self.classifier_training_labels):
-            os.mkdir(self.classifier_training_labels)
+        self.classifier_training_labels = f"{self._px_dir}{classifier_name}/training_labels" 
+        os.makedirs(self.classifier_training_labels, exist_ok = True)  
+
 
     def setup_classifier(self, 
                          classifier_name: str, 
@@ -1086,15 +1084,12 @@ class UnsupervisedClassifier():
             print("Error! Home Directory does not exist!")
             return
         self._px_dir = f"{self._homedir}/Pixel_Classification"
-        if not os.path.exists(self._px_dir):
-            os.mkdir(self._px_dir)   
+        os.makedirs(self._px_dir, exist_ok = True)
 
         self.classifier_dir = f"{self._px_dir}/{classifier_name}"
         self.output_dir = f"{self.classifier_dir}/classification_maps"
-        if not os.path.exists(self.classifier_dir):
-            os.mkdir(self.classifier_dir)
-        if not os.path.exists(self.output_dir):
-            os.mkdir(self.output_dir)
+        os.makedirs(self.classifier_dir, exist_ok = True)
+        os.makedirs(self.output_dir, exist_ok = True)
 
     def setup_and_train(self, 
                         img_directory: Union[Path, str], 
@@ -1317,8 +1312,7 @@ class UnsupervisedClassifier():
             output_directory = self.output_dir
         else:
             output_directory = str(output_folder)
-        if not os.path.exists(output_directory):
-            os.mkdir(output_directory)
+        os.makedirs(output_directory, exist_ok = True)
 
         list_of_images = [i for i in sorted(os.listdir(img_directory)) if i.lower().find(".tif") != -1]
         for i in list_of_images:
@@ -2112,8 +2106,8 @@ def segment_class_map_folder(pixel_classifier_directory: Union[Path, str],
     '''
     pixel_classifier_directory = str(pixel_classifier_directory)
     output_folder = str(output_folder)
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
+    os.makedirs(output_folder, exist_ok = True)
+    
     class_map_names = [i for i in sorted(os.listdir(pixel_classifier_directory)) if i.lower().find(".tif") != -1]
     class_maps_paths = [f"{pixel_classifier_directory}/{i}" for i in sorted(os.listdir(pixel_classifier_directory)) if i.lower().find(".tif") != -1]
     for i, ii in zip(class_map_names, class_maps_paths):

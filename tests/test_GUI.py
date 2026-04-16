@@ -16,8 +16,8 @@ HOMEDIR = Path(__file__)
 HOMEDIR = HOMEDIR.parent
 HOMEDIR = HOMEDIR.parent
 FETCH_DIR = f"{HOMEDIR}/project_folder"
-if not os.path.exists(FETCH_DIR):
-    os.mkdir(FETCH_DIR)
+os.makedirs(FETCH_DIR, exist_ok = True)
+
 PROJ_DIRECTORY = f"{FETCH_DIR}/Example_IMC"
 PROJECT_IMAGES_IMG = f"{PROJ_DIRECTORY}/images/img"
 PROJECT_MASKS = f"{PROJ_DIRECTORY}/masks"

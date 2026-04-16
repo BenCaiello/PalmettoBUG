@@ -132,8 +132,8 @@ class Pixel_class_widgets(ctk.CTkFrame):
         assets_path = f"{new_dir}/{self.name}.json"
         details_path = f"{new_dir}/{self.name}_details.json"
         destination = f"{self.classifier_dir}/{self.name}/"
-        if not os.path.exists(new_dir):
-            os.mkdir(new_dir)
+        os.makedirs(new_dir, exist_ok = True)
+
         ## shutil copy over the classifier dictionaries to assets:
         shutil.copyfile((f"{destination}{self.name}.json"), assets_path)
         shutil.copyfile((f"{destination}{self.name}_details.json"), details_path)
@@ -597,8 +597,8 @@ class Pixel_class_widgets(ctk.CTkFrame):
             if not overwrite_approval(output_folder, file_or_folder = "folder"):
                 return
             
-            if not os.path.exists(output_folder):
-                os.mkdir(output_folder)
+            os.makedirs(output_folder, exist_ok = True)
+       
             segment_class_map_folder(input_folder, 
                                      output_folder, 
                                      threshold = threshold, 

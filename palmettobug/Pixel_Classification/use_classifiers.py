@@ -146,8 +146,8 @@ def merge_folder(folder_to_merge: Union[Path, str],
               'and 1 is preferably reserved as a merging number.')
     if output_folder is None:
         output_folder = f"{folder_to_merge[:folder_to_merge.rfind('/')]}/merged_classification_maps"
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
+    os.makedirs(output_folder, exist_ok = True)
+    
     class_maps = [i for i in sorted(os.listdir(folder_to_merge)) if i.lower().find(".tif") != -1]
     for i in class_maps:
         class_map = tf.imread(f"{folder_to_merge}/{i}").astype('int32')
@@ -205,8 +205,8 @@ def slice_folder(class_to_keep: Union[int, list[int]],
     image_folder = str(image_folder)
     output_folder = str(output_folder)
 
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
+    os.makedirs(output_folder, exist_ok = True)
+
     classifier_maps = [i for i in sorted(os.listdir(class_map_folder)) if i.lower().find(".tif") != -1]
     images = [i for i in sorted(os.listdir(image_folder)) if i.lower().find(".tif") != -1]
     shared = [i for i in images if i in classifier_maps]
@@ -359,8 +359,8 @@ def mode_classify_folder(mask_folder: Union[Path, str],
     mask_folder = str(mask_folder)
     classifier_map_folder = str(classifier_map_folder)
     output_folder = str(output_folder)
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
+
+    os.makedirs(output_folder, exist_ok = True)
     
     ## prevent unintentional overwriting of variables outside the function:
     masks = [i for i in sorted(os.listdir(mask_folder)) if i.lower().find(".tif") != -1]
@@ -374,8 +374,8 @@ def mode_classify_folder(mask_folder: Union[Path, str],
               f"The files that are present in both folders are the only ones that will be used: \n\n {str(overlapping)}")
 
     merged_classifier_map_folder = f"{classifier_map_folder[:classifier_map_folder.rfind('/')]}/merged_classification_maps"
-    if not os.path.exists(merged_classifier_map_folder):
-        os.mkdir(merged_classifier_map_folder)
+
+    os.makedirs(merged_classifier_map_folder, exist_ok = True)
 
     cell_class_df_total = pd.DataFrame()
     for i in overlapping:
@@ -664,8 +664,7 @@ def classify_from_secondary_flowsom(mask_folder: Union[Path, str],
     '''
     mask_folder = str(mask_folder)
     output_folder = str(output_folder)
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
+    os.makedirs(output_folder, exist_ok = True)
     
     ## prevent unintentional overwriting of variables outside the function:
     mesmer_masks = [i for i in sorted(os.listdir(mask_folder)) if i.lower().find(".tif") != -1]
@@ -751,8 +750,7 @@ def extend_masks_folder(classifier_map_folder: Union[Path, str],
     mask_folder = str(mask_folder)
     classy_mask_folder = str(classy_mask_folder)
     output_directory_folder = str(output_directory_folder)
-    if not os.path.exists(output_directory_folder):
-        os.mkdir(output_directory_folder)
+    os.makedirs(output_directory_folder, exist_ok = True)
 
     mesmer_masks = [i for i in sorted(os.listdir(mask_folder)) if i.lower().find(".tif") != -1]
     classifier_masks = [i for i in sorted(os.listdir(classifier_map_folder)) if i.lower().find(".tif") != -1]

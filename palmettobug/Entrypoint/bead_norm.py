@@ -173,18 +173,18 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
     to_normalize_fcs_folder = str(to_normalize_fcs_folder)
     output_folder = str(output_folder)
 
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
+    os.makedirs(output_folder, exist_ok = True)
+
     output_beads = f"{output_folder}/normalized_beads"
     output_no_beads = f"{output_folder}/normalized"
-    if not os.path.exists(output_beads):
-        os.mkdir(output_beads)
-    if not os.path.exists(output_no_beads):
-        os.mkdir(output_no_beads)
+
+    os.makedirs(output_beads, exist_ok = True)
+    os.makedirs(output_no_beads, exist_ok = True)
+
     if include_figures is True:
         output_figures = output_folder + "/normalization_figures"
-        if not os.path.exists(output_figures):
-            os.mkdir(output_figures)
+        os.makedirs(output_figures, exist_ok = True)
+        
     beads_fcsS = [f"{bead_fcs_folder}/{i}" for i in sorted(os.listdir(bead_fcs_folder)) if i.lower().find(".fcs") != -1] 
     to_normalize_fcsS = [f"{to_normalize_fcs_folder}/{i}" for i in sorted(os.listdir(to_normalize_fcs_folder)) if i.lower().find(".fcs") != -1]
     for i,ii in zip(beads_fcsS, to_normalize_fcsS):

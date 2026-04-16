@@ -227,8 +227,9 @@ class Analysis_py_widgets(ctk.CTkFrame):
             return
         directory  = directory.replace("\\" , "/")
         Analysis_directory = f"{directory[:directory.rfind('/')]}/Analysis_loaded_from_{directory[directory.rfind('/') + 1 : -4]}"
-        if not os.path.exists(Analysis_directory):
-            os.mkdir(Analysis_directory)
+
+        os.makedirs(Analysis_directory, exist_ok = True)
+        
         self.cat_exp = Analysis(in_gui = True)
         self.cat_exp.load_data(Analysis_directory, csv = directory)
 
@@ -2278,8 +2279,8 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         if output_bool is True:
             output_path = f'{self.master.cat_exp.directory}/Data_tables/cluster_stat_tables/{str(cluster)}.csv' 
             output_folder = f'{self.master.cat_exp.directory}/Data_tables/cluster_stat_tables/'
-            if not os.path.exists(output_folder):
-                os.mkdir(output_folder)
+
+            os.makedirs(output_folder, exist_ok = True)
             dataframe.to_csv(output_path, index = False)
 
         Analysis_widget_logger.info(f"""Generated cluster comparison statistic table for cluster: {cluster}

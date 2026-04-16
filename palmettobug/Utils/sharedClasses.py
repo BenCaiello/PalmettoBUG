@@ -334,8 +334,9 @@ class Project_logger(metaclass = LogSemiSingleton):
             self.log = logging.getLogger("Project_Log")
             for i in self.log.handlers:
                 self.log.removeHandler(i)
-            if not os.path.exists(f"{proj_dir}/Logs"):
-                os.mkdir(f"{proj_dir}/Logs")
+
+            os.makedirs(f"{proj_dir}/Logs", exist_ok = True)
+
             log_a_log_handler = logging.FileHandler(f"{proj_dir}/Logs/Project.log")
             log_a_format = logging.Formatter("%(name)s: %(asctime)s: %(message)s")
             log_a_log_handler.setFormatter(log_a_format)
@@ -361,8 +362,9 @@ class Analysis_logger(metaclass = LogSemiSingleton):
             for i in self.log.handlers:
                 self.log.removeHandler(i)
                 i.close()    # helpful for fixing a logging problem I encountered (top answer / Martijn Pieters' answer): https://stackoverflow.com/questions/15435652/python-does-not-release-filehandles-to-logfile
-            if not os.path.exists(f"{proj_dir}/Logs"):
-                os.mkdir(f"{proj_dir}/Logs")
+            
+            os.makedirs(f"{proj_dir}/Logs", exist_ok = True)
+            
             log_a_log_handler = logging.FileHandler(f"{proj_dir}/Logs/Analysis.log")
             log_a_format = logging.Formatter("%(name)s: %(asctime)s: %(message)s") 
             log_a_log_handler.setFormatter(log_a_format)

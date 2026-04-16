@@ -1093,8 +1093,7 @@ def spatial_by_edt_folder(masks_folder: Union[str, Path],
     masks_folder = str(masks_folder)
     class_map_folder = str(class_map_folder)
     if output_edt_folder is not None:
-        if not os.path.exists(output_edt_folder):
-            os.mkdir(output_edt_folder)
+        os.makedirs(output_edt_folder, exist_ok = True)
     edt_list = []
     masks = [f"{masks_folder}/{i}" for i in sorted(os.listdir(masks_folder)) if i.lower().find(".tif") != -1]
     class_maps = [f"{class_map_folder}/{i}" for i in sorted(os.listdir(class_map_folder)) if i.lower().find(".tif") != -1]
@@ -1215,11 +1214,10 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         self.masks_paths = None
         save_directory = f"{self.exp.directory}/Spatial_plots"
         self.save_dir = str(save_directory)
-        if not os.path.exists(self.save_dir):
-            os.mkdir(self.save_dir)
+        os.makedirs(self.save_dir, exist_ok = True)
+
         self.save_cell_maps_dir = f"{self.save_dir}/cell_maps"
-        if not os.path.exists(self.save_cell_maps_dir):
-            os.mkdir(self.save_cell_maps_dir)
+        os.makedirs(self.save_cell_maps_dir, exist_ok = True)
 
     def do_neighbors(self, radius_or_neighbors: str, number: int):
         '''

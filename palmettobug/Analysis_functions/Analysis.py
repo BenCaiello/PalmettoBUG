@@ -4168,7 +4168,7 @@ class Analysis:
         os.makedirs(destination_folder, exist_ok = True)
 
         internal_folder = f'{destination_folder}/{name}'   ## this holds the .tiff files themselves
-        os.,makedirs(internal_folder, exist_ok = True)
+        os.makedirs(internal_folder, exist_ok = True)
 
         # Step 1: use back-up data & recover labels (either 'none' if filtered/dropped before clustering, or clustering labels)
         if self.back_up_data is not None:

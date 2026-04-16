@@ -16,6 +16,7 @@ from PIL import Image
 import tkinter as tk
 import customtkinter as ctk
 
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt                       
