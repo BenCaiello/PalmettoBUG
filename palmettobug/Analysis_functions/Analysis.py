@@ -318,18 +318,15 @@ class Analysis:
         if (len(self.fcs_dir_names) != len(self.metadata)) or (len(new_fcs_filenames) != len(self.fcs_dir_names)):
             missing_in_metadata = [i for i in self.fcs_dir_names if i not in new_fcs_filenames]
             missing_in_FCS = [i for i in self.metadata['file_name'] if i not in new_fcs_filenames]
+            msg = ("Metadata file_name column and number of fcs files in analysis do not match -- \n"
+                    "only keeping data present in both for analysis!")
+            details = (f"FCS files absent in metdata: {str(missing_in_metadata)} \n"
+                        f"metadata entries absent in FCS files: {str(missing_in_FCS)}")
             if self._in_gui:
-                warning_window("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
-                               "only keeping data present in both for analysis!")
-                Analysis_log.info("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
-                                  "only keeping data present in both for analysis! \n"
-                                 f"FCS files absent in metdata: {str(missing_in_metadata)} \n"
-                                 f"metadata entries absent in FCS files: {str(missing_in_FCS)}") 
+                warning_window(msg)
+                Analysis_log.info(f"{msg}\n{details}") 
             else:
-                print("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
-                      "only keeping data present in both for analysis!"
-                     f"FCS files absent in metdata: {str(missing_in_metadata)} \n"
-                     f"metadata entries absent in FCS files: {str(missing_in_FCS)}") 
+                print(f"{msg}\n{details}") 
         
         # apply the metadata filtering
         self.metadata = self.metadata[truth_array]
@@ -362,8 +359,8 @@ class Analysis:
 
             if len(to_drop_panel) > 0:
                 self.panel = self.panel.drop(to_drop_panel, axis = 0)
-                msg = "Some antigens were present in the panel, but missing in the FCS files!\n" + 
-                    f"These antigens have been dropped from the panel: \n\n {str(to_drop_panel)}"
+                msg = ("Some antigens were present in the panel, but missing in the FCS files!\n" + 
+                    f"These antigens have been dropped from the panel: \n\n {str(to_drop_panel)}")
                 if self._in_gui:
                     warning_window(msg)
                     Analysis_log.info(msg) 
@@ -372,8 +369,8 @@ class Analysis:
 
             if len(to_drop_FCS) > 0:
                 intensities = intensities.drop(to_drop_FCS, axis = 1)
-                msg = "Some antigens were present in the FCS files, but missing in the panel!\n" + 
-                    f"These antigens have been dropped from the FCS data: \n\n {str(to_drop_FCS)}"
+                msg = ("Some antigens were present in the FCS files, but missing in the panel!\n" + 
+                    f"These antigens have been dropped from the FCS data: \n\n {str(to_drop_FCS)}")
                 if self._in_gui:
                     warning_window(msg)
                     Analysis_log.info(msg) 
@@ -692,13 +689,14 @@ class Analysis:
         length_check = (len(self.regionprops_data) != len(self.data.obs))
         #drop_check = (len(self.data.obs) < np.max(self.data.obs.index.astype('int')))
         if length_check:
+            msg = ("Region property data and currently loaded .fcs data do not match in length!" +
+                    "\nAborting regionprops load")
             if self._in_gui: 
-                tk.messagebox.showwarning("Warning!", message = "Region property data and currently loaded .fcs data do not match in length!" +
-                                           "\nAborting regionprops load")
+                tk.messagebox.showwarning("Warning!", message = msg)
             else:
-                print("Region property data and currently loaded .fcs data do not match in length!" +
-                      "\nAborting regionprops load")
+                print(msg)
             return
+
         if regionprops_panel is None:
             self.regionprops_panel = pd.read_csv(f"{self.directory}/Regionprops_panel.csv")
         else:
@@ -757,8 +755,6 @@ class Analysis:
         if self._spatial:
             self.regionprops_data = self.regionprops_data[np.array(list(filterer))].copy()
 
-        
-        
         if self.UMAP_embedding is not None:
             filterer_UMAP = (self.UMAP_embedding.obs[column].astype('str') != str(to_drop))
             self.UMAP_embedding = self.UMAP_embedding[filterer_UMAP].copy()
