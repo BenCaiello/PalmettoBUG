@@ -350,37 +350,36 @@ class Analysis:
 
         ## Ensure panel and FCS intensities data have matching column names and align
         ## Any 'Object' column could be dropped silently if it exists 
-        if len(intensities.columns) != len(panel):     
-            panel_antigens = set(self.panel.index)
-            intensity_antigens = set(intensities.columns)
-            to_drop = panel_antigens ^ intensity_antigens
-            to_drop_panel = list(panel_antigens & to_drop)
-            to_drop_FCS = list(intensity_antigens & to_drop)
+        panel_antigens = set(self.panel.index)
+        intensity_antigens = set(intensities.columns)
+        to_drop = panel_antigens ^ intensity_antigens
+        to_drop_panel = list(panel_antigens & to_drop)
+        to_drop_FCS = list(intensity_antigens & to_drop)
 
-            if len(to_drop_panel) > 0:
-                self.panel = self.panel.drop(to_drop_panel, axis = 0)
-                msg = ("Some antigens were present in the panel, but missing in the FCS files!\n" + 
-                    f"These antigens have been dropped from the panel: \n\n {str(to_drop_panel)}")
-                if self._in_gui:
-                    warning_window(msg)
-                    Analysis_log.info(msg) 
-                else:
-                    print(msg)    
+        if len(to_drop_panel) > 0:
+            self.panel = self.panel.drop(to_drop_panel, axis = 0)
+            msg = ("Some antigens were present in the panel, but missing in the FCS files!\n" + 
+                f"These antigens have been dropped from the panel: \n\n {str(to_drop_panel)}")
+            if self._in_gui:
+                warning_window(msg)
+                Analysis_log.info(msg) 
+            else:
+                print(msg)    
 
-            if len(to_drop_FCS) > 0:
-                intensities = intensities.drop(to_drop_FCS, axis = 1)
-                msg = ("Some antigens were present in the FCS files, but missing in the panel!\n" + 
-                    f"These antigens have been dropped from the FCS data: \n\n {str(to_drop_FCS)}")
-                if self._in_gui:
-                    warning_window(msg)
-                    Analysis_log.info(msg) 
-                else:
-                    print(msg)     
+        if len(to_drop_FCS) > 0:
+            intensities = intensities.drop(to_drop_FCS, axis = 1)
+            msg = ("Some antigens were present in the FCS files, but missing in the panel!\n" + 
+                f"These antigens have been dropped from the FCS data: \n\n {str(to_drop_FCS)}")
+            if self._in_gui:
+                warning_window(msg)
+                Analysis_log.info(msg) 
+            else:
+                print(msg)     
 
 
         ## Antigens with all 0 values contribute no useful information to analysis 
         # removing them can reduce computational load and prevent them from creating errors in certain calculations / plots
-        nonzero_mask = intensities.sum(axis=0) != 0
+        nonzero_mask = (intensities != 0).any(axis=0)
         dropped_antigen_list = intensities.columns[~nonzero_mask].tolist()
         intensities = intensities.loc[:, nonzero_mask]
 
@@ -776,7 +775,7 @@ class Analysis:
 
         batch_column specifies a column in self.data.obs to use as the batch grouping for the correction (usually 'patient_id')
         '''
-        self.data.X = sc.pp.combat(self.data, key = batch_column, covariates = covariates, inplace = False).X
+        self.data.X = sc.pp.combat(self.data, key = batch_column, covariates = covariates, inplace = False)
         if self.is_batched > 0:
             print('Warning! You have performed a batch correction twice on the same data! Are you sure this was intentional?')
         if (self.unscaled_data is None) and (self.is_batched != 1):

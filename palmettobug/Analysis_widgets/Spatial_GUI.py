@@ -80,7 +80,6 @@ class Spatial_py(ctk.CTkFrame):
         Without this, the dropdown will not populate with values
         '''
         self.directory_display.setup_with_dir(directory, self, png = self.display) 
-        #self.clustering_dir = directory + "/clusterings"
         global space_logger
         space_logger = Analysis_logger(directory).return_log()
 
@@ -398,7 +397,7 @@ class Spatial_py(ctk.CTkFrame):
                 grand_master = self.master.master    ## to lessen the horrifyingly long master.master.... vairables names
 
                 grand_master.master_exp.space_analysis.init_analysis(grand_master.master_exp, 
-                                                    output_directory = grand_master.master_exp.directory + "/Spatial_plots", 
+                                                    output_directory = f"{grand_master.master_exp.directory}/Spatial_plots", 
                                                     cellType_key = celltype_key)
 
                 grand_master.master_exp.space_analysis.set_fixed_r(min = min_rad, max = max_radii, step = step)
@@ -648,7 +647,7 @@ class Spatial_py(ctk.CTkFrame):
     def save_and_display(self, filename: str, sizeX: int = 550, sizeY: int = 550, parent_folder: str = "gg_export") -> None:
         ##### This piece of code is currently repeated many times across each plotting function. Should probably be its own function...
         try:
-            path = self.master.master.py_exploratory.analysiswidg.cat_exp.directory + f"/{parent_folder}/{filename}.png"
+            path = f"{self.master.master.py_exploratory.analysiswidg.cat_exp.directory}/{parent_folder}/{filename}.png"
             image = Image.open(path)
         except FileNotFoundError:
             path = f"{parent_folder}/{filename}.png"
@@ -742,8 +741,8 @@ class plot_cell_maps_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         
         if masks == "masks":
             if multi_or_single != "RUN ALL":
-                figure = self.master.squidpy_spatial.plot_cell_map(filename = (multi_or_single + ".ome.fcs"), clustering = clustering)
-                self.master.save_and_display(filename = (multi_or_single + ".ome"), parent_folder = "/Spatial_plots/cell_maps")
+                figure = self.master.squidpy_spatial.plot_cell_map(filename = (f"{multi_or_single}.ome.fcs"), clustering = clustering)
+                self.master.save_and_display(filename = f"{multi_or_single}.ome", parent_folder = "/Spatial_plots/cell_maps")
                 if self.pop_up.get() is True:
                     Plot_window_display(figure)                
 
@@ -753,11 +752,11 @@ class plot_cell_maps_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             
         else: 
             self.master.master_exp.space_analysis.init_analysis(self.master.master_exp, 
-                                                               output_directory = self.master.master_exp.directory + "/Spatial_plots", 
+                                                               output_directory = f"{self.master.master_exp.directory}/Spatial_plots", 
                                                                cellType_key = clustering)
             if multi_or_single != "RUN ALL":
                 figure = self.master.master_exp.space_analysis.plot_cell_maps(multi_or_single)
-                self.master.save_and_display(filename = (multi_or_single + ".ome"), parent_folder = "/Spatial_plots/cell_maps")
+                self.master.save_and_display(filename = (f"{multi_or_single}.ome"), parent_folder = "/Spatial_plots/cell_maps")
 
                 if self.pop_up.get() is True:
                     Plot_window_display(figure)                
@@ -1237,12 +1236,12 @@ class CNUMAPMSTwindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             return
         
         if self.master.CN_type == "flowsom":
-            figure.savefig(self.master.spatial.save_dir + f"/{filename}.png", bbox_inches = "tight")
+            figure.savefig(f"{self.master.spatial.save_dir}/{filename}.png", bbox_inches = "tight")
             self.master.master.save_and_display(f"/{filename}", parent_folder = self.master.spatial.save_dir)
             space_logger.info("""Cell neighborhood flowsom star plot generated""")
 
         elif self.master.CN_type == "leiden":
-            figure.savefig(self.master.spatial.save_dir + f"/{filename}.png", bbox_inches = "tight")
+            figure.savefig(f"{self.master.spatial.save_dir}/{filename}.png", bbox_inches = "tight")
             self.master.master.save_and_display(f"/{filename}", parent_folder = self.master.spatial.save_dir)
             space_logger.info("""Cell neighborhood leiden UMAP plot generated""")
 
@@ -1299,7 +1298,7 @@ class CNabundanceWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if not overwrite_approval(f"{self.master.spatial.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
             return
         figure = self.master.spatial.plot_CN_abundance(clustering_col = self.clustering.get())
-        figure.savefig(self.master.spatial.save_dir + f"/{filename}.png", bbox_inches = "tight")
+        figure.savefig(f"{self.master.spatial.save_dir}/{filename}.png", bbox_inches = "tight")
         self.master.master.save_and_display(f"/{filename}", parent_folder = self.master.spatial.save_dir)
 
         space_logger.info("""Cell neighborhood abundance plot generated""")
@@ -1358,7 +1357,7 @@ class CNheatmapWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if not overwrite_approval(f"{self.master.spatial.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
             return
         figure = self.master.spatial.plot_CN_heatmap(self.clustering.get(), cmap = 'coolwarm')
-        figure.savefig(self.master.spatial.save_dir + f"/{filename}.png", bbox_inches = "tight")
+        figure.savefig(f"{self.master.spatial.save_dir}/{filename}.png", bbox_inches = "tight")
         self.master.master.save_and_display(f"/{filename}", parent_folder = self.master.spatial.save_dir)
         space_logger.info("""Cell neighborhood heatmap generated""")
         if self.pop_up.get() is True:
@@ -1391,7 +1390,7 @@ class CNannotationWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             id = id.replace(" ","_")  #### now replaces any remaining spaces (with would break the underlying R code) with underscores
             warning_window(f"Blank spaces inside your merging name have been replaced with underscores: the merging name will now be saved as {id}")
 
-        merging_file_path = self.directory + "/mergings/" + id + ".csv"
+        merging_file_path = f"{self.directory}/mergings/{id}.csv"
         if filename_checker(id, self):
             return
         if not overwrite_approval(merging_file_path, file_or_folder = "file", GUI_object = self):
@@ -1424,13 +1423,13 @@ class CNannotationWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
             self.reload_merge = ctk.CTkOptionMenu(self, 
                                     values = ["blank"], 
-                                    command = lambda choice: self.table.repopulate_table(self.master.directory + "/mergings/" + choice))
+                                    command = lambda choice: self.table.repopulate_table(f"{self.master.directory}/mergings/{choice}"))
             self.reload_merge.grid(column = 4, row = 1)
             self.reload_merge.bind("<Enter>", self.refreshOption)
             
             self.table = TableWidget_merging(self,
                                              width = 1, 
-                                             directory = self.master.directory + "/mergings", 
+                                             directory = f"{self.master.directory}/mergings", 
                                              input_column = self.master.master.AnalysisObject.data.obs['CN'])
             self.table.grid(column = 3, row = 2, columnspan = 4, padx = 5, pady = 5)
 
@@ -1440,7 +1439,7 @@ class CNannotationWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.button.grid(column = 3, row = 7, padx = 5, pady = 5)
 
         def refreshOption(self, enter = ""):
-            made_mergings = ["blank"] + [i for i in sorted(os.listdir(self.master.directory + "/mergings/")) if i.find("CN") != -1] 
+            made_mergings = ["blank"] + [i for i in sorted(os.listdir(f"{self.master.directory}/mergings/")) if i.find("CN") != -1] 
             self.reload_merge.configure(values = made_mergings)
 
 class TableWidget_merging(ctk.CTkScrollableFrame):
@@ -1469,7 +1468,7 @@ class TableWidget_merging(ctk.CTkScrollableFrame):
             i.destroy()
         for i in self.widgetframe.iloc[:,1]:
             i.destroy()
-        if new_dataframe_path[new_dataframe_path.rfind("/")+1:] == "blank":
+        if Path(new_dataframe_path).stem == "blank":
             self.table_dataframe['original_cluster'] = [i for i in range(1, self.maxK + 1)]
             self.table_dataframe['new_cluster'] = "unknown"
         else:
@@ -1504,7 +1503,7 @@ class TableWidget_merging(ctk.CTkScrollableFrame):
     def special_to_csv(self, dataframe = None):
         if dataframe is None:
             dataframe = self.table_dataframe
-        dataframe.to_csv(self.directory + self.to_add, index = False)
+        dataframe.to_csv(f"{self.directory}{self.to_add}", index = False)
         #Analysis_widget_logger.info(f"Wrote merging file, with name '{self.id}', with the values: \n {str(dataframe)}")
 
     def add_entry_column(master, col_num: int, offset: int = 0, disable: bool = False) -> None:
@@ -1581,7 +1580,7 @@ class CNwindowSaveLoad(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             tk.messagebox.showwarning("Warning!", message = message)
             self.focus()
             return
-        path = self.master.master.master_exp.clusterings_dir + "/" + self.path.get()
+        path = f"{self.master.master.master_exp.clusterings_dir}/{self.path.get()}"
         self.master.master.master_exp.load_clustering(path)
         self.master.figure = None
         self.master.enable()
@@ -1879,11 +1878,11 @@ class edt_heatmap_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         filename = self.filename.get()
         if filename_checker(filename, self):
             return
-        if not overwrite_approval(self.experiment.directory + f"/Spatial_plots/{filename}.png", file_or_folder = "file", GUI_object = self):
+        if not overwrite_approval(f"{self.experiment.directory}/Spatial_plots/{filename}.png", file_or_folder = "file", GUI_object = self):
             return
         figure = self.master.edt_object.plot_edt_heatmap(groupby_col, marker_class = "spatial_edt")
-        figure.savefig(self.experiment.directory + f"/Spatial_plots/{filename}.png", bbox_inches = "tight")
-        self.master.master.save_and_display(f"/{filename}", parent_folder = self.experiment.directory + "/Spatial_plots")
+        figure.savefig(f"{self.experiment.directory}/Spatial_plots/{filename}.png", bbox_inches = "tight")
+        self.master.master.save_and_display(f"/{filename}", parent_folder = f"{self.experiment.directory}/Spatial_plots")
 
         space_logger.info(f"""Plotted distance transform horizontal boxplot: 
                         groupby_col  = {groupby_col}
@@ -1961,7 +1960,7 @@ class edt_dist_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         filename = self.filename.get()
         if filename_checker(filename, self):
             return
-        if not overwrite_approval(self.experiment.directory + f"/Spatial_plots/{filename}.png", file_or_folder = "file", GUI_object = self):
+        if not overwrite_approval(f"{self.experiment.directory}/Spatial_plots/{filename}.png", file_or_folder = "file", GUI_object = self):
             return
         subset_col = self.subset_col.get()
         if subset_col == "None":
@@ -1975,8 +1974,8 @@ class edt_dist_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                         facet_col = {facet_col}
                         filename = {filename}""")
         
-        figure.savefig(self.experiment.directory + f"/Spatial_plots/{filename}.png", bbox_inches = "tight")
-        self.master.master.save_and_display(f"/{filename}", parent_folder = self.experiment.directory + "/Spatial_plots")
+        figure.savefig(f"{self.experiment.directory}/Spatial_plots/{filename}.png", bbox_inches = "tight")
+        self.master.master.save_and_display(f"/{filename}", parent_folder = f"{self.experiment.directory}/Spatial_plots")
 
         if self.pop_up.get() is True:
             Plot_window_display(figure)
@@ -2040,7 +2039,7 @@ class edt_stat_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         filename = self.filename.get()
         if filename_checker(filename, self):
             return
-        if not overwrite_approval(self.master.edt_object.exp.directory + f"/Spatial_plots/{filename}.csv", file_or_folder = "file", GUI_object = self):
+        if not overwrite_approval(f"{self.master.edt_object.exp.directory}/Spatial_plots/{filename}.csv", file_or_folder = "file", GUI_object = self):
             return
         groupby_column = self.groupby_column.get()
         stat = self.stat.get()
@@ -2050,7 +2049,7 @@ class edt_stat_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                                      N_column = self.master.edt_object.exp.N,
                                                      statistic = stat,
                                                      test = test,
-                                                     filename = self.master.edt_object.exp.directory + f"/Spatial_plots/{filename}.csv")
+                                                     filename = f"{self.master.edt_object.exp.directory}/Spatial_plots/{filename}.csv")
         space_logger.info(f"""Ran statistics on distance transform: 
                         groupby_column  = {groupby_column}
                         stat = {stat}
@@ -2149,18 +2148,15 @@ class dist_transform_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         smoothing = int(self.smoothing.get())
         marker_class = self.marker_class.get()
         if self.checkbox.get():
-            load_distance_transform = self.master.master_exp.directory + "/Spatial_plots/edt_maps"
-            if not os.path.exists(self.master.master_exp.directory + "/Spatial_plots"):
-                os.mkdir(self.master.master_exp.directory + "/Spatial_plots")
-            if not os.path.exists(load_distance_transform):
-                os.mkdir(load_distance_transform)
-            load_distance_transform = load_distance_transform + f"/{pixel_class_folder[pixel_class_folder.rfind('/') + 1:]}"
+            load_distance_transform =  f"{self.master.master_exp.directory}/Spatial_plots/edt_maps"
+            os.makedirs(f"{self.master.master_exp.directory}/Spatial_plots", exist_ok = True)
+            os.makedirs(load_distance_transform, exist_ok = True):
+            load_distance_transform = f"{load_distance_transform}/{Path(pixel_class_folder).name}"
         else:
             load_distance_transform = None
-        save_folder = self.master.master_exp.directory[:self.master.master_exp.directory.rfind("/")] + "/spatial_edts"
-        if not os.path.exists(save_folder):
-            os.mkdir(save_folder)
-        save_path = save_folder + f"/{pixel_class_folder[pixel_class_folder.rfind('/') + 1:]}.csv"
+        save_folder = f"{self.master.master_exp.directory.parent}/spatial_edts"
+        os.makedirs(save_folder, exist_ok = True)
+        save_path = f"{save_folder}/{Path(pixel_class_folder).name}.csv"
         if not overwrite_approval(save_path, file_or_folder = "file", GUI_object = self):
             return
         # distances_panel = 
@@ -2192,7 +2188,7 @@ class edt_reload_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         super().__init__(master)
         self.master = master
 
-        self.folder = self.master.master_exp.directory[:self.master.master_exp.directory.rfind("/")] + "/spatial_edts"
+        self.folder = f"{self.master.master_exp.directory.parent}/spatial_edts"
         if not os.path.exists(self.folder):
             os.mkdir(self.folder)
 
