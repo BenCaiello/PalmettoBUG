@@ -709,15 +709,11 @@ class Analysis:
 
         if self.unscaled_data is None:
             new_X  = np.concatenate((self.data.X.copy(), np.array(self.regionprops_data)), axis = 1)
-            #self.data = ann.AnnData(X = new_X, var = self.panel, obs = self.data.obs, obsm = self.data.obsm, uns = self.data.uns, obsp = self.data.obsp)
-            self.data.X = new_X
-            self.data.var = self.panel
+            self.data = ann.AnnData(X = new_X, var = self.panel, obs = self.data.obs, obsm = self.data.obsm, uns = self.data.uns, obsp = self.data.obsp)
+
         else:
             new_X  = np.concatenate((self.unscaled_data.copy(), np.array(self.regionprops_data)), axis = 1)
-            self.data.X = new_X
-            self.data.var = self.panel
-
-            #self.data = ann.AnnData(X = new_X, var = self.panel, obs = self.data.obs, obsm = self.data.obsm, uns = self.data.uns, obsp = self.data.obsp)
+            self.data = ann.AnnData(X = new_X, var = self.panel, obs = self.data.obs, obsm = self.data.obsm, uns = self.data.uns, obsp = self.data.obsp)
             self.unscaled_data = None
             self.do_scaling(scaling_algorithm = self._scaling, upper_quantile = self._quantile_choice)
         if self._in_gui: 
@@ -931,15 +927,15 @@ class Analysis:
             True or False, depending on whether the marker_class chosen exists in the panel
         '''
         panel = self.panel
-        for_fs = self.data.copy()
+        for_fs = self.data
         if (try_from_umap_embedding) and (len(self.UMAP_embedding) == len(self.data)):   ## UMAP cannot be downsampled for leiden.
             for_fs = self.UMAP_embedding
         else:
             if marker_class != "All":
                 slicer = panel['marker_class'] == marker_class
                 for_fs = for_fs[:,slicer]
-            if slicer.sum() == 0:
-                return False
+                if slicer.sum() == 0:
+                    return False
             ## Note how no downsampling is applied here!
             sc.pp.neighbors(for_fs, n_neighbors = n_neighbors, random_state = seed)
             sc.tl.umap(for_fs, 
@@ -952,12 +948,13 @@ class Analysis:
             for_fs.obs['true_index'] = for_fs.obs.index.astype('int').copy()
             self.UMAP_embedding = for_fs
 
-        warnings.filterwarnings("ignore", message = "In the future, the default backend for leiden will be igraph") 
-        sc.tl.leiden(for_fs, 
-                    resolution = resolution, 
-                    random_state = seed,
-                    flavor = flavor, 
-                    n_iterations = 2)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message = "In the future, the default backend for leiden will be igraph") 
+            sc.tl.leiden(for_fs, 
+                        resolution = resolution, 
+                        random_state = seed,
+                        flavor = flavor, 
+                        n_iterations = 2)
 
         self.data.obs['leiden'] = list(for_fs.obs['leiden'].astype('int') + 1)
         self.data.obs['leiden'] = self.data.obs['leiden'].astype('category')
@@ -1012,10 +1009,10 @@ class Analysis:
             (FlowSOM) The trained FlowSOM object, useful for accessing the various techniques & visualizations available in the FlowSOM package such as minimum spanning trees, etc.
         '''
         panel = self.panel
-        for_fs = self.data.copy()
+        for_fs = self.data
         if marker_class != "All":
             slicer = panel['marker_class'] == marker_class
-            for_fs = for_fs[:,slicer].copy()
+            for_fs = for_fs[:,slicer]
             if slicer.sum() == 0:
                 return None
 
@@ -1118,7 +1115,7 @@ class Analysis:
             if mask.shape != region_map.shape:
                 raise ValueError(f"The ROI: {i}, has a mismatch in size between the cell masks and the regions provided!")
             output = self._assign_regions(mask, region_map, image_number = ii) 
-            assignments = assignments + output
+            assignments.extend(output)
         self.data.obs['regions'] = assignments
         if self.UMAP_embedding is not None:
             merge_df = self.data.obs[['regions']].copy()
@@ -1147,7 +1144,7 @@ class Analysis:
                         mask: np.ndarray[Union[float, int]], 
                         region_map: np.ndarray[int],
                         image_number: Union[str, int]
-                        ) -> tuple[np.ndarray[float], np.ndarray[int], pd.DataFrame]:
+                        ) -> list[str]:
         '''
         This function iterates through two matching-sized numpy arrays (one representing cell masks & one representing 
         region of the image [these regions are also masks, with background pixels of value == 0]), and returns a list of assigned regions 
@@ -1160,15 +1157,14 @@ class Analysis:
             box = i.bbox
             slicer = i.image
             single_cell = region_map[box[0]:box[2],box[1]:box[3]][slicer]
-            counts = np.unique(single_cell, return_counts = True)
-            classes = counts[0]
-            counts = counts[1]
-            mode_num = np.argmax(counts)
-            mode = classes[mode_num]
-            if mode == 0:   ## this only occurs if there is a 'background' class, after merging
-                assignment = '0_0'
+            
+            vals = single_cell[single_cell > 0]
+            if len(vals) == 0:
+                assignment = "0_0"
             else:
-                assignment = f'{str(mode)}_{str(image_number)}'
+                mode = np.bincount(vals).argmax()
+                assignment = f"{mode}_{image_number}
+
             cell_class_list.append(assignment)
         return cell_class_list
 
@@ -1193,11 +1189,12 @@ class Analysis:
         ## for now, copy the defaults of the major paramteres of scanpy's neighbors function below --> 
         # so that I can easily use a paramter if I decide to add as an option for the user
         all_leiden = []
-        for i in new_data.obs['sample_id'].astype('int').unique():   ## be sure of proper order
+        as_int = new_data.obs['sample_id'].astype('int')
+        for i in as_int.unique():   ## be sure of proper order
                                                 ## consider testing sc.external.pp.bbknn(), instead of doing my own
                                                 ## most of the slow-down, however, seems to come from loading (aka, failing to load) the 
                                                 # GPU at the start....
-            slicer = new_data.obs['sample_id'].astype('int') == i
+            slicer = as_int == i
             this_sample = new_data[slicer]
             sc.pp.neighbors(this_sample, 
                             n_neighbors = n_neighbors, 
@@ -1211,7 +1208,7 @@ class Analysis:
                          flavor = "leidenalg", 
                         n_iterations = 2)
             this_sample_leiden = list((str(i) + "_") + this_sample.obs['leiden'].astype('str'))
-            all_leiden = all_leiden + this_sample_leiden
+            all_leiden.extend(this_sample_leiden)
         self.data.obs['spatial_leiden'] = all_leiden
         if self.UMAP_embedding is not None:
             merge_df = self.data.obs[['spatial_leiden']].copy()

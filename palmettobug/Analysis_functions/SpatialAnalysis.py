@@ -893,6 +893,8 @@ class SpatialEDT:
 
         self.distances_panel.index = self.distances_panel['antigen']
 
+        print(self.exp.panel, self.exp.metadata, self.distances_panel, self.exp.data)
+
         for i in self.exp.data.var['antigen']:         ## prevent duplicate columns by removing any prior columns/antigens that match any of the names of the new columns being added
             if i in self.exp._distance_edt_data.columns:
                 slicer = self.exp.data.var['antigen'] != i
