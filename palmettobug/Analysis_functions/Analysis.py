@@ -528,12 +528,12 @@ class Analysis:
                 self.panel['marker_class'] = list(marker_class)
             else:
                 self.panel['marker_class'] = 'type'
+                msg = ("All antigens from the csv have been set to 'type' in the panel file! \n" +
+                        "Open the Analysis_panel.csv file, edit, & reload the experiment to change this!")
                 if self._in_gui:
-                    warning_window("All antigens from the csv have been set to 'type' in the panel file! \n" +
-                                    "Open the Analysis_panel.csv file, edit, & reload the experiment to change this!")
+                    warning_window(msg)
                 else:
-                    print("All antigens from the csv have been set to 'type' in the panel file! \n" +
-                           "Open the Analysis_panel.csv file, edit, & reload the experiment to change this!")
+                    print(msg)
 
             self.panel.to_csv(f"{self.directory}/Analysis_panel.csv", index = False) 
         
@@ -609,13 +609,12 @@ class Analysis:
         ## default region measurements pipeline and should typically be present if regionprops were already loaded)
         try:
             self.data.var.T['axis_major_length']  
+            msg = ("Region property data already currently loaded! ('axis_major_length' column already present). \n" +
+                    "Aborting Regionprops load to avoid duplicate data.")
             if self._in_gui:  
-                tk.messagebox.showwarning("Warning!", 
-                    message = "Region property data already currently loaded! ('axis_major_length' column already present). \n" +
-                            "Aborting Regionprops load to avoid duplicate data.")
+                tk.messagebox.showwarning("Warning!", message = msg)
             else:
-                print("Region property data already currently loaded! ('axis_major_length' column already present). \n" +
-                            "Aborting Regionprops load to avoid duplicate data.")
+                print(msg)
             return
         except KeyError:
             pass
@@ -962,7 +961,6 @@ class Analysis:
         self.UMAP_embedding.obs['leiden'] = self.UMAP_embedding.obs['leiden'].astype('category')
         self.UMAP_embedding.obs = self.UMAP_embedding.obs.reset_index()
         if self.PCA_embedding is not None:
-            #print(self.PCA_embedding.obs.columns)
             try:
                 self.PCA_embedding.obs = self.PCA_embedding.obs.drop('leiden',axis = 1)   ## drop if leiden already exists
             except Exception:
@@ -2034,11 +2032,11 @@ class Analysis:
 
         number_of_panels = len(downsample_UMAP_df[subsetting_column].unique()) + 1   ## plus one for the initial all together plot
         if number_of_panels < 3:
+            msg = "only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)"
             if self._in_gui: 
-                tk.messagebox.showwarning("Warning!", 
-                    message = "only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)")
+                tk.messagebox.showwarning("Warning!", message = msg)
             else:
-                print("only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)")
+                print(msg)
             return
         if int(number_of_panels) == int(number_of_columns):
             number_of_columns -= 1    ## automatically reshape if it is too small
@@ -2273,11 +2271,11 @@ class Analysis:
             number_of_columns = 4
 
         if number_of_panels < 3:
+            msg = "only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)"
             if self._in_gui:
-                tk.messagebox.showwarning("Warning!", 
-                    message = "only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)")
+                tk.messagebox.showwarning("Warning!", message = msg)
             else:
-                print("only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)")
+                print(msg)
             return
         if int(number_of_panels) == int(number_of_columns):
             number_of_columns -= 1    ## automatically reshape if it is too small
@@ -3169,10 +3167,11 @@ class Analysis:
                 offset = np.log(to_do_stats['divisor'].astype('int'))
 
                 if len(remaining_conditions) == 1:
+                    msg = f"{i} is only present in one condition! Skipping this cluster."
                     if self._in_gui:
-                        tk.messagebox.showwarning("Warning!", message = f"{i} is only present in one condition! Skipping this cluster.")
+                        tk.messagebox.showwarning("Warning!", message = msg)
                     else:
-                        print(f"{i} is only present in one condition! Skipping this cluster.")
+                        print(msg)
                     continue
 
                 if len(remaining_conditions) == 2:
@@ -3284,10 +3283,11 @@ class Analysis:
                 to_do_stats[variable] = to_do_stats[variable].astype(special_category)
             
                 if len(remaining_conditions) == 1:
+                    msg = f"{i} is only present in one condition! Skipping this cluster."
                     if self._in_gui:
-                        tk.messagebox.showwarning("Warning!", message = f"{i} is only present in one condition! Skipping this cluster.")
+                        tk.messagebox.showwarning("Warning!", message = msg)
                     else:
-                        print(f"{i} is only present in one condition! Skipping this cluster.")
+                        print(msg)
                     continue
 
                 if len(remaining_conditions) == 2:
@@ -3676,6 +3676,7 @@ class Analysis:
                                         # of aggregate statistics (mean / median) of the expression within each sample_id
         panel = self.panel.copy()
         data = self.data.copy()
+        print(panel, data)
         if len(conditions) == 0:
             conditions = data.obs[ind_var_column].unique()
         else:
@@ -3760,6 +3761,7 @@ class Analysis:
         condition_dict = {}
         for jj,j in enumerate(grand_condition_list):
             for i,ii in enumerate(j):
+                ii = ii.copy()
                 ii[groupby_column] = data_df[groupby_column].astype('str')
                 if statistic == "mean":
                     merging_mean_condition = pd.melt(ii.groupby(groupby_column, 
@@ -4245,41 +4247,42 @@ class Analysis:
         watermark2 = float(for_sampling.sample(1, random_state = 1776)[0].values[0])
         ## Extensive checks before loading the clustering:
         if len(self.data.obs) != len(clustering_info):
+            msg = "Length of the saved clustering and the length of the current single cell experiment do not match! \n\n Cancelling load"
             if self._in_gui:
-                warning_window("Length of the saved clustering and the length of the current single cell experiment do not match! \n\n Cancelling load")
+                warning_window(msg)
             else:
-                print("Length of the saved clustering and the length of the current single cell experiment do not match! \n\n Cancelling load")
+                print(msg)
             return
         if (np.array(self.data.obs['sample_id'].astype('str')) != np.array(clustering_info['sample_id'].astype('str'))).sum() > 0:
+            msg = "Warning! Sample_ids do not match between saved clustering and current experiment! \n\n Cancelling load"
             if self._in_gui:
-                warning_window("Warning! Sample_ids do not match between saved clustering and current experiment! \n\n Cancelling load")
+                warning_window(msg)
             else:
-                print("Sample_ids do not match between saved clustering and current experiment! \n\n Cancelling load")
+                print(msg)
             return
         if ((np.round(watermark1, 4) != np.round(clustering_info['watermark1'][0],4)) 
             or (np.round(watermark2,4) != np.round(clustering_info['watermark2'][0], 4))):
+            msg = ("Caution: Has the data in the experiment changed from when the clustering was saved? Data watermarks did not match! \n"
+                    "Data transformations that could cause this if they were not re-done to replicate: batch correction, scaling \n"
+                    "Proceeding with clustering load.")
             if self._in_gui:
-                warning_window("Caution: Has the data in the experiment changed from when the clustering was saved? Data watermarks did not match! \n"
-                               "Data transformations that could cause this if they were not re-done to replicate: batch correction, scaling \n"
-                               "Proceeding with clustering load.")
+                warning_window(msg)
             else:
-                print("Caution: Has the data in the experiment changed from when the clustering was saved? Data watermarks did not match! \n"
-                      "Data transformations that could cause this if they were not re-done to replicate: batch correction, scaling \n"
-                      "Proceeding with clustering load.")
+                print(msg)
         if (np.array(self.data.obs['condition'].astype('str')) != np.array(clustering_info['condition'].astype('str'))).sum() > 0:
+            msg = ("Caution: Conditions do not match between saved clustering and current experiment! Be sure of any changes \n"
+                   "Proceeding with clustering load.")
             if self._in_gui:
-                warning_window("Caution: Conditions do not match between saved clustering and current experiment! Be sure of any changes \n"
-                               "Proceeding with clustering load.")
+                warning_window(msg)
             else:
-                print("Caution: Conditions do not match between saved clustering and current experiment! Be sure of any changes \n"
-                     "Proceeding with clustering load.")
+                print(msg)
         if (np.array(self.data.obs['patient_id'].astype('str')) != np.array(clustering_info['patient_id'].astype('str'))).sum() > 0:
+            msg = ("Caution: 'Patient_ids'  do not match between saved clustering and current experiment! Be sure of any changes \n"
+                    "Proceeding with clustering load.")
             if self._in_gui:
-                warning_window("Caution: 'Patient_ids'  do not match between saved clustering and current experiment! Be sure of any changes \n"
-                               "Proceeding with clustering load.")
+                warning_window(msg)
             else:
-                print("Caution: 'Patient_ids'  do not match between saved clustering and current experiment! Be sure of any changes \n"
-                        "Proceeding with clustering load.")
+                print(msg)
         self.data.obs[column_name] = list(clustering_info['cellType'])    #### assumes no changes in the index
         ###>>>
         if self.UMAP_embedding is not None:
