@@ -586,8 +586,7 @@ class Spatial_py(ctk.CTkFrame):
                                    file_or_folder = "folder", 
                                    GUI_object = self):
                         return
-                if not os.path.exists(f"{output_dir}/Functional_plots"):
-                    os.mkdir(f"{output_dir}/Functional_plots")
+                os.makedirs(f"{output_dir}/Functional_plots", exist_ok = True)
 
                 def log_update():
                     space_logger.info(f"""Plotted pairwise function plot(s) with the following settings:
@@ -2150,7 +2149,7 @@ class dist_transform_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if self.checkbox.get():
             load_distance_transform =  f"{self.master.master_exp.directory}/Spatial_plots/edt_maps"
             os.makedirs(f"{self.master.master_exp.directory}/Spatial_plots", exist_ok = True)
-            os.makedirs(load_distance_transform, exist_ok = True):
+            os.makedirs(load_distance_transform, exist_ok = True)
             load_distance_transform = f"{load_distance_transform}/{Path(pixel_class_folder).name}"
         else:
             load_distance_transform = None
@@ -2189,8 +2188,7 @@ class edt_reload_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master = master
 
         self.folder = f"{self.master.master_exp.directory.parent}/spatial_edts"
-        if not os.path.exists(self.folder):
-            os.mkdir(self.folder)
+        os.makedirs(self.folder, exist_ok = True)
 
         label = ctk.CTkLabel(master = self, text = 'Reload a previously performed distance transform:')
         label.grid(column = 0, row = 0, padx = 3, pady = 3, columnspan = 2)

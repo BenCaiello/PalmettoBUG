@@ -2293,8 +2293,8 @@ class Analysis:
         if int(number_of_panels % number_of_columns) == 0:
             number_of_rows = number_of_rows - 1   ## avoid a blank row at the end
         temp_img_dir = tp.TemporaryDirectory().name
-        if not os.path.exists(temp_img_dir):
-            os.mkdir(temp_img_dir)
+        os.makedirs(temp_img_dir, exist_ok = True)
+
         temp_img_dir_svg = f"{temp_img_dir}/temp_image.svg"
         temp_img_dir_svg_all = f"{temp_img_dir}/temp_image_concat.svg"
 
@@ -4108,8 +4108,7 @@ class Analysis:
             Outputs: 
                 Writes the clustering data table to self.clusterings_dir/{groupby_column}{identifier}.csv
         '''
-        if not os.path.exists(self.clusterings_dir):
-            os.mkdir(self.clusterings_dir)
+        os.makedirs(self.clusterings_dir, exist_ok = True)
         ##### Sets up a table for spatial analysis
         table = pd.DataFrame()
         table['cellType'] = self.data.obs[groupby_column].astype('str').copy()
@@ -4166,11 +4165,10 @@ class Analysis:
             identifier = f"_{identifier}"
         name = f'{clustering}_{Path(self.input_mask_folder).name}{identifier}'
         destination_folder = f"{classy_mask_folder}/{name}"
-        if not os.path.exists(destination_folder):
-            os.mkdir(destination_folder)
+        os.makedirs(destination_folder, exist_ok = True)
+
         internal_folder = f'{destination_folder}/{name}'   ## this holds the .tiff files themselves
-        if not os.path.exists(internal_folder):
-            os.mkdir(internal_folder)
+        os.,makedirs(internal_folder, exist_ok = True)
 
         # Step 1: use back-up data & recover labels (either 'none' if filtered/dropped before clustering, or clustering labels)
         if self.back_up_data is not None:
