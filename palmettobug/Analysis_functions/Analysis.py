@@ -1163,7 +1163,7 @@ class Analysis:
                 assignment = "0_0"
             else:
                 mode = np.bincount(vals).argmax()
-                assignment = f"{mode}_{image_number}
+                assignment = f"{mode}_{image_number}"
 
             cell_class_list.append(assignment)
         return cell_class_list
