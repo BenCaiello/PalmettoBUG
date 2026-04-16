@@ -686,7 +686,7 @@ def fetch_CyTOF_example(new_directory):
     '''
     if not os.path.exists(new_directory):
         raise Exception("Target directory does not exist")
-    CyTOF_data = requests.get("https://zenodo.org/records/14983582/files/Example_CyTOF.zip?download=1")
+    CyTOF_data = requests.get("https://zenodo.org/records/19613245/files/Example_CyTOF.zip?download=1")
     file_path = f"{new_directory}/CyTOF_data.zip"
     with open(file_path, 'wb') as write_to:
         write_to.write(CyTOF_data.content)
@@ -704,8 +704,8 @@ def fetch_IMC_example(new_directory):
     Calling this fetch function on an existing directory will caues the files in the /raw sub-folder ot be replaced with the exmaple data!
     '''
     if not os.path.exists(new_directory):
-        raise Exception("Target directory does not exist")
-    IMC_data = requests.get("https://zenodo.org/records/14983582/files/Example_IMC.zip?download=1", stream = True)
+        raise Exception("Target directory does not exist") 
+    IMC_data = requests.get("https://zenodo.org/records/19613245/files/Example_IMC.zip?download=1", stream = True)
     filepath = f"{new_directory}/IMC_data.zip"
     with open(filepath, 'wb') as write_to:
         for i in IMC_data.iter_content(chunk_size = 1024**2):
