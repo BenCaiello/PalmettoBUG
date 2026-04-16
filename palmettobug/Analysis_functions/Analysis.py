@@ -372,7 +372,7 @@ class Analysis:
             else:
                 print(f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}")
         
-        panel = panel.loc[panel['antigen'].isin(intensities.columns)]
+        panel = panel.loc[intensities.columns]
         intensities.columns = panel["antigen"]  
         
          ## extend the metadata table to match the number of cells -- preparation for this becoming the .obs portion of the AnnData object
@@ -385,14 +385,14 @@ class Analysis:
         metadata_long = pd.merge(metadata_long, metadata[["sample_id",'file_name', 'patient_id', 'condition']], on = 'sample_id')
         metadata_long.index = intensities.index  
 
-        # apply arcsinh transformation
-        self.data.uns['counts'] = np.array(intensities)  
+        # apply arcsinh transformation and  initialize the AnnData object
         if arcsinh_cofactor > 0:
-            intensities = np.arcsinh(intensities.to_numpy() / arcsinh_cofactor)
-
-        ## initialize the AnnData object
-        self.data = ann.AnnData(X = intensities, var = panel, obs = metadata_long)
-
+            anndata_intensities = np.arcsinh(intensities.to_numpy() / arcsinh_cofactor)
+            self.data = ann.AnnData(X = anndata_intensities, var = panel, obs = metadata_long)
+        else:
+            self.data = ann.AnnData(X = intensities, var = panel, obs = metadata_long)
+        self.data.uns['counts'] = np.array(intensities) 
+         
         ## set categorical orderings for .obs table & ensure a consistent index (0 --> len(obs))
         for column in ["sample_id", "patient_id", "condition"] :
             special_category = pd.CategoricalDtype(list(self.data.obs[column].astype('str').unique()), ordered = True)
@@ -487,19 +487,8 @@ class Analysis:
         try:
             self.metadata = pd.read_csv(f"{self.directory}/metadata.csv") 
         except Exception:
-            filenames = obs['file_name'].unique()
-            self.metadata = pd.DataFrame()
-            self.metadata['file_name'] = filenames
-            patient_dict = {}
-            condition_dict = {}
-            sample_dict = {}
-            for i, ii, iii, iv in zip(obs['file_name'], obs['patient_id'], obs['condition'], obs['sample_id']):
-                patient_dict[i] = ii
-                condition_dict[i] = iii
-                sample_dict[i] = iv
-            self.metadata['sample_id'] = self.metadata['file_name'].replace(sample_dict).astype(obs['sample_id'].dtype)
-            self.metadata['patient_id'] = self.metadata['file_name'].replace(patient_dict).astype(obs['patient_id'].dtype)
-            self.metadata['condition'] = self.metadata['file_name'].replace(condition_dict).astype(obs['condition'].dtype)
+            grouped = obs.groupby('file_name', observed=True).first()
+            self.metadata = grouped[['sample_id', 'patient_id', 'condition']].reset_index()
 
             self.metadata = self.metadata.sort_values('sample_id', ascending = True)
             self.metadata['sample_id'] = self.metadata['sample_id'].astype('category')
@@ -615,15 +604,16 @@ class Analysis:
         ## setup directory expectations, find CSV files in the regionprops folder that match an FCS file in the Analysis
         if regionprops_directory is None:
             regionprops_directory = f"{self.directory.parent}/regionprops/"
-        regionprops_directory = str(regionprops_directory)
+
         roi_areas = [i for i in sorted(os.listdir(regionprops_directory)) if i.lower().find(".csv") != -1]
         region_props_tables = [f"{regionprops_directory}/{ii}" for ii in roi_areas if f"{ii[:-4]}.fcs" in self.fcs_dir_names]
 
         ## read CSV files and concatenate together to prepare for adding to the Analysis data
-        regionprops = pd.DataFrame()
+        regionprops = []
         for i in region_props_tables:
             read_in = pd.read_csv(i)
-            regionprops = pd.concat([regionprops, read_in], axis = 0)
+            regionprops.append(read_in)
+        regionprops = pd.concat(regionprops, axis = 0, ignore_index = True)
         regionprops.index = regionprops['Object']
 
         # Load centroids (0 and 1) into self.data.obsm['spatial'] for interoperability with squidpy, 
@@ -699,10 +689,15 @@ class Analysis:
 
         if self.unscaled_data is None:
             new_X  = np.concatenate((self.data.X.copy(), np.array(self.regionprops_data)), axis = 1)
-            self.data = ann.AnnData(X = new_X, var = self.panel, obs = self.data.obs, obsm = self.data.obsm, uns = self.data.uns, obsp = self.data.obsp)
+            #self.data = ann.AnnData(X = new_X, var = self.panel, obs = self.data.obs, obsm = self.data.obsm, uns = self.data.uns, obsp = self.data.obsp)
+            self.data.X = new_X
+            self.data.var = self.panel
         else:
             new_X  = np.concatenate((self.unscaled_data.copy(), np.array(self.regionprops_data)), axis = 1)
-            self.data = ann.AnnData(X = new_X, var = self.panel, obs = self.data.obs, obsm = self.data.obsm, uns = self.data.uns, obsp = self.data.obsp)
+            self.data.X = new_X
+            self.data.var = self.panel
+
+            #self.data = ann.AnnData(X = new_X, var = self.panel, obs = self.data.obs, obsm = self.data.obsm, uns = self.data.uns, obsp = self.data.obsp)
             self.unscaled_data = None
             self.do_scaling(scaling_algorithm = self._scaling, upper_quantile = self._quantile_choice)
         if self._in_gui: 
