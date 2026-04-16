@@ -275,13 +275,13 @@ class Analysis:
                     ## do this so that squidpy interoperativity is simpler / seam-less
                     #### append regionprops is a different matter though... require that to be chosen by the user
                 self._spatial = True
-            except Exception as e1:   ## load from CSV may have spatial information, but it will already be in self.data
+            except Exception as e1:  # noqa ## load from CSV may have spatial information, but it will already be in self.data
                 try:
                     self.data.obsm['spatial']
                     self.data.uns['areas']
                     self.input_mask_folder
                     self._spatial = True
-                except Exception as e2:
+                except Exception as e2:  # noqa
                     print("Could not load regionprops data, presuming this is a solution-mode dataset -- Spatial analyses will not be possible.")
                     self._spatial = False
 
@@ -351,26 +351,49 @@ class Analysis:
         self.length_of_images = np.concatenate(([0], np.cumsum(length_of_images)))
         warnings.filterwarnings("default", message = "The default channel names")
 
-        ## drop 'Object' column if it exists (can cause misalignment with panel dataframe)
-        if len(intensities.columns) > len(panel):
-            try:
-                intensities = intensities.drop("Object", axis = 1)
-            except KeyError:
-                pass
+        ## Ensure panel and FCS intensities data have matching column names and align
+        ## Any 'Object' column could be dropped silently if it exists 
+        if len(intensities.columns) != len(panel):     
+            panel_antigens = set(self.panel.index)
+            intensity_antigens = set(intensities.columns)
+            to_drop = panel_antigens ^ intensity_antigens
+            to_drop_panel = list(panel_antigens & to_drop)
+            to_drop_FCS = list(intensity_antigens & to_drop)
+
+            if len(to_drop_panel) > 0:
+                self.panel = self.panel.drop(to_drop_panel, axis = 0)
+                msg = "Some antigens were present in the panel, but missing in the FCS files!\n" + 
+                    f"These antigens have been dropped from the panel: \n\n {str(to_drop_panel)}"
+                if self._in_gui:
+                    warning_window(msg)
+                    Analysis_log.info(msg) 
+                else:
+                    print(msg)    
+
+            if len(to_drop_FCS) > 0:
+                intensities = intensities.drop(to_drop_FCS, axis = 1)
+                msg = "Some antigens were present in the FCS files, but missing in the panel!\n" + 
+                    f"These antigens have been dropped from the FCS data: \n\n {str(to_drop_FCS)}"
+                if self._in_gui:
+                    warning_window(msg)
+                    Analysis_log.info(msg) 
+                else:
+                    print(msg)     
+
 
         ## Antigens with all 0 values contribute no useful information to analysis 
         # removing them can reduce computational load and prevent them from creating errors in certain calculations / plots
-        
         nonzero_mask = intensities.sum(axis=0) != 0
         dropped_antigen_list = intensities.columns[~nonzero_mask].tolist()
         intensities = intensities.loc[:, nonzero_mask]
 
         if len(dropped_antigen_list) > 0:
+            msg = f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}"
             if self._in_gui:
-                warning_window(f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}")
-                Analysis_log.info(f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}") 
+                warning_window(msg)
+                Analysis_log.info(msg) 
             else:
-                print(f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}")
+                print(msg)
         
         panel = panel.loc[intensities.columns]
         intensities.columns = panel["antigen"]  
@@ -723,9 +746,9 @@ class Analysis:
                 self.back_up_regions = self.regionprops_data.copy()
             
         filterer = self.data.obs[column].astype('str') != str(to_drop) 
-        if (column == "sample_id") or (column == "patient_id") or (column == "condition"):
-            filter2 = (self.metadata[column].astype('str')  != str(to_drop))
-            self.metadata = self.metadata[filter2].copy()
+
+        if column in self.metadata.columns:
+            self.metadata = self.metadata[self.metadata[column].astype('str') != str(to_drop)]
 
         self.data = self.data[filterer].copy()
         if self.unscaled_data is not None:
@@ -734,15 +757,14 @@ class Analysis:
         if self._spatial:
             self.regionprops_data = self.regionprops_data[np.array(list(filterer))].copy()
 
-        if column in self.metadata.columns:
-            self.metadata = self.metadata[self.metadata[column] != str(to_drop)]
+        
         
         if self.UMAP_embedding is not None:
-            filterer = (self.UMAP_embedding.obs[column].astype('str') != str(to_drop))
-            self.UMAP_embedding = self.UMAP_embedding[filterer].copy()
+            filterer_UMAP = (self.UMAP_embedding.obs[column].astype('str') != str(to_drop))
+            self.UMAP_embedding = self.UMAP_embedding[filterer_UMAP].copy()
         if self.PCA_embedding is not None:
-            filterer = (self.PCA_embedding.obs[column].astype('str') != str(to_drop))
-            self.PCA_embedding = self.PCA_embedding[filterer].copy()
+            filterer_PCA = (self.PCA_embedding.obs[column].astype('str') != str(to_drop))
+            self.PCA_embedding = self.PCA_embedding[filterer_PCA].copy()
 
         try:
             self.data.uns['counts'] = self.data.uns['counts'][filterer]
@@ -758,7 +780,7 @@ class Analysis:
 
         batch_column specifies a column in self.data.obs to use as the batch grouping for the correction (usually 'patient_id')
         '''
-        self.data.X = sc.pp.combat(self.data.copy(), key = batch_column, covariates = covariates, inplace = False).copy()
+        self.data.X = sc.pp.combat(self.data, key = batch_column, covariates = covariates, inplace = False).X
         if self.is_batched > 0:
             print('Warning! You have performed a batch correction twice on the same data! Are you sure this was intentional?')
         if (self.unscaled_data is None) and (self.is_batched != 1):
