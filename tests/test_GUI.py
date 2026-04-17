@@ -893,10 +893,8 @@ def test_SpaceANOVA():
                                          condition_comparison = "All (multicomparison)", 
                                          celltype_key = 'merging', 
                                          permutations = 2, 
-                                         seed = 42,
-                                         use_rust = True)
+                                         seed = 42)
     my_spatial.SpaceANOVA = window.master.master.master_exp.space_analysis
-    rust_data_table = my_spatial.SpaceANOVA._comparison_dictionary.copy()
 
     assert my_spatial.SpaceANOVA.data_table is not None, "spaceANOVA Ripley's statistics not calculated!"
     assert my_spatial.SpaceANOVA._comparison_dictionary is not None, "spaceANOVA Ripley's statistics not calculated!"
