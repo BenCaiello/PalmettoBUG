@@ -3676,7 +3676,6 @@ class Analysis:
                                         # of aggregate statistics (mean / median) of the expression within each sample_id
         panel = self.panel.copy()
         data = self.data.copy()
-        print(panel, data)
         if len(conditions) == 0:
             conditions = data.obs[ind_var_column].unique()
         else:
@@ -3765,29 +3764,29 @@ class Analysis:
                 ii[groupby_column] = data_df[groupby_column].astype('str')
                 if statistic == "mean":
                     merging_mean_condition = pd.melt(ii.groupby(groupby_column, 
-                                                                observed = True).mean(numeric_only = True).T.reset_index(), 
+                                                                observed = True).mean(numeric_only = True).T.reset_index().rename(columns={'index': 'antigen'}), 
                                                     id_vars = 'antigen')
                     
                     merging_std_condition = pd.melt(ii.groupby(groupby_column, 
-                                                               observed = True).std(numeric_only = True).T.reset_index(), 
+                                                               observed = True).std(numeric_only = True).T.reset_index().rename(columns={'index': 'antigen'}), 
                                                     id_vars = 'antigen')
                     
                     spread_stat = f'{stat_helper_label}stdev'
 
                 elif statistic == "median":
                     merging_mean_condition = pd.melt(ii.groupby(groupby_column, 
-                                                                observed = True).median(numeric_only = True).T.reset_index(), 
+                                                                observed = True).median(numeric_only = True).T.reset_index().rename(columns={'index': 'antigen'}), 
                                                      id_vars = 'antigen')
                     
                     merging_std_condition = pd.melt(ii.groupby(groupby_column, 
                                                         observed = True).quantile(q = 0.75, 
-                                                                                  numeric_only = True).T.reset_index(), 
+                                                                                  numeric_only = True).T.reset_index().rename(columns={'index': 'antigen'}), 
                                                     id_vars = 'antigen')
                     
                     merging_std_condition['value'] = (merging_std_condition['value'] 
                                         - pd.melt(ii.groupby(groupby_column, 
                                                              observed = True).quantile(q = 0.25, 
-                                                                                       numeric_only = True).T.reset_index(), 
+                                                                                       numeric_only = True).T.reset_index().rename(columns={'index': 'antigen'}), 
                                                    id_vars = 'antigen')['value'])
                     
                     spread_stat = f'{stat_helper_label}IQR'
