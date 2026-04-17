@@ -530,7 +530,7 @@ def test_launch_Plot_histograms_per_ROI_window():
 
 def test_launch_UMAP_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_UMAP_window()
-    w_window = window.run_UMAP()
+    w_window = window.run_UMAP(cells = 500)
     window.run_UMAP(kind = 'PCA')
     w_window.destroy()
     assert isinstance(window, ctk.CTkToplevel)

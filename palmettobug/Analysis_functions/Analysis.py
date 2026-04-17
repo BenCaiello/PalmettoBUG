@@ -405,7 +405,6 @@ class Analysis:
         metadata_long.index = intensities.index  
 
         # apply arcsinh transformation and  initialize the AnnData object
-        print(panel)
         panel.index = panel['antigen']
         if arcsinh_cofactor > 0:
             anndata_intensities = np.arcsinh(intensities.to_numpy() / arcsinh_cofactor)
@@ -3554,7 +3553,6 @@ class Analysis:
                 return
     
         stats_df = stats_df.head(top_n).copy()
-        print(stats_df)
     
         label_column_names = list(stats_df.columns[:2].values)  ## the way self.do_state_exprs_ANOVAs works, there should always be two label columns: 'antigen', and the groupby column
         label_columns = stats_df[label_column_names]
@@ -3573,8 +3571,6 @@ class Analysis:
     
         raw_data = pd.DataFrame(self.data.X.copy(), index = self.data.obs.index, columns = self.data.var.index)
 
-        print(raw_data)
-        print(self.data.var.index)
         raw_data[grouping_columns] = self.data.obs[grouping_columns]
         raw_data = raw_data.groupby(grouping_columns, observed = False).median(numeric_only = True).dropna(how = 'all').reset_index()
         raw_data = raw_data.melt(grouping_columns)
