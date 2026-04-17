@@ -173,20 +173,20 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
     to_normalize_fcs_folder = str(to_normalize_fcs_folder)
     output_folder = str(output_folder)
 
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
-    output_beads = output_folder + "/normalized_beads"
-    output_no_beads = output_folder + "/normalized"
-    if not os.path.exists(output_beads):
-        os.mkdir(output_beads)
-    if not os.path.exists(output_no_beads):
-        os.mkdir(output_no_beads)
+    os.makedirs(output_folder, exist_ok = True)
+
+    output_beads = f"{output_folder}/normalized_beads"
+    output_no_beads = f"{output_folder}/normalized"
+
+    os.makedirs(output_beads, exist_ok = True)
+    os.makedirs(output_no_beads, exist_ok = True)
+
     if include_figures is True:
         output_figures = output_folder + "/normalization_figures"
-        if not os.path.exists(output_figures):
-            os.mkdir(output_figures)
-    beads_fcsS = ["".join([bead_fcs_folder,"/",i]) for i in sorted(os.listdir(bead_fcs_folder)) if i.lower().find(".fcs") != -1] 
-    to_normalize_fcsS = ["".join([to_normalize_fcs_folder,"/",i]) for i in sorted(os.listdir(to_normalize_fcs_folder)) if i.lower().find(".fcs") != -1]
+        os.makedirs(output_figures, exist_ok = True)
+        
+    beads_fcsS = [f"{bead_fcs_folder}/{i}" for i in sorted(os.listdir(bead_fcs_folder)) if i.lower().find(".fcs") != -1] 
+    to_normalize_fcsS = [f"{to_normalize_fcs_folder}/{i}" for i in sorted(os.listdir(to_normalize_fcs_folder)) if i.lower().find(".fcs") != -1]
     for i,ii in zip(beads_fcsS, to_normalize_fcsS):
         _, prenorms_df = fcsparser.parse(ii, channel_naming = "$PnS")
         prenorms_df = DataFrame(prenorms_df.sort_values('Time'))
@@ -200,8 +200,8 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
                                                             to_normalize_fcs = prenorms_df, 
                                                             bead_channels = bead_channels, 
                                                             channels_to_normalize = channels_to_normalize)
-        DataFrame(my_normed_events).to_fcs(output_no_beads + "/" + no_bead_label)
-        DataFrame(my_normed_beads).to_fcs(output_beads + "/" + bead_label)
+        DataFrame(my_normed_events).to_fcs(f"{output_no_beads}/{no_bead_label}")
+        DataFrame(my_normed_beads).to_fcs(f"{output_beads}/{bead_label}")
         if include_figures is True:
             fig = plt.figure()
             axs = plt.gca()
@@ -209,7 +209,7 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
                     _median_500_window_df(beads_df, bead_channels).sort_values('Time').loc[:,bead_channels], label =  bead_channels)
             axs.legend()
             fig.suptitle("Pre-normalization Beads")
-            fig.savefig(output_figures + f"/pre_beads_{bead_label[:bead_label.rfind('.')]}")
+            fig.savefig(f"{output_figures}/pre_beads_{bead_label[:bead_label.rfind('.')]}")
             plt.close()
             fig = plt.figure()
             axs = plt.gca()
@@ -217,7 +217,7 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
                     _median_500_window_df(my_normed_beads, bead_channels).sort_values('Time').loc[:,bead_channels], label =  bead_channels)
             axs.legend()
             fig.suptitle("Normalized Beads")
-            fig.savefig(output_figures + f"/normalized_beads_{bead_label[:bead_label.rfind('.')]}")
+            fig.savefig(f"{output_figures}/normalized_beads_{bead_label[:bead_label.rfind('.')]}")
             plt.close()
             
             fig = plt.figure()
@@ -226,7 +226,7 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
                     _median_500_window_df(prenorms_df, channels_to_normalize).sort_values('Time').loc[:,channels_to_normalize], 
                     label =  channels_to_normalize)
             fig.suptitle("Pre-normalization non-Beads")
-            fig.savefig(output_figures + f"/pre_norm_{no_bead_label[:no_bead_label.rfind('.')]}")
+            fig.savefig(f"{output_figures}/pre_norm_{no_bead_label[:no_bead_label.rfind('.')]}")
             plt.close()
 
             fig = plt.figure()
@@ -235,7 +235,7 @@ def CyTOF_bead_normalize(bead_fcs_folder: str,
                     _median_500_window_df(my_normed_events, channels_to_normalize).sort_values('Time').loc[:,channels_to_normalize],
                     label =  channels_to_normalize)
             fig.suptitle("Normalized non-Beads")
-            fig.savefig(output_figures + f"/normalized_{no_bead_label[:no_bead_label.rfind('.')]}")
+            fig.savefig(f"{output_figures}/normalized_{no_bead_label[:no_bead_label.rfind('.')]}")
             plt.close()
     return
 

@@ -20,6 +20,7 @@ FLOWSOM_Python: https://github.com/saeyslab/FlowSOM_Python
 '''
 
 import os
+from pathlib import Path
 from typing import Union
 import tkinter as tk
 import customtkinter as ctk
@@ -37,10 +38,10 @@ from ..Utils.sharedClasses import DirectoryDisplay, CtkSingletonWindow, Analysis
 __all__ = []
 
 
-homedir = __file__.replace("\\","/")
-homedir = homedir[:(homedir.rfind("/"))]
+HOMEDIR = Path(__file__)
+HOMEDIR = HOMEDIR.parent
 ## do it twice to get up to the top level directory:
-homedir = homedir[:(homedir.rfind("/"))]                         ############## Needed for accessing asset folder for image display
+HOMEDIR = HOMEDIR.parent                       ############## Needed for accessing asset folder for image display
 
 CLUSTER_NAMES = ["metaclustering", "merging", "classification", "leiden"]
 MARKER_CLASSES = ["type","state","none"]
@@ -225,9 +226,10 @@ class Analysis_py_widgets(ctk.CTkFrame):
         if directory == "":
             return
         directory  = directory.replace("\\" , "/")
-        Analysis_directory = directory[:directory.rfind("/")] + f"/Analysis_loaded_from_{directory[directory.rfind('/') + 1 : -4]}"
-        if not os.path.exists(Analysis_directory):
-            os.mkdir(Analysis_directory)
+        Analysis_directory = f"{directory[:directory.rfind('/')]}/Analysis_loaded_from_{directory[directory.rfind('/') + 1 : -4]}"
+
+        os.makedirs(Analysis_directory, exist_ok = True)
+        
         self.cat_exp = Analysis(in_gui = True)
         self.cat_exp.load_data(Analysis_directory, csv = directory)
 
@@ -254,9 +256,9 @@ class Analysis_py_widgets(ctk.CTkFrame):
         self.cat_exp = Analysis(in_gui = True)
         self.cat_exp.load_data(self.directory)
         Analysis_widget_logger.info("Reloaded Experiment!")
-        with open(self.directory + '/Analysis_panel.csv') as file:
+        with open(f"{self.directory}/Analysis_panel.csv") as file:
             Analysis_widget_logger.info(f"Loaded Analysis_panel file, with values: \n {file.read()}")
-        with open(self.directory + '/metadata.csv') as file:
+        with open(f"{self.directory}/metadata.csv") as file:
             Analysis_widget_logger.info(f"Loaded metadata file, with values: \n {file.read()}")
 
         ## re-disable buttons that depend on clustering, etc.
@@ -275,7 +277,7 @@ class Analysis_py_widgets(ctk.CTkFrame):
             parent_folder = self.cat_exp.save_dir
             to_read = f"{parent_folder}/{filename}.png"
         else:
-            to_read = self.directory + f"/{parent_folder}/{filename}.png"
+            to_read = f"{self.directory}/{parent_folder}/{filename}.png"
         image = Image.open(to_read)
         image = ctk.CTkImage(image, size = (sizeX,sizeY))
         self.display2.update_image(image)
@@ -599,8 +601,9 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             \n\n This is the initial loading from the classy masks folder of the project 
             \n Once loaded to inside this analysis AND SAVED, you can load it in the same way as a merging/metaclustering""")
         label_2.grid(column = 4, row = 2)
-        master_dir = self.master.directory[:self.master.directory.rfind("/Analyses")]
-        self.classy_dir = master_dir + "/classy_masks"
+        master_dir = str(self.master.directory).replace("\\","/")
+        master_dir = master_dir[:master_dir.rfind("/Analyses")]
+        self.classy_dir = f"{master_dir}/classy_masks"
 
         self.load_identifier_from_px = ctk.CTkOptionMenu(master = self, values = [""], variable = ctk.StringVar(value = ""))
         self.load_identifier_from_px.grid(column = 4, row = 3, padx = 5, pady = 5)
@@ -625,16 +628,16 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.saver_button.configure(state = "normal")
 
     def refresh1(self, enter = ""):
-        list_of_saved_clusterings = [i for i in sorted(os.listdir(self.master.cat_exp.directory + "/clusterings")) if i.lower().find(".csv") != -1]
+        list_of_saved_clusterings = [i for i in sorted(os.listdir(f"{self.master.cat_exp.directory}/clusterings")) if i.lower().find(".csv") != -1]
         self.load_identifier.configure(values = list_of_saved_clusterings)
 
     def refresh2(self, enter = ""):
         try:
-            list_of_saved_classifiers = [i for i in sorted(os.listdir(self.classy_dir)) if i.find(".") == -1]
+            list_of_saved_classifiers = [i.replace("\\","/") for i in sorted(os.listdir(self.classy_dir)) if i.find(".") == -1]
             all_classifications = []
             for i in list_of_saved_classifiers:
-                list_of_classifications = ["".join([self.classy_dir,"/",i,"/",f'{i}_cell_classes.csv']),
-                                            "".join([self.classy_dir,"/",i,"/",'secondary_cell_classification.csv'])]
+                list_of_classifications = [f"{self.classy_dir}/{i}/{i}_cell_classes.csv",
+                                            f"{self.classy_dir}/{i}/secondary_cell_classification.csv"]
                 list_of_classifications = [i for i in list_of_classifications if os.path.exists(i)]
                 list_of_classifications = [i[((i[:i.rfind("/")]).rfind("/") + 1):] for i in list_of_classifications]  
                                                                                 ## grab the first folder and the file name for display
@@ -684,7 +687,7 @@ class Cluster_save_load_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             tk.messagebox.showwarning("Warning!", message = message)
             self.focus()
             return   
-        self.master.cat_exp.load_classification(cell_classifications = (self.classy_dir + "/" + identifier))
+        self.master.cat_exp.load_classification(cell_classifications = f"{self.classy_dir}/{identifier}")
 
         ## purpose of the following is to re-disable SpaceANOVA buttons if spaceANOVA column has been overwritten
         try: ## either space_analysis or data_table attributes may not exist
@@ -794,7 +797,7 @@ class Cluster_Window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                 pass
             if plot_stars:
                 filename = "FlowSOM_MST"
-                self.master.cat_exp._plot_stars_CNs(returned, filename = filename + ".png")
+                self.master.cat_exp._plot_stars_CNs(returned, filename = f"{filename}.png")
                 self.master.save_and_display(filename = filename,sizeX = 550, sizeY = 550)
             w_window = warning_window("FlowSOM complete!")
             self.withdraw()
@@ -1720,7 +1723,7 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.new.grid(column = 0, row = 0, rowspan = 4, padx = 5, pady = 5)
 
     def load_merging(self, id: str) -> None:
-        merging_file_path = self.master.directory + "/mergings/" + id + ".csv"
+        merging_file_path = f"{self.master.directory}/mergings/{id}.csv"
         
         self.master.cat_exp.do_cluster_merging(file_path = merging_file_path)
         Analysis_widget_logger.info(f"Loaded Cluster Merging with: name = {id}")
@@ -1732,7 +1735,7 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         id = id.lstrip().rstrip() #### removes any leading and trailing spaces
         if filename_checker(id, self):
             return
-        merging_file_path = self.master.directory + "/mergings/" + id + ".csv"
+        merging_file_path = f"{self.master.directory}/mergings/{id}.csv"
         if not overwrite_approval(merging_file_path, file_or_folder = "file", GUI_object = self):
             return
         if " " in id:
@@ -1774,7 +1777,7 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.reload_merge.grid(column = 4, row = 1)
             self.reload_merge.bind("<Enter>", self.refreshOption)
             
-            self.table = TableWidget_merging(self,width = 1, directory = self.master.directory + "/mergings", maxK = self.master.number)
+            self.table = TableWidget_merging(self,width = 1, directory = f"{self.master.directory}/mergings", maxK = self.master.number)
             self.table.grid(column = 3, row = 2, columnspan = 4, padx = 5, pady = 5)
 
             self.button = ctk.CTkButton(master = self, 
@@ -1783,11 +1786,11 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.button.grid(column = 3, row = 7, padx = 5, pady = 5)
 
         def refreshOption(self, enter = ""):
-            made_mergings = ["blank"] + [i for i in sorted(os.listdir(self.master.master.directory + "/mergings/")) if i.lower().find(".csv") != -1] 
+            made_mergings = ["blank"] + [i for i in sorted(os.listdir(f"{self.master.master.directory}/mergings/")) if i.lower().find(".csv") != -1] 
             self.reload_merge.configure(values = made_mergings)
 
         def repopulate_table(self, choice):
-            self.table.repopulate_table(self.master.master.directory + "/mergings/" + choice)
+            self.table.repopulate_table(f"{self.master.master.directory}/mergings/{choice}")
             self.id_new.configure(textvariable = ctk.StringVar(value = choice[:choice.rfind(".csv")]))    
 
 class TableWidget_merging(ctk.CTkScrollableFrame):
@@ -1851,7 +1854,7 @@ class TableWidget_merging(ctk.CTkScrollableFrame):
     def special_to_csv(self, dataframe = None):
         if dataframe is None:
             dataframe = self.table_dataframe
-        dataframe.to_csv(self.directory + self.to_add, index = False)
+        dataframe.to_csv(f"{self.directory}{self.to_add}", index = False)
         Analysis_widget_logger.info(f"Wrote merging file, with name '{self.id}', with the values: \n {str(dataframe)}")
 
     def add_entry_column(self, col_num: int, offset: int = 0, disable: bool = False) -> None:
@@ -2025,7 +2028,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             tk.messagebox.showwarning("Warning!", message = message)
             self.focus()
             return
-        if not overwrite_approval(self.master.cat_exp.directory + f"/Data_tables/{filename}.csv", file_or_folder = "file", GUI_object = self):
+        if not overwrite_approval(f"{self.master.cat_exp.directory}/Data_tables/{filename}.csv", file_or_folder = "file", GUI_object = self):
             return
 
         if self.GLM.get() == "ANOVA":
@@ -2037,7 +2040,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
             output_df = self.master.cat_exp.do_abundance_ANOVAs(groupby_column = column, 
                                                                 N_column = self.master.cat_exp.N,
                                                                 conditions = conditions)
-            output_df.to_csv(self.master.cat_exp.data_table_dir + f"/{filename}.csv", index_label = column)
+            output_df.to_csv(f"{self.master.cat_exp.data_table_dir}/{filename}.csv", index_label = column)
         else:
             family_type = self.GLM.get()[self.GLM.get().find(":")+1:]
             if self.condition1.get()  == "multicomparison":
@@ -2054,7 +2057,7 @@ class run_abundance_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindo
                                     test_type = {family_type},
                                     filename = {filename}.csv""")  
 
-        dataframe = pd.read_csv(self.master.cat_exp.directory + f"/Data_tables/{filename}.csv")
+        dataframe = pd.read_csv(f"{self.master.cat_exp.directory}/Data_tables/{filename}.csv")
         table_launched = TableLaunch(dataframe = dataframe.head(50), 
                     directory = filename, 
                     width = 1, 
@@ -2131,7 +2134,7 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             self.focus()
             return
         
-        if not overwrite_approval(self.master.cat_exp.directory + f"/Data_tables/{filename}.csv", file_or_folder = "file", GUI_object = self):
+        if not overwrite_approval(f"{self.master.cat_exp.directory}/Data_tables/{filename}.csv", file_or_folder = "file", GUI_object = self):
             return
         
         success = self.master.cat_exp.do_state_exprs_ANOVAs(filename = filename, marker_class = self.marker_class.get(), 
@@ -2153,7 +2156,7 @@ class run_state_ANOVAs_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                     aggregateion_statistic = {self.stat.get()},
                                     anova_or_kruskal = {self.test.get()},
                                     filename = {filename}.csv""")
-        dataframe = pd.read_csv(self.master.cat_exp.directory + f"/Data_tables/{filename}.csv")
+        dataframe = pd.read_csv(f"{self.master.cat_exp.directory}/Data_tables/{filename}.csv")
         table_launched = TableLaunch(dataframe = dataframe.head(50), 
                     directory = filename, 
                     width = 1, 
@@ -2226,12 +2229,12 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         '''
         if filename_checker(filename, self):
             return
-        if not overwrite_approval(self.master.cat_exp.save_dir + f"/Neg_log_{filename}.csv", file_or_folder = "file", GUI_object = self):
+        if not overwrite_approval(f"{self.master.cat_exp.save_dir}/Neg_log_{filename}.csv", file_or_folder = "file", GUI_object = self):
             return
         self.master.cat_exp.do_cluster_stats(groupby_column = obs_column, N_column = 'sample_id')
         figure = self.master.cat_exp.plot_cluster_stats(filename = filename)
         
-        self.master.save_and_display(filename = "Neg_log_" + filename,sizeX = 550, sizeY = 550)
+        self.master.save_and_display(filename = f"Neg_log_{filename}",sizeX = 550, sizeY = 550)
         Analysis_widget_logger.info(f"""Plotted heatmap of cluster comparison statistics:
                                     cell clustering = {obs_column},
                                     filename = Neg_log_{filename}.png""")
@@ -2276,8 +2279,8 @@ class cluster_statistics_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         if output_bool is True:
             output_path = f'{self.master.cat_exp.directory}/Data_tables/cluster_stat_tables/{str(cluster)}.csv' 
             output_folder = f'{self.master.cat_exp.directory}/Data_tables/cluster_stat_tables/'
-            if not os.path.exists(output_folder):
-                os.mkdir(output_folder)
+
+            os.makedirs(output_folder, exist_ok = True)
             dataframe.to_csv(output_path, index = False)
 
         Analysis_widget_logger.info(f"""Generated cluster comparison statistic table for cluster: {cluster}
@@ -2407,7 +2410,7 @@ class image_drop_restore_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
             self.master = master
             self.configure(width = 300)            
             self.panel = self.master.master.cat_exp.data.obs.copy() 
-            self.metadata = pd.read_csv(self.master.master.directory + '/metadata.csv')
+            self.metadata = pd.read_csv(f"{self.master.master.directory}/metadata.csv")
             try:
                 filter_column = list(self.panel[self.master.column].astype('int').sort_values().unique())
             except ValueError:
@@ -2585,7 +2588,7 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
         filename = self.umap_pca_filename.get().strip()
         if filename_checker(filename, self):
             return
-        if not overwrite_approval(self.master.cat_exp.data_table_dir + f"/{filename}.csv", file_or_folder = "file", GUI_object = self):
+        if not overwrite_approval(f"{self.master.cat_exp.data_table_dir}/{filename}.csv", file_or_folder = "file", GUI_object = self):
             return
         df = self.master.cat_exp.export_DR(kind = kind, filename = filename)
         Analysis_widget_logger.info(f"DR table exported: kind = {kind}, filename = {filename}") 
@@ -2618,7 +2621,7 @@ class data_table_exportation_window(ctk.CTkToplevel, metaclass = CtkSingletonWin
 
         untransformed = self.untransformed.get()
 
-        if not overwrite_approval(self.master.cat_exp.data_table_dir + f"/{filename}.csv", file_or_folder = "file", GUI_object = self):
+        if not overwrite_approval(f"{self.master.cat_exp.data_table_dir}/{filename}.csv", file_or_folder = "file", GUI_object = self):
             return
 
         df = self.master.cat_exp.export_data(filename = filename, 
@@ -3041,7 +3044,7 @@ class MatPlotLib_Display(ctk.CTkFrame):
         self.width = width
 
         self.background = ctk.CTkButton(master = self, text = "")    ## this widget prevents the frame from resizing as the figure is resized
-        image = Image.open(homedir + "/Assets/Capture_blank.png")   
+        image = Image.open(f"{HOMEDIR}/Assets/Capture_blank.png")   
         self.background.configure(image = ctk.CTkImage(image, size = (self.width + 50, self.height + 50)), 
                                   height = height, 
                                   width = width, 
@@ -3051,7 +3054,7 @@ class MatPlotLib_Display(ctk.CTkFrame):
 
 
         self.widget = ctk.CTkButton(master = self, text = "")
-        image = Image.open(homedir + f"/Assets/{bug}") 
+        image = Image.open(f"{HOMEDIR}/Assets/{bug}") 
         self.widget.configure(image = ctk.CTkImage(image, size = (self.height, self.width)), 
                               height = height, 
                               width = width, 
@@ -3320,7 +3323,7 @@ class state_distribution_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow)
         filename = self.filename.get()
         if filename_checker(filename, self):
             return
-        if not overwrite_approval(self.master.master.cat_exp.save_dir + f"/{filename}.png", file_or_folder = "file", GUI_object = self):
+        if not overwrite_approval(f"{self.master.master.cat_exp.save_dir}/{filename}.png", file_or_folder = "file", GUI_object = self):
             return
 
 

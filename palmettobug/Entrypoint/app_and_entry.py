@@ -38,11 +38,11 @@ from ..Pixel_Classification.use_classifiers_GUI import Pixel_usage_widgets
 __all__ = ["fetch_CyTOF_example", 
            "fetch_IMC_example"]
 
-homedir = __file__.replace("\\","/")
-homedir = homedir[:(homedir.rfind("/"))]
+HOMEDIR = Path(__file__)
+HOMEDIR = HOMEDIR.parent
 ## do it twice to get up to the top level directory:
-homedir = homedir[:(homedir.rfind("/"))] 
-Theme_link = homedir + '/Assets/theme.txt'
+HOMEDIR = HOMEDIR.parent
+Theme_link = f"{HOMEDIR}/Assets/theme.txt"
 
 class App(ctk.CTk):
     '''
@@ -57,7 +57,7 @@ class App(ctk.CTk):
             toggle_in_gui()
         ctk.set_appearance_mode("dark")
         if sys.platform == "win32":
-            self.iconbitmap(homedir + "/Assets/Capture.ico")    ## Thanks to: https://www.freeconvert.com/jpg-to-ico for converting .jpg to 
+            self.iconbitmap(f"{HOMEDIR}/Assets/Capture.ico")    ## Thanks to: https://www.freeconvert.com/jpg-to-ico for converting .jpg to 
                                                                             # .ico file
         with open(Theme_link) as theme:
             self.theme = theme.read()
@@ -66,8 +66,8 @@ class App(ctk.CTk):
         elif (self.theme == "green") or (self.theme == "blue"):
             ctk.set_default_color_theme(self.theme)       ## green and blue are themes bundled with customtkinter (don't require a link)
         else:
-            theme_dir = homedir +  "/Assets/ctkThemeBuilderThemes/"
-            ctk.set_default_color_theme(theme_dir + self.theme + ".json")
+            theme_dir = f"{HOMEDIR}/Assets/ctkThemeBuilderThemes/"
+            ctk.set_default_color_theme(f"{theme_dir}{self.theme}.json")
 
         ### The 1200 by 1920 ratio is from the computer I was using to develop this program:
         dev_comp_height = 1200
@@ -96,7 +96,7 @@ class App(ctk.CTk):
         self.entrypoint = EntryPoint(self.Tabs)
         self.entrypoint.grid(row = 0, column = 0, padx = 10, pady = 10)
 
-    ##>>##>>
+    ##>>##>>   
     def destroy(self) -> None:   ## overwrite base class destroy method to ensure that matplotlib is closed
                          ## modified directly from the original customtkinter code for ctk.CTk.destroy()
         plt.close()
@@ -217,7 +217,7 @@ class EntryPoint(ctk.CTkFrame):
         def __init__(self, master):
             super().__init__(master)
             self.master = master
-            image = Image.open(homedir + "/Assets/Capture3.jpg")
+            image = Image.open(f"{HOMEDIR}/Assets/Capture3.jpg")
             self.configure(text = "", image = ctk.CTkImage(image, 
                                             size = (500,500)), 
                                             height = 550, 
@@ -225,11 +225,6 @@ class EntryPoint(ctk.CTkFrame):
                                             fg_color = "white", 
                                             hover = "white")
 
-        #def update_image(self, image: Union[str, ctk.CTkImage]) -> None:
-        #    if isinstance(image, str):
-        #        image = Image.open(image)
-        #        image = ctk.CTkImage(image, size = (550,550))
-        #    self.configure(image = image)
 
     def call_configGUI(self) -> None:
         return configGUI_window(self.master.master)
@@ -269,20 +264,19 @@ class EntryPoint(ctk.CTkFrame):
             resX = float(resolutions[0])
             resY = float(resolutions[1])
 
-        self.master.directory = directory.replace("\\","/")
         ### don't want the current directory to be searched (when entry field is blank)....
-        if self.master.directory is None:
-            self.master.directory = "not a directory"   ## if the directory remains None, odd behaviours can result 
+        if directory is None:
+            directory = "not a directory"   ## if the directory remains None, odd behaviours can result 
                                                             # because of default arguments in downstream functions ---> 
                                                             # like the current directory being searched
-        if len(self.master.directory) == 0:
-            self.master.directory = tk.filedialog.askdirectory()
-            if self.master.directory == "":
+        if len(directory) == 0:
+            directory = tk.filedialog.askdirectory()
+            if directory == "":
                 return
-
+        self.master.directory = Path(directory)
         ## This is a check of the entered directory existing:
         try:
-            files = [i for i in os.listdir(self.master.directory + "/raw") if ((i.lower().find(".mcd") != -1) or (i.lower().find(".tif") != -1))]
+            files = [i for i in os.listdir(self.master.directory / "raw") if ((i.lower().find(".mcd") != -1) or (i.lower().find(".tif") != -1))]
             if len(files) == 0:
                 tk.messagebox.showwarning("Warning!", message = "There are no files in the raw folder!")
                 return
@@ -291,7 +285,7 @@ class EntryPoint(ctk.CTkFrame):
             return
         
         if from_mcds is None:
-            example_files = sorted(os.listdir(self.master.directory + "/raw"))
+            example_files = os.listdir(self.master.directory / "raw")
             extensions = [i[(i.rfind(".") + 1):].lower() for i in example_files]
             if ("mcd" in extensions) and ("tif" not in extensions) and ("tiff" not in extensions):
                 from_mcds = True
@@ -329,15 +323,14 @@ class EntryPoint(ctk.CTkFrame):
     def normalize_fcs_choice(self, directory: Union[None, str] = None) -> None:
         self.master.py_exploratory.X = self.X_Y_entry.entry_X.get()
         self.master.py_exploratory.Y = self.X_Y_entry.entry_Y.get()
-        self.master.directory = directory.replace("\\","/")
-
         if directory == "":
-            self.master.directory = tk.filedialog.askdirectory()
-            if self.master.directory == "":
+            directory = tk.filedialog.askdirectory()
+            if directory == "":
                 return
+        self.master.directory = Path(directory)
         try:
-            beads_files = [i for i in os.listdir(self.master.directory + "/beads") if i.lower().find(".fcs") != -1]
-            non_beads_files = [i for i in os.listdir(self.master.directory + "/no_beads") if i.lower().find(".fcs") != -1]
+            beads_files = [i for i in os.listdir(self.master.directory / "beads") if i.lower().find(".fcs") != -1]
+            non_beads_files = [i for i in os.listdir(self.master.directory / "no_beads") if i.lower().find(".fcs") != -1]
             if len(beads_files) == 0:
                 tk.messagebox.showwarning("Warning!", message = "There are no FCS files in the /no_beads folder!")
                 return
@@ -350,41 +343,41 @@ class EntryPoint(ctk.CTkFrame):
         
         ### Launch a window for taking in user inputs as to which channels are beads channels and which are channels to normalize
 
-        bead_1 = self.master.directory + "/beads/" + beads_files[0]
+        bead_1 = self.master.directory / "beads" / beads_files[0]
         _, beads_1 = fcsparser.parse(bead_1, channel_naming = "$PnS")
         channels = beads_1.columns
         # print(channels)
         self.channels_to_use = Channel_normalization_window(self, channels, self.master.directory)
         return self.channels_to_use
 
-    def FCS_choice(self, directory: Union[None, str] = None) -> None:
+    def FCS_choice(self, directory: Union[None, str, Path] = None) -> None:
         self.master.py_exploratory.X = self.X_Y_entry.entry_X.get()
         self.master.py_exploratory.Y = self.X_Y_entry.entry_Y.get()
 
-        self.master.directory = directory.replace("\\","/")
-
-        if self.master.directory is None:
-            self.master.directory = "not a directory"
-        if len(self.master.directory) == 0:
-            self.master.directory = tk.filedialog.askdirectory()
-            if self.master.directory == "":
+        if directory is None:
+            directory = "not a directory"
+        if len(directory) == 0:
+            directory = tk.filedialog.askdirectory()
+            if directory == "":
                 return
+        self.master.directory = Path(directory)
         try:
-            fcs_files = [i for i in os.listdir(self.master.directory + "/main/Analysis_fcs") if i.lower().find(".fcs") != -1]
+            fcs_files = [i for i in os.listdir(self.master.directory / "main/Analysis_fcs") if i.lower().find(".fcs") != -1]
             if len(fcs_files) == 0:
                 tk.messagebox.showwarning("Warning!", message = "There are no files in the /main/Analysis_fcs folder!")
                 return
         except FileNotFoundError:
             tk.messagebox.showwarning("Warning!", message = "This is not a valid directory!")
             return   
-        
+
         ## set up project logger:
-        project_log = Analysis_logger(self.master.directory + "/main").return_log()
+        main_dir = self.master.directory / 'main'
+        project_log = Analysis_logger(main_dir).return_log()
         table_launcher = direct_to_Analysis(self.master, self.master.directory)
-        project_log.info(f"Start log of experiment from the directory {self.master.directory + '/main'}/Logs after loading .fcs for direct analysis")
+        project_log.info(f"Start log of experiment from the directory {main_dir}/Logs after loading .fcs for direct analysis")
         self.master.set('Analysis')
-        self.master.master.Tabs.py_exploratory.analysiswidg.setup_dir_disp(self.master.directory + "/main")  
-        self.master.master.Tabs.Spatial.widgets.setup_dir_disp(self.master.directory + "/main")
+        self.master.master.Tabs.py_exploratory.analysiswidg.setup_dir_disp(main_dir)  
+        self.master.master.Tabs.Spatial.widgets.setup_dir_disp(main_dir)
         return table_launcher
 
 
@@ -407,8 +400,8 @@ class configGUI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.slider.grid(padx = 5, pady = 5)
         self.slider.set(App_instance.scaling)
 
-        self.theme_dir = homedir +  "/Assets/ctkThemeBuilderThemes"
-        to_display = [str(i).replace(".json","").replace("\\","/") for i in Path(self.theme_dir).rglob("[!.]*.json")]
+        self.theme_dir = f"{HOMEDIR}/Assets/ctkThemeBuilderThemes"
+        to_display = [str(i).replace(".json","").replace("\\","/") for i in Path(self.theme_dir).rglob("*.json")]
         to_display = ["green","blue"] + [i[(i.rfind("/") + 1):] for i in to_display] 
 
         label2 = ctk.CTkLabel(master = self, text = "Change the color theme (note this may reset unsaved progress in an analysis):")
@@ -446,7 +439,7 @@ class configGUI_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if new_theme in ["green", "blue"]:
             ctk.set_default_color_theme(new_theme) 
         else:
-            ctk.set_default_color_theme(self.theme_dir + f"/{new_theme}.json") 
+            ctk.set_default_color_theme(f"{self.theme_dir}/{new_theme}.json") 
         with open(Theme_link, mode = 'w') as theme:
             theme.write(new_theme)
         self.master.theme = new_theme
@@ -458,7 +451,7 @@ class GPL_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, master):
         super().__init__(master)
         self.alt_license = None
-        license_dir = homedir + "/Assets/LICENSE.txt"
+        license_dir = f"{HOMEDIR}/Assets/LICENSE.txt"
         with open(license_dir) as file:
             self.license = file.read()
 
@@ -521,7 +514,7 @@ class GPL_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def display_3rd(self):
         ''''''
         if self.alt_license is None:
-            license_dir = homedir + "/Assets/Other_License_Details.txt"
+            license_dir = f"{HOMEDIR}/Assets/Other_License_Details.txt"
             with open(license_dir) as file:
                 self.alt_license = file.read()
         self.button_main_license_text.configure(state = 'normal')
@@ -587,24 +580,25 @@ class Channel_normalization_window(ctk.CTkToplevel, metaclass = CtkSingletonWind
 
     def accept_and_normalize(self, channels: list[list[str], list[str]], to_analysis: bool = False) -> None:
         bead_channels, channels_to_normalize = channels
-        if not overwrite_approval(self.directory + "/normalization", file_or_folder = "folder"):
+        if not overwrite_approval(self.directory / "normalization", file_or_folder = "folder"):
             return
 
         if to_analysis:
             output_directory = self.norm_to_Analysis1()
             if output_directory == "":
                 return
-            if not overwrite_approval(output_directory + "/main/Analysis_fcs", file_or_folder = "folder"):
+            output_directory = Path(output_directory)
+            if not overwrite_approval(output_directory / "main" / "Analysis_fcs", file_or_folder = "folder"):
                 return
         #### move functions into a separate file, likely, as done previously:
-        CyTOF_bead_normalize(self.directory + "/beads", 
-                                  self.directory + "/no_beads", 
-                                  self.directory + "/normalization", 
+        CyTOF_bead_normalize(self.directory / "beads", 
+                                  self.directory / "no_beads", 
+                                  self.directory / "normalization", 
                                   bead_channels, 
                                   channels_to_normalize = channels_to_normalize, 
                                   include_figures = True)
         if to_analysis:
-          self.norm_to_Analysis2(self.directory + "/normalization", output_directory)
+          self.norm_to_Analysis2(self.directory / "normalization", output_directory)
     
         self.destroy()
 
@@ -613,10 +607,9 @@ class Channel_normalization_window(ctk.CTkToplevel, metaclass = CtkSingletonWind
         return output_dir
     
     def norm_to_Analysis2(self, norm_directory, output_directory):
-        output_analysis_fcs = output_directory + "/main"
-        if not os.path.exists(output_analysis_fcs):
-            os.mkdir(output_analysis_fcs)
-        shutil.copytree(norm_directory + "/normalized", output_analysis_fcs + "/Analysis_fcs")
+        output_analysis_fcs = output_directory / "main"
+        output_analysis_fcs.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(norm_directory / "normalized", output_analysis_fcs / "Analysis_fcs")
         self.master.FCS_choice(output_directory)
 
 class LoadExampleDataWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
@@ -660,11 +653,11 @@ class LoadExampleDataWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if choice == "":
             tk.messagebox.showwarning("No Directory Entered!", message = "No Directory Entered, please select one first!")
             return
-        if not overwrite_approval(choice + "/main/Analysis_fcs", file_or_folder = "folder", custom_message = "Are you sure you want to overwrite files in this folder"
+        if not overwrite_approval(f"{choice}/main/Analysis_fcs", file_or_folder = "folder", custom_message = "Are you sure you want to overwrite files in this folder"
                                                                                                              "as well as the associated panel and metdata files?"):
             return
         fetch_CyTOF_example(choice)
-        table_launcher = self.master.FCS_choice(choice + "/Example_CyTOF")
+        table_launcher = self.master.FCS_choice(f"{choice}/Example_CyTOF")
         self.withdraw()
         return table_launcher
 
@@ -673,11 +666,11 @@ class LoadExampleDataWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if choice == "":
             tk.messagebox.showwarning("No Directory Entered!", message = "No Directory Entered, please select one first!")
             return
-        if not overwrite_approval(choice + "/raw", file_or_folder = "folder", custom_message = "Are you sure you want to overwrite files in this folder \n "
+        if not overwrite_approval(f"{choice}/raw", file_or_folder = "folder", custom_message = "Are you sure you want to overwrite files in this folder \n "
                                                                                                 "as well as the associated panels and metdata files?"):
             return
         fetch_IMC_example(choice)
-        self.master.img_entry_func(choice + "/Example_IMC", from_mcds = None)
+        self.master.img_entry_func(f"{choice}/Example_IMC", from_mcds = None)
         self.withdraw()
 
 def fetch_CyTOF_example(new_directory):
@@ -693,10 +686,11 @@ def fetch_CyTOF_example(new_directory):
     '''
     if not os.path.exists(new_directory):
         raise Exception("Target directory does not exist")
-    CyTOF_data = requests.get("https://zenodo.org/records/14983582/files/Example_CyTOF.zip?download=1")
-    with open(new_directory + "/CyTOF_data.zip", 'wb') as write_to:
+    CyTOF_data = requests.get("https://zenodo.org/records/19613245/files/Example_CyTOF.zip?download=1")
+    file_path = f"{new_directory}/CyTOF_data.zip"
+    with open(file_path, 'wb') as write_to:
         write_to.write(CyTOF_data.content)
-    zip_archive = zipfile.ZipFile(new_directory + "/CyTOF_data.zip")
+    zip_archive = zipfile.ZipFile(file_path)
     zip_archive.extractall(new_directory)
 
 def fetch_IMC_example(new_directory):
@@ -710,10 +704,11 @@ def fetch_IMC_example(new_directory):
     Calling this fetch function on an existing directory will caues the files in the /raw sub-folder ot be replaced with the exmaple data!
     '''
     if not os.path.exists(new_directory):
-        raise Exception("Target directory does not exist")
-    IMC_data = requests.get("https://zenodo.org/records/14983582/files/Example_IMC.zip?download=1", stream = True)
-    with open(new_directory + "/IMC_data.zip", 'wb') as write_to:
+        raise Exception("Target directory does not exist") 
+    IMC_data = requests.get("https://zenodo.org/records/19613245/files/Example_IMC.zip?download=1", stream = True)
+    filepath = f"{new_directory}/IMC_data.zip"
+    with open(filepath, 'wb') as write_to:
         for i in IMC_data.iter_content(chunk_size = 1024**2):
             write_to.write(i)
-    zip_archive = zipfile.ZipFile(new_directory + "/IMC_data.zip")
+    zip_archive = zipfile.ZipFile(filepath)
     zip_archive.extractall(new_directory)

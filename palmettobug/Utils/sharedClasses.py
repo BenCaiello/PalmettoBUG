@@ -22,12 +22,14 @@ classes used in the GUI itself.
 
 import tkinter as tk
 import os
+import sys
+
 from pathlib import Path
 import logging
 from typing import Union
 import re
 import threading
-from multiprocessing import Process
+import multiprocessing
 
 import numpy as np
 import pandas as pd
@@ -38,12 +40,37 @@ import napari
 
 from .._vendor import fcsparser
 
+if sys.platform == "darwin":
+    multiprocessing.set_start_method("spawn", force=True)
+
 __all__ = ["run_napari", "TableLaunch_nonGUI"]
 
 homedir = __file__.replace("\\","/")
 homedir = homedir[:(homedir.rfind("/"))]
 ## twice to get back to toplevel directory of the package
 homedir = homedir[:(homedir.rfind("/"))]
+
+def list_file_extension_files(
+    directory: Path,
+    extension: str = ".fcs",
+    alt_extension: str | None = None
+) -> list[Path]:
+    extensions = {extension.lower()}
+    if alt_extension:
+        extensions.add(alt_extension.lower())
+
+    files = sorted(
+        p for p in directory.iterdir()
+        if p.is_file() and p.suffix.lower() in extensions
+    )
+
+    if not files:
+        ext_str = ", ".join(sorted(extensions))
+        raise FileNotFoundError(
+            f"No files with extensions ({ext_str}) found in {directory}"
+        )
+
+    return files
 
 
 def filename_checker(filename: str, GUI_object = None, regex: str = "[a-zA-Z0-9-_]") -> bool: 
@@ -201,6 +228,7 @@ class CtkSingletonWindow(type):
                     CtkSingletonWindow.__instances[cls].focus()   ## This focuses the window
                     ## This will throw an error if the window has been closed ("tkinter.TclError: bad window path name"), 
                     #       so if an error occurs in focusing --> just open a new window:
+                    return (None, CtkSingletonWindow.__instances[cls])   ## return two objects to retain errors where needed, but also return the isntance to allow closing
             
             except Exception:
                 CtkSingletonWindow.__instances[cls] = super().__call__(*args, **kwargs) 
@@ -302,12 +330,13 @@ class Project_logger(metaclass = LogSemiSingleton):
     '''
     def __init__(self, proj_dir = None):
         if proj_dir is not None:
-            self.proj_dir = proj_dir
+            self.proj_dir = str(proj_dir)
             self.log = logging.getLogger("Project_Log")
             for i in self.log.handlers:
                 self.log.removeHandler(i)
-            if not os.path.exists(f"{proj_dir}/Logs"):
-                os.mkdir(f"{proj_dir}/Logs")
+
+            os.makedirs(f"{proj_dir}/Logs", exist_ok = True)
+
             log_a_log_handler = logging.FileHandler(f"{proj_dir}/Logs/Project.log")
             log_a_format = logging.Formatter("%(name)s: %(asctime)s: %(message)s")
             log_a_log_handler.setFormatter(log_a_format)
@@ -333,8 +362,9 @@ class Analysis_logger(metaclass = LogSemiSingleton):
             for i in self.log.handlers:
                 self.log.removeHandler(i)
                 i.close()    # helpful for fixing a logging problem I encountered (top answer / Martijn Pieters' answer): https://stackoverflow.com/questions/15435652/python-does-not-release-filehandles-to-logfile
-            if not os.path.exists(f"{proj_dir}/Logs"):
-                os.mkdir(f"{proj_dir}/Logs")
+            
+            os.makedirs(f"{proj_dir}/Logs", exist_ok = True)
+            
             log_a_log_handler = logging.FileHandler(f"{proj_dir}/Logs/Analysis.log")
             log_a_format = logging.Formatter("%(name)s: %(asctime)s: %(message)s") 
             log_a_log_handler.setFormatter(log_a_format)
@@ -364,59 +394,49 @@ def warning_window(warning_to_show: str, title: str = "Warning!") -> None:
 ## Still, some of the directory naming conventions or overall structure [with or without renaming] from the underlying packages 
 # have been carried through
 class DirSetup:
-    def __init__(self, directory: str, kind: Union[None, str] = None):
+    def __init__(self, directory: Union[Path, str], kind: Union[None, str] = None):
+        directory = Path(directory)
         self.main = directory
         if kind == "Analysis":
             self.analysis_dir = self.main
             self.kind = "Analysis"
-            self.Analyses_dir = directory[:directory.rfind("/")]
+            self.Analyses_dir = directory.parent
         else:
             self.kind = None
-            self.raw_dir = directory + '/raw'
-            self.img_dir = directory + '/images'
-            self.masks_dir = directory + '/masks'
-            self.classy_masks_dir = directory + '/classy_masks'
-            self.px_classifiers_dir = directory + '/Pixel_Classification'
-            self.Analyses_dir = directory + '/Analyses'
-            self.logs = directory + '/Logs'
+            self.raw_dir = directory / 'raw'
+            self.img_dir = directory / 'images'
+            self.masks_dir = directory / 'masks'
+            self.classy_masks_dir = directory / 'classy_masks'
+            self.px_classifiers_dir = directory / 'Pixel_Classification'
+            self.Analyses_dir = directory / 'Analyses'
+            self.logs = directory / 'Logs'
 
     def makedirs(self) -> None:
-        if not os.path.exists(self.raw_dir):
-            os.mkdir(self.raw_dir)
-        if not os.path.exists(self.img_dir):
-            os.mkdir(self.img_dir)
-        if not os.path.exists(self.masks_dir):
-            os.mkdir(self.masks_dir)
-        if not os.path.exists(self.classy_masks_dir):
-            os.mkdir(self.classy_masks_dir)
-        if not os.path.exists(self.Analyses_dir):
-            os.mkdir(self.Analyses_dir) 
-        if not os.path.exists(self.logs):
-            os.mkdir(self.logs)
+        self.raw_dir.mkdir(parents=True, exist_ok=True)
+        self.img_dir.mkdir(parents=True, exist_ok=True)
+        self.masks_dir.mkdir(parents=True, exist_ok=True)
+        self.classy_masks_dir.mkdir(parents=True, exist_ok=True)
+        self.Analyses_dir.mkdir(parents=True, exist_ok=True)
+        self.logs.mkdir(parents=True, exist_ok=True)
 
     def make_analysis_dirs(self, analysis_name: str) -> None:
         # This new structure sequesters the intensities / regionprops & all analysis related folders 
         # (formerly labeled "CATALYST" folders / files) into a separate subfolder
         if self.kind is None:
-            self.analysis_dir = self.Analyses_dir + f"/{analysis_name}"
-        self.regionprops_dir = self.analysis_dir + '/regionprops'
-        self.intensities_dir = self.analysis_dir + '/intensities'
-        self.Analysis_internal_dir = self.analysis_dir + '/main'
-        self.fcs_dir = self.Analysis_internal_dir + '/Analysis_fcs'
-        self.saved_clusterings = self.Analysis_internal_dir + '/clusterings'
+            self.analysis_dir = self.Analyses_dir / f"{analysis_name}"
+        self.regionprops_dir = self.analysis_dir / 'regionprops'
+        self.intensities_dir = self.analysis_dir / 'intensities'
+        self.Analysis_internal_dir = self.analysis_dir / 'main'
+        self.fcs_dir = self.Analysis_internal_dir / 'Analysis_fcs'
+        self.saved_clusterings = self.Analysis_internal_dir / 'clusterings'
 
-        if not os.path.exists(self.analysis_dir):
-            os.mkdir(self.analysis_dir)
-        if not os.path.exists(self.regionprops_dir):
-            os.mkdir(self.regionprops_dir)
-        if not os.path.exists(self.intensities_dir):
-            os.mkdir(self.intensities_dir)
-        if not os.path.exists(self.Analysis_internal_dir):
-            os.mkdir(self.Analysis_internal_dir)
-        if not os.path.exists(self.fcs_dir):
-            os.mkdir(self.fcs_dir)
-        if not os.path.exists(self.saved_clusterings):
-            os.mkdir(self.saved_clusterings)
+        ## make directories
+        self.analysis_dir.mkdir(parents=True, exist_ok=True)
+        self.regionprops_dir.mkdir(parents=True, exist_ok=True)
+        self.intensities_dir.mkdir(parents=True, exist_ok=True)
+        self.Analysis_internal_dir.mkdir(parents=True, exist_ok=True)
+        self.fcs_dir.mkdir(parents=True, exist_ok=True)
+        self.saved_clusterings.mkdir(parents=True, exist_ok=True)
 
 def run_napari(image: np.ndarray[Union[int, float]], 
             masks: Union[None, np.ndarray[int]] = None, 
@@ -451,12 +471,12 @@ def run_napari(image: np.ndarray[Union[int, float]],
     warnings.filterwarnings("default", message = "pyside_type")
 
 class display_image_button(ctk.CTkButton):
-    def __init__(self, master, initial_image, PalmettoBUG_homedir: str = homedir, X = 550, Y = 550):
+    def __init__(self, master, initial_image, X = 550, Y = 550):
         super().__init__(master)
         self.master = master
         self.X = X
         self.Y = Y
-        image = Image.open(initial_image)   ####  PalmettoBUG_homedir + "/Assets/Capture2.png"
+        image = Image.open(initial_image)
         self.configure(text = "", image = ctk.CTkImage(image, size = (X,Y)), height = X, width = Y, fg_color = "white", hover = "white")
 
     def save_and_display(self, image: str) -> None:
@@ -465,15 +485,15 @@ class display_image_button(ctk.CTkButton):
             image = Image.open(image)
         sizeX = image.size[0]
         sizeY = image.size[1]
-        ratio = image.size[0] / image.size[1]
+        ratio = sizeX / sizeY
         if sizeX > sizeY:
             sizeX = self.X
             sizeY = (self.Y / ratio)
         else:
             sizeX = (self.X*ratio)  
             sizeY = self.Y            
-        image = ctk.CTkImage(image, size = (sizeX,sizeY))
-        self.configure(image = image)
+        self.add_image = ctk.CTkImage(image, size = (int(sizeX),int(sizeY)))
+        self.configure(image = self.add_image)
 
 class DirectoryDisplay(ctk.CTkFrame):
     """
@@ -498,9 +518,9 @@ class DirectoryDisplay(ctk.CTkFrame):
         self.configure(width = 450)
         self.png = png
         self.directories = DirSetup(directory)
-        self.currentdir = directory
+        self.currentdir = Path(directory)
         self.option_menu = ctk.CTkButton(master = self, 
-                                        text = self.currentdir)
+                                        text = str(self.currentdir))
         self.option_menu.grid(column = 0, row = 0, padx = 1, pady = 3)
         self.option_menu.configure(state = 'disabled', text_color_disabled = self.option_menu.cget("text_color"))
         self.button_list = []
@@ -549,12 +569,12 @@ class DirectoryDisplay(ctk.CTkFrame):
                 self.configure(command = lambda: self.folder_click(self.parent, "fdkjhgkjfdhgkdjghkdglskjlgkdlj"))  
 
         def file_click(self, parent, value: str) -> None:
-            parent.out = value
-            filepath = parent.currentdir + "/" + parent.out
-            identifier = parent.out[(parent.out.rfind(".")):]
-            file_name = parent.out[:(parent.out.rfind("."))]
+            parent.out = Path(value)
+            filepath = parent.currentdir / parent.out
+            identifier = parent.out.suffix.lower()
+            file_name = parent.out.stem
             if self.parent.deleter is True:
-                os.remove(filepath)
+                filepath.unlink()
                 self.destroy()
                 try:
                     Project_logger().return_log().info(f"{filepath} deleted!")
@@ -572,13 +592,13 @@ class DirectoryDisplay(ctk.CTkFrame):
                     if parent.napari_launch is not None:
                         parent.napari_launch.run_napari(filepath)
                     else:
-                        p = Process(target = run_napari, args = (image, None))
+                        p = multiprocessing.Process(target = run_napari, args = (image, None))
                         p.start()
                 elif image.dtype == 'int':
                     if parent.napari_launch is not None:
                         parent.napari_launch.run_napari(filepath)
                     else:
-                        p = Process(target = run_napari, args = (np.zeros(image.shape), image))
+                        p = multiprocessing.Process(target = run_napari, args = (np.zeros(image.shape), image))
                         p.start()         
             # if ending in .fcs, convert to DataFrame and display (no metadata?)
             elif identifier == ".fcs":
@@ -612,7 +632,7 @@ class DirectoryDisplay(ctk.CTkFrame):
             button.grid(column = 0, row = 1, pady = 5, sticky = "ew")
             self.button_list.append(button)
             a = 2
-        for i,ii in enumerate(os.scandir(self.currentdir)):
+        for i,ii in enumerate(sorted(self.currentdir.iterdir())):
             if ii.is_dir() is True:
                 button = self.varButton(master = container, 
                                         textvariable = ctk.StringVar(value = ii.name), 
@@ -643,20 +663,20 @@ class DirectoryDisplay(ctk.CTkFrame):
         
     def change_dir(self, new_dir: str, option_menu: bool = False) -> None:
         if new_dir == "fdkjhgkjfdhgkdjghkdglskjlgkdlj":
-            to_dir = self.currentdir[:self.currentdir.rfind("/")]
+            to_dir = self.currentdir.parent
         elif option_menu is True:
-            to_dir = self.directories.main + f"/{new_dir}"
+            to_dir = self.directories.main / new_dir
         else:
-            to_dir = self.currentdir + f"/{new_dir}"
+            to_dir = self.currentdir / new_dir
         self.currentdir = to_dir
-        self.option_menu.configure(text = self.currentdir[self.currentdir.rfind("/")+1:])
+        self.option_menu.configure(text = str(self.currentdir.name))
         self.list_dir()
 
 ## This class launches TableWidget instances in a new window, and automatically updates / saves the .csv file when closed.
 class TableLaunch(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
     def __init__(self, width: int, 
                  height: int, 
-                 directory: str, 
+                 directory: Union[Path, str], 
                  dataframe: pd.DataFrame,
                 table_type: str, 
                 experiment, 
@@ -665,8 +685,10 @@ class TableLaunch(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         ''' '''
         super().__init__()
         self.title('Table Examination')
+        directory = Path(directory)
         self.directory = directory
         self.logger = logger
+
         if logger is None:
             try:
                 self.logger = Project_logger().return_log()
@@ -675,14 +697,11 @@ class TableLaunch(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         if table_type != "other":
             label1 = ctk.CTkLabel(self, text = f"Values of the {table_type} file")
         else:
-            clip = directory.rfind('/')
-            if clip == -1:
-                clip = 0
-            label1 = ctk.CTkLabel(self, text = f"Values of the {directory[clip:]} file")
+            label1 = ctk.CTkLabel(self, text = f"Values of the {directory.name} file")
         label1.grid(column = 0, row = 0, padx = 5, pady = 5, sticky = "ew")
         label1.configure(anchor = 'w')
         self.tablewidget = TableWidget(self)
-        self.tablewidget.setup_data_table(directory, dataframe, table_type[:-4], favor_table = favor_table)
+        self.tablewidget.setup_data_table(directory, dataframe, str(table_type)[:-4], favor_table = favor_table)
         self.tablewidget.setup_width_height(width, height, scale_width_height = True)
 
         self.tablewidget.grid(column = 0, row = 1, padx = 5, pady = 5)
@@ -695,7 +714,7 @@ class TableLaunch(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
                                     command = lambda: self.accept_and_return(experiment))
             self.accept_button.grid(column = 0, row = 2, pady = 15)
 
-        if table_type.find("Regionprops_panel") != -1:
+        if str(table_type).find("Regionprops_panel") != -1:
             self.leiden_check = ctk.CTkCheckBox(master = self, 
                     text = "Check to run Leiden Clustering \n from centroids (spatial neighborhoods)", 
                     onvalue = True, 
@@ -706,19 +725,17 @@ class TableLaunch(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
 
     def add_table(self, width: int, 
                   height: int, 
-                  directory: str, 
+                  directory: Union[Path, str], 
                   dataframe: pd.DataFrame,
                   table_type: str, 
                   favor_table: bool = False) -> None:
         '''
         '''
+        directory = Path(directory)
         if table_type != "other":
             label1 = ctk.CTkLabel(self, text = f"Values of the {table_type} file")
         else:
-            clip = directory.rfind('/')
-            if clip == -1:
-                clip = 0
-            label1 = ctk.CTkLabel(self, text = f"Values of the {directory[clip:]} file")
+            label1 = ctk.CTkLabel(self, text = f"Values of the {directory.name} file")
         label1.grid(column = self.column, row = 0, padx = 5, pady = 5, sticky = "ew")
         label1.configure(anchor = 'w')
         self.tablewidget = TableWidget(self)
@@ -740,73 +757,30 @@ class TableLaunch(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
             if i.type == "Analysis_panel":
                 if experiment is not None:
                     experiment.Analysis_panel = i.table_dataframe
-                self.Analysis_panel_write(i.table_dataframe)
+                self.panel_write(i.table_dataframe, panel_type = "Analysis_panel")
             if i.type == "Regionprops_panel":
-                self.regionprops_write(i.table_dataframe)
-                experiment.append_regionprops()
+                self.panel_write(i.table_dataframe, panel_type = "Regionprops_panel")
+                if experiment is not None:
+                    experiment.append_regionprops()
             if i.type == "metadata":
                 if experiment is not None:
                     experiment.metadata = i.table_dataframe
-                self.metadata_write(i.table_dataframe)
+                self.panel_write(i.table_dataframe, panel_type = "metadata")
         self.destroy()
 
-    def panel_write(self, table: pd.DataFrame, alt_directory: Union[str, None] = None) -> None:
+    def panel_write(self, table: pd.DataFrame, alt_directory: Union[str, None] = None, panel_type = "panel" ) -> None:
         if alt_directory is not None:
-            directory = alt_directory
+            directory = Path(alt_directory)
         else:
             directory = self.directory
         try:
-            table.to_csv(directory + '/panel.csv', index = False)
-        except Exception:
-            warning_window("Could not write panel file! \n" 
+            table.to_csv(directory / f'{panel_type}.csv', index = False)
+        except Exception as e:
+            warning_window(f"Could not write {panel_type} file, with error {e}! \n" 
                            "Do you have the .csv open right now in excel or another program?")
         else:
             if self.logger is not None:
-                self.logger.info(f"Wrote panel file, with values: \n {str(table)}")
-
-    def Analysis_panel_write(self, table: pd.DataFrame, alt_directory: Union[str, None] = None) -> None:
-        if alt_directory is not None:
-            directory = alt_directory
-        else:
-            directory = self.directory
-        try:
-            table.to_csv(directory + '/Analysis_panel.csv', index = False)
-
-        except Exception:
-            warning_window("Could not write Analysis_panel file! \n" 
-                           "Do you have the .csv open right now in excel or another program?")
-        else:            
-            if self.logger is not None:
-                self.logger.info(f"Wrote Analysis_panel file, with values: \n {str(table)}")
-
-    def regionprops_write(self, table: pd.DataFrame, alt_directory: Union[str, None] = None) -> None:
-        if alt_directory is not None:
-            directory = alt_directory
-        else:
-            directory = self.directory
-        try:
-            table.to_csv(directory + '/Regionprops_panel.csv', index = False)
-            
-        except Exception:
-            warning_window("Could not write regionprops panel file! \n" 
-                           "Do you have the .csv open right now in excel or another program?")    
-        else:
-            if self.logger is not None:
-                self.logger.info(f"Wrote regionprops panel file, with values: \n {str(table)}")
-
-    def metadata_write(self, table: pd.DataFrame, alt_directory: Union[str, None] = None) -> None:
-        if alt_directory is not None:
-            directory = alt_directory
-        else:
-            directory = self.directory
-        try:
-            table.to_csv(directory + '/metadata.csv', index = False)
-        except Exception:
-            warning_window("Could not write metdata file! \n" 
-                           "Do you have the .csv open right now in excel or another program?")   
-        else:
-            if self.logger is not None:
-                self.logger.info(f"Wrote metadata file, with values: \n {str(table)}")
+                self.logger.info(f"Wrote {panel_type} file, with values: \n {str(table)}")
 
 ## This is a core class for representing, interacting, and editing .csv / panel / metadata files
 class TableWidget(ctk.CTkScrollableFrame):
@@ -826,15 +800,17 @@ class TableWidget(ctk.CTkScrollableFrame):
         super().__init__(master)
         self.widgetframe = pd.DataFrame()
         self.delete_state = 'disabled'
+        self.keep_state = 'normal'
 
-    def setup_data_table(self, directory: str, dataframe: pd.DataFrame, table_type: str, favor_table: bool = False) -> None:
+    def setup_data_table(self, directory: Union[Path, str], dataframe: pd.DataFrame, table_type: str, favor_table: bool = False) -> None:
         ## decouple data loading from setup (to allow widgets to be displayed before directory is loaded in by user)
+        directory = Path(directory)
         self.type = table_type
         self.Analysis_internal_dir = directory
-        if favor_table is False:
+        if (favor_table is False) or (dataframe is None):
             try:
-                self.directory = "".join([directory, "/", table_type, ".csv"])
-                self.table_dataframe = pd.read_csv(directory + f'/{table_type}.csv', dtype = str)
+                self.directory = directory / f"{table_type}.csv"
+                self.table_dataframe = pd.read_csv(self.directory, dtype = str)
                 self.table_dataframe = self.table_dataframe.astype("str")
             except FileNotFoundError:
                 self.table_dataframe = dataframe
@@ -845,20 +821,9 @@ class TableWidget(ctk.CTkScrollableFrame):
                 else:
                     self.table_dataframe = self.table_dataframe.astype("str")
 
-        elif favor_table is True:
-            if dataframe is None:
-                try:
-                    self.directory = "".join([directory, "/", table_type, ".csv"])
-                    self.table_dataframe = pd.read_csv(directory + f'/{table_type}.csv', dtype = str)
-                    self.table_dataframe = self.table_dataframe.astype("str")
-                except FileNotFoundError:
-                    tk.messagebox.showwarning("Warning!", 
-                            message = f"No dataframe provided, and no existing {table_type} file is in the directory!")
-                    return
-
-            else:
-                self.table_dataframe = dataframe
-                self.table_dataframe = self.table_dataframe.astype("str")
+        else:
+            self.table_dataframe = dataframe
+            self.table_dataframe = self.table_dataframe.astype("str")
     
     def setup_width_height(self, width: int, height: int, scale_width_height: bool = False) -> None:
         ### Decouple the widget placement from its size determination
@@ -906,7 +871,7 @@ class TableWidget(ctk.CTkScrollableFrame):
             self.add_row_button = ctk.CTkButton(self, text = 'Add a Row to this file', command = lambda: self.add_row((col_num + offset)))
             self.add_row_button.grid(column = col_num + offset, row = i + 2, padx = 5, pady = 3)
 
-    def drop_down_column(self, col_num: int, values: list[str] = [], offset: int = 0, state: str = 'normal') -> None:
+    def drop_down_column(self, col_num: int, values: list[str], offset: int = 0, state: str = 'normal') -> None:
         '''
         Creates a column of drop menus inside the scrollable table, of the col_num specified (zero-indexed). 
         Values = a list of the values to be in the drop menu of the comboBoxes
@@ -1028,10 +993,12 @@ class TableWidget(ctk.CTkScrollableFrame):
         if self.type == "metadata":
             checks = True
             try:
-                fcs_files  = [i for i in sorted(os.listdir(self.Analysis_internal_dir + "/Analysis_fcs")) if i.lower().find('.fcs') != -1]
+                fcs_dir = self.Analysis_internal_dir / "Analysis_fcs"
+                fcs_files = sorted(p.name for p in fcs_dir.iterdir() if p.suffix.lower() == ".fcs")
             except FileNotFoundError:
                 try:
-                    fcs_files  = [i for i in sorted(os.listdir(self.Analysis_internal_dir + "/main/Analysis_fcs")) if i.lower().find('.fcs') != -1]
+                    fcs_dir = self.Analysis_internal_dir / "main/Analysis_fcs"
+                    fcs_files = sorted(p.name for p in fcs_dir.iterdir() if p.suffix.lower() == ".fcs")
                 except FileNotFoundError:
                     warning_window("Could not read fcs folder to perform checks of metadata file")
                     checks = False
@@ -1141,11 +1108,11 @@ class TableWidget(ctk.CTkScrollableFrame):
             else:
                 column_of_interest = self.widgetframe[i]
                 retrieval_list = []
-                for i in column_of_interest:
+                for widget in column_of_interest:
                     try:
-                        out = i.get()
+                        out = widget.get()
                     except Exception:
-                        out = i.real_text
+                        out = widget.real_text
                     out = out.strip()
                     retrieval_list.append(out)
                 new_table_dataframe[ii] = retrieval_list
@@ -1162,7 +1129,7 @@ class text_window(ctk.CTkToplevel):
         text_frame.configure(width = 800, height = 500, wrap = 'none')
         text_frame.grid()
 
-        with open(filepath, encoding = "utf-8") as file:
+        with open(str(filepath), encoding = "utf-8") as file:
             text_to_display = file.read()
 
         text_frame.insert(0.0, text_to_display)
@@ -1299,7 +1266,7 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
 
         for i,ii in enumerate(self.table_dataframe.iloc[:,col_num]):
             if len(ii) > 25:
-                col1_label = varLabel(master = self, text = ii[:15] + "..." + ii.strip(".fcs")[-6:], real_text = ii)   
+                col1_label = varLabel(master = self, text = ii[:15] + "..." + Path(ii).stem[-6:], real_text = ii)   
                         # only display fewer characters to prevent overflow within the widget
             else:
                 col1_label = varLabel(master = self, text = ii, real_text = ii) 
@@ -1310,7 +1277,7 @@ class TableWidget_nonGUI(ctk.CTkScrollableFrame):
 
     def drop_down_column(self, 
                         col_num: int, 
-                        values: list[str] = [], 
+                        values: list[str], 
                         offset: int = 0, 
                         state: str = 'normal',
                         ) -> None:

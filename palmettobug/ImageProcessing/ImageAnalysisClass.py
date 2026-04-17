@@ -56,9 +56,9 @@ from .._vendor import readimc
 from .._vendor.fcsy import DataFrame
 from .._vendor import fcsparser
 from .._vendor import pyometiff as pot
-
 from .._vendor import steinbock as stein_unhook 
-from ..Utils.sharedClasses import DirSetup, TableLaunch, Analysis_logger, Project_logger, warning_window  
+
+from ..Utils.sharedClasses import DirSetup, TableLaunch, Analysis_logger, Project_logger, warning_window, list_file_extension_files  
 
 '''
 try:
@@ -86,9 +86,7 @@ def _my_auto_hpf(image: np.ndarray[float], hpf: float = 0.75):
     '''
     for ii,i in enumerate(image):
         hpf_threshold = np.quantile(i, hpf)
-        #print(hpf_threshold)
         image[ii,:,:] = stein_unhook.filter_hot_pixels(i,hpf_threshold)
-        
     return image
 
 def imc_entrypoint(directory: Union[Path, str], 
@@ -113,14 +111,13 @@ def imc_entrypoint(directory: Union[Path, str],
     returns:
         a palmettobug.ImageAnalysis object
     '''
-    directory = str(directory)
+    directory = Path(directory)
     try:
         resolutions[0] = float(resolutions[0])
         resolutions[1] = float(resolutions[1])
     except ValueError:
         print("Resolution X / Y must be numbers!")
         return
-    directory = directory.replace("\\","/") 
     try:
         experiment = ImageAnalysis(directory, resolutions, from_mcds = from_mcds)
     except Exception as e:
@@ -166,11 +163,12 @@ def read_txt_file(path: Union[str, Path], num_meta_data_columns: int = 6):
     returns:
         numpy array, which can be saved as an (.ome).tiff
     '''
-    image_df = pd.read_csv(str(path), delimiter = "\t")
-    image_channels_only = image_df.iloc[:,num_meta_data_columns:]
-    image_array = np.array(image_channels_only).reshape([image_df['X'].max() + 1,
-                                                         image_df['Y'].max() + 1, 
-                                                         len(image_channels_only.columns)])
+    image_df = pd.read_csv(path, delimiter = "\t")
+    image_channels_only = image_df.iloc[:,num_meta_data_columns:].to_numpy()
+    n_channels = image_channels_only.shape[1]
+    image_array = image_channels_only.reshape([image_df['X'].max() + 1,
+                                                image_df['Y'].max() + 1, 
+                                                n_channels])
     image_array = image_array.transpose([2,0,1])
     return image_array
 
@@ -222,26 +220,27 @@ def txt_folder_to_tiff_folder(txt_folder: Union[Path, str],
         Outputs: 
             writes an .ome.tiff file in tiff_folder for each .txt file read in from txt_folder
     '''
-    txt_folder = str(txt_folder)
-    tiff_folder = str(tiff_folder)
-    txt_files = ["".join([txt_folder, "/", i]) for i in sorted(os.listdir(txt_folder)) if i.lower().find(".txt") != -1]
-    tiff_files_out = ["".join([tiff_folder, "/", i.rstrip("txt"),"ome.tiff"]) for i in sorted(os.listdir(txt_folder)) if i.lower().find(".txt") != -1]
-    img_slicer = (panel['keep'] == 1)
-    for i,ii in zip(txt_files, tiff_files_out):
-        image = read_txt_file(i, num_meta_data_columns = num_meta_data_columns)[img_slicer,:,:]
+    txt_folder = Path(txt_folder)
+    tiff_folder = Path(tiff_folder)
+    tiff_folder.mkdir(parents=True, exist_ok=True)
+    txt_files = sorted(txt_folder.glob("*.txt"))
+    img_slicer = panel['keep'].to_numpy(dtype=bool)
+    for i in txt_files:
+        out_path = tiff_folder / (i.stem + ".ome.tiff")
+        image = read_txt_file(i, num_meta_data_columns)[img_slicer,:,:]
         if (hpf > 0) and (hpf < 1):
             image = _my_auto_hpf(image, hpf)
         elif hpf != 0:
             image = stein_unhook.filter_hot_pixels(image,hpf)
         if ome_tiff_metadata:
-            ome_metadata = _generate_ome_tiff_metadata(output_directory = ii[:-9],
-                                                       filename = ii[ii.rfind("/") + 1:], 
+            ome_metadata = _generate_ome_tiff_metadata(output_directory = tiff_folder,
+                                                       filename = out_path.name, 
                                                        resolutions = resolutions, 
                                                        panel_csv = panel,
                                                        )
-            write_ome_tiff(image, ome_metadata, ii)
+            write_ome_tiff(image, ome_metadata, out_path)
         else:
-            tf.imwrite(ii, image)
+            tf.imwrite(out_path, image)
 
 def launch_denoise_seg_program(directory: Union[Path, str], 
                                resolutions: list[float] = [1.0, 1.0],
@@ -257,18 +256,19 @@ def launch_denoise_seg_program(directory: Union[Path, str],
         resolutions (list of two floats > 0): 
             the resolution of the images in X and Y dimensions, in micrometers per pixel.
     '''
-    directory = str(directory)
-    if not os.path.exists(directory):
+    directory = Path(directory)
+    if not directory.exists():
         return
     res1 = float(resolutions[0])
     res2 = float(resolutions[1])
     import subprocess
     try:
-        subprocess.run(['segdenoise','-d', f'{directory}', '-r1', f'{str(res1)}', '-r2', f'{str(res2)}'])
+        subprocess.run(['segdenoise','-d', str(directory), '-r1', str(res1), '-r2', str(res2)], check = True)
         # Useful discussion for switching from shell = True to shell = False & using list[str] instead of string (as I had originally done)
         #       https://stackoverflow.com/questions/3172470/actual-meaning-of-shell-true-in-subprocess
-    except Exception:
-        print("Error in launching the Segmentation / Denoising process")
+    except subprocess.CalledProcessError as e:
+        print(f"Segmentation / denoising failed: {e}")
+
 
 def _MCD_Generator(MCD_list: list[Path]):   # ****stein_derived 
                                             # (a substantially sipmlified / stripped down version of 
@@ -277,17 +277,16 @@ def _MCD_Generator(MCD_list: list[Path]):   # ****stein_derived
     A much simplified MCD reader compared to steinbock's, simiarly based on readimc.
     This is a helper function for when converting /raw folder MCDs to .ome.tiffs in the /img folder
     '''
-    for i in MCD_list:
-        with readimc.MCDFile(i) as mcd:
-            for j in mcd.slides:
-                for k in j.acquisitions:
+    for mcd_path in MCD_list:
+        with readimc.MCDFile(mcd_path) as mcd:
+            for slide in mcd.slides:
+                for acq in slide.acquisitions:
                     try:
-                        image = mcd.read_acquisition(k)
-                        path = i
-                        ROI = k.description
-                        yield image, path, ROI, k
+                        image = mcd.read_acquisition(acq)
+                        ROI = acq.description
+                        yield image, mcd_path, ROI, acq
                     except Exception:
-                        print(f"A ROI in the following MCD: \n {str(i)} \n failed to read!")
+                        print(f"A ROI in the following MCD: \n {str(mcd_path)} \n failed to read!")
 
 def _TIFF_Generator(TIFF_list: list[Path]):   # ****stein_derived 
                                                 # (ish -- only in the sense of its structure: 
@@ -296,15 +295,13 @@ def _TIFF_Generator(TIFF_list: list[Path]):   # ****stein_derived
     Similar to _MCD_Generator() above, this function is a helper for when converting from /raw folder Tiffs --> .ome.tiffs in the /img folder
     '''
     for i in TIFF_list:
-        i = str(i)
+        i = Path(i)
         reader =  pot.OMETIFFReader(i)
         img_array, metadata, xml_metadata = reader.read()
-        path = i[:i.rfind("/")]
-        ROI = i[i.rfind("/"):]
-        yield img_array, path, ROI, metadata
+        yield img_array, i.parent, i.name, metadata
 
 def _generate_ome_tiff_metadata(panel_csv: pd.DataFrame, 
-                                output_directory: str, 
+                                output_directory: Union[str, Path], 
                                 filename: str, 
                                 resolutions: list[float],
                                 ) -> dict:
@@ -327,19 +324,21 @@ def _generate_ome_tiff_metadata(panel_csv: pd.DataFrame,
                                                                     Molecular systems biology vol. 16,12 (2020): e9798. 
                                                                     doi:10.15252/msb.20209798). 
     '''
-    ome_metadata = {}
-    ome_metadata['Directory'] = str(output_directory)
-    ome_metadata['Filename'] = filename
-    ome_metadata['Extension'] = 'ome.tiff'
-    ome_metadata['ImageType'] = 'ometiff'
-    ome_metadata["PhysicalSizeX"] = resolutions[0]
-    ome_metadata["PhysicalSizeXUnit"] = "micrometer"
-    ome_metadata["PhysicalSizeY"] = resolutions[1]
-    ome_metadata["PhysicalSizeYUnit"] = "micrometer"
-    panel_csv = panel_csv[panel_csv['keep'] == 1].reset_index()
+    ome_metadata = {
+        'Directory': str(output_directory),
+        'Filename': filename,
+        'Extension': 'ome.tiff',
+        'ImageType': 'ometiff',
+        'PhysicalSizeX': resolutions[0],
+        'PhysicalSizeXUnit': 'micrometer',
+        'PhysicalSizeY': resolutions[1],
+        'PhysicalSizeYUnit': 'micrometer',
+    }
+
+    panel_kept = panel_csv.loc[panel_csv['keep'] == 1, ['name', 'channel']]
     channel_dict = {}
-    for i,ii in enumerate(panel_csv['name']):
-        channel_dict[ii] = {'Name':ii,'ID':str(i),'Fluor':str(panel_csv['channel'][i])}
+    for i,(ii, iii) in enumerate(zip(panel_kept['name'], panel_kept['channel'])):
+        channel_dict[ii] = {'Name':ii,'ID':str(i),'Fluor':str(iii)}
     ome_metadata['Channels'] = channel_dict
     return ome_metadata
 
@@ -387,19 +386,17 @@ def mask_expand(distance: int,
             The filenames in the image_source folder as preserved in the output_directory, so if image_source == output_directory
             then the original masks will be overwritten. 
     '''
-    from skimage.segmentation import expand_labels
-    output_directory = str(output_directory).rstrip("/")
-    image_source = str(image_source)
-    if not os.path.exists(output_directory):
-        os.mkdir(output_directory)
+    output_directory = Path(output_directory)
+    image_source = Path(image_source)
+    output_directory.mkdir(parents = True, exist_ok = True)
 
-    for i in sorted(os.listdir(image_source)):
-        if i.lower().find('.tif') != -1:
-            read_dir = "".join([image_source, "/", i])
-            out_dir = "".join([output_directory, "/", i])
-            read_in_mask = tf.imread(read_dir)
-            expanded_mask = expand_labels(read_in_mask, distance)
-            tf.imwrite(out_dir, expanded_mask, photometric = "minisblack")
+    from skimage.segmentation import expand_labels
+
+    for tif_path in sorted(image_source.glob("*.tif*")):
+        read_in_mask = tf.imread(tif_path)
+        expanded_mask = expand_labels(read_in_mask, distance)
+        out_dir = output_directory / tif_path.name
+        tf.imwrite(out_dir, expanded_mask, photometric = "minisblack")
 
 class ImageAnalysis:
     '''
@@ -488,7 +485,7 @@ class ImageAnalysis:
                     "marker_class" == 'type','state', or 'none' -- used as in CATALYST-style workflow to determine how markers are used.
 
     '''
-    def __init__(self, directory: Union[Path, str, None], resolutions: list[float,float] = [1.0, 1.0], from_mcds: bool = True):
+    def __init__(self, directory: Union[Path, str, None], resolutions: list[float,float] = (1.0, 1.0), from_mcds: bool = True):
         '''
         Directory can be set to None, in order to not set up the panel / directory. This allows this class to initialized without data, which can be 
         useful if not intending following the standard PalmettoBUG directory structure. X and Y are the resolution of the images (in micrometers), 
@@ -499,7 +496,6 @@ class ImageAnalysis:
         self.metadata = pd.DataFrame()
         self.Analysis_panel = pd.DataFrame()
         if directory is not None:
-            directory = str(directory)
             self.directory = directory
             self.directory_object = DirSetup(directory)
             self._panel_setup()
@@ -519,7 +515,7 @@ class ImageAnalysis:
         if self.from_mcds is True:
             MCD_list = stein_unhook.list_mcd_files(self.directory_object.main)
             try:
-                self.panel = pd.read_csv("".join([self.directory_object.main, "/panel.csv"]))
+                self.panel = pd.read_csv(f"{self.directory_object.main}/panel.csv")
             except FileNotFoundError:
                 self.panel = stein_unhook.create_panel_from_mcd_files(MCD_list)
                 self.panel = self.panel.drop(['ilastik','cellpose','deepcell'], axis = 1)     
@@ -529,36 +525,30 @@ class ImageAnalysis:
                 ## This auto-sets background channels to keep = 0 (based on duplicating entry in the channel / name columns)
                 numbers_channel = self.panel['channel'].str.replace("[^0-9]","", regex = True)
                 letters_channel = self.panel['channel'].str.replace("[0-9]","", regex = True)
-                self.panel['channel_test'] = numbers_channel + letters_channel
-
                 numbers_name = self.panel['name'].str.replace("[^0-9]","", regex = True)
                 letters_name = self.panel['name'].str.replace("[0-9]","", regex = True)
-                self.panel['name_test'] = numbers_name + letters_name
                 
-                keep = (self.panel['channel_test'] != self.panel['name_test'])
-                self.panel['keep'] = keep
+                self.panel['keep'] = (numbers_channel + letters_channel) != (numbers_name + letters_name)
                 self.panel['keep'] = self.panel['keep'].astype('int')
-                self.panel = self.panel.drop(['channel_test','name_test'],axis=1)
         else:  ## if self.mcds is False, then loading from .tiffs
             try:  ## read in panel file if it already exists
-                read_dir = "".join([self.directory_object.main, "/panel.csv"])
+                read_dir = f"{self.directory_object.main}/panel.csv"
                 self.panel = pd.read_csv(read_dir)      
             except FileNotFoundError:
-                image_list = sorted(os.listdir(self.directory_object.main + "/raw"))
-                image_list = [i for i in image_list if i.lower().find(".tif") != -1]   ## exclude any non- .tif(f) files  (looking at you, .DS_store ......)
-                reader_string = "".join([self.directory_object.main, "/raw/", image_list[0]])
-                if image_list[0][-9:].lower() == ".ome.tiff":   
+                raw_dir = Path(self.directory_object.main) / "raw"
+                reader_string = sorted(raw_dir.glob("*.tif*"))[0]
+                if reader_string.name.lower().endswith(".ome.tiff"): 
                     # when dealing with an .ome.tiff, I'd like to try to recover some useful metadata (only uses first image):
                     reader = pot.OMETIFFReader(reader_string) 
                     img_array, metadata, xml_metadata = reader.read()
                     try: 
-                        channel_list = [i for i in metadata['Channels']]
+                        channel_list = list(metadata['Channels'])
                     except KeyError:
                         tiff_file1 = tf.imread(reader_string)
-                        channel_list = [i for i in range(tiff_file1.shape[0])]
+                        channel_list = list(range(tiff_file1.shape[0]))
                 else:            # this means we are dealing with a .tiff, and will not try to recover metadata
                     tiff_file1 = tf.imread(reader_string)
-                    channel_list = [i for i in range(tiff_file1.shape[0])]
+                    channel_list = list(range(tiff_file1.shape[0]))
                 #### now make the initial pd.DataFrame to hold the table widget:
                 Init_Table = pd.DataFrame()
                 Init_Table['channel'] = channel_list
@@ -566,7 +556,7 @@ class ImageAnalysis:
                 Init_Table['keep'] = 1         # default to keeping all channels
                 Init_Table['segmentation'] = "" 
                 self.panel = Init_Table
-                Init_Table.to_csv(self.directory_object.main + "/panel.csv", index = False)   
+                Init_Table.to_csv(f"{self.directory_object.main}/panel.csv", index = False)   
 
     def panel_write(self) -> None:
         '''
@@ -575,14 +565,13 @@ class ImageAnalysis:
         '''
         if _in_gui:
             try:
-                self.panel.to_csv(self.directory_object.main + '/panel.csv', index = False)
-                with open(self.directory_object.main + '/panel.csv') as file:
-                    Project_logger(self.directory_object.main).return_log().info(f"Wrote panel file, with values: \n {file.read()}")
+                self.panel.to_csv(f"{self.directory_object.main}/panel.csv", index = False)
+                Project_logger(self.directory_object.main).return_log().info(f"Wrote panel file, with values: \n {self.panel}")
             except Exception:
                 tk.messagebox.showwarning("Warning!", message = """Could not write panel file! \n 
                             Do you have the .csv open right now in excel or another program?""")
         else:
-            self.panel.to_csv(self.directory_object.main + '/panel.csv', index = False)
+            self.panel.to_csv(f"{self.directory_object.main}/panel.csv", index = False)
             
      # This method writes from MCDs --> .ome.tiffs 
     def raw_to_img(self, 
@@ -622,40 +611,32 @@ class ImageAnalysis:
         '''
         from_mcds = self.from_mcds
         if input_directory is None:
-            input_directory = self.directory_object.main + "/raw/"
-        else:
-            input_directory = str(input_directory)
+            input_directory = f"{self.directory_object.main}/raw/"
+        input_directory = Path(input_directory)
 
         if output_directory is None:
-            output_directory =  "".join([self.directory_object.img_dir, '/img/'])
-        else:
-            output_directory = str(output_directory)
-        if not os.path.exists(output_directory):
-            os.mkdir(output_directory)
+            output_directory =  f"{self.directory_object.img_dir}/img/"
+        output_directory = Path(output_directory)
+
+        output_directory.mkdir(parents=True, exist_ok=True)
 
         if from_mcds is True:
-            mcd_list = ["".join([input_directory,i]) for i in sorted(os.listdir(input_directory)) if i.lower().find(".mcd") != -1]
+            mcd_list = sorted(input_directory.glob("*.mcd"))
             MCD_gen = _MCD_Generator(mcd_list)
         else:
-            tiff_list = ["".join([input_directory,i]) for i in sorted(os.listdir(input_directory)) if i.lower().find(".tif") != -1]
+            tiff_list = sorted(input_directory.glob("*.tif*"))
             MCD_gen = _TIFF_Generator(tiff_list)
 
-        i = 1
-        counter = -1
-        keep = (self.panel['keep'] == 1)
-        while i == 1:
-            try: 
-                image, path, ROI, acquisition = next(MCD_gen)
-                counter += 1
-            except StopIteration:
-                break
-            # filter for keep channels
+        keep = self.panel['keep'].to_numpy(dtype=bool)
+        for image, path, ROI, acquisition in MCD_gen:
+            path = Path(path)
+            ROI = str(ROI)
             if len(image) != len(self.panel):
                 if _in_gui:
-                    warning_window(f"""The number of channels in {ROI} of {path} does not match the number of channels 
+                    warning_window(f"""The number of channels in {ROI} of {str(path)} does not match the number of channels 
                                    in the panel file! Skipping this ROI.""")
                 else:
-                    print(f"""The number of channels in {ROI} of {path} does not match the number of channels 
+                    print(f"""The number of channels in {ROI} of {str(path)} does not match the number of channels 
                           in the panel file! Skipping this ROI.""")
             else:   # proceed with conversion to TIFF
                 image = image[keep]
@@ -664,11 +645,8 @@ class ImageAnalysis:
                 elif hpf != 0:
                     image = stein_unhook.filter_hot_pixels(image, hpf)
                 if from_mcds is True:
-                    file_name = "".join([(str(path)[len(self.directory_object.main)+5:-4]), '_', ROI])   ### this is an awkard line -- 
-                                                                                                        # len(directory) + 5, slices off the 
-                                                                                                        # directory + /raw/ ,
-                                                                                                        #  while -4 slices off the .mcd suffix
-                    out = "".join([output_directory, file_name, ".ome.tiff"])
+                    file_name = f'{path.stem}_{ROI}'
+                    out = output_directory / f"{file_name}.ome.tiff"
                     ome_tiff_metadata = _generate_ome_tiff_metadata(self.panel, 
                                                                     self.directory_object.img_dir, 
                                                                     file_name, 
@@ -676,14 +654,13 @@ class ImageAnalysis:
                     write_ome_tiff(image, ome_tiff_metadata, out)
                 else:
                     if ROI.rfind(".tiff") == -1:   ## this means that the current format must be .tif (one f, instead of two), so I add an "f" for consistency
-                        ROI = ROI + "f"
-                    out = "".join([output_directory, ROI])
+                        ROI = ROI + "f"             ## This also means that outside the /raw folder, all tiff files should have two f's!
+                    out = output_directory / ROI
                     ome_tiff_metadata = acquisition
                     if ome_tiff_metadata is None:
-                        file_name = ROI[1:]
                         ome_tiff_metadata = _generate_ome_tiff_metadata(self.panel, 
                                                                     self.directory_object.img_dir, 
-                                                                    file_name, 
+                                                                    ROI[1:], 
                                                                     self.resolutions)
                     write_ome_tiff(image, ome_tiff_metadata, out)
 
@@ -753,11 +730,12 @@ class ImageAnalysis:
         from instanseg import InstanSeg
         if input_img_folder is None:
             input_img_folder  = f"{self.directory_object.img_dir}/img"
+        input_img_folder = Path(input_img_folder)
 
         if output_mask_folder is None:
             output_mask_folder  = f"{self.directory_object.masks_dir}/instanseg_masks"
-            if not os.path.exists(output_mask_folder):
-                os.mkdir(output_mask_folder)
+        output_mask_folder = Path(output_mask_folder)
+        output_mask_folder.mkdir(parents=True, exist_ok=True)
         
         if pixel_size is None:
             if self.resolutions[0] != self.resolutions[1]:
@@ -767,7 +745,7 @@ class ImageAnalysis:
 
         model = InstanSeg(model)
 
-        source_images = [i for i in os.listdir(input_img_folder) if i.lower().find(".tif") != -1]
+        source_images = [i.name for i in list_file_extension_files(input_img_folder, ".tiff", alt_extension = '.tif')]
         if (single_image is not None) and (single_image != ""):
             single_image = str(single_image)
             path_or_name = single_image.find("/")
@@ -778,13 +756,18 @@ class ImageAnalysis:
             source_images = [single_image]
             
         if not re_do:
-            existing = os.listdir(output_mask_folder)
+            existing = os.listdir(str(output_mask_folder))
             source_images = [i for i in source_images if i not in existing]
 
         for i in source_images:
-            image_array = tf.imread(f'{input_img_folder}/{i}')
-            for j,jj in enumerate(image_array):
-                image_array[j] = (jj - jj.min()) / (jj.max() - jj.min())  ## min-max scale all channels -- channels are assumed to be the first dimension of the array!
+            image_array = tf.imread(f'{str(input_img_folder)}/{i}')
+            
+            mins = image_array.min(axis=(1,2), keepdims=True) ## min-max scale all channels -- channels are assumed to be the first dimension of the array!
+            maxs = image_array.max(axis=(1,2), keepdims=True)
+            den = maxs - mins
+            den[den == 0] = 1
+            image_array = (image_array - mins) / den
+  
             if channel_slice is not None:
                 kept_channel_slice = channel_slice[channel_slice > 0]
                 if len(kept_channel_slice) == 0:
@@ -796,14 +779,14 @@ class ImageAnalysis:
                         new_image_array = np.zeros([len(unique_kept_channels), image_array.shape[1], image_array.shape[2]])
                         for k,kk in enumerate(unique_kept_channels):
                             slicer = (channel_slice == kk)
-                            new_image_array[k,:,:] = np.sum(image_array[slicer], axis = 0) / slicer.sum()
+                            new_image_array[k,:,:] = np.mean(image_array[slicer], axis = 0)
                         image_array = new_image_array.copy()
                     image_array = image_array[channel_slice > 0,:,:]
                 else:
                     image_array = image_array[channel_slice > 0,:,:]
                           
             prediction = model.eval_medium_image(image_array, mean_threshold = mean_threshold, target = target, pixel_size = pixel_size)
-            tf.imwrite(f'{output_mask_folder}/{i}', np.squeeze(np.asarray(prediction[0])))
+            tf.imwrite(output_mask_folder / i, np.squeeze(np.asarray(prediction[0])))
 
     def mask_intersection_difference(self, 
                                     masks_folder1: Union[str, Path], 
@@ -888,29 +871,30 @@ class ImageAnalysis:
         Returns:
             None     (does, however, read & write .tiff files)
         '''
-        masks_folder1 = str(masks_folder1)
-        masks_folder2 = str(masks_folder2)
-        masks1 = os.listdir(masks_folder1)
-        masks2 = os.listdir(masks_folder2)
-        matching_files = [i for i in masks1 if (i in masks2) and (i.rfind(".tif") != -1)]  ## only want .tif(f) files present in both folders
+        masks_folder1 = Path(masks_folder1)
+        masks_folder2 = Path(masks_folder2)
+        
+        masks1 = {p.name for p in list_file_extension_files(masks_folder1, ".tiff", alt_extension = '.tif')}
+        masks2 = {p.name for p in list_file_extension_files(masks_folder2, ".tiff", alt_extension = '.tif')}
+        matching_files = sorted(masks1 & masks2)  ## only want .tif(f) files present in both folders
+
         if len(matching_files) == 0:
             print("Error: No filenames shared between the two folders of masks! Cancelling")
             return
 
         if output_folder is None:
-            first_half = masks_folder1[masks_folder1.rfind("/") + 1:]
-            second_half = masks_folder2[masks_folder2.rfind("/") + 1:]
-            output_folder = self.directory_object.masks_dir + f"/{first_half}_{second_half}"
-        if not os.path.exists(output_folder):
-            os.mkdir(output_folder)
+            output_folder = f"{self.directory_object.masks_dir}/{masks_folder1.name}_{masks_folder2.name}"
+        output_folder = Path(output_folder)
+        output_folder.mkdir(parents=True, exist_ok=True)
 
         for i in matching_files:
-            mask1 = tf.imread(f'{masks_folder1}/{i}').astype('int32')
-            mask2 = tf.imread(f'{masks_folder2}/{i}').astype('int32')
+            mask1 = tf.imread(masks_folder1 / i).astype('int32')
+            mask2 = tf.imread(masks_folder2 / i).astype('int32')
             if mask1.shape != mask2.shape:
                 print(f"Warning! Mask file: {i} did  not have a matching shape between the two folders of masks. Skipping this file!")
             else:
                 output = self._mask_bool(mask1, mask2, kind = kind, object_threshold = object_threshold, pixel_threshold = pixel_threshold)
+                
                 tf.imwrite(f'{output_folder}/{i}', output.astype('int32'))
         
     def _mask_bool(self, mask1: np.ndarray[int], 
@@ -924,13 +908,14 @@ class ImageAnalysis:
         '''
         if (kind =="difference2") or (kind =="intersection2"):
             backup = mask1.copy()
-        mask_values = [i for i in np.unique(mask1) if i > 0]
+        mask_values = np.unique(mask1)
+        mask_values = mask_values[mask_values > 0] 
         for j in mask_values:
             temp = mask2[mask1 == j]      ## look at mask2 with each mask of mask1, and count overlapping values
             overlapping_values = [i for i in np.unique(temp) if i > 0]
             object_counter = 0
             for k in overlapping_values:
-                if (temp == k).sum() > pixel_threshold:
+                if np.count_nonzero(temp == k) >= pixel_threshold:
                     object_counter += 1
 
             if (kind == "intersection1") or (kind == "intersection2"):
@@ -938,23 +923,24 @@ class ImageAnalysis:
                     mask1[mask1 == j] = 0   ## delete masks from mask1 that do not have sufficient overlap with objects from mask2
 
             if (kind == 'difference1') or (kind == "difference2"):
-                if object_counter > object_threshold:
+                if object_counter >= object_threshold:
                     mask1[mask1 == j] = 0   ## delete masks from mask1 that have sufficient overlap with objects from mask2
                 
         if (kind =="difference2") or (kind =="intersection2"):
-            mask_values = [i for i in np.unique(mask2) if i > 0]     ## if two-way difference, repeat the process but look from mask2 --> mask1 instead, then add kept mask2 to output
+            mask_values = np.unique(mask2)
+            mask_values = mask_values[mask_values > 0] ## if two-way difference, repeat the process but look from mask2 --> mask1 instead, then add kept mask2 to output
             for j in mask_values:
                 temp = backup[mask2 == j]      
                 overlapping_values = [i for i in np.unique(temp) if i > 0]
                 object_counter = 0
                 for k in overlapping_values:
-                    if (temp == k).sum() > pixel_threshold:
+                    if np.count_nonzero(temp == k) >= pixel_threshold:
                         object_counter += 1
                 if kind == "difference2":
                     if object_counter < object_threshold:
                         mask1[(mask2 == j)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
                 if kind == "intersection2":
-                    if object_counter > object_threshold:
+                    if object_counter >= object_threshold:
                         mask1[(mask2 == j)*(mask1 == 0)] = j + np.max(backup)   ## add mask from mask2 --> mask1 (which is also the output), but only into 0-value pixels
         
         if re_order:
@@ -1037,21 +1023,19 @@ class ImageAnalysis:
         Returns:
             None -- (its output is in writing to the disk, not returning a value)
         '''
-        input_img_folder = str(input_img_folder)
-        input_mask_folder = str(input_mask_folder)
+        input_img_folder = Path(input_img_folder)
+        input_mask_folder = Path(input_mask_folder)
 
         if output_intensities_folder is None:
             output_intensities_folder = self.directory_object.intensities_dir
         if output_regions_folder is None:
             output_regions_folder = self.directory_object.regionprops_dir
 
-        output_intensities_folder = str(output_intensities_folder)
-        output_regions_folder = str(output_regions_folder)
+        output_intensities_folder = Path(output_intensities_folder)
+        output_regions_folder = Path(output_regions_folder)
 
-        if not os.path.exists(output_intensities_folder):
-            os.mkdir(output_intensities_folder) 
-        if not os.path.exists(output_regions_folder):
-            os.mkdir(output_regions_folder) 
+        output_intensities_folder.mkdir(parents=True, exist_ok=True)
+        output_regions_folder.mkdir(parents=True, exist_ok=True)
 
         dict_of_choices = {       # ***
             "sum": stein_unhook.IntensityAggregation.SUM,
@@ -1062,112 +1046,48 @@ class ImageAnalysis:
             "std": stein_unhook.IntensityAggregation.STD,
             "var": stein_unhook.IntensityAggregation.VAR,
             }
-        img_files = sorted(Path(input_img_folder).rglob("[!.]*.tiff"))   # ***
-        mask_files = sorted(Path(input_mask_folder).rglob("[!.]*.tiff"))  # ***
-        ints_folder = sorted(Path(output_intensities_folder).rglob("[!.]*.csv"))   # ***
-        regions_folder = sorted(Path(output_regions_folder).rglob("[!.]*.csv"))    # ***
+        img_files = sorted(input_img_folder.rglob("*.tif*"))   # ***
+        mask_files = sorted(input_mask_folder.rglob("*.tif*"))  # ***
+        ints_folder = sorted(output_intensities_folder.rglob("*.csv"))   # ***
+        regions_folder = sorted(output_regions_folder.rglob("*.csv"))    # ***
 
-        cleaned_img = []
-        cleaned_mask = []
-        for i in img_files:
-            j = str(i).replace("\\","/")
-            j = j[(j.rfind("/") + 1):j.rfind(".tiff")]
-            cleaned_img.append(j)
-        for ii in mask_files:
-            jj = str(ii).replace("\\","/")
-            jj = jj[(jj.rfind("/") + 1):jj.rfind(".tiff")]
-            cleaned_mask.append(jj)
-        shared_files = [i for i in cleaned_img if i in cleaned_mask]
-        shared_masks = [i for i in cleaned_mask if i in cleaned_img]
+        
+        cleaned_img = [p.stem for p in img_files]
+        cleaned_mask = [p.stem for p in mask_files]
+        img_set = set(cleaned_img)
+        mask_set = set(cleaned_mask)
+        shared = sorted(img_set & mask_set)
 
-        if (len(shared_files) == 0):
+
+        if (len(shared) == 0):
             if _in_gui:
                 tk.messagebox.showwarning("Warning!", 
                     message = "None of the mask and image filenames matched! Cancelling regionproperty measurement.")
             else:
                 print("None of the mask and image filenames matched! Cancelling regionproperty measurement.")
             return
-
-        def filter_redo(dest_folder, shared_files):
-            ''''''
-            ints_files = []
-            if dest_folder is not None:
-                ints_files = [str(i).replace("\\","/") for i in dest_folder]
-                ints_files = [i[(i.rfind("/") + 1):i.rfind(".csv")] for i in ints_files]
-            img_files_int = []
-            mask_files_int = []
-            for i in shared_files:
-                if i not in ints_files:
-                    img_files_int.append(f'{input_img_folder}/{i}.tiff')
-                    mask_files_int.append(f'{input_mask_folder}/{i}.tiff')
-            return img_files_int, mask_files_int
-
-        def write_csvs(img_files, generator, out_directory, csv_type, input_mask_folder = input_mask_folder):
-            ''''''
-            for _ in img_files:
-                img_file, mask_file, csv = next(generator)
-                if csv_type == "regions":
-                    csv['image_area'] = tf.imread(mask_file).shape[0] * tf.imread(mask_file).shape[1]
-                    csv['mask_folder'] = input_mask_folder
-                right_index1 = str(mask_file).rfind('/')
-                right_index2 = str(mask_file).rfind('\\')
-                right_index = np.max([right_index1,right_index2])
-                left_index = str(mask_file).rfind('.tiff')
-                file_name = str(mask_file)[right_index+1:left_index]
-                if (len(csv[csv.columns[0]]) != 0):           #### This means there are no cell masks in this file! 
-                    csv.to_csv(("".join([out_directory, '/', file_name, ".csv"])),index = True)
-                    print(f"{file_name} {csv_type} csv has been written!") 
-                else:
-                    if _in_gui:
-                        warning_window(f"""{file_name} has no cell masks in it! 
-                            Re-run segmentation or delete image & its mask / csv's from the analysis! 
-                            \n conversion to Analysis will fail in the creation of a 0 event fcs""")
-                    print(f"""{file_name} has no cell masks in it! 
-                        Re-run segmentation or delete image & its mask / csv's from the analysis! 
-                        \n conversion to Analysis will fail in the creation of a 0 event fcs""")
         
         if re_do is False:
-            img_files_int, mask_files_int = filter_redo(ints_folder, shared_files)
-            img_files_reg, mask_files_reg = filter_redo(regions_folder, shared_masks)
-            if (len(img_files_int) == 0) and (len(img_files_reg) == 0):
+            img_mask_pairs_int = filter_redo(ints_folder, shared, input_mask_folder, input_img_folder)
+            img_mask_pairs_reg = filter_redo(regions_folder, shared, input_mask_folder, input_img_folder)
+            if (len(img_mask_pairs_int) == 0) and (len(img_mask_pairs_reg) == 0):
                 if _in_gui:     
                     tk.messagebox.showwarning("Warning!", 
                         message = "All images have intensity and region files written! Did you intend to redo these measurements?")  
                 else:
                     print("All images have intensity and region files written! Did you intend to redo these measurements?")  
                 return
-            
-            intensity_gen = stein_unhook.try_measure_intensities_from_disk(img_files_int,           # *** 
-                                        mask_files_int, 
-                                        self.panel[self.panel['keep'] == 1]['name'], 
-                                        dict_of_choices[statistic])                     
-            regionprops_gen = stein_unhook.try_measure_regionprops_from_disk(img_files_reg,         # ***
-                                                                             mask_files_reg,["area", 
-                                                                                    "perimeter",              
-                                                                                    "centroid",
-                                                                                    "axis_major_length",
-                                                                                    "axis_minor_length",
-                                                                                    "eccentricity"])
-         
-            write_csvs(img_files_int, intensity_gen, output_intensities_folder, csv_type = "intensities")
-            write_csvs(img_files_reg, regionprops_gen, output_regions_folder, csv_type = "regions" )
-
         else:
-            img_files_int, mask_files_int = filter_redo(None, shared_files)
-            intensity_gen = stein_unhook.try_measure_intensities_from_disk(img_files_int,                      # *** 
-                                                        mask_files_int, 
-                                                        self.panel[self.panel['keep'] == 1]['name'], 
-                                                        dict_of_choices[statistic])  
-            regionprops_gen = stein_unhook.try_measure_regionprops_from_disk(img_files_int,                    # ***
-                                                            mask_files_int,["area", 
-                                                                        "perimeter",
-                                                                        "centroid",
-                                                                        "axis_major_length",
-                                                                        "axis_minor_length",
-                                                                        "eccentricity"])
-            write_csvs(img_files_int, intensity_gen, output_intensities_folder, csv_type = "intensities")
-            write_csvs(mask_files_int, regionprops_gen, output_regions_folder, csv_type = "regions" )
-                    
+            img_mask_pairs_int = filter_redo(None, shared, input_mask_folder, input_img_folder)
+            img_mask_pairs_reg = img_mask_pairs_int
+
+        intensities_regions_I_O(img_mask_pairs_int, img_mask_pairs_reg, 
+                    channels = self.panel[self.panel['keep'] == 1]['name'], 
+                    stat = dict_of_choices[statistic],
+                    output_int = output_intensities_folder,
+                    output_region = output_regions_folder,
+                    input_mask_folder = str(input_mask_folder))
+
         if advanced_regionprops is True:
             print("Beginning advanced regionprop calculations -- this could take some time")
             self._advanced_regionprops(input_mask_folder, output_regions_folder)
@@ -1189,8 +1109,8 @@ class ImageAnalysis:
         input_mask_folder = str(input_mask_folder)
         output_regions_folder = str(output_regions_folder)
 
-        mask_files = ["".join([input_mask_folder,"/",i]) for i in sorted(os.listdir(input_mask_folder)) if i.lower().find(".tif") != -1]
-        regionprops_files = ["".join([output_regions_folder,"/",i]) for i in sorted(os.listdir(output_regions_folder)) if i.lower().find(".csv") != -1]
+        mask_files = [f"{input_mask_folder}/{i}" for i in sorted(os.listdir(input_mask_folder)) if i.lower().find(".tif") != -1]
+        regionprops_files = [f"{output_regions_folder}/{i}" for i in sorted(os.listdir(output_regions_folder)) if i.lower().find(".csv") != -1]
         for i,ii in zip(mask_files, regionprops_files):
             image = tf.imread(i).astype('int')
             n_slab_list = []
@@ -1252,32 +1172,32 @@ class ImageAnalysis:
             _in_gui = gui_switch
         if not _in_gui:
             self._intense_to_fcs()
-            if (not os.path.exists(self.directory_object.Analyses_dir + "/Analysis_panel.csv")):
+            if (not os.path.exists(f"{self.directory_object.Analyses_dir}/Analysis_panel.csv")):
                 print("""Analysis panel file generated from scratch""")
                 panel_file = self._initial_Analysis_panel()
             else:
-                panel_file = pd.read_csv(self.directory_object.Analyses_dir + "/Analysis_panel.csv")
-            if (not os.path.exists(self.directory_object.Analyses_dir + "/metadata.csv")):
+                panel_file = pd.read_csv(f"{self.directory_object.Analyses_dir}/Analysis_panel.csv")
+            if (not os.path.exists(f"{self.directory_object.Analyses_dir}/metadata.csv")):
                 print("""Metadata file generated from scratch""")
                 metadata = self._initial_metadata_file()
             else:
-                metadata = pd.read_csv(self.directory_object.Analyses_dir + "/metadata.csv")
-            self.Analysis_panel_dir = self.directory_object.Analysis_internal_dir + "/Analysis_panel.csv"
-            self.metadata_dir = self.directory_object.Analysis_internal_dir + "/metadata.csv"
+                metadata = pd.read_csv(f"{self.directory_object.Analyses_dir}/metadata.csv")
+            self.Analysis_panel_dir = f"{self.directory_object.Analysis_internal_dir}/Analysis_panel.csv"
+            self.metadata_dir = f"{self.directory_object.Analysis_internal_dir}/metadata.csv"
             return panel_file, metadata, self.Analysis_panel_dir, self.metadata_dir
     
         elif _in_gui:
             self._intense_to_fcs()
-            Analysis_tab.analysiswidg.setup_dir_disp(self.directory_object.analysis_dir + "/main") 
-            Analysis_tab.master.Spatial.widgets.setup_dir_disp(self.directory_object.analysis_dir + "/main")
+            Analysis_tab.analysiswidg.setup_dir_disp(f"{self.directory_object.analysis_dir}/main") 
+            Analysis_tab.master.Spatial.widgets.setup_dir_disp(f"{self.directory_object.analysis_dir}/main")
             if metadata_from_save is True: 
-                if ((not os.path.exists(self.directory_object.Analyses_dir + "/Analysis_panel.csv")) 
-                or (not os.path.exists(self.directory_object.Analyses_dir + "/metadata.csv"))):
+                if ((not os.path.exists(f"{self.directory_object.Analyses_dir}/Analysis_panel.csv")) 
+                or (not os.path.exists(f"{self.directory_object.Analyses_dir}/metadata.csv"))):
                     tk.messagebox.showwarning("Warning!",
                         message = """Loading Panel / Metadata from save option checked -- 
                                     but one or both of those files is not present in the /Analyses directory!""")
-                self.Analysis_panel = pd.read_csv(self.directory_object.Analyses_dir + "/Analysis_panel.csv")
-                self.metadata = pd.read_csv(self.directory_object.Analyses_dir + "/metadata.csv")
+                self.Analysis_panel = pd.read_csv(f"{self.directory_object.Analyses_dir}/Analysis_panel.csv")
+                self.metadata = pd.read_csv(f"{self.directory_object.Analyses_dir}/metadata.csv")
 
                 analysis_logger = Analysis_logger(self.directory_object.Analysis_internal_dir).return_log()
                 table_launcher = TableLaunchAnalysis(1, 1, 
@@ -1330,17 +1250,14 @@ class ImageAnalysis:
             input_intensity_directory = self.directory_object.intensities_dir
         if ouput_fcs_folder is None:
             ouput_fcs_folder = self.directory_object.fcs_dir 
-        input_intensity_directory = str(input_intensity_directory)
-        ouput_fcs_folder = str(ouput_fcs_folder)
-        if not os.path.exists(ouput_fcs_folder):
-            os.mkdir(ouput_fcs_folder)
+        input_intensity_directory = Path(input_intensity_directory)
+        ouput_fcs_folder = Path(ouput_fcs_folder)
+        ouput_fcs_folder.mkdir(parents=True, exist_ok=True)
 
-        for i in sorted(os.listdir(input_intensity_directory)):
-            if i.lower().find(".csv") != -1:
-                pd_df = pd.read_csv("".join([input_intensity_directory, "/", i]))
-                fcs_df = DataFrame(pd_df, columns = pd_df.columns)
-                filename = i[:i.rfind('.')]
-                fcs_df.to_fcs("".join([ouput_fcs_folder, "/", filename, ".fcs"]))
+        for i in input_intensity_directory.glob("*.csv"):
+            pd_df = pd.read_csv(input_intensity_directory / i)
+            fcs_df = DataFrame(pd_df, columns = pd_df.columns)
+            fcs_df.to_fcs(f"{ouput_fcs_folder}/{i.stem}.fcs")
 
     def _initial_Analysis_panel(self) -> pd.DataFrame:
         ''' 
@@ -1359,7 +1276,7 @@ class ImageAnalysis:
         '''
         Helper method for self.to_Analysis --> generate the initial metadata file (patient and condition columns blank)
         '''
-        file_list = [i for i in sorted(os.listdir(self.directory_object.fcs_dir)) if i.lower().find(".fcs") != -1]
+        file_list = sorted(list_file_extension_files(Path(self.directory_object.fcs_dir), ".fcs"))
         metadata = pd.DataFrame()
         metadata['file_name']  = file_list
         metadata['sample_id'] = metadata.reset_index()['index']
@@ -1367,6 +1284,65 @@ class ImageAnalysis:
         metadata['condition'] = 'treatment vs. control'   
         self.metadata = metadata
         return metadata
+
+
+def filter_redo(dest_folder, shared_files, input_mask_folder, input_img_folder):
+    ''''''
+    ints_files = []
+    if dest_folder is not None:
+        ints_files = [i.stem for i in ints_files]
+    img_mask_pairs = []
+    for i in shared_files:
+        if i not in ints_files:
+            img_mask_pairs.append([input_img_folder / f"{i}.tiff", input_mask_folder / f"{i}.tiff"])            
+    return img_mask_pairs
+
+def write_csv_with_messages(output_csv, return_messages, output_directory, file_name, csv_type):
+    ''''''
+    if not output_csv.empty:           #### This means there are no cell masks in this file! 
+        output_csv.to_csv(output_directory / f"{file_name}.csv",index = True)
+        return_messages.append( [True, f"{file_name} {csv_type} csv has been written!"] )
+    else:
+        return_messages.append( [False, f"""{file_name} has no cell masks in it! 
+            Re-run segmentation or delete image & its mask / csv's from the analysis! 
+            \n conversion to Analysis will fail in the creation of a 0 event fcs"""] )
+
+def read_and_write_one_step(pair, int_set, reg_set, output_int, output_region, channels, stat, input_mask_folder):
+    '''''' 
+    return_messages = []
+    img_file = stein_unhook.read_image(pair[0])
+    mask_file = stein_unhook.read_image(pair[1]).astype('int32')
+    file_name = pair[1].stem
+    mask_shape = mask_file.shape
+    if pair in int_set:
+        output_csv = stein_unhook.measure_intensites(img_file, mask_file, channels, stat)
+        write_csv_with_messages(output_csv, return_messages, output_directory = output_int, file_name = file_name, csv_type = 'intensities')
+    if pair in reg_set:
+        output_csv = stein_unhook.measure_regionprops(img_file, mask_file, ["area", 
+                                                                "perimeter",              
+                                                                "centroid",
+                                                                "axis_major_length",
+                                                                "axis_minor_length",
+                                                                "eccentricity"] )
+        output_csv['image_area'] = mask_shape[0] * mask_shape[1]
+        output_csv['mask_folder'] = input_mask_folder
+        write_csv_with_messages(output_csv, return_messages, output_directory = output_region, file_name = file_name, csv_type = 'regions')
+    return return_messages
+
+
+def intensities_regions_I_O(img_mask_pairs_int, img_mask_pairs_reg, channels, stat, output_int, output_region, input_mask_folder):  # *** 
+    ''''''
+    messages = []
+    int_set = set(map(tuple, img_mask_pairs_int))
+    reg_set = set(map(tuple, img_mask_pairs_reg))
+    all_pairs = int_set | reg_set
+    for i in all_pairs:
+        messages += read_and_write_one_step(i, int_set, reg_set, output_int, output_region, channels, stat, input_mask_folder)
+    for message in messages:
+        if _in_gui and not message[0]:
+            warning_window(message[1])
+        else:
+            print(message[1])
     
 def setup_for_FCS(directory):
     '''
@@ -1387,25 +1363,26 @@ def setup_for_FCS(directory):
 
         metadata_dir (a string, the path to where the metadata should be saved on the disk once it has been completed by the user)
     '''
-    directory_name = directory[:directory.rfind("/")]
+    directory = Path(directory)
+    directory_name = directory.parent
 
     directory_object = DirSetup(directory, kind = "Analysis")
     directory_object.make_analysis_dirs(directory_name)
-    Analysis_panel_dir = directory_object.Analysis_internal_dir + "/Analysis_panel.csv"
-    metadata_dir = directory_object.Analysis_internal_dir + "/metadata.csv"
-    fcs_files = [i for i in sorted(os.listdir(directory_object.fcs_dir)) if i.lower().find(".fcs") != -1]
+    Analysis_panel_dir = f"{directory_object.Analysis_internal_dir}/Analysis_panel.csv"
+    metadata_dir = f"{directory_object.Analysis_internal_dir}/metadata.csv"
+    fcs_files = list_file_extension_files(Path(directory_object.fcs_dir), extension = ".fcs")
     try:
         Analysis_panel = pd.read_csv(Analysis_panel_dir)
     except FileNotFoundError:
         warnings.filterwarnings("ignore", message = "The default channel names")
-        _, dataframe1 = fcsparser.parse(directory_object.fcs_dir + "/" + fcs_files[0])
+        _, dataframe1 = fcsparser.parse(f'{fcs_files[0]}')
         warnings.filterwarnings("default", message = "The default channel names")
         Analysis_panel = pd.DataFrame()
         Analysis_panel['fcs_colnames'] = dataframe1.columns
         Analysis_panel['antigen'] = dataframe1.columns
         Analysis_panel['marker_class'] = "none"
         try:
-            Analysis_panel = Analysis_panel.drop("Object", axis = 0) 
+            Analysis_panel = Analysis_panel.drop("Object", axis = 0)    ## (sometimes) an undesirable 'Object' row sneaks into the FCS file
         except KeyError:
             pass
         Analysis_panel.to_csv(Analysis_panel_dir, index = False) 
@@ -1416,7 +1393,7 @@ def setup_for_FCS(directory):
     except FileNotFoundError:
         metadata = pd.DataFrame()
         metadata['file_name']  = fcs_files
-        metadata['sample_id'] = metadata.reset_index()['index']
+        metadata['sample_id'] = range(len(metadata))
         metadata['patient_id'] = 'na'      # manually set later
         metadata['condition'] = 'treatment vs. control'       # manually set later
 
@@ -1430,15 +1407,14 @@ class direct_to_Analysis(ImageAnalysis):
                  metadata_from_save: bool = False):      
         ## this is essentially its own, customized directory then panel/metadata setup (particularly the panel setup is customized)
         self.master = master
-        directory_name = directory  #[:directory.rfind("/")]
         self.directory_object = DirSetup(directory, kind = "Analysis")
-        self.directory_object.make_analysis_dirs(directory_name)
+        self.directory_object.make_analysis_dirs(directory)
         if metadata_from_save is True:                           ## the loader from the common / saved metadata
-            self.Analysis_panel_dir = self.directory_object.Analyses_dir + "/Analysis_panel.csv"
-            self.metadata_dir = self.directory_object.Analyses_dir + "/metadata.csv"
+            self.Analysis_panel_dir = f"{self.directory_object.Analyses_dir}/Analysis_panel.csv"
+            self.metadata_dir = f"{self.directory_object.Analyses_dir}/metadata.csv"
         else:
-            self.Analysis_panel_dir = self.directory_object.Analysis_internal_dir + "/Analysis_panel.csv"
-            self.metadata_dir = self.directory_object.Analysis_internal_dir + "/metadata.csv"
+            self.Analysis_panel_dir = f"{self.directory_object.Analysis_internal_dir}/Analysis_panel.csv"
+            self.metadata_dir = f"{self.directory_object.Analysis_internal_dir}/metadata.csv"
 
         # read the first .fcs file to get the column names, then write panel file:
         # this has to be done differently than the prior ImageAnalysis class, as it is starting halfway 
@@ -1446,9 +1422,9 @@ class direct_to_Analysis(ImageAnalysis):
         try:
             self.Analysis_panel = pd.read_csv(self.Analysis_panel_dir)
         except FileNotFoundError:
-            fcs_files = [i for i in sorted(os.listdir(self.directory_object.fcs_dir)) if i.lower().find(".fcs") != -1]
+            fcs_files = sorted(list_file_extension_files(Path(self.directory_object.fcs_dir), extension = ".fcs"))
             warnings.filterwarnings("ignore", message = "The default channel names")
-            _, dataframe1 = fcsparser.parse(self.directory_object.fcs_dir + "/" + fcs_files[0])
+            _, dataframe1 = fcsparser.parse(f"{self.directory_object.fcs_dir}/{fcs_files[0]}")
             warnings.filterwarnings("default", message = "The default channel names")
             self.Analysis_panel = pd.DataFrame()
             self.Analysis_panel['fcs_colnames'] = dataframe1.columns
@@ -1470,14 +1446,14 @@ class direct_to_Analysis(ImageAnalysis):
                                              self.master, 
                                              alt_dir = self.directory_object.Analyses_dir, 
                                              logger = analysis_logger)
-        fcs_files  = [i for i in sorted(os.listdir(self.directory_object.fcs_dir)) if i.lower().find(".fcs") != -1]
+        fcs_files = sorted(list_file_extension_files(Path(self.directory_object.fcs_dir), extension = ".fcs"))
         try:
             self.metadata = pd.read_csv(self.metadata_dir)
             
         except FileNotFoundError:
             self.metadata = pd.DataFrame()
             self.metadata['file_name']  = fcs_files
-            self.metadata['sample_id'] = self.metadata.reset_index()['index']
+            self.metadata['sample_id'] = range(len(self.metadata))
             self.metadata['patient_id'] = 'na'      # manually set later
             self.metadata['condition'] = 'treatment vs. control'       # manually set later
 
@@ -1531,17 +1507,17 @@ class TableLaunchAnalysis(TableLaunch):
                     experiment.Analysis_panel = i.table_dataframe
                 except AttributeError:
                     pass
-                self.Analysis_panel_write(i.table_dataframe)
+                self.panel_write(i.table_dataframe, panel_type = "Analysis_panel")
                 if save_or_not is True:
-                    self.Analysis_panel_write(i.table_dataframe, alt_directory = self.alt_dir)
+                    self.panel_write(i.table_dataframe, panel_type = "Analysis_panel", alt_directory = self.alt_dir)
             if i.type == "metadata":
                 try:
                     experiment.metadata = i.table_dataframe    #### this is for the whole class analysis -- it is kind of awkward though
                 except AttributeError:
                     pass
-                self.metadata_write(i.table_dataframe)
+                self.panel_write(i.table_dataframe, panel_type = "metadata")
                 if save_or_not is True:
-                    self.metadata_write(i.table_dataframe, alt_directory = self.alt_dir)
+                    self.panel_write(i.table_dataframe, alt_directory = self.alt_dir, panel_type = "metadata")
         if self.tab is not None:
             self.tab.py_exploratory.analysiswidg.initialize_experiment_and_buttons(experiment.directory_object.Analysis_internal_dir)
         self.after(200, self.destroy())

@@ -10,6 +10,15 @@ It also serves as a ``central`` place for modifying / filtering warnings & loggi
 
 import warnings
 
+
+warnings.filterwarnings("ignore", message = "invalid escape sequence") 
+warnings.filterwarnings("ignore", message = "module is deprecated") 
+warnings.filterwarnings("ignore", message = "Sparse CSR tensor support") 
+warnings.filterwarnings("ignore", message = "vert: bool will be deprecated") 
+warnings.filterwarnings("ignore", message = "pkg_resources is deprecated") 
+warnings.filterwarnings("ignore", message = "Deprecated call to")
+warnings.filterwarnings("ignore", message = "In the future, the default backend for leiden will be igraph") 
+warnings.filterwarnings("ignore", message = "From 0.4 .update() will not pull")
 warnings.filterwarnings("ignore", message = "The legacy Dask DataFrame implementation is deprecated") 
 warnings.filterwarnings("ignore", message = "Transforming to str index")   ## anndata implicit modification warning that is not necessary
 warnings.filterwarnings("ignore", message = "Observation names are not unique")  ## anndata UserWarning that is not necessary
@@ -20,6 +29,7 @@ warnings.filterwarnings("ignore", message = "Setting an item of incompatible dty
                                                                                                             # seems like it would require creating a new column with the
                                                                                                             # new dtype, then deleting the old column to get the effect
                                                                                                             # I want without the warning -- but that is a pain and extra code / steps.
+                                                                                                            
 from .Entrypoint.app_and_entry import App # noqa: E402
 
 __all__ = ["run_GUI"]

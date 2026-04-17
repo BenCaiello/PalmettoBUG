@@ -34,6 +34,7 @@ Also See Assets / LICENSE.txt file for a copy of the GPL-3 license text
 '''
 
 import os
+import warnings
 from typing import Union
 from pathlib import Path 
 # import copy
@@ -131,12 +132,11 @@ class SpatialANOVA():
         self.data_table[self.alt_N] = self.data_table[self.alt_N].astype('str')
         output_directory = str(output_directory)
         self.output_dir = output_directory
-        if not os.path.exists(output_directory):
-            os.mkdir(output_directory)
-        if not os.path.exists(output_directory + "/cell_maps"):
-            os.mkdir(output_directory + "/cell_maps")
-        if not os.path.exists(output_directory + "/Functional_plots"):
-            os.mkdir(output_directory + "/Functional_plots")
+        
+        os.makedirs(output_directory, exist_ok = True)
+        os.makedirs(f"{output_directory}/cell_maps", exist_ok = True)
+        os.makedirs(f"{output_directory}/Functional_plots", exist_ok = True)
+
     
     def init_analysis(self, analysis, output_directory, cellType_key = None):
         '''
@@ -159,12 +159,11 @@ class SpatialANOVA():
 
         output_directory = str(output_directory)
         self.output_dir = output_directory
-        if not os.path.exists(output_directory):
-            os.mkdir(output_directory)
-        if not os.path.exists(output_directory + "/cell_maps"):
-            os.mkdir(output_directory + "/cell_maps")
-        if not os.path.exists(output_directory + "/Functional_plots"):
-            os.mkdir(output_directory + "/Functional_plots")
+
+        os.makedirs(output_directory, exist_ok = True)
+        os.makedirs(f"{output_directory}/cell_maps", exist_ok = True)
+        os.makedirs(f"{output_directory}/Functional_plots", exist_ok = True)
+
 
     def _retrieve_data_table(self):
         ''''''
@@ -285,7 +284,7 @@ class SpatialANOVA():
                             seed: int = 42, 
                             center_on_zero: bool = False, 
                             silence_zero_warnings: bool = True,
-                            suppress_threshold_warnings: bool = False,
+                            suppress_threshold_warnings: bool = False
                             ) -> tuple[list[str], list[str], dict[str,pd.DataFrame]]:
         '''
         This function takes does all of the key analysis steps from the Data table, two conditions, & radii range object.
@@ -391,7 +390,6 @@ class SpatialANOVA():
 
         ## Run the ripley's statistics calculations (silencing zero division warnings if selected - which is recommended):
         if silence_zero_warnings is True:
-            import warnings
             warnings.filterwarnings("ignore", message = "divide by zero encountered in divide") 
                                             ########## zero divisions are very common (strictly necessary?) in the vectorised calculation steps
                                             ## The program is meant to properly handle these, so I don't want the console spammed with warnings
@@ -450,7 +448,7 @@ class SpatialANOVA():
         tiled = np.tile(all_types,len(all_types))
         tiled_T = tiled.T
         for i,ii in zip(tiled.flatten(), tiled_T.flatten()):
-            comparison = "".join ([str(i),"___",str(ii)])
+            comparison = f"{str(i)}___{str(ii)}"
             self._comparison_list.append(comparison)
 
         ## create matrix of pairwise celltype-to-celltype comparisons for all comparisons (may not be statistically testable, but ripley's plots can be made)
@@ -460,7 +458,7 @@ class SpatialANOVA():
         tiled = np.tile(all_types,len(all_types))
         tiled_T = tiled.T
         for i,ii in zip(tiled.flatten(), tiled_T.flatten()):
-            comparison = "".join ([str(i),"___",str(ii)])
+            comparison = f"{str(i)}___{str(ii)}"
             self._all_comparison_list.append(comparison) 
 
         return self._comparison_list, self._all_comparison_list
@@ -471,7 +469,7 @@ class SpatialANOVA():
                       permutations: int = 0, 
                       perm_state: int = None, 
                       center_on_zero: bool = False,
-                      suppress_threshold_warnings = False
+                      suppress_threshold_warnings = False,
                     ) -> tuple[pd.DataFrame,pd.DataFrame,pd.DataFrame]:
         '''
         This may end being more of a helper function for do_spatial_analysis(), but it can remain in the class.
@@ -820,7 +818,7 @@ class SpatialANOVA():
             seed = self.seed
         comparison_list = self._comparison_list
         if output_directory is None:
-            output_directory = self.output_dir + "/Functional_plots"
+            output_directory = f"{self.output_dir}/Functional_plots"
         output_directory = str(output_directory)
         if write is False:
             output_directory = None
@@ -923,13 +921,13 @@ class SpatialANOVA():
             seed = self.seed
         comparison_list = self._comparison_list
         if output_directory is None:
-            output_directory = self.output_dir + "/Functional_plots"
+            output_directory = f"{self.output_dir}/Functional_plots"
         output_directory = str(output_directory)
 
         if write is False:
             output_directory = None
-        elif not os.path.exists(output_directory):
-            os.mkdir(output_directory)
+        else:
+            os.makedirs(output_directory, exist_ok = True)
 
         fig_list = []
         for comparison in comparison_list:
@@ -1028,7 +1026,7 @@ class SpatialANOVA():
         sns.heatmap(for_heatmap, annot = True, ax = ax)
         figure.suptitle(title_string)
         if filename:
-            figure.savefig(self.output_dir + f"/{filename}.png", bbox_inches = "tight")
+            figure.savefig(f"{self.output_dir}/{filename}.png", bbox_inches = "tight")
         return figure
 
     def plot_cell_maps(self, 
@@ -1068,13 +1066,13 @@ class SpatialANOVA():
         space_anova = self._retrieve_data_table()
 
         if output_directory is None:
-            output_directory = self.output_dir + "/cell_maps"
+            output_directory = f"{self.output_dir}/cell_maps"
         output_directory = str(output_directory)
 
         if write is False:
             output_directory = None
-        elif not os.path.exists(output_directory):
-            os.mkdir(output_directory)
+        else:
+            os.makedirs(output_directory, exist_ok = True)
         
         area = np.array(self.areas)
         roi_areas = list(self.filenames.unique())
@@ -1101,7 +1099,7 @@ class SpatialANOVA():
                 ratio = 0.1 # - np.log(img['x'].max() / img['y'].max()) / 8
                 mpl_figure.legend(handles, labels, loc = "upper right", bbox_to_anchor = (1 + ratio, 0.88), fontsize = 'x-small')
                 if write is True:
-                    mpl_figure.savefig(output_directory + "/" +  filename_without_extension + ".png", bbox_inches = "tight") 
+                    mpl_figure.savefig(f"{output_directory}/{filename_without_extension}.png", bbox_inches = "tight") 
                 plt.close()
                 plot_list.append(mpl_figure)
             return plot_list
@@ -1139,7 +1137,7 @@ class SpatialANOVA():
             ratio = 0.1
             mpl_figure.legend(handles, labels, loc = "upper right", bbox_to_anchor = (1 + ratio, 0.88), fontsize = 'x-small')
             if write is True:
-                mpl_figure.savefig(output_directory + "/" + filename_without_extension + ".png", bbox_inches = "tight")
+                mpl_figure.savefig(f"{output_directory}/{filename_without_extension}.png", bbox_inches = "tight")
             plt.close()
             return mpl_figure
 
@@ -1369,7 +1367,6 @@ def do_K_L_g(pointpattern: pd.DataFrame,
     theory_g = ((radii_array/2) * cs.derivative(nu = 1).__call__(fixed_r)) + for_theory_z
     g_df['theoretical'] = theory_g + (centerer - 1)  # no change when center = 1, else -1 to the theoretical
     g_df['radii'] = radii_array
-    
     return K_df, L_df, g_df
 
 def _K_cross_homogeneous(df: pd.DataFrame, 
@@ -1451,7 +1448,7 @@ def _K_cross_homogeneous(df: pd.DataFrame,
 
     if ((N_points_1 < threshold) or (N_points_2 < threshold)):
         if not suppress_threshold_warnings:
-            print(f'One or both of {mark_type}s {type1} or {type2} has less than {threshold} cells in the image {image_name}!')
+            pass # print(f'One or both of {mark_type}s {type1} or {type2} has less than {threshold} cells in the image {image_name}!')
         return np.zeros(len(K_theo)), K_theo
     
     lambda1 = N_points_1  ### technically divided by window 1 area, but that gets canceled out by later multiplication when K is calculated
@@ -1480,6 +1477,7 @@ def _K_cross_homogeneous(df: pd.DataFrame,
 
     # take into account density of celltypes in the window
     K = K / (lambda1 * lambda2)
+    # K_theo = K_theo / (lambda1 * lambda2)   ## should the theoretical K also be density corrected (?). Think about how it would affect perm. correction as well
     if truncated is True:
         K = np.concatenate([K, append_array])
     if theo is True:

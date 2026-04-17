@@ -80,21 +80,15 @@ plt.style.use('ggplot')
 
 __all__ = ["Analysis"]
 
-homedir = __file__.replace("\\","/")
-homedir = homedir[:(homedir.rfind("/"))]
-## do it twice to get up to the top level directory:
-homedir = homedir[:(homedir.rfind("/"))]
-temp_img_dir = homedir + "/Assets/temp_image.png"
+homedir = Path(__file__).parent
+homedir = homedir.parent ## do it twice to get up to the top level directory
+temp_img_dir = f"{homedir}/Assets/temp_image.png"
 
 def _py_catalyst_quantile_norm(pd_groupby) -> np.ndarray[float]:
     ''' 
     This is a helper function for the median / heatmap plotting function
     '''
-    pd_groupby = pd_groupby.copy()
-    np_groupby = np.array(pd_groupby)
-    np_groupby = np.median(np_groupby, axis = 0)
-    #np_groupby = _quant(np_groupby)
-    return np_groupby
+    return np.median(pd_groupby.to_numpy(), axis = 0)
 
 def _quant(array: np.ndarray[float],                       # *** deriv_CATALYST (replicates CATALYST's scaling)
           lower: float = 0.01, 
@@ -104,15 +98,12 @@ def _quant(array: np.ndarray[float],                       # *** deriv_CATALYST 
     '''
     This is a helper function for the median / heatmap plotting function, meant to imitate CATALYST's heatmap scaling 
     '''
-    quantiles = np.quantile(array, (lower, upper), axis = axis) 
-    if axis == 1:
-        array = array.T
-    array = (array - quantiles[0])  / (quantiles[1] - quantiles[0])
+    quant_low, quant_high = np.quantile(array, (lower, upper), axis = axis, keepdims = True)
+    denominator =  quant_high - quant_low
+    array = (array - quant_low)  / denominator
     array = np.nan_to_num(array)
     array[array > 1] = 1
     array[array < 0] = 0
-    if axis == 1:
-        array = array.T
     return array
 
 class Analysis:   
@@ -184,6 +175,10 @@ class Analysis:
         self.input_mask_folder = None
         self._distance_edt_data = None
         self.is_batched = 0 ## three states: 0,1,2 -- used to track the state of the batch correction / scaling
+        
+        self._spatial = False
+        self.input_mask_folder = None
+
 
     def load_data(self, 
                   directory: Union[Path, str], 
@@ -191,7 +186,7 @@ class Analysis:
                   save_dir: str = "Plots",
                   data_table_dir: str = "Data_tables",
                   csv: Union[str, Path, None] = None,
-                  csv_additional_columns: list = [],
+                  csv_additional_columns: Union[list,None] = None,
                   load_regionprops = True,
                   ) -> None:
         '''
@@ -227,54 +222,50 @@ class Analysis:
         '''
         ## I have preferred to work with the string representation of the path. Because I use "/" instead of "\\" these should be compatible with
         ## all modern operating systems. Perhaps some very old versions of windows can't cope with that, but I'm not too concerned
-        directory = str(directory)
+        directory = Path(directory)
         self.directory = directory
-        self.directory  = self.directory.replace("\\" , "/")
 
         ## Create expected directories to save plots, data tables, etc.
-        self.save_dir = self.directory + f"/{save_dir}"
-        if not os.path.exists(self.save_dir):
-            os.mkdir(self.save_dir)
-        self.data_table_dir = self.directory + f"/{data_table_dir}"
-        if not os.path.exists(self.data_table_dir):
-            os.mkdir(self.data_table_dir)
-        self.mergings_dir  = self.directory + "/mergings"
-        if not os.path.exists(self.mergings_dir ):
-            os.mkdir(self.mergings_dir )
-        self.clusterings_dir  = self.directory + "/clusterings"
+        self.save_dir = f"{self.directory}/{save_dir}"
+        os.makedirs(self.save_dir, exist_ok = True)
+
+        self.data_table_dir = f"{self.directory}/{data_table_dir}"
+        os.makedirs(self.data_table_dir, exist_ok = True)
+
+        self.mergings_dir = f"{self.directory}/mergings"
+        os.makedirs(self.mergings_dir, exist_ok = True)
+
+        self.clusterings_dir = f"{self.directory}/clusterings"
 
         ## Setup logger if in GUI mode of PalmettoBUG
         if self._in_gui:
             if csv is not None:
-                log_dir = directory[:directory.rfind("/")]
+                log_dir = directory.parent
             else:
                 log_dir = directory
             global Analysis_log
             Analysis_log = Analysis_logger(log_dir).return_log()
             self.logger = Analysis_log
+        if csv_additional_columns is None:
+            csv_additional_columns = []
 
         ## If 'Analysis_fcs' doesn't exist
-        csv_check1 = csv is None
-        csv_check2 = "Analysis_fcs" in os.listdir(directory)
-        if csv_check2:
-            csv_check3 = len([i for i in os.listdir(directory + "/Analysis_fcs") if i.find('.fcs') != -1]) > 0
-        else:
-            csv_check3 = False
-        if csv_check1 and csv_check2 and csv_check3:    
-            self.metadata = pd.read_csv(self.directory + '/metadata.csv')
+        analysis_fcs_dir_putative = (directory / "Analysis_fcs")
+        if (csv is None) and analysis_fcs_dir_putative.is_dir() and any(analysis_fcs_dir_putative.glob("*.fcs")):
+            self.metadata = pd.read_csv(f"{self.directory}/metadata.csv")
             self.metadata['condition'] = self.metadata['condition'].astype('str')
             metadata_cat = pd.CategoricalDtype(categories = self.metadata['condition'].unique(), ordered = True)
             self.metadata['condition'] = self.metadata['condition'].astype(metadata_cat)
             self.metadata['patient_id'] = self.metadata['patient_id'].astype('str')
             self.metadata['sample_id'] = self.metadata['sample_id'].astype('str')
-            self.panel = pd.read_csv(self.directory + '/Analysis_panel.csv')
+            self.panel = pd.read_csv(f"{self.directory}/Analysis_panel.csv")
             self._load_fcs(arcsinh_cofactor = arcsinh_cofactor)
         elif csv:
             self._load_csv(csv, additional_columns = csv_additional_columns, arcsinh_cofactor = arcsinh_cofactor)
         else:
             print("An /Analysis_fcs folder either doesn't exist or is empty -- and no CSV was provided." 
                   "\nAssuming this is a reload of a CSV-based analysis, and will attempt to load from a 'source_CSV.csv' file in the analysis directory.")
-            csv = pd.read_csv(directory + "/source_CSV.csv")
+            csv = pd.read_csv(f"{directory}/source_CSV.csv")
             self._load_csv(csv, additional_columns = csv_additional_columns, arcsinh_cofactor = arcsinh_cofactor)
         
         ## Handle spatial experiment information
@@ -284,13 +275,13 @@ class Analysis:
                     ## do this so that squidpy interoperativity is simpler / seam-less
                     #### append regionprops is a different matter though... require that to be chosen by the user
                 self._spatial = True
-            except Exception:   ## load from CSV may have spatial information, but it will already be in self.data
+            except Exception as e1:  # noqa ## load from CSV may have spatial information, but it will already be in self.data
                 try:
                     self.data.obsm['spatial']
                     self.data.uns['areas']
                     self.input_mask_folder
                     self._spatial = True
-                except Exception:
+                except Exception as e2:  # noqa
                     print("Could not load regionprops data, presuming this is a solution-mode dataset -- Spatial analyses will not be possible.")
                     self._spatial = False
 
@@ -315,101 +306,113 @@ class Analysis:
         panel.index = panel['antigen']
         self.UMAP_embedding = None
         self.PCA_embedding = None
-        self.fcs_directory = self.directory  + "/Analysis_fcs"
+        self.fcs_directory = f"{self.directory}/Analysis_fcs"
         self.fcs_dir_names = [i for i in sorted(os.listdir(self.fcs_directory)) if i.lower().find(".fcs") != -1]
 
         ## only keep rows in the metadata that match available FCS files (includes the warning and subsequent code block)
         new_fcs_filenames = []
-        truth_array = np.zeros(len(self.metadata)).astype('bool')
-        for i in list(self.metadata['file_name']):
-            if i in self.fcs_dir_names:
-                new_fcs_filenames.append(i)
-                truth_array = truth_array + np.array(self.metadata['file_name'] == i).astype('bool')
+        truth_array = self.metadata['file_name'].isin(self.fcs_dir_names)
+        new_fcs_filenames = self.metadata.loc[truth_array,'file_name'].to_list()
 
         ## Handle mismatches between the metadata table & the available FCS files:
         if (len(self.fcs_dir_names) != len(self.metadata)) or (len(new_fcs_filenames) != len(self.fcs_dir_names)):
             missing_in_metadata = [i for i in self.fcs_dir_names if i not in new_fcs_filenames]
             missing_in_FCS = [i for i in self.metadata['file_name'] if i not in new_fcs_filenames]
+            msg = ("Metadata file_name column and number of fcs files in analysis do not match -- \n"
+                    "only keeping data present in both for analysis!")
+            details = (f"FCS files absent in metdata: {str(missing_in_metadata)} \n"
+                        f"metadata entries absent in FCS files: {str(missing_in_FCS)}")
             if self._in_gui:
-                warning_window("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
-                               "only keeping data present in both for analysis!")
-                Analysis_log.info("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
-                                  "only keeping data present in both for analysis! \n"
-                                 f"FCS files absent in metdata: {str(missing_in_metadata)} \n"
-                                 f"metadata entries absent in FCS files: {str(missing_in_FCS)}") 
+                warning_window(msg)
+                Analysis_log.info(f"{msg}\n{details}") 
             else:
-                print("Metadata file_name column and number of fcs files in analysis do not match -- \n" +
-                      "only keeping data present in both for analysis!"
-                     f"FCS files absent in metdata: {str(missing_in_metadata)} \n"
-                     f"metadata entries absent in FCS files: {str(missing_in_FCS)}") 
+                print(f"{msg}\n{details}") 
         
         # apply the metadata filtering
         self.metadata = self.metadata[truth_array]
         self.fcs_dir_names = new_fcs_filenames
-        self.fcs_path_list = ["".join([self.fcs_directory,"/",i]) for i in self.fcs_dir_names]
+        self.fcs_path_list = [f"{self.fcs_directory}/{i}" for i in self.fcs_dir_names]
 
         ## Read in FCS files and concatenate into a single dataframe
-        intensities = pd.DataFrame()
-        self.length_of_images = [0]
-        length_of_images2 = []
-        tally = 0
         warnings.filterwarnings("ignore", message = "The default channel names")
+        fcs_files = []
+        length_of_images = []
         for i in self.fcs_path_list:
             _, fcs_read_in = fcsparser.parse(i)
-            tally = tally + len(fcs_read_in.index)
-            self.length_of_images.append(tally)
-            length_of_images2.append(len(fcs_read_in.index))
-            intensities = pd.concat([intensities, fcs_read_in], axis = 0)
+            fcs_files.append(fcs_read_in)
+            length_of_images.append(len(fcs_read_in))
+        # load cell numbers into metadata attribute -- this makes the countplot simpler later
+        self.metadata["number_of_cells"] = length_of_images
+
+        intensities = pd.concat(fcs_files, axis = 0)
+        self.length_of_images = np.concatenate(([0], np.cumsum(length_of_images)))
         warnings.filterwarnings("default", message = "The default channel names")
 
-        ## drop 'Object' column if it exists (can cause misalignment with panel dataframe)
-        if len(intensities.columns) > len(panel):
-            try:
-                intensities = intensities.drop("Object", axis = 1)
-            except KeyError:
-                pass
+        ## Ensure panel and FCS intensities data have matching column names and align
+        ## Any 'Object' column could be dropped silently if it exists 
+        panel_antigens = set(self.panel.index)
+        intensity_antigens = set(intensities.columns)
+        to_drop = panel_antigens ^ intensity_antigens
+        to_drop_panel = list(panel_antigens & to_drop)
+        to_drop_FCS = list(intensity_antigens & to_drop)
+
+        if len(to_drop_panel) > 0:
+            self.panel = self.panel.drop(to_drop_panel, axis = 0)
+            msg = ("Some antigens were present in the panel, but missing in the FCS files!\n" + 
+                f"These antigens have been dropped from the panel: \n\n {str(to_drop_panel)}")
+            if self._in_gui:
+                warning_window(msg)
+                Analysis_log.info(msg) 
+            else:
+                print(msg)    
+
+        if len(to_drop_FCS) > 0:
+            intensities = intensities.drop(to_drop_FCS, axis = 1)
+            msg = ("Some antigens were present in the FCS files, but missing in the panel!\n" + 
+                f"These antigens have been dropped from the FCS data: \n\n {str(to_drop_FCS)}")
+            if self._in_gui:
+                warning_window(msg)
+                Analysis_log.info(msg) 
+            else:
+                print(msg)     
+
 
         ## Antigens with all 0 values contribute no useful information to analysis 
         # removing them can reduce computational load and prevent them from creating errors in certain calculations / plots
-        dropped_antigen_list = []
-        for i in intensities.columns:
-            if intensities[i].sum() == 0:
-                intensities = intensities.drop(i, axis = 1)
-                dropped_antigen_list.append(i)
-        if len(dropped_antigen_list) > 0:
-            if self._in_gui:
-                warning_window(f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}")
-                Analysis_log.info(f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}") 
-            else:
-                print(f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}")
-        panel = panel.T.drop(dropped_antigen_list, axis = 1).T
-        
-        # apply arcsinh transformation
-        if arcsinh_cofactor > 0:
-            exprs = pd.DataFrame(np.arcsinh(intensities / arcsinh_cofactor))
-        else:
-            exprs = pd.DataFrame(intensities)
-        exprs.columns = panel["antigen"]
+        nonzero_mask = (intensities != 0).any(axis=0)
+        dropped_antigen_list = intensities.columns[~nonzero_mask].tolist()
+        intensities = intensities.loc[:, nonzero_mask]
 
-        ## extend the metadata table to match the number of cells -- preparation for this becoming the .obs portion of the AnnData object
+        if len(dropped_antigen_list) > 0:
+            msg = f"The following antigens had only 0 values! They were dropped from the experiment: \n\n {str(dropped_antigen_list)}"
+            if self._in_gui:
+                warning_window(msg)
+                Analysis_log.info(msg) 
+            else:
+                print(msg)
+        
+        panel = panel.loc[intensities.columns]
+        intensities.columns = panel["antigen"]  
+        
+         ## extend the metadata table to match the number of cells -- preparation for this becoming the .obs portion of the AnnData object
         metadata_long = pd.DataFrame()
-        sample_id_array = np.zeros([0])
-        counter = 0
-        sample_ids = list(self.metadata['sample_id'])
-        for i,ii in zip(self.length_of_images[:-1], self.length_of_images[1:]):
-            slicer = np.full(shape = [ii - i], fill_value = sample_ids[counter])
-            sample_id_array = np.append(sample_id_array,slicer)
-            counter += 1 
+
+        sample_ids = self.metadata['sample_id'].to_numpy()
+        sample_id_array = np.repeat(sample_ids, length_of_images)
+
         metadata_long['sample_id'] = sample_id_array.astype('int').astype('str')
         metadata_long = pd.merge(metadata_long, metadata[["sample_id",'file_name', 'patient_id', 'condition']], on = 'sample_id')
-        metadata_long.index = exprs.index
+        metadata_long.index = intensities.index  
 
-        # load cell numbers into metadata attribute -- this makes the countplot simpler later
-        self.metadata["number_of_cells"] = length_of_images2
-
-        ## initialize the AnnData object
-        self.data = ann.AnnData(X = exprs, var = panel, obs = metadata_long)
-
+        # apply arcsinh transformation and  initialize the AnnData object
+        panel.index = panel['antigen']
+        if arcsinh_cofactor > 0:
+            anndata_intensities = np.arcsinh(intensities.to_numpy() / arcsinh_cofactor)
+            self.data = ann.AnnData(X = anndata_intensities, var = panel, obs = metadata_long)
+        else:
+            self.data = ann.AnnData(X = intensities, var = panel, obs = metadata_long)
+        self.data.uns['counts'] = np.array(intensities) 
+         
         ## set categorical orderings for .obs table & ensure a consistent index (0 --> len(obs))
         for column in ["sample_id", "patient_id", "condition"] :
             special_category = pd.CategoricalDtype(list(self.data.obs[column].astype('str').unique()), ordered = True)
@@ -417,13 +420,13 @@ class Analysis:
         self.data.obs = self.data.obs.reset_index().drop("index", axis = 1)
 
         # store pre-arcsinh transformed counts data and ensure scaling attributes are reset
-        self.data.uns['counts'] = np.array(intensities)   
+         
         self.unscaled_data = None
         self._scaling = 'unscale'
 
     def _load_csv(self, 
                   csv_path: Union[Path, str], 
-                  additional_columns: list = [],    ## in case you added a custom metadata column to the data -- list all additional columns here. 
+                  additional_columns: Union[list,None] = None,    ## in case you added a custom metadata column to the data -- list all additional columns here. 
                                                 # Must not have the same name as an antigen column (this parameter is currently not available in the GUI)
                   arcsinh_cofactor: Union[int,float] = 5        
                   ) -> None:
@@ -441,19 +444,15 @@ class Analysis:
             arcsinh_cofactor (int or float): If > 0, applies arcsinh transformation to expression data
                 using: arcsinh(data / cofactor). If 0 or less, no transformation is applied.
         '''
+        if additional_columns is None:
+            additional_columns = []
         # Load CSV, clear any existing dimensionality reduction, and write CSV to the Analysis directory
         self.UMAP_embedding = None
         self.PCA_embedding = None
-        csv_path = str(csv_path)
         data = pd.read_csv(csv_path)
-        data.to_csv(self.directory + "/source_CSV.csv")
-
-        ## See if the last row has marker_class information (this is the special type/state/none applied to each antigen)
-        ## if present, we want to save this information, but also remove the last row of the data table
-        ## The presence of this row can be triggered when PalmettoBUG exports a CSV, simplifying re-load.
-        ## If not present, then the antigen marker_class information will need to be inputted manually by the user
+        data.to_csv(f"{self.directory}/source_CSV.csv")
         try:
-            data = data.drop('distance_to_bmu', axis = 1)
+            data = data.drop('distance_to_bmu', axis = 1)   ## a column sometimes included from FlowSOM, removed to reduce clutter, but perhaps it could be left in (it could be statistically useful)
         except KeyError:
             pass
 
@@ -473,7 +472,12 @@ class Analysis:
                                      "scaling",
                                      "masks_folder"]
 
-        marker_class_included = False
+        marker_class_included = False 
+        
+        ## See if the last row has marker_class information (this is the special type/state/none applied to each antigen)
+        ## if present, we want to save this information, but also remove the last row of the data table
+        ## The presence of this row can be triggered when PalmettoBUG exports a CSV, simplifying re-load.
+        ## If not present, then the antigen marker_class information will need to be inputted manually by the user
         marker_class = data.copy().iloc[-1,:]
         if np.array(marker_class == "na").sum() != 0: 
             marker_class_dict_rev = {"0.0" : 'none', "1.0" : 'type', "2.0" : ' state', "3.0" : "spatial_edt", "4.0":"other"}
@@ -487,11 +491,8 @@ class Analysis:
         ## (this is a column from FlowSOM clustering that PalmettoBUG does not interact with)
         possible_metadata_columns = magic_metadata_columns + additional_columns
         actual_metadata_columns = [i for i in data.columns if i in possible_metadata_columns]
-        for i in data.columns:
-            if i in actual_metadata_columns:
-                data[i] = data[i].astype('str')
-            else:
-                data[i] = data[i].astype('float')
+
+        data[actual_metadata_columns] = data[actual_metadata_columns].astype('str')
         data_X = data.drop(actual_metadata_columns, axis = 1).astype('float')
 
         ## Apply arcsinh transformation
@@ -504,21 +505,10 @@ class Analysis:
         ## If loaded previously, then a metadata file will already exist at the specified location
         ## Otherwise a new metadata file should be created
         try:
-            self.metadata = pd.read_csv(self.directory + '/metadata.csv') 
+            self.metadata = pd.read_csv(f"{self.directory}/metadata.csv") 
         except Exception:
-            filenames = obs['file_name'].unique()
-            self.metadata = pd.DataFrame()
-            self.metadata['file_name'] = filenames
-            patient_dict = {}
-            condition_dict = {}
-            sample_dict = {}
-            for i, ii, iii, iv in zip(obs['file_name'], obs['patient_id'], obs['condition'], obs['sample_id']):
-                patient_dict[i] = ii
-                condition_dict[i] = iii
-                sample_dict[i] = iv
-            self.metadata['sample_id'] = self.metadata['file_name'].replace(sample_dict).astype(obs['sample_id'].dtype)
-            self.metadata['patient_id'] = self.metadata['file_name'].replace(patient_dict).astype(obs['patient_id'].dtype)
-            self.metadata['condition'] = self.metadata['file_name'].replace(condition_dict).astype(obs['condition'].dtype)
+            grouped = obs.groupby('file_name', observed=True).first()
+            self.metadata = grouped[['sample_id', 'patient_id', 'condition']].reset_index()
 
             self.metadata = self.metadata.sort_values('sample_id', ascending = True)
             self.metadata['sample_id'] = self.metadata['sample_id'].astype('category')
@@ -526,11 +516,11 @@ class Analysis:
             metadata_cat = pd.CategoricalDtype(categories = self.metadata['condition'].unique(), ordered = True)
             self.metadata['condition'] = self.metadata['condition'].astype(metadata_cat)
 
-            self.metadata.to_csv(self.directory + '/metadata.csv', index = False) 
+            self.metadata.to_csv(f"{self.directory}/metadata.csv", index = False) 
 
         # Do a similar re-load or create process for the panel file.
         try:
-            self.panel  = pd.read_csv(self.directory + '/Analysis_panel.csv') 
+            self.panel  = pd.read_csv(f"{self.directory}/Analysis_panel.csv") 
         except Exception:
             self.panel = pd.DataFrame()
             self.panel['fcs_colname'] = data_X.columns
@@ -539,14 +529,14 @@ class Analysis:
                 self.panel['marker_class'] = list(marker_class)
             else:
                 self.panel['marker_class'] = 'type'
+                msg = ("All antigens from the csv have been set to 'type' in the panel file! \n" +
+                        "Open the Analysis_panel.csv file, edit, & reload the experiment to change this!")
                 if self._in_gui:
-                    warning_window("All antigens from the csv have been set to 'type' in the panel file! \n" +
-                                    "Open the Analysis_panel.csv file, edit, & reload the experiment to change this!")
+                    warning_window(msg)
                 else:
-                    print("All antigens from the csv have been set to 'type' in the panel file! \n" +
-                           "Open the Analysis_panel.csv file, edit, & reload the experiment to change this!")
+                    print(msg)
 
-            self.panel.to_csv(self.directory + '/Analysis_panel.csv', index = False) 
+            self.panel.to_csv(f"{self.directory}/Analysis_panel.csv", index = False) 
         
         ## Setup the AnnData object
         var = self.panel.copy()
@@ -620,29 +610,29 @@ class Analysis:
         ## default region measurements pipeline and should typically be present if regionprops were already loaded)
         try:
             self.data.var.T['axis_major_length']  
+            msg = ("Region property data already currently loaded! ('axis_major_length' column already present). \n" +
+                    "Aborting Regionprops load to avoid duplicate data.")
             if self._in_gui:  
-                tk.messagebox.showwarning("Warning!", 
-                    message = "Region property data already currently loaded! ('axis_major_length' column already present). \n" +
-                            "Aborting Regionprops load to avoid duplicate data.")
+                tk.messagebox.showwarning("Warning!", message = msg)
             else:
-                print("Region property data already currently loaded! ('axis_major_length' column already present). \n" +
-                            "Aborting Regionprops load to avoid duplicate data.")
+                print(msg)
             return
         except KeyError:
             pass
 
         ## setup directory expectations, find CSV files in the regionprops folder that match an FCS file in the Analysis
         if regionprops_directory is None:
-            regionprops_directory = self.directory[:self.directory.rfind("/")] + "/regionprops/"
-        regionprops_directory = str(regionprops_directory)
+            regionprops_directory = f"{self.directory.parent}/regionprops/"
+
         roi_areas = [i for i in sorted(os.listdir(regionprops_directory)) if i.lower().find(".csv") != -1]
-        region_props_tables = ["".join([regionprops_directory,"/",ii]) for ii in roi_areas if (ii[:-4] + ".fcs") in self.fcs_dir_names]
+        region_props_tables = [f"{regionprops_directory}/{ii}" for ii in roi_areas if f"{ii[:-4]}.fcs" in self.fcs_dir_names]
 
         ## read CSV files and concatenate together to prepare for adding to the Analysis data
-        regionprops = pd.DataFrame()
+        regionprops = []
         for i in region_props_tables:
             read_in = pd.read_csv(i)
-            regionprops = pd.concat([regionprops, read_in], axis = 0)
+            regionprops.append(read_in)
+        regionprops = pd.concat(regionprops, axis = 0, ignore_index = True)
         regionprops.index = regionprops['Object']
 
         # Load centroids (0 and 1) into self.data.obsm['spatial'] for interoperability with squidpy, 
@@ -670,7 +660,7 @@ class Analysis:
         ## Create a panel for the new regionprops "antigens" so that a marker_class can be assigned to them
             ## (or read in a prior panel if already available)
         try:
-            regionprops_panel = pd.read_csv(self.directory + '/Regionprops_panel.csv')
+            regionprops_panel = pd.read_csv(f"{self.directory}/Regionprops_panel.csv")
             if (self._in_gui) and (len(regionprops_panel.index) != len(regionprops.columns)):
                 raise Exception 
         except Exception:
@@ -678,7 +668,7 @@ class Analysis:
             regionprops_panel['fcs_colname'] = regionprops.columns
             regionprops_panel['antigen'] = regionprops.columns
             regionprops_panel['marker_class'] = 'type'
-            regionprops_panel.to_csv(self.directory + '/Regionprops_panel.csv', index = False) 
+            regionprops_panel.to_csv(f"{self.directory}/Regionprops_panel.csv", index = False) 
         if auto_panel is True:
             self.append_regionprops()
         return regionprops_panel
@@ -698,15 +688,16 @@ class Analysis:
         length_check = (len(self.regionprops_data) != len(self.data.obs))
         #drop_check = (len(self.data.obs) < np.max(self.data.obs.index.astype('int')))
         if length_check:
+            msg = ("Region property data and currently loaded .fcs data do not match in length!" +
+                    "\nAborting regionprops load")
             if self._in_gui: 
-                tk.messagebox.showwarning("Warning!", message = "Region property data and currently loaded .fcs data do not match in length!" +
-                                           "\nAborting regionprops load")
+                tk.messagebox.showwarning("Warning!", message = msg)
             else:
-                print("Region property data and currently loaded .fcs data do not match in length!" +
-                      "\nAborting regionprops load")
+                print(msg)
             return
+
         if regionprops_panel is None:
-            self.regionprops_panel = pd.read_csv(self.directory + '/Regionprops_panel.csv')
+            self.regionprops_panel = pd.read_csv(f"{self.directory}/Regionprops_panel.csv")
         else:
             if isinstance(regionprops_panel, pd.DataFrame):
                 self.regionprops_panel = regionprops_panel
@@ -719,6 +710,7 @@ class Analysis:
         if self.unscaled_data is None:
             new_X  = np.concatenate((self.data.X.copy(), np.array(self.regionprops_data)), axis = 1)
             self.data = ann.AnnData(X = new_X, var = self.panel, obs = self.data.obs, obsm = self.data.obsm, uns = self.data.uns, obsp = self.data.obsp)
+
         else:
             new_X  = np.concatenate((self.unscaled_data.copy(), np.array(self.regionprops_data)), axis = 1)
             self.data = ann.AnnData(X = new_X, var = self.panel, obs = self.data.obs, obsm = self.data.obsm, uns = self.data.uns, obsp = self.data.obsp)
@@ -747,9 +739,9 @@ class Analysis:
                 self.back_up_regions = self.regionprops_data.copy()
             
         filterer = self.data.obs[column].astype('str') != str(to_drop) 
-        if (column == "sample_id") or (column == "patient_id") or (column == "condition"):
-            filter2 = (self.metadata[column].astype('str')  != str(to_drop))
-            self.metadata = self.metadata[filter2].copy()
+
+        if column in self.metadata.columns:
+            self.metadata = self.metadata[self.metadata[column].astype('str') != str(to_drop)]
 
         self.data = self.data[filterer].copy()
         if self.unscaled_data is not None:
@@ -758,15 +750,12 @@ class Analysis:
         if self._spatial:
             self.regionprops_data = self.regionprops_data[np.array(list(filterer))].copy()
 
-        if column in self.metadata.columns:
-            self.metadata = self.metadata[self.metadata[column] != str(to_drop)]
-        
         if self.UMAP_embedding is not None:
-            filterer = (self.UMAP_embedding.obs[column].astype('str') != str(to_drop))
-            self.UMAP_embedding = self.UMAP_embedding[filterer].copy()
+            filterer_UMAP = (self.UMAP_embedding.obs[column].astype('str') != str(to_drop))
+            self.UMAP_embedding = self.UMAP_embedding[filterer_UMAP].copy()
         if self.PCA_embedding is not None:
-            filterer = (self.PCA_embedding.obs[column].astype('str') != str(to_drop))
-            self.PCA_embedding = self.PCA_embedding[filterer].copy()
+            filterer_PCA = (self.PCA_embedding.obs[column].astype('str') != str(to_drop))
+            self.PCA_embedding = self.PCA_embedding[filterer_PCA].copy()
 
         try:
             self.data.uns['counts'] = self.data.uns['counts'][filterer]
@@ -782,7 +771,7 @@ class Analysis:
 
         batch_column specifies a column in self.data.obs to use as the batch grouping for the correction (usually 'patient_id')
         '''
-        self.data.X = sc.pp.combat(self.data.copy(), key = batch_column, covariates = covariates, inplace = False).copy()
+        self.data.X = sc.pp.combat(self.data, key = batch_column, covariates = covariates, inplace = False)
         if self.is_batched > 0:
             print('Warning! You have performed a batch correction twice on the same data! Are you sure this was intentional?')
         if (self.unscaled_data is None) and (self.is_batched != 1):
@@ -938,15 +927,15 @@ class Analysis:
             True or False, depending on whether the marker_class chosen exists in the panel
         '''
         panel = self.panel
-        for_fs = self.data.copy()
+        for_fs = self.data
         if (try_from_umap_embedding) and (len(self.UMAP_embedding) == len(self.data)):   ## UMAP cannot be downsampled for leiden.
             for_fs = self.UMAP_embedding
         else:
             if marker_class != "All":
                 slicer = panel['marker_class'] == marker_class
                 for_fs = for_fs[:,slicer]
-            if slicer.sum() == 0:
-                return False
+                if slicer.sum() == 0:
+                    return False
             ## Note how no downsampling is applied here!
             sc.pp.neighbors(for_fs, n_neighbors = n_neighbors, random_state = seed)
             sc.tl.umap(for_fs, 
@@ -959,11 +948,13 @@ class Analysis:
             for_fs.obs['true_index'] = for_fs.obs.index.astype('int').copy()
             self.UMAP_embedding = for_fs
 
-        sc.tl.leiden(for_fs, 
-                    resolution = resolution, 
-                    random_state = seed,
-                    flavor = flavor, 
-                    n_iterations = 2)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message = "In the future, the default backend for leiden will be igraph") 
+            sc.tl.leiden(for_fs, 
+                        resolution = resolution, 
+                        random_state = seed,
+                        flavor = flavor, 
+                        n_iterations = 2)
 
         self.data.obs['leiden'] = list(for_fs.obs['leiden'].astype('int') + 1)
         self.data.obs['leiden'] = self.data.obs['leiden'].astype('category')
@@ -971,7 +962,6 @@ class Analysis:
         self.UMAP_embedding.obs['leiden'] = self.UMAP_embedding.obs['leiden'].astype('category')
         self.UMAP_embedding.obs = self.UMAP_embedding.obs.reset_index()
         if self.PCA_embedding is not None:
-            #print(self.PCA_embedding.obs.columns)
             try:
                 self.PCA_embedding.obs = self.PCA_embedding.obs.drop('leiden',axis = 1)   ## drop if leiden already exists
             except Exception:
@@ -1018,10 +1008,10 @@ class Analysis:
             (FlowSOM) The trained FlowSOM object, useful for accessing the various techniques & visualizations available in the FlowSOM package such as minimum spanning trees, etc.
         '''
         panel = self.panel
-        for_fs = self.data.copy()
+        for_fs = self.data
         if marker_class != "All":
             slicer = panel['marker_class'] == marker_class
-            for_fs = for_fs[:,slicer].copy()
+            for_fs = for_fs[:,slicer]
             if slicer.sum() == 0:
                 return None
 
@@ -1093,7 +1083,7 @@ class Analysis:
         figure.set_size_inches(18,18)
         sns.move_legend(figure.axes[0], loc = 'lower right')
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
         return figure
 
@@ -1119,12 +1109,12 @@ class Analysis:
             return
         assignments = []
         for ii,i in enumerate(overlapping):
-            mask = tf.imread("".join([mask_folder,"/",i])).astype('int')
-            region_map = tf.imread("".join([region_folder,"/",i])).astype('int')
+            mask = tf.imread(f"{mask_folder}/{i}").astype('int')
+            region_map = tf.imread(f"{region_folder}/{i}").astype('int')
             if mask.shape != region_map.shape:
                 raise ValueError(f"The ROI: {i}, has a mismatch in size between the cell masks and the regions provided!")
             output = self._assign_regions(mask, region_map, image_number = ii) 
-            assignments = assignments + output
+            assignments.extend(output)
         self.data.obs['regions'] = assignments
         if self.UMAP_embedding is not None:
             merge_df = self.data.obs[['regions']].copy()
@@ -1153,7 +1143,7 @@ class Analysis:
                         mask: np.ndarray[Union[float, int]], 
                         region_map: np.ndarray[int],
                         image_number: Union[str, int]
-                        ) -> tuple[np.ndarray[float], np.ndarray[int], pd.DataFrame]:
+                        ) -> list[str]:
         '''
         This function iterates through two matching-sized numpy arrays (one representing cell masks & one representing 
         region of the image [these regions are also masks, with background pixels of value == 0]), and returns a list of assigned regions 
@@ -1166,15 +1156,14 @@ class Analysis:
             box = i.bbox
             slicer = i.image
             single_cell = region_map[box[0]:box[2],box[1]:box[3]][slicer]
-            counts = np.unique(single_cell, return_counts = True)
-            classes = counts[0]
-            counts = counts[1]
-            mode_num = np.argmax(counts)
-            mode = classes[mode_num]
-            if mode == 0:   ## this only occurs if there is a 'background' class, after merging
-                assignment = '0_0'
+            
+            vals = single_cell[single_cell > 0]
+            if len(vals) == 0:
+                assignment = "0_0"
             else:
-                assignment = f'{str(mode)}_{str(image_number)}'
+                mode = np.bincount(vals).argmax()
+                assignment = f"{mode}_{image_number}"
+
             cell_class_list.append(assignment)
         return cell_class_list
 
@@ -1199,11 +1188,12 @@ class Analysis:
         ## for now, copy the defaults of the major paramteres of scanpy's neighbors function below --> 
         # so that I can easily use a paramter if I decide to add as an option for the user
         all_leiden = []
-        for i in new_data.obs['sample_id'].astype('int').unique():   ## be sure of proper order
+        as_int = new_data.obs['sample_id'].astype('int')
+        for i in as_int.unique():   ## be sure of proper order
                                                 ## consider testing sc.external.pp.bbknn(), instead of doing my own
                                                 ## most of the slow-down, however, seems to come from loading (aka, failing to load) the 
                                                 # GPU at the start....
-            slicer = new_data.obs['sample_id'].astype('int') == i
+            slicer = as_int == i
             this_sample = new_data[slicer]
             sc.pp.neighbors(this_sample, 
                             n_neighbors = n_neighbors, 
@@ -1217,7 +1207,7 @@ class Analysis:
                          flavor = "leidenalg", 
                         n_iterations = 2)
             this_sample_leiden = list((str(i) + "_") + this_sample.obs['leiden'].astype('str'))
-            all_leiden = all_leiden + this_sample_leiden
+            all_leiden.extend(this_sample_leiden)
         self.data.obs['spatial_leiden'] = all_leiden
         if self.UMAP_embedding is not None:
             merge_df = self.data.obs[['spatial_leiden']].copy()
@@ -1273,7 +1263,7 @@ class Analysis:
         plot = so.Plot(group_by, metadata["number_of_cells"], color = color_by, **kwargs)
         plot = plot.add(so.Bar(), so.Stack(), legend=True).label(title = "Countplot")
         if filename is not None:
-            plot.save(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            plot.save(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         fig = plt.figure()
         plot.on(fig).plot()
         plt.close()
@@ -1310,13 +1300,14 @@ class Analysis:
             a matplotlib.pyplot figure and a pandas dataframe
         '''
         metadata = self.metadata.copy()
-        panel = self.data.var.copy()
+        panel = self.data.var
 
-        MDS_data = self.data.copy()
+        # MDS_data = self.data.copy()
         if marker_class != "All":  
             slicer = panel['marker_class'] == marker_class 
-            MDS_data = MDS_data[:,slicer]
-            panel = panel[slicer]
+            MDS_data = self.data[:,slicer]
+        else:
+            MDS_data = self.data
 
         median_df = pd.DataFrame(MDS_data.X, columns = MDS_data.var['antigen'])
         median_df['sample_id'] = list(MDS_data.obs['sample_id'])
@@ -1327,13 +1318,10 @@ class Analysis:
         MDSer = MDS(random_state = seed)
         output = pd.DataFrame(MDSer.fit_transform(np.array(median_df)))
         output.columns = ["MDS dim. 1", "MDS dim. 2"]
-        output["sample_id"] = metadata["sample_id"]
-        output["patient_id"] = metadata["patient_id"]
-        output["condition"] = metadata["condition"]
-        output["number_of_cells"] = metadata["number_of_cells"]
+        output[["sample_id", "patient_id", "condition", "number_of_cells"]] = metadata[["sample_id", "patient_id", "condition", "number_of_cells"]]
         output[color_by] = output[color_by].astype('category')
         if print_stat is True:
-            output.to_csv(self.data_table_dir + "/MDS.csv", index = False)
+            output.to_csv(f"{self.data_table_dir}/MDS.csv", index = False)
 
         figure = plt.figure()
         plt.style.use('ggplot')
@@ -1348,7 +1336,7 @@ class Analysis:
         sns.move_legend(plot, loc = "center right", bbox_to_anchor = (1.35,0.6))
         figure.suptitle("MDS plot by sample_id")
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()   
         return figure, output
 
@@ -1407,7 +1395,7 @@ class Analysis:
         ax.tick_params("x", labelrotation = 90)
         figure.suptitle(f"NRS Plot of {marker_class} markers")
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()   
         return figure
     
@@ -1544,7 +1532,7 @@ class Analysis:
             fig.suptitle("KDE / Histogram plots of normalized Exprs of each marker \n facetted by sample_id ", y = sup_Y)
         fig.supxlabel("normalized Exprs")
         if filename is not None:
-            fig.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            fig.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
         return fig
 
@@ -1573,8 +1561,7 @@ class Analysis:
         '''
         warnings.filterwarnings("ignore", message = "Transforming to str index")
         panel = self.panel
-        data = self.data.copy()
-        data = self._downsample_for_UMAP(data, max_number = cell_number, seed = seed)
+        data = self._downsample_for_UMAP(self.data, max_number = cell_number, seed = seed)
         if marker_class != "All":    
             slicer = panel['marker_class'] == marker_class 
             for_DR = data[:,slicer].copy()
@@ -1606,25 +1593,23 @@ class Analysis:
             seed (integer): 
                 The random seed used for reproducibility in downsampling and running the UMAP
         '''
-        warnings.filterwarnings("ignore", message = "Transforming to str index")
-        panel = self.panel
-        data = self.data.copy()
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message = "Transforming to str index")
+            data = self._downsample_for_UMAP(self.data, max_number = cell_number, seed = seed)
 
-        data = self._downsample_for_UMAP(data, max_number = cell_number, seed = seed)
+            if marker_class != "All":   
+                slicer = self.panel['marker_class'] == marker_class 
+                for_DR = data[:,slicer].copy()
+            for_obs_cat = pd.CategoricalDtype(categories = data.obs['condition'].astype('str').unique(), ordered = True)
+            data.obs['condition'] = data.obs['condition'].astype('str')
+            data.obs['condition'] = data.obs['condition'].astype(for_obs_cat)
 
-        if marker_class != "All":   
-            slicer = panel['marker_class'] == marker_class 
-            for_DR = data[:,slicer].copy()
-
-        for_obs_cat = pd.CategoricalDtype(categories = data.obs['condition'].astype('str').unique(), ordered = True)
-        data.obs['condition'] = data.obs['condition'].astype('str')
-        data.obs['condition'] = data.obs['condition'].astype(for_obs_cat)
-        pca = PCA(svd_solver = "full")
-        pca.fit(for_DR.X.T)
-        x = pca.components_[0]
-        y = pca.components_[1]
-        data.obsm['X_umap'] = np.array([x,y]).T
-        self.PCA_embedding = data
+            pca = PCA(svd_solver = "full")
+            pca.fit(for_DR.X.T)
+            x = pca.components_[0]
+            y = pca.components_[1]
+            data.obsm['X_umap'] = np.array([x,y]).T
+            self.PCA_embedding = data
 
     def _downsample_for_UMAP(self, 
                             anndata_in: ann.AnnData, 
@@ -1721,7 +1706,7 @@ class Analysis:
         sc.pl.scatter(data, antigen1, antigen2, color = hue, alpha = alpha, size = size, ax = ax, show = False)
 
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight")
         plt.close() 
         return figure 
 
@@ -1765,7 +1750,7 @@ class Analysis:
                    show = False, 
                    **kwargs)  
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight")
         plt.close()  
         return figure
     
@@ -1812,7 +1797,7 @@ class Analysis:
         ax.set_xlabel('PC1')
         ax.set_ylabel('PC2')
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight")
         plt.close()  
         return figure
 
@@ -1932,7 +1917,7 @@ class Analysis:
         if suptitle:
             figure.suptitle(f'{kind} plots subsetted by Antigen', y = sup_Y)
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight")
         plt.close()  
         return figure      
 
@@ -2043,11 +2028,11 @@ class Analysis:
 
         number_of_panels = len(downsample_UMAP_df[subsetting_column].unique()) + 1   ## plus one for the initial all together plot
         if number_of_panels < 3:
+            msg = "only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)"
             if self._in_gui: 
-                tk.messagebox.showwarning("Warning!", 
-                    message = "only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)")
+                tk.messagebox.showwarning("Warning!", message = msg)
             else:
-                print("only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)")
+                print(msg)
             return
         if int(number_of_panels) == int(number_of_columns):
             number_of_columns -= 1    ## automatically reshape if it is too small
@@ -2109,7 +2094,7 @@ class Analysis:
         if suptitle:
             figure.suptitle(f'{kind} plots subsetted by {subsetting_column}', y = sup_Y)
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight")
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight")
         plt.close()  
         return figure      
 
@@ -2236,7 +2221,7 @@ class Analysis:
         warnings.filterwarnings("default", message = "invalid value encountered in divide") 
 
         if filename is not None:
-            plot.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            plot.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()  
         if subset_df is None:
             return plot.figure
@@ -2282,11 +2267,11 @@ class Analysis:
             number_of_columns = 4
 
         if number_of_panels < 3:
+            msg = "only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)"
             if self._in_gui:
-                tk.messagebox.showwarning("Warning!", 
-                    message = "only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)")
+                tk.messagebox.showwarning("Warning!", message = msg)
             else:
-                print("only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)")
+                print(msg)
             return
         if int(number_of_panels) == int(number_of_columns):
             number_of_columns -= 1    ## automatically reshape if it is too small
@@ -2299,10 +2284,10 @@ class Analysis:
         if int(number_of_panels % number_of_columns) == 0:
             number_of_rows = number_of_rows - 1   ## avoid a blank row at the end
         temp_img_dir = tp.TemporaryDirectory().name
-        if not os.path.exists(temp_img_dir):
-            os.mkdir(temp_img_dir)
-        temp_img_dir_svg = temp_img_dir + "/temp_image.svg"
-        temp_img_dir_svg_all = temp_img_dir + "/temp_image_concat.svg"
+        os.makedirs(temp_img_dir, exist_ok = True)
+
+        temp_img_dir_svg = f"{temp_img_dir}/temp_image.svg"
+        temp_img_dir_svg_all = f"{temp_img_dir}/temp_image_concat.svg"
 
         plt.style.use('ggplot')
         HeatFig = plt.figure()
@@ -2377,8 +2362,9 @@ class Analysis:
         layer.addSVG(temp_img_dir_svg, alignment = svg_stack.AlignCenter)
         layer.addSVG(temp_img_dir_svg_all, alignment = svg_stack.AlignCenter)
         document.setLayout(layer)
-        document.save(self.save_dir + "/" + filename + ".svg")
-        return self.save_dir + "/" + filename + ".svg"
+        return_path = f"{self.save_dir}/{filename}.svg"
+        document.save(return_path)
+        return return_path
        
     def do_cluster_merging(self, 
                             file_path: Union[str, Path], 
@@ -2492,7 +2478,7 @@ class Analysis:
 
         elif comp_type == "raw":
             manipul_df[groupby_column] = list(self.data.obs[groupby_column])
-            facet_title = scale  + " Expression"
+            facet_title = f"{scale} Expression"
             sharey = True
             title_assistant = ""
         
@@ -2655,7 +2641,7 @@ class Analysis:
         x_anchor = (1.0 + (maximum_legend * 0.02)) - ((colwrap - 3)*0.035)
         figure.legend(handles = [i for i in patch_bank1], bbox_to_anchor = (x_anchor, 0.9))
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename + ".png", bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}.png", bbox_inches = "tight") 
         plt.close()
         return figure
         
@@ -2714,6 +2700,7 @@ class Analysis:
         else:    ## only 1 panel /facet / ax
             axs = np.array([axs]) 
 
+        warnings.filterwarnings("ignore", message = "Setting an item of incompatible dtype")
         for i,ii in enumerate(abundance_plot_prep['condition'].unique()):
             for_facet = abundance_plot_prep[abundance_plot_prep['condition'] == ii].copy()
             for_facet[bars_by] = for_facet[bars_by].astype('str')
@@ -2727,8 +2714,9 @@ class Analysis:
         sup_Y = 1.03 + (number_of_rows * -0.01)
         figure.suptitle("Proportion of each cluster each in sample", y = sup_Y)
         if filename is not None:
-            figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
+        warnings.filterwarnings("default", message = "Setting an item of incompatible dtype")
         return figure
 
     def plot_cluster_abundance_2(self, 
@@ -2824,7 +2812,7 @@ class Analysis:
             griddy.add_legend()
         plt.style.use('ggplot')
         if filename is not None:
-            griddy.figure.savefig(self.save_dir + "/" + filename, bbox_inches = "tight") 
+            griddy.figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
         return griddy.figure
 
@@ -3035,7 +3023,7 @@ class Analysis:
         output_df = output_df.sort_values('f statistics', ascending = False)        
         self.abundance_ANOVA_stat_table = output_df
         if filename is not None:
-            output_df.to_csv(self.data_table_dir + f"/{filename}.csv", index = False)
+            output_df.to_csv(f"{self.data_table_dir}/{filename}.csv", index = False)
         return output_df
     
     def do_count_GLM(self, 
@@ -3175,10 +3163,11 @@ class Analysis:
                 offset = np.log(to_do_stats['divisor'].astype('int'))
 
                 if len(remaining_conditions) == 1:
+                    msg = f"{i} is only present in one condition! Skipping this cluster."
                     if self._in_gui:
-                        tk.messagebox.showwarning("Warning!", message = f"{i} is only present in one condition! Skipping this cluster.")
+                        tk.messagebox.showwarning("Warning!", message = msg)
                     else:
-                        print(f"{i} is only present in one condition! Skipping this cluster.")
+                        print(msg)
                     continue
 
                 if len(remaining_conditions) == 2:
@@ -3290,10 +3279,11 @@ class Analysis:
                 to_do_stats[variable] = to_do_stats[variable].astype(special_category)
             
                 if len(remaining_conditions) == 1:
+                    msg = f"{i} is only present in one condition! Skipping this cluster."
                     if self._in_gui:
-                        tk.messagebox.showwarning("Warning!", message = f"{i} is only present in one condition! Skipping this cluster.")
+                        tk.messagebox.showwarning("Warning!", message = msg)
                     else:
-                        print(f"{i} is only present in one condition! Skipping this cluster.")
+                        print(msg)
                     continue
 
                 if len(remaining_conditions) == 2:
@@ -3352,7 +3342,7 @@ class Analysis:
         to_return = to_return.iloc[:,:]
 
         if filename is not None:
-            to_return.to_csv(self.data_table_dir + f"/{filename}.csv", index = False)
+            to_return.to_csv(f"{self.data_table_dir}/{filename}.csv", index = False)
         return to_return
 
     def plot_state_distributions(self, marker_class: str = 'state', 
@@ -3580,6 +3570,7 @@ class Analysis:
         stats_df['labels_merged'] = stats_df['labels_merged'].astype('str')
     
         raw_data = pd.DataFrame(self.data.X.copy(), index = self.data.obs.index, columns = self.data.var.index)
+
         raw_data[grouping_columns] = self.data.obs[grouping_columns]
         raw_data = raw_data.groupby(grouping_columns, observed = False).median(numeric_only = True).dropna(how = 'all').reset_index()
         raw_data = raw_data.melt(grouping_columns)
@@ -3766,32 +3757,33 @@ class Analysis:
         condition_dict = {}
         for jj,j in enumerate(grand_condition_list):
             for i,ii in enumerate(j):
+                ii = ii.copy()
                 ii[groupby_column] = data_df[groupby_column].astype('str')
                 if statistic == "mean":
                     merging_mean_condition = pd.melt(ii.groupby(groupby_column, 
-                                                                observed = True).mean(numeric_only = True).T.reset_index(), 
+                                                                observed = True).mean(numeric_only = True).T.reset_index().rename(columns={'index': 'antigen'}), 
                                                     id_vars = 'antigen')
                     
                     merging_std_condition = pd.melt(ii.groupby(groupby_column, 
-                                                               observed = True).std(numeric_only = True).T.reset_index(), 
+                                                               observed = True).std(numeric_only = True).T.reset_index().rename(columns={'index': 'antigen'}), 
                                                     id_vars = 'antigen')
                     
                     spread_stat = f'{stat_helper_label}stdev'
 
                 elif statistic == "median":
                     merging_mean_condition = pd.melt(ii.groupby(groupby_column, 
-                                                                observed = True).median(numeric_only = True).T.reset_index(), 
+                                                                observed = True).median(numeric_only = True).T.reset_index().rename(columns={'index': 'antigen'}), 
                                                      id_vars = 'antigen')
                     
                     merging_std_condition = pd.melt(ii.groupby(groupby_column, 
                                                         observed = True).quantile(q = 0.75, 
-                                                                                  numeric_only = True).T.reset_index(), 
+                                                                                  numeric_only = True).T.reset_index().rename(columns={'index': 'antigen'}), 
                                                     id_vars = 'antigen')
                     
                     merging_std_condition['value'] = (merging_std_condition['value'] 
                                         - pd.melt(ii.groupby(groupby_column, 
                                                              observed = True).quantile(q = 0.25, 
-                                                                                       numeric_only = True).T.reset_index(), 
+                                                                                       numeric_only = True).T.reset_index().rename(columns={'index': 'antigen'}), 
                                                    id_vars = 'antigen')['value'])
                     
                     spread_stat = f'{stat_helper_label}IQR'
@@ -3814,7 +3806,7 @@ class Analysis:
 
         output_stat_table = final_df.reset_index().sort_values(stat_label, ascending = False)
         if filename is not None:
-            output_stat_table.to_csv(self.data_table_dir + f"/{filename}.csv", index = False)
+            output_stat_table.to_csv(f"{self.data_table_dir}/{filename}.csv", index = False)
         return output_stat_table
     
     def export_data(self, 
@@ -3898,7 +3890,7 @@ class Analysis:
         if filename is None:
             output_path =  None
         else:
-            output_path = "".join([self.data_table_dir, "/", str(filename), ".csv"])
+            output_path = f"{self.data_table_dir}/{str(filename)}.csv"
         data = self.data.copy()
         if untransformed:
             data.X = self.data.uns['counts'].copy()
@@ -4069,7 +4061,7 @@ class Analysis:
             print("kind must == 'umap', or 'pca'!")
             return
         if filename is not None:
-            to_export.to_csv(self.data_table_dir + "/" + filename + ".csv", index = False)
+            to_export.to_csv(f"{self.data_table_dir}/{filename}.csv", index = False)
         return to_export
     
     def export_clustering(self,  
@@ -4111,8 +4103,7 @@ class Analysis:
             Outputs: 
                 Writes the clustering data table to self.clusterings_dir/{groupby_column}{identifier}.csv
         '''
-        if not os.path.exists(self.clusterings_dir):
-            os.mkdir(self.clusterings_dir)
+        os.makedirs(self.clusterings_dir, exist_ok = True)
         ##### Sets up a table for spatial analysis
         table = pd.DataFrame()
         table['cellType'] = self.data.obs[groupby_column].astype('str').copy()
@@ -4120,52 +4111,12 @@ class Analysis:
         table['condition'] = self.data.obs['condition'].copy()
         table['patient_id'] = self.data.obs['patient_id'].copy()
         table['file_name'] = self.data.obs['file_name'].copy()
-        
-        ## loading spaceANOVA from clustering has been superseded by loading from the Analysis onbject itself, therefore extraneous columns are no longer needed
-        '''
-        try:
-            regionprops_directory = self.directory[:self.directory.rfind("/")] + "/regionprops/"
-            roi_areas = os.listdir(regionprops_directory)
-            area = []
-            for i in roi_areas:
-                regionprops = pd.read_csv("".join([regionprops_directory,i])) 
-                area = area + list(regionprops['area'])
-            area = np.array(area)
-            table['cell_areas'] = area
-            X = []
-            Y = []
-            for i in roi_areas:
-                temp_file = pd.read_csv("".join([self.directory[:-4], "/regionprops/", i]))
-                tempX = temp_file['centroid-0']
-                tempY = temp_file['centroid-1']
-                X = X + list(tempX)
-                Y = Y + list(tempY)
-            table["x"] = X
-            table["y"] = Y
-        except Exception:
-            print("Spatial data not saved -- This save will not be usable for spatial analysis" 
-                   "(ignore if this is solution mode / not an imaging experiment)")
-            ## Stil create the columns, so that they can be dropped later & be used to see if spatial data is available without creating errors
-            table['cell_areas'] = 0
-            table["x"] = 0
-            table["y"] = 0
-        '''
-
         table["type"] = groupby_column
-        # percentages are now directly calculated from the groupings, not from saved percentages.
-        '''
-        percentages = self.data.obs.groupby(groupby_column, observed = False).count()["sample_id"] / len(self.data.obs)
-        zip_dict = {}
-        for i,ii in zip(percentages.index, percentages):
-            zip_dict[str(i)] = ii
-        table['percentages'] = table['cellType'].replace(zip_dict)
-        '''
-
         for_sampling = pd.DataFrame(self.data.X)
         table['watermark1'] = for_sampling.sample(1, random_state = 1066)[0].values[0]
         table['watermark2'] = for_sampling.sample(1, random_state = 1776)[0].values[0]
-        table.to_csv(self.clusterings_dir + f"/{groupby_column}{identifier}.csv", index = False)
-        return table, self.clusterings_dir + f"/{groupby_column}{identifier}.csv"
+        table.to_csv(f"{self.clusterings_dir}/{groupby_column}{identifier}.csv", index = False)
+        return table, f"{self.clusterings_dir}/{groupby_column}{identifier}.csv"
 
     def export_clustering_classy_masks(self, clustering = "merging", identifier = ""):
         '''
@@ -4202,18 +4153,17 @@ class Analysis:
                 the classy masks & their corresponding labels.
         '''
         # Step 0: set up naming & directory
-        analyses_folder = self.directory[:self.directory.rfind("/")]
-        interim = analyses_folder[:analyses_folder.rfind("/")]
-        classy_mask_folder = interim[:interim.rfind("/")] + "/classy_masks"
+        analyses_folder = Path(self.directory).parent
+        interim = analyses_folder.parent
+        classy_mask_folder = f"{interim.parent}/classy_masks"
         if len(identifier) > 0:
             identifier = f"_{identifier}"
-        name = f'{clustering}_{self.input_mask_folder[(self.input_mask_folder.rfind("/") + 1):]}{identifier}'
-        destination_folder = classy_mask_folder + f"/{name}"
-        if not os.path.exists(destination_folder):
-            os.mkdir(destination_folder)
+        name = f'{clustering}_{Path(self.input_mask_folder).name}{identifier}'
+        destination_folder = f"{classy_mask_folder}/{name}"
+        os.makedirs(destination_folder, exist_ok = True)
+
         internal_folder = f'{destination_folder}/{name}'   ## this holds the .tiff files themselves
-        if not os.path.exists(internal_folder):
-            os.mkdir(internal_folder)
+        os.makedirs(internal_folder, exist_ok = True)
 
         # Step 1: use back-up data & recover labels (either 'none' if filtered/dropped before clustering, or clustering labels)
         if self.back_up_data is not None:
@@ -4246,7 +4196,7 @@ class Analysis:
         mask_file_names = [i for i in sorted(os.listdir(self.input_mask_folder)) if i.lower().find(".tif") != -1]
         for i in mask_file_names:
             mask = tf.imread(f"{self.input_mask_folder}/{i}").astype('int32')
-            as_fcs = i[:i.rfind(".")] + ".fcs"
+            as_fcs = f"{i[:i.rfind('.')]}.fcs"
             temp_labels = list(data[data["file_name"] == as_fcs]['label'])
             regionprops = skimage.measure.regionprops(mask)
             if len(regionprops) != len(temp_labels):
@@ -4282,7 +4232,7 @@ class Analysis:
         '''
         path = str(path)
         if path.rfind("/") == -1:
-            path = self.clusterings_dir + "/" + path
+            path = f"{self.clusterings_dir}/{path}"
         if not os.path.exists(path):
             print("This clustering does not exist!")
             return
@@ -4293,41 +4243,42 @@ class Analysis:
         watermark2 = float(for_sampling.sample(1, random_state = 1776)[0].values[0])
         ## Extensive checks before loading the clustering:
         if len(self.data.obs) != len(clustering_info):
+            msg = "Length of the saved clustering and the length of the current single cell experiment do not match! \n\n Cancelling load"
             if self._in_gui:
-                warning_window("Length of the saved clustering and the length of the current single cell experiment do not match! \n\n Cancelling load")
+                warning_window(msg)
             else:
-                print("Length of the saved clustering and the length of the current single cell experiment do not match! \n\n Cancelling load")
+                print(msg)
             return
         if (np.array(self.data.obs['sample_id'].astype('str')) != np.array(clustering_info['sample_id'].astype('str'))).sum() > 0:
+            msg = "Warning! Sample_ids do not match between saved clustering and current experiment! \n\n Cancelling load"
             if self._in_gui:
-                warning_window("Warning! Sample_ids do not match between saved clustering and current experiment! \n\n Cancelling load")
+                warning_window(msg)
             else:
-                print("Sample_ids do not match between saved clustering and current experiment! \n\n Cancelling load")
+                print(msg)
             return
         if ((np.round(watermark1, 4) != np.round(clustering_info['watermark1'][0],4)) 
             or (np.round(watermark2,4) != np.round(clustering_info['watermark2'][0], 4))):
+            msg = ("Caution: Has the data in the experiment changed from when the clustering was saved? Data watermarks did not match! \n"
+                    "Data transformations that could cause this if they were not re-done to replicate: batch correction, scaling \n"
+                    "Proceeding with clustering load.")
             if self._in_gui:
-                warning_window("Caution: Has the data in the experiment changed from when the clustering was saved? Data watermarks did not match! \n"
-                               "Data transformations that could cause this if they were not re-done to replicate: batch correction, scaling \n"
-                               "Proceeding with clustering load.")
+                warning_window(msg)
             else:
-                print("Caution: Has the data in the experiment changed from when the clustering was saved? Data watermarks did not match! \n"
-                      "Data transformations that could cause this if they were not re-done to replicate: batch correction, scaling \n"
-                      "Proceeding with clustering load.")
+                print(msg)
         if (np.array(self.data.obs['condition'].astype('str')) != np.array(clustering_info['condition'].astype('str'))).sum() > 0:
+            msg = ("Caution: Conditions do not match between saved clustering and current experiment! Be sure of any changes \n"
+                   "Proceeding with clustering load.")
             if self._in_gui:
-                warning_window("Caution: Conditions do not match between saved clustering and current experiment! Be sure of any changes \n"
-                               "Proceeding with clustering load.")
+                warning_window(msg)
             else:
-                print("Caution: Conditions do not match between saved clustering and current experiment! Be sure of any changes \n"
-                     "Proceeding with clustering load.")
+                print(msg)
         if (np.array(self.data.obs['patient_id'].astype('str')) != np.array(clustering_info['patient_id'].astype('str'))).sum() > 0:
+            msg = ("Caution: 'Patient_ids'  do not match between saved clustering and current experiment! Be sure of any changes \n"
+                    "Proceeding with clustering load.")
             if self._in_gui:
-                warning_window("Caution: 'Patient_ids'  do not match between saved clustering and current experiment! Be sure of any changes \n"
-                               "Proceeding with clustering load.")
+                warning_window(msg)
             else:
-                print("Caution: 'Patient_ids'  do not match between saved clustering and current experiment! Be sure of any changes \n"
-                        "Proceeding with clustering load.")
+                print(msg)
         self.data.obs[column_name] = list(clustering_info['cellType'])    #### assumes no changes in the index
         ###>>>
         if self.UMAP_embedding is not None:
