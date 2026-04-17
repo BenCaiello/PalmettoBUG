@@ -1373,13 +1373,17 @@ class Analysis:
             sample_array = data.X[data.obs['sample_id'] == i,:]
             pca = PCA(svd_solver = "full")
             pca.fit(sample_array)
+            nrs_scores_orig = np.apply_along_axis(np.sum, 
+                                    axis = 1, 
+                                    arr = np.abs(np.linalg.eig(pca.get_covariance())[1][:,:n_components])*(pca.explained_variance_[:n_components])) 
             nrs_scores = np.apply_along_axis(np.sum, 
                                     axis = 1, 
-                                    arr = np.abs(np.linalg.eig(pca.get_covariance())[1][:,:n_components])*(pca.explained_variance_[:n_components]))  
+                                    arr = np.abs(np.linalg.eigh(pca.get_covariance())[1][:,:n_components])*(pca.explained_variance_[:n_components]))  
                                         # A helpful discussion for me to understand what the rotation data was inside R's prcomp: 
                                         #       Igor F. (https://stats.stackexchange.com/users/169343/igor-f), 
                                         # When using the `prcomp` function in R, what is the difference between the `x` values and the `rotation` values?, 
                                         #       URL (version: 2021-02-21): https://stats.stackexchange.com/q/510464
+            print(nrs_scores_orig, nrs_scores)
             array_list.append(nrs_scores)
 
         array_out = np.array(array_list)

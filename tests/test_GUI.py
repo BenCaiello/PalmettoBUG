@@ -519,6 +519,7 @@ def test_launch_NRS_window():
     assert isinstance(window, ctk.CTkToplevel)
     assert isinstance(figure, matplotlib.figure.Figure), "NRS plot did not return a matplotlib figure"
     window.destroy()
+    assert False
 
 def test_launch_Plot_histograms_per_ROI_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_Plot_histograms_per_ROI_window()
