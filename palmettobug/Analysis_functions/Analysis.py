@@ -1381,7 +1381,7 @@ class Analysis:
                                         #       Igor F. (https://stats.stackexchange.com/users/169343/igor-f), 
                                         # When using the `prcomp` function in R, what is the difference between the `x` values and the `rotation` values?, 
                                         #       URL (version: 2021-02-21): https://stats.stackexchange.com/q/510464
-            print(nrs_scores_orig, "spacer" nrs_scores)
+            print(nrs_scores_orig, "spacer", nrs_scores)
             array_list.append(nrs_scores)
 
         array_out = np.array(array_list)
