@@ -1299,13 +1299,14 @@ class Analysis:
             a matplotlib.pyplot figure and a pandas dataframe
         '''
         metadata = self.metadata.copy()
-        panel = self.data.var.copy()
+        panel = self.data.var
 
-        MDS_data = self.data.copy()
+        # MDS_data = self.data.copy()
         if marker_class != "All":  
             slicer = panel['marker_class'] == marker_class 
-            MDS_data = MDS_data[:,slicer]
-            panel = panel[slicer]
+            MDS_data = self.data[:,slicer]
+        else:
+            MDS_data = self.data
 
         median_df = pd.DataFrame(MDS_data.X, columns = MDS_data.var['antigen'])
         median_df['sample_id'] = list(MDS_data.obs['sample_id'])
@@ -1316,10 +1317,7 @@ class Analysis:
         MDSer = MDS(random_state = seed)
         output = pd.DataFrame(MDSer.fit_transform(np.array(median_df)))
         output.columns = ["MDS dim. 1", "MDS dim. 2"]
-        output["sample_id"] = metadata["sample_id"]
-        output["patient_id"] = metadata["patient_id"]
-        output["condition"] = metadata["condition"]
-        output["number_of_cells"] = metadata["number_of_cells"]
+        output[["sample_id", "patient_id", "condition", "number_of_cells"]] = metadata[["sample_id", "patient_id", "condition", "number_of_cells"]]
         output[color_by] = output[color_by].astype('category')
         if print_stat is True:
             output.to_csv(f"{self.data_table_dir}/MDS.csv", index = False)
@@ -1383,7 +1381,7 @@ class Analysis:
                                         #       Igor F. (https://stats.stackexchange.com/users/169343/igor-f), 
                                         # When using the `prcomp` function in R, what is the difference between the `x` values and the `rotation` values?, 
                                         #       URL (version: 2021-02-21): https://stats.stackexchange.com/q/510464
-            print(nrs_scores_orig, nrs_scores)
+            print(nrs_scores_orig, "spacer" nrs_scores)
             array_list.append(nrs_scores)
 
         array_out = np.array(array_list)
@@ -1566,8 +1564,7 @@ class Analysis:
         '''
         warnings.filterwarnings("ignore", message = "Transforming to str index")
         panel = self.panel
-        data = self.data.copy()
-        data = self._downsample_for_UMAP(data, max_number = cell_number, seed = seed)
+        data = self._downsample_for_UMAP(self.data, max_number = cell_number, seed = seed)
         if marker_class != "All":    
             slicer = panel['marker_class'] == marker_class 
             for_DR = data[:,slicer].copy()
@@ -1599,25 +1596,23 @@ class Analysis:
             seed (integer): 
                 The random seed used for reproducibility in downsampling and running the UMAP
         '''
-        warnings.filterwarnings("ignore", message = "Transforming to str index")
-        panel = self.panel
-        data = self.data.copy()
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message = "Transforming to str index")
+            data = self._downsample_for_UMAP(self.data, max_number = cell_number, seed = seed)
 
-        data = self._downsample_for_UMAP(data, max_number = cell_number, seed = seed)
+            if marker_class != "All":   
+                slicer = self.panel['marker_class'] == marker_class 
+                for_DR = data[:,slicer].copy()
+            for_obs_cat = pd.CategoricalDtype(categories = data.obs['condition'].astype('str').unique(), ordered = True)
+            data.obs['condition'] = data.obs['condition'].astype('str')
+            data.obs['condition'] = data.obs['condition'].astype(for_obs_cat)
 
-        if marker_class != "All":   
-            slicer = panel['marker_class'] == marker_class 
-            for_DR = data[:,slicer].copy()
-
-        for_obs_cat = pd.CategoricalDtype(categories = data.obs['condition'].astype('str').unique(), ordered = True)
-        data.obs['condition'] = data.obs['condition'].astype('str')
-        data.obs['condition'] = data.obs['condition'].astype(for_obs_cat)
-        pca = PCA(svd_solver = "full")
-        pca.fit(for_DR.X.T)
-        x = pca.components_[0]
-        y = pca.components_[1]
-        data.obsm['X_umap'] = np.array([x,y]).T
-        self.PCA_embedding = data
+            pca = PCA(svd_solver = "full")
+            pca.fit(for_DR.X.T)
+            x = pca.components_[0]
+            y = pca.components_[1]
+            data.obsm['X_umap'] = np.array([x,y]).T
+            self.PCA_embedding = data
 
     def _downsample_for_UMAP(self, 
                             anndata_in: ann.AnnData, 
@@ -3561,6 +3556,7 @@ class Analysis:
                 return
     
         stats_df = stats_df.head(top_n).copy()
+        print(stats_df)
     
         label_column_names = list(stats_df.columns[:2].values)  ## the way self.do_state_exprs_ANOVAs works, there should always be two label columns: 'antigen', and the groupby column
         label_columns = stats_df[label_column_names]
