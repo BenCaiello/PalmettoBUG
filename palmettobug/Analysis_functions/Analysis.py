@@ -405,6 +405,8 @@ class Analysis:
         metadata_long.index = intensities.index  
 
         # apply arcsinh transformation and  initialize the AnnData object
+        print(panel)
+        panel.index = panel['antigen']
         if arcsinh_cofactor > 0:
             anndata_intensities = np.arcsinh(intensities.to_numpy() / arcsinh_cofactor)
             self.data = ann.AnnData(X = anndata_intensities, var = panel, obs = metadata_long)
@@ -1371,17 +1373,13 @@ class Analysis:
             sample_array = data.X[data.obs['sample_id'] == i,:]
             pca = PCA(svd_solver = "full")
             pca.fit(sample_array)
-            nrs_scores_orig = np.apply_along_axis(np.sum, 
-                                    axis = 1, 
-                                    arr = np.abs(np.linalg.eig(pca.get_covariance())[1][:,:n_components])*(pca.explained_variance_[:n_components])) 
             nrs_scores = np.apply_along_axis(np.sum, 
                                     axis = 1, 
-                                    arr = np.abs(np.linalg.eigh(pca.get_covariance())[1][:,:n_components])*(pca.explained_variance_[:n_components]))  
+                                    arr = np.abs(np.linalg.eig(pca.get_covariance())[1][:,:n_components])*(pca.explained_variance_[:n_components]))  
                                         # A helpful discussion for me to understand what the rotation data was inside R's prcomp: 
                                         #       Igor F. (https://stats.stackexchange.com/users/169343/igor-f), 
                                         # When using the `prcomp` function in R, what is the difference between the `x` values and the `rotation` values?, 
                                         #       URL (version: 2021-02-21): https://stats.stackexchange.com/q/510464
-            print(nrs_scores_orig, "spacer", nrs_scores)
             array_list.append(nrs_scores)
 
         array_out = np.array(array_list)
@@ -3574,6 +3572,9 @@ class Analysis:
         stats_df['labels_merged'] = stats_df['labels_merged'].astype('str')
     
         raw_data = pd.DataFrame(self.data.X.copy(), index = self.data.obs.index, columns = self.data.var.index)
+
+        print(raw_data)
+        print(self.data.var.index)
         raw_data[grouping_columns] = self.data.obs[grouping_columns]
         raw_data = raw_data.groupby(grouping_columns, observed = False).median(numeric_only = True).dropna(how = 'all').reset_index()
         raw_data = raw_data.melt(grouping_columns)
