@@ -1030,13 +1030,13 @@ class Analysis:
 
         ## For output clusters, I want 1-indexing:
         fs.get_cluster_data().obs['metaclustering'] = fs.get_cluster_data().obs['metaclustering'] + 1
-        fs.get_cell_data().obs['metaclustering'] = fs.get_cell_data().obs['metaclustering'] + 1
-        fs.get_cell_data().obs['metaclustering'] = fs.get_cell_data().obs['metaclustering'].astype("category")
-
-        #self.clustering_data = fs.get_cluster_data()
+        
         self.clustering_cell_data = fs.get_cell_data()    # saving this may not be needed 
+        self.clustering_cell_data.obs['metaclustering'] = self.clustering_cell_data.obs['metaclustering'] + 1
+        self.clustering_cell_data.obs['metaclustering'] = self.clustering_cell_data.obs['metaclustering'].astype("category")
         self.clustering_cell_data.obs = self.clustering_cell_data.obs.drop('distance_to_bmu', axis = 1)
         self.data.obs = self.clustering_cell_data.obs  
+        
         if self.UMAP_embedding is not None:
             merge_df  = pd.DataFrame(self.clustering_cell_data.obs.reset_index()[['index','metaclustering','clustering']])
             merge_df['true_index'] = merge_df['index'].astype('int')
@@ -1099,10 +1099,8 @@ class Analysis:
 
         '''
         mask_folder = self.input_mask_folder
-        mask_folder = str(mask_folder)
         masks = sorted(os.listdir(mask_folder))
         used_masks = [i for i in masks if f'{i[:i.rfind(".tif")]}.fcs' in list(self.data.obs["file_name"].unique())]
-        region_folder = str(region_folder)
         overlapping = [i for i in sorted(os.listdir(region_folder)) if i in used_masks]
         if len(overlapping) != len(used_masks):
             print('Warning! The regions provided do not match ALL the source masks of the analysis. This is likely to create ')
@@ -1696,10 +1694,11 @@ class Analysis:
         Returns:
             a matplotlib.pyplot figure            
         '''
-        data = self.data.copy()
+        data = self.data
         figure = plt.figure()
         ax = plt.gca()
         if hue == 'Density':
+            data = data.copy()
             data.obsm['X_scatter'] = data.X[:,np.array((data.var['antigen'] == antigen1) + (data.var['antigen'] == antigen2))]
             sc.tl.embedding_density(data, basis = 'scatter')
             sc.pl.embedding_density(data, basis = 'scatter', color_map = 'jet', size = size, alpha = alpha, ax = ax)
