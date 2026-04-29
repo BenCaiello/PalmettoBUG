@@ -2028,7 +2028,7 @@ class Analysis:
             while len(color_enumerator) > len(color_bank):
                 color_bank += color_bank 
             patch_bank1 = self._color_bank_constructor(color_bank, color_by, color_enumerator)
-            maximum_legend = np.array([len(i) for i in color enumerator]).max()
+            maximum_legend = np.array([len(i) for i in color_enumerator]).max()
             downsample_UMAP_df['color'] = downsample_UMAP_df[color_by].astype('str').replace(color_dict)
         elif color_by in list(down_anndata.var['antigen']):
             downsample_UMAP_df['color'] = down_anndata.X[:,(down_anndata.var['antigen'] == color_by)]
