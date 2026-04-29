@@ -1404,7 +1404,7 @@ class Analysis:
         for i,ii in enumerate(enumerator):
             color_dict[ii] = color_bank[i]
             patch_bank1.append(Patch(color = color_bank[i], label = ii))
-        return patch_bank1
+        return patch_bank1, color_dict
 
     
     def plot_ROI_histograms(self, 
@@ -1479,7 +1479,7 @@ class Analysis:
                     '#CCFFCC','#CC5599',
                     '#BBBBBB','#000000']
         color_enumerator = reshaped_for_histogram_tracings[color_by].unique()
-        patch_bank1 = self._color_bank_constructor(color_bank, color_by, color_enumerator)
+        patch_bank1, color_dict = self._color_bank_constructor(color_bank, color_by, color_enumerator)
 
         length = len(kde_groupby_list)
         colwrap = 4
@@ -1997,15 +1997,6 @@ class Analysis:
             down_anndata.obs = down_anndata.obs.drop('index', axis = 1)
         except KeyError:
             pass
-
-        def _color_bank_constructor(self, color_bank, color_by, enumerator):
-            ''''''
-            color_dict = {}
-            patch_bank1 = [Patch(color = "#E9E9E9", label = color_by)] 
-            for i,ii in enumerate(enumerator):
-                color_dict[ii] = color_bank[i]
-                patch_bank1.append(Patch(color = color_bank[i], label = ii))
-            return patch_bank1
         
         down_anndata.obs.index = downsample_UMAP_df.index
         downsample_UMAP_df = pd.merge(downsample_UMAP_df.reset_index(), down_anndata.obs.reset_index(), on = 'index')
@@ -2027,7 +2018,7 @@ class Analysis:
             color_enumerator = downsample_UMAP_df[color_by].astype('str').unique()
             while len(color_enumerator) > len(color_bank):
                 color_bank += color_bank 
-            patch_bank1 = self._color_bank_constructor(color_bank, color_by, color_enumerator)
+            patch_bank1, color_dict = self._color_bank_constructor(color_bank, color_by, color_enumerator)
             maximum_legend = np.array([len(i) for i in color_enumerator]).max()
             downsample_UMAP_df['color'] = downsample_UMAP_df[color_by].astype('str').replace(color_dict)
         elif color_by in list(down_anndata.var['antigen']):
@@ -2567,13 +2558,11 @@ class Analysis:
                     '#CCCCFF','#FFCCCC',
                     '#CCFFCC','#CC5599',
                     '#BBBBBB','#000000']
-        color_dict = {}
-        patch_bank1 = [Patch(color = "#E9E9E9", label = 'condition')] 
-        for i,ii in enumerate(metadata['condition'].unique()):
-            if i > len(color_bank):
-                color_bank = color_bank + color_bank
-            color_dict[ii] = color_bank[i]
-            patch_bank1.append(Patch(color = color_bank[i], label = ii))
+        
+        color_enumerator = metadata['condition'].unique()
+        while len(color_enumerator) > len(color_bank):
+            color_bank += color_bank
+        patch_bank1, color_dict = self._color_bank_constructor(color_bank, 'condition', color_enumerator)
         
         length = len(reshaped_for_histogram_tracings[groupby_column].unique())
         colwrap = 4
