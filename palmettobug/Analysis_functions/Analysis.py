@@ -1396,6 +1396,16 @@ class Analysis:
             figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()   
         return figure
+
+    def _color_bank_constructor(self, color_bank, color_by, enumerator):
+        ''''''
+        color_dict = {}
+        patch_bank1 = [Patch(color = "#E9E9E9", label = color_by)] 
+        for i,ii in enumerate(enumerator):
+            color_dict[ii] = color_bank[i]
+            patch_bank1.append(Patch(color = color_bank[i], label = ii))
+        return patch_bank1
+
     
     def plot_ROI_histograms(self, 
                             color_by: str = "condition", 
@@ -1440,9 +1450,8 @@ class Analysis:
         reshaped_for_histogram_tracings.columns = ["antigen","exprs"]
         reshaped_for_histogram_tracings = reshaped_for_histogram_tracings.reset_index().drop("index", axis = 1)
         reshaped_for_histogram_tracings["imageID"] = list(np.repeat(data.obs['sample_id'], len(data.var.index)))
-        zip_dict = {}
-        for i,ii in zip(metadata["sample_id"],metadata[color_by]):
-            zip_dict[str(i)] = ii
+
+        zip_dict = metadata.astype({'sample_id': str, color_by: str}).set_index('sample_id')[color_by].to_dict()
         reshaped_for_histogram_tracings[color_by] = reshaped_for_histogram_tracings["imageID"].astype('str').replace(zip_dict).astype('category')
 
         reshaped_for_histogram_tracings = reshaped_for_histogram_tracings[reshaped_for_histogram_tracings['antigen'] != "Time"]
@@ -1469,12 +1478,9 @@ class Analysis:
                     '#CCCCFF','#FFCCCC',
                     '#CCFFCC','#CC5599',
                     '#BBBBBB','#000000']
-        
-        color_dict = {}
-        patch_bank1 = [Patch(color = "#E9E9E9", label = color_by)] 
-        for i,ii in enumerate(reshaped_for_histogram_tracings[color_by].unique()):
-            color_dict[ii] = color_bank[i]
-            patch_bank1.append(Patch(color = color_bank[i], label = ii))
+        color_enumerator = reshaped_for_histogram_tracings[color_by].unique()
+        patch_bank1 = self._color_bank_constructor(color_bank, color_by, color_enumerator)
+
         length = len(kde_groupby_list)
         colwrap = 4
         row_num  = ((length - 1) // colwrap) + 1
@@ -1482,7 +1488,6 @@ class Analysis:
             colwrap = colwrap - 1
             row_num  = ((length - 1) // colwrap) + 1
         text_size = 8
-        #plt.style.use('ggplot')
         figX = colwrap * 2.35
         figY = row_num * 1.9
         fig, axs = plt.subplots(row_num, colwrap, figsize = [figX,figY])
@@ -1992,6 +1997,15 @@ class Analysis:
             down_anndata.obs = down_anndata.obs.drop('index', axis = 1)
         except KeyError:
             pass
+
+        def _color_bank_constructor(self, color_bank, color_by, enumerator):
+            ''''''
+            color_dict = {}
+            patch_bank1 = [Patch(color = "#E9E9E9", label = color_by)] 
+            for i,ii in enumerate(enumerator):
+                color_dict[ii] = color_bank[i]
+                patch_bank1.append(Patch(color = color_bank[i], label = ii))
+            return patch_bank1
         
         down_anndata.obs.index = downsample_UMAP_df.index
         downsample_UMAP_df = pd.merge(downsample_UMAP_df.reset_index(), down_anndata.obs.reset_index(), on = 'index')
@@ -2009,18 +2023,12 @@ class Analysis:
                         '#CCCCFF','#FFCCCC',
                         '#CCFFCC','#CC5599',
                         '#BBBBBB','#000000']
-            color_dict = {}
-            length_list  = [len(str(color_by))]
-            patch_bank1 = [Patch(color = "#E9E9E9", label = color_by)]    # #E9E9E9 is the color of the legend background / close enough
             downsample_UMAP_df = downsample_UMAP_df.sort_values(color_by, ascending = True)
-            for i,ii in enumerate(downsample_UMAP_df[color_by].astype('str').unique()):
-                length_list.append(len(ii))
-                if (i + 1) > len(color_bank):
-                    color_bank = color_bank + color_bank   ## wrap the color aorund if overflow....
-                color_dict[ii] = color_bank[i]
-                label = Patch(color = color_bank[i], label = ii)
-                patch_bank1.append(label)
-            maximum_legend = np.array(length_list).max()
+            color_enumerator = downsample_UMAP_df[color_by].astype('str').unique()
+            while len(color_enumerator) > len(color_bank):
+                color_bank += color_bank 
+            patch_bank1 = self._color_bank_constructor(color_bank, color_by, color_enumerator)
+            maximum_legend = np.array([len(i) for i in color enumerator]).max()
             downsample_UMAP_df['color'] = downsample_UMAP_df[color_by].astype('str').replace(color_dict)
         elif color_by in list(down_anndata.var['antigen']):
             downsample_UMAP_df['color'] = down_anndata.X[:,(down_anndata.var['antigen'] == color_by)]
@@ -2476,18 +2484,24 @@ class Analysis:
             col_num = default_col_num
         number_of_rows = ((num_panels - 1)  // col_num) + 1
 
-        griddy = sns.catplot(data_long_form, y = facet_title, 
-                        hue = "antigen", 
-                        palette = 'tab20', inner = None, 
-                        kind = plot_type, col = groupby_column, 
-                        col_wrap = col_num, sharey = sharey, sharex = False, 
-                        height = 4, aspect = 1.75, **kwargs)
-        # griddy.tick_params("x", labelrotation = 90)
-        griddy.refline(y = 0)
+             
         if (plot_type == "bar") or (plot_type == "box"):
+            griddy = sns.catplot(data_long_form, y = facet_title, 
+                                hue = "antigen", 
+                                palette = 'tab20',
+                                kind = plot_type, col = groupby_column, 
+                                col_wrap = col_num, sharey = sharey, sharex = False, 
+                                height = 4, aspect = 1.75, **kwargs)   
             sup_Y = 1.03 + (number_of_rows * -0.01)
         else:
+            griddy = sns.catplot(data_long_form, y = facet_title, 
+                                hue = "antigen", 
+                                palette = 'tab20', inner = None, 
+                                kind = plot_type, col = groupby_column, 
+                                col_wrap = col_num, sharey = sharey, sharex = False, 
+                                height = 4, aspect = 1.75, **kwargs)   
             sup_Y = 1.08 + (number_of_rows * -0.01)
+        
         griddy.figure.suptitle(f"{scale} Expression of each marker by Cluster {title_assistant}", y = sup_Y)
         if filename is not None:
             griddy.savefig(f"{self.save_dir}/{plot_type}{filename}.png", bbox_inches = "tight") 
@@ -2521,23 +2535,26 @@ class Analysis:
             a matplotlib figure
         '''
         data = self.data.copy()
-        metadata = self.metadata.copy()
-        data.X = data.X / np.max(data.X, axis = 0)    
-        intense = pd.DataFrame(data.X,columns = data.var['antigen'])
-        slicer =  data.var['antigen'] == antigen
-        intense = intense.loc[:,slicer]
+        metadata = self.metadata
+        data.X /= np.max(data.X, axis = 0)    
+        intense = pd.DataFrame(data.X, columns = data.var['antigen'])
+        minimum = np.min(intense)
+        maximum = np.max(intense)
+        intense = intense.loc[:,data.var['antigen'] == antigen]
+
         reshaped_for_histogram_tracings = pd.melt(intense.T.reset_index(), id_vars = ["antigen"]).drop("variable", axis = 1)
         reshaped_for_histogram_tracings.columns = ["antigen","exprs"]
         reshaped_for_histogram_tracings = reshaped_for_histogram_tracings.reset_index().drop("index", axis = 1)
         clustering_array = data.obs[groupby_column]
         reshaped_for_histogram_tracings[groupby_column] = list(clustering_array)
         reshaped_for_histogram_tracings[groupby_column] = reshaped_for_histogram_tracings[groupby_column].astype('category')
-        zip_dict = {}
         reshaped_for_histogram_tracings["imageID"] = list(data.obs['sample_id'])
         reshaped_for_histogram_tracings["imageID"] = reshaped_for_histogram_tracings["imageID"].astype('str')
-        for i,ii in zip(metadata['sample_id'].astype('str'),metadata["condition"].astype('str')):
-            zip_dict[i] = ii
+
+        
+        zip_dict = metadata.astype({'sample_id': str, 'condition': str}).set_index('sample_id')['condition'].to_dict()
         reshaped_for_histogram_tracings["condition"] = reshaped_for_histogram_tracings["imageID"].astype('str').replace(zip_dict).astype('category')
+
         color_bank = [  '#0202BB','#DD0202', 
                     '#02AA02', '#888644', 
                     '#DD8888', '#EE00EE', 
@@ -2576,8 +2593,6 @@ class Analysis:
         for i,ii in enumerate(reshaped_for_histogram_tracings[groupby_column].sort_values().unique()):
             axs[i].set_title(f'{groupby_column}: {ii}', size = text_size)
             df1 = reshaped_for_histogram_tracings[reshaped_for_histogram_tracings[groupby_column] == ii]
-            minimum = np.min(intense)
-            maximum = np.max(intense)
             plot_over = np.linspace(minimum, maximum, 200)
             for j,jj in enumerate(df1['imageID'].astype('int').sort_values().unique().astype('str')):
                 condition = metadata[metadata['sample_id'].astype('str') == jj].loc[:,'condition'].values[0]
@@ -2747,21 +2762,17 @@ class Analysis:
         hue_cat = pd.CategoricalDtype(categories = cluster_data[hue].unique(), ordered = True)
         #cluster_data[hue]  = cluster_data[hue].astype(hue_cat)
         divisor = cluster_data.groupby(N_column, observed = False).count().iloc[:,0]
-        zip_dict = {}
-        
-        for i,ii in zip(divisor.index.astype('str'), divisor):
-            zip_dict[i] = ii
         
         cluster_data[N_column] = cluster_data[N_column].astype('category')
         numerators = cluster_data.groupby([N_column,groupby_column], observed = False).count().loc[:,0]
         numerators = numerators.reset_index()
+
+        divisor.index = divisor.index.astype('str')
+        zip_dict = divisor.to_dict()
         numerators['divisor'] = numerators[N_column].astype('str').replace(zip_dict).astype('int')
         numerators['proportions'] = (numerators[0] / numerators['divisor']) * 100
-        zip_dict = {}
-        
-        for i,ii in zip(cluster_data[N_column].astype('str'), cluster_data[hue]):
-            zip_dict[i] = ii
-        
+
+        zip_dict = cluster_data.astype({N_column: str, hue: str}).set_index(N_column)[hue].to_dict()       
         numerators[hue] = numerators[N_column].astype('str').replace(zip_dict).astype(hue_cat)
 
         # print(numerators['proportions'].sum()  / len(numerators[N_column].unique()))    ## should add up to 100...
@@ -3079,10 +3090,8 @@ class Analysis:
             new_obs_df = data.drop(["file_name"],axis = 1)
             new_obs_df['random_column_name'] = 0
 
-            zip_dict = {}
-            for m,mm in zip(new_obs_df[N_column], new_obs_df[variable]):
-                zip_dict[m] = mm
-        
+            zip_dict = new_obs_df.astype({N_column: str, variable: str}).set_index(N_column)[variable].to_dict()  
+
             grouped = new_obs_df.groupby([groupby_column, N_column], observed = False).count()
             to_drop_list = []
             if (len(new_obs_df.groupby([groupby_column,variable], observed = True).count()) != 
@@ -3196,10 +3205,8 @@ class Analysis:
         elif family == "Gaussian":
             new_obs_df = data.drop(["file_name"],axis = 1)
             new_obs_df['random_column_name'] = 0
-
-            zip_dict = {}
-            for m,mm in zip(new_obs_df[N_column], new_obs_df[variable]):
-                zip_dict[m] = mm
+            
+            zip_dict = new_obs_df.astype({N_column: str, variable: str}).set_index(N_column)[variable].to_dict()  
         
             grouped = new_obs_df.groupby([groupby_column,N_column], observed = False).count()
             to_drop_list = []
