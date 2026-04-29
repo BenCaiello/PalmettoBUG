@@ -1322,7 +1322,7 @@ class Analysis:
             output.to_csv(f"{self.data_table_dir}/MDS.csv", index = False)
 
         figure = plt.figure()
-        plt.style.use('ggplot')
+        #plt.style.use('ggplot')
         ax = figure.gca()
         plot = sns.scatterplot(output, 
                                x = "MDS dim. 1", 
@@ -1387,7 +1387,7 @@ class Analysis:
             df_reordered[i] = df[i]
 
         figure = plt.figure()
-        plt.style.use('ggplot')
+        #plt.style.use('ggplot')
         ax = figure.gca()
         sns.boxplot(df_reordered, ax = ax, fill = False, showmeans = True, **kwargs)
         ax.tick_params("x", labelrotation = 90)
@@ -1482,7 +1482,7 @@ class Analysis:
             colwrap = colwrap - 1
             row_num  = ((length - 1) // colwrap) + 1
         text_size = 8
-        plt.style.use('ggplot')
+        #plt.style.use('ggplot')
         figX = colwrap * 2.35
         figY = row_num * 1.9
         fig, axs = plt.subplots(row_num, colwrap, figsize = [figX,figY])
@@ -1709,6 +1709,7 @@ class Analysis:
         plt.close() 
         return figure 
 
+
     def plot_UMAP(self,
                 color_by: Union[None, str] = 'metaclustering', 
                 palette = None,
@@ -1739,7 +1740,6 @@ class Analysis:
 
         '''
         self.UMAP_embedding.var.index = self.UMAP_embedding.var['antigen']
-        plt.style.use('ggplot')
         figure = plt.figure()
         ax = figure.gca()
         sc.pl.umap(self.UMAP_embedding, 
@@ -1784,7 +1784,6 @@ class Analysis:
             a matplotlib.pyplot figure 
         '''
         self.PCA_embedding.var.index = self.PCA_embedding.var['antigen']
-        plt.style.use('ggplot')
         figure = plt.figure()
         ax = figure.gca()
         sc.pl.umap(self.PCA_embedding, 
@@ -1799,6 +1798,22 @@ class Analysis:
             figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight")
         plt.close()  
         return figure
+
+    
+    def _compute_grid(self, number_of_panels, number_of_columns):
+        if int(number_of_panels) == int(number_of_columns):
+            number_of_columns -= 1    ## automatically reshape if it is too small
+
+        number_of_rows = (number_of_panels // number_of_columns) + 1            ## + 1 because the // operation rounds down
+        if (number_of_rows == 1) and (number_of_columns > 2):
+            number_of_columns -= 1  
+            number_of_rows = (number_of_panels // number_of_columns) + 1  
+
+        if int(number_of_panels % number_of_columns) == 0:
+            number_of_rows = number_of_rows - 1   ## avoid a blank row at the end
+
+        return number_of_rows, number_of_columns
+
 
     def plot_facetted_DR_by_antigen(self, 
                                     marker_class: list = ['type', 'state'],   ## will need to allow the function to accept more than one grouping at once (?)
@@ -1848,10 +1863,8 @@ class Analysis:
         elif kind == "PCA":
             down_anndata = self.PCA_embedding.copy()
         if ("All" not in marker_class) and (len(marker_class) != 0):    ## None ==> show all
-            slicer = (self.panel['marker_class'] == marker_class[0]).astype('int')
-            for j in marker_class:
-                slicer = slicer + (self.panel['marker_class'] == j).astype('int')
-            down_anndata = down_anndata[:, (slicer > 0)]
+            slicer = self.panel['marker_class'].isin(marker_class)
+            down_anndata = down_anndata[:, slicer.values]
         downsample_UMAP_df = pd.DataFrame(down_anndata.obsm['X_umap'])
         for i in down_anndata.obs.columns:
             down_anndata.obs[i] = down_anndata.obs[i].astype('category')
@@ -1863,21 +1876,10 @@ class Analysis:
         down_anndata.obs.index = downsample_UMAP_df.index
         downsample_UMAP_df = pd.merge(downsample_UMAP_df.reset_index(), down_anndata.obs.reset_index(), on = 'index')
 
-        color_subsets = down_anndata.var['antigen'].unique()
+        antigens = down_anndata.var['antigen'].unique()
+        number_of_rows, number_of_columns = self._compute_grid(len(antigens), number_of_columns)
 
-        number_of_panels = len(color_subsets)
-        if int(number_of_panels) == int(number_of_columns):
-            number_of_columns -= 1    ## automatically reshape if it is too small
-
-        number_of_rows = (number_of_panels // number_of_columns) + 1            ## + 1 because the // operation rounds down
-        if (number_of_rows == 1) and (number_of_columns > 2):
-            number_of_columns -= 1  
-            number_of_rows = (number_of_panels // number_of_columns) + 1  
-
-        if int(number_of_panels % number_of_columns) == 0:
-            number_of_rows = number_of_rows - 1   ## avoid a blank row at the end
-
-        plt.style.use('ggplot')
+        #plt.style.use('ggplot')
         figX = number_of_columns * 2.35
         figY = number_of_rows * 1.9
         figure, axs = plt.subplots(number_of_rows,
@@ -1887,17 +1889,17 @@ class Analysis:
                                    figsize = (figX, figY))
         axs = axs.ravel()
 
-        for i, color_by in enumerate(down_anndata.var['antigen'].unique()):
-            downsample_UMAP_df['color'] = down_anndata.X[:,(down_anndata.var['antigen'] == color_by)]
-            maximum_legend = len(color_by)
-            patch_bank1 = [Patch(color = '#E9E9E9', label = color_by)]
+        for i, antigen in enumerate(antigens):
+            downsample_UMAP_df['color'] = down_anndata.X[:,(down_anndata.var['antigen'] == antigen)]
+            maximum_legend = len(antigen)
+            patch_bank1 = [Patch(color = '#E9E9E9', label = antigen)]
             axs[i].scatter(x = downsample_UMAP_df[0], 
                             y = downsample_UMAP_df[1], 
                             c = downsample_UMAP_df['color'], 
                             s = 1, 
                             alpha = 0.5, 
                             **kwargs)
-            axs[i].set_title(color_by, size = 10)
+            axs[i].set_title(antigen, size = 10)
 
         for k in range(i+1, number_of_rows*number_of_columns, 1):
             axs[k].set_axis_off()
@@ -2033,18 +2035,10 @@ class Analysis:
             else:
                 print(msg)
             return
-        if int(number_of_panels) == int(number_of_columns):
-            number_of_columns -= 1    ## automatically reshape if it is too small
 
-        number_of_rows = (number_of_panels // number_of_columns) + 1            ## + 1 because the // operation rounds down
-        if (number_of_rows == 1) and (number_of_columns > 2):
-            number_of_columns -= 1  
-            number_of_rows = (number_of_panels // number_of_columns) + 1  
+        number_of_rows, number_of_columns = self._compute_grid(number_of_panels, number_of_columns)    
 
-        if int(number_of_panels % number_of_columns) == 0:
-            number_of_rows = number_of_rows - 1   ## avoid a blank row at the end
-
-        plt.style.use('ggplot')
+        #plt.style.use('ggplot')
         figX = number_of_columns * 2.35
         figY = number_of_rows * 1.9
         figure, axs = plt.subplots(number_of_rows,
@@ -2151,73 +2145,71 @@ class Analysis:
             a matplotlib.pyplot figure
         '''
         #show_cluster_centers = False
-        warnings.filterwarnings("ignore", message = "divide by zero encountered in divide") ########## zero divisions are very common
-        warnings.filterwarnings("ignore", message = "invalid value encountered in divide") 
-        panel = self.data.var
-        if subset_df is not None:
-            for_fs = subset_df.copy()
-            if marker_class != "All":    ## None ==> show all
-                slicer = panel['marker_class'] == marker_class 
-                for_fs = for_fs.iloc[:,np.array(slicer)]
-            for_fs['index'] = for_fs.index.astype('str')
-            to_merge = pd.DataFrame(subset_obs[groupby]).reset_index()
-            to_merge['index'] = to_merge['index'].astype('str')
-            for_fs = for_fs.merge(to_merge, on = 'index')
-            manipul_df = for_fs.copy().drop(["index", groupby], axis = 1)
-            manipul_df['metacluster'] = for_fs[groupby]
-            main_df = pd.DataFrame()
-            grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
-            for ii,i in zip(grouped.index, grouped):
-                slicer = pd.DataFrame(i, index = for_fs.drop(["index", groupby], axis = 1).columns, columns = [ii])
-                main_df = pd.concat([main_df,slicer], axis = 1)
-            cluster_centers = main_df.T
-        else:
-            for_fs = self.data.copy()
-            if marker_class != "All":    ## None ==> show all
-                slicer = panel['marker_class'] == marker_class 
-                for_fs = for_fs[:,slicer]
-            manipul_df = pd.DataFrame(for_fs.X)
-            manipul_df["metacluster"] = list(for_fs.obs[groupby])
-            main_df = pd.DataFrame()
-            grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
-            for ii,i in zip(grouped.index, grouped):
-                slicer = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
-                main_df = pd.concat([main_df,slicer], axis = 1)
-            cluster_centers = main_df.T
-
-        #### different way to quantile after taking medians (along axis of clusters, instead of quantiling the global numbers as above):
-        if groupby != "sample_id":
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message = "divide by zero encountered in divide") ########## zero divisions are very common
+            warnings.filterwarnings("ignore", message = "invalid value encountered in divide") 
+            slicer = self.data.var['marker_class'] == marker_class 
             if subset_df is not None:
-                total = len(for_fs)
-                counts = for_fs.groupby(groupby, observed = False).count() / total
-                percents = [f'{i} ({str(round(ii*100, 1))}%)' for i,ii in zip(counts.index, counts['index'])]
-                cluster_centers.index = percents
+                if marker_class != "All":    ## None ==> show all
+                    subset_df = subset_df.iloc[:,np.array(slicer)]
+
+                subset_df['index'] = subset_df.index.astype('str')
+                to_merge = pd.DataFrame(subset_obs[groupby]).reset_index()
+                to_merge['index'] = to_merge['index'].astype('str')
+                subset_df = subset_df.merge(to_merge, on = 'index')
+                manipul_df = subset_df.drop(["index", groupby], axis = 1)
+                manipul_df['metacluster'] = subset_df[groupby]
+                main_df = pd.DataFrame()
+                grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
+                for ii,i in zip(grouped.index, grouped):
+                    slicer = pd.DataFrame(i, index = subset_df.drop(["index", groupby], axis = 1).columns, columns = [ii])
+                    main_df = pd.concat([main_df,slicer], axis = 1)
+                cluster_centers = main_df.T
+                for_fs = subset_df
             else:
-                percentiles = pd.DataFrame()
-                percent_groupby = self.data.obs.groupby(groupby, observed = False).count()['file_name'] / len(self.data.obs)
-                if groupby != "clustering":
-                    percentiles['percents'] = [f'''{i} ({np.round(ii * 100, 1)}%)''' for i,ii in zip(percent_groupby.index, list(percent_groupby))]
-                    percentiles['index'] = [i for i in percent_groupby.index]
-                percentiles = percentiles.sort_values('index')
-                cluster_centers.index = list(percentiles['percents'])   
-        else:
-            cluster_centers['sample_id'] = list(cluster_centers.reset_index()['index'])   ## could replace 'sample_id' in these lines with [groupby]
-            cluster_centers.index = cluster_centers['sample_id']
-            cluster_centers = cluster_centers.drop('sample_id', axis = 1)
+                for_fs = self.data.copy()
+                if marker_class != "All":    ## None ==> show all
+                    for_fs = for_fs[:,slicer]
 
-        transform = _quant(cluster_centers, axis = scale_axis)
-        cluster_centers = pd.DataFrame(transform, index = cluster_centers.index, columns = cluster_centers.columns)
+                manipul_df = pd.DataFrame(for_fs.X)
+                manipul_df["metacluster"] = list(for_fs.obs[groupby])
+                main_df = pd.DataFrame()
+                grouped = manipul_df.groupby("metacluster", observed = False).apply(_py_catalyst_quantile_norm, include_groups = False)
+                for ii,i in zip(grouped.index, grouped):
+                    slicer = pd.DataFrame(i, index = for_fs.var.index, columns = [ii])
+                    main_df = pd.concat([main_df,slicer], axis = 1)
+                cluster_centers = main_df.T
 
-        plot = sns.clustermap(cluster_centers, 
-                             cmap = colormap, 
-                             linewidths = 0.01, 
-                             xticklabels = True, 
-                             yticklabels = True, 
-                             figsize = figsize, 
-                             **kwargs)
-        plot.figure.suptitle(f"Scaled/Normalization Expression Medians of each {marker_class} Marker within each {groupby}", y = 1.03)
-        warnings.filterwarnings("default", message = "divide by zero encountered in divide")  ## undo prior warnings modifications
-        warnings.filterwarnings("default", message = "invalid value encountered in divide") 
+            #### different way to quantile after taking medians (along axis of clusters, instead of quantiling the global numbers as above):
+            if groupby != "sample_id":
+                if subset_df is not None:
+                    counts = for_fs.groupby(groupby, observed = False).count() / len(for_fs)
+                    percents = [f'{i} ({str(round(ii*100, 1))}%)' for i,ii in zip(counts.index, counts['index'])]
+                    cluster_centers.index = percents
+                else:
+                    percentiles = pd.DataFrame()
+                    percent_groupby = self.data.obs.groupby(groupby, observed = False).count()['file_name'] / len(self.data.obs)
+                    if groupby != "clustering":
+                        percentiles['percents'] = [f'''{i} ({np.round(ii * 100, 1)}%)''' for i,ii in zip(percent_groupby.index, list(percent_groupby))]
+                        percentiles['index'] = [i for i in percent_groupby.index]
+                    percentiles = percentiles.sort_values('index')
+                    cluster_centers.index = list(percentiles['percents'])   
+            else:
+                cluster_centers['sample_id'] = list(cluster_centers.reset_index()['index'])   ## could replace 'sample_id' in these lines with [groupby]
+                cluster_centers.index = cluster_centers['sample_id']
+                cluster_centers = cluster_centers.drop('sample_id', axis = 1)
+
+            transform = _quant(cluster_centers, axis = scale_axis)
+            cluster_centers = pd.DataFrame(transform, index = cluster_centers.index, columns = cluster_centers.columns)
+
+            plot = sns.clustermap(cluster_centers, 
+                                cmap = colormap, 
+                                linewidths = 0.01, 
+                                xticklabels = True, 
+                                yticklabels = True, 
+                                figsize = figsize, 
+                                **kwargs)
+            plot.figure.suptitle(f"Scaled/Normalization Expression Medians of each {marker_class} Marker within each {groupby}", y = 1.03)
 
         if filename is not None:
             plot.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
@@ -2255,10 +2247,9 @@ class Analysis:
             print("number_of_columns must be greater than 1!")
             return
 
-        analysis_anndata = self.data.copy()
+        analysis_anndata = self.data
 
-        pre_heatmap_df = pd.DataFrame(analysis_anndata.X)
-        pre_heatmap_df.columns = analysis_anndata.var.index
+        pre_heatmap_df = pd.DataFrame(analysis_anndata.X,  columns = analysis_anndata.var.index)
         heatmap_df = pd.concat([pre_heatmap_df.reset_index(), analysis_anndata.obs.reset_index()], axis = 1)
         ## need to add columns
         number_of_panels = len(heatmap_df[subsetting_column].astype('str').unique()) + 1   ## plus one for the initial all together plot
@@ -2272,23 +2263,18 @@ class Analysis:
             else:
                 print(msg)
             return
-        if int(number_of_panels) == int(number_of_columns):
-            number_of_columns -= 1    ## automatically reshape if it is too small
+        
+        number_of_rows, number_of_columns = self._compute_grid(number_of_panels, number_of_columns)
 
-        number_of_rows = (number_of_panels // number_of_columns) + 1            ## plus because the // operation rounds down
-        if (number_of_rows == 1) and (number_of_columns > 2):
-            number_of_columns -= 1  
-            number_of_rows = (number_of_panels // number_of_columns) + 1  
-
-        if int(number_of_panels % number_of_columns) == 0:
-            number_of_rows = number_of_rows - 1   ## avoid a blank row at the end
         temp_img_dir = tp.TemporaryDirectory().name
         os.makedirs(temp_img_dir, exist_ok = True)
+        document = svg_stack.Document()
+        row = svg_stack.HBoxLayout()
 
         temp_img_dir_svg = f"{temp_img_dir}/temp_image.svg"
         temp_img_dir_svg_all = f"{temp_img_dir}/temp_image_concat.svg"
 
-        plt.style.use('ggplot')
+        #plt.style.use('ggplot')
         HeatFig = plt.figure()
         inter_fig = self.plot_medians_heatmap(filename = None, 
                                               marker_class = marker_class, 
@@ -2297,8 +2283,7 @@ class Analysis:
         inter_fig.figure.suptitle('Whole Dataset', size = 10, y = 1.05)
         inter_fig.savefig(temp_img_dir_svg, bbox_inches = "tight") 
         plt.close()
-        document = svg_stack.Document()
-        row = svg_stack.HBoxLayout()
+        
 
         row.addSVG(temp_img_dir_svg, alignment = svg_stack.AlignCenter)
 
@@ -2444,7 +2429,7 @@ class Analysis:
         Returns:
             a matplotlib figure
         '''
-        data = self.data.copy()
+        data = self.data
         scale = self._scaling
         if scale == "unscale":
             scale = ""
@@ -2458,31 +2443,30 @@ class Analysis:
             manipul_df = pd.DataFrame(data.X)
             manipul_df.columns = self.panel['antigen']
 
-        manipul_df[groupby_column] =  list(self.data.obs[groupby_column].astype('str'))
+        manipul_df[groupby_column] =  list(data.obs[groupby_column].astype('str'))
 
         if comp_type == "vs":
             for i in manipul_df[groupby_column].unique():
                 slicer = (manipul_df[groupby_column] == i)
-                not_slicer = (manipul_df[groupby_column] != i)
-                groupby_column_copy = manipul_df[groupby_column].copy()
                 intermediate = manipul_df.drop(groupby_column, axis = 1)
-                intermediate[slicer] = (intermediate[slicer] - manipul_df[not_slicer].mean(axis = 0, numeric_only = True)).astype('float32')
-                intermediate[groupby_column] = groupby_column_copy
+                intermediate[slicer] = (intermediate[slicer] - manipul_df[~slicer].mean(axis = 0, numeric_only = True)).astype('float32')
+                intermediate[groupby_column] = manipul_df[groupby_column]
                 manipul_df = intermediate.copy()
 
             title_assistant = "minus the Mean Expression of the Other clusters"
             facet_title = "Difference from Mean"
             sharey = False
-            manipul_df[groupby_column] =  list(self.data.obs[groupby_column])            
+            manipul_df[groupby_column] =  list(data.obs[groupby_column])            
 
         elif comp_type == "raw":
-            manipul_df[groupby_column] = list(self.data.obs[groupby_column])
+            manipul_df[groupby_column] = list(data.obs[groupby_column])
             facet_title = f"{scale} Expression"
             sharey = True
             title_assistant = ""
         
         data_long_form = pd.melt(manipul_df, id_vars = groupby_column)
         data_long_form[facet_title] = data_long_form['value']
+
         default_col_num = 3
         num_panels = len(data_long_form[groupby_column].unique())
         default_row_num = ((num_panels - 1)  // default_col_num) + 1
@@ -2492,41 +2476,23 @@ class Analysis:
             col_num = default_col_num
         number_of_rows = ((num_panels - 1)  // col_num) + 1
 
-        if plot_type == "violin":
-            griddy = sns.catplot(data_long_form, y = facet_title, 
-                            hue = "antigen", 
-                            palette = 'tab20', inner = None, 
-                            kind = plot_type, col = groupby_column, 
-                            col_wrap = col_num, sharey = sharey, sharex = False, 
-                            height = 4, aspect = 1.75, **kwargs)
-            # griddy.tick_params("x", labelrotation = 90)
-            griddy.refline(y = 0)
-            sup_Y = 1.08 + (number_of_rows * -0.01)
-            if comp_type == "vs":
-                griddy.figure.suptitle(f"{scale} Expression of each marker by Cluster {title_assistant}", y = sup_Y)
-            else:
-                griddy.figure.suptitle("Expression of each marker in each Cluster", y = sup_Y)
-            if filename is not None:
-                griddy.savefig(f"{self.save_dir}/{plot_type}{filename}.png", bbox_inches = "tight") 
-            plt.close()
-            return griddy.figure
-            
-        elif (plot_type == "bar") or (plot_type == "box"):
-            griddy = sns.catplot(data_long_form, y = facet_title, 
-                            hue = "antigen", 
-                            palette = 'tab20',
-                            kind = plot_type, col = groupby_column, 
-                            #errorbar = None,
-                            col_wrap = col_num, sharey = sharey, sharex = False, 
-                            height = 4, aspect = 1.75, **kwargs)
-            #griddy.tick_params("x", labelrotation = 90)
-            griddy.refline(y = 0)
+        griddy = sns.catplot(data_long_form, y = facet_title, 
+                        hue = "antigen", 
+                        palette = 'tab20', inner = None, 
+                        kind = plot_type, col = groupby_column, 
+                        col_wrap = col_num, sharey = sharey, sharex = False, 
+                        height = 4, aspect = 1.75, **kwargs)
+        # griddy.tick_params("x", labelrotation = 90)
+        griddy.refline(y = 0)
+        if (plot_type == "bar") or (plot_type == "box"):
             sup_Y = 1.03 + (number_of_rows * -0.01)
-            griddy.figure.suptitle(f"{scale} Expression of each marker by Cluster {title_assistant}", y = sup_Y)
-            if filename is not None:
-                griddy.savefig(f"{self.save_dir}/{plot_type}{filename}.png", bbox_inches = "tight") 
-            plt.close()
-            return griddy.figure
+        else:
+            sup_Y = 1.08 + (number_of_rows * -0.01)
+        griddy.figure.suptitle(f"{scale} Expression of each marker by Cluster {title_assistant}", y = sup_Y)
+        if filename is not None:
+            griddy.savefig(f"{self.save_dir}/{plot_type}{filename}.png", bbox_inches = "tight") 
+        plt.close()
+        return griddy.figure
         
     def plot_cluster_histograms(self,  
                                 antigen: str,
@@ -2809,7 +2775,7 @@ class Analysis:
         elif plot_type == "barplot":
             griddy.map_dataframe(sns.barplot, x = hue, y = "proportions", hue = hue, palette='viridis', **kwargs)
             griddy.add_legend()
-        plt.style.use('ggplot')
+        #plt.style.use('ggplot')
         if filename is not None:
             griddy.figure.savefig(f"{self.save_dir}/{filename}", bbox_inches = "tight") 
         plt.close()
