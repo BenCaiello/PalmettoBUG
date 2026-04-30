@@ -1695,10 +1695,10 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.clustering = None
         self.id_out = None
         try:
-            self.number = len(self.master.cat_exp.data.obs['metaclustering'].unique())
+            self.number = self.master.cat_exp.data.obs['metaclustering'].nunique()
             self.leiden_or_meta = "metaclustering"
         except KeyError:
-            self.number = len(self.master.cat_exp.data.obs['leiden'].unique())
+            self.number = self.master.cat_exp.data.obs['leiden'].nunique()
             self.leiden_or_meta = "leiden"
         self.new = self.new_merge_frame(self)
         self.new.grid(column = 0, row = 0, rowspan = 4, padx = 5, pady = 5)
@@ -1717,7 +1717,7 @@ class cluster_merging_window(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         ''''''
         if self.leiden_or_meta != leiden_or_meta:
             self.leiden_or_meta = leiden_or_meta
-            self.number = len(self.master.cat_exp.data.obs[leiden_or_meta].unique())
+            self.number = self.master.cat_exp.data.obs[leiden_or_meta].nunique()
             self.new.destroy()
             self.new = self.new_merge_frame(self)
             self.new.grid(column = 0, row = 0, rowspan = 4, padx = 5, pady = 5)
@@ -1934,7 +1934,7 @@ class Hypothesis_widget(ctk.CTkFrame):
                 pass    #### don't want to offer columns with more divisions to the data than the sample_id's
             else:       ## block columns shared between conditions
                 for j in categories:
-                    num_conditions = len(data_obs[data_obs[i] == j]['condition'].unique())
+                    num_conditions = data_obs[data_obs[i] == j]['condition'].nunique()
                     if num_conditions > 1:
                         break
                 else:

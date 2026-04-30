@@ -182,9 +182,9 @@ class WholeClassAnalysis:
             self._object_column = intensities['Object']
             intensities = intensities.drop("Object", axis = 1)
 
-            if len(self._object_column.unique()) == len(self.class_labels['labels'].unique()):
+            if self._object_column.nunique() == self.class_labels['labels'].nunique():
                 self.class_type = "premerge"
-            elif len(self._object_column.unique()) == (len(self.class_labels['labels'].unique()) - 1):
+            elif self._object_column.nunique() == (self.class_labels['labels'].nunique() - 1):
                 self.class_type = "merged"
                 self.class_labels = self.class_labels[self.class_labels['labels'] != 'background']
             else:

@@ -972,7 +972,7 @@ class SpatialEDT:
         df = anndata.obs
         df[var_column] = list(np.squeeze(anndata.X[:,anndata.var['antigen'] == var_column]))
         
-        facet_num = len(df[facet_col].unique())
+        facet_num = df[facet_col].nunique()
         if facet_num == col_num:
             col_num -= 1
     
@@ -1345,7 +1345,7 @@ class SpatialNeighbors:        ## formerly SquipySpatial
         data = self.exp.data.copy()
         data.obs['CN'] = data.obs['CN'].astype('category')
         towards_abundance = data.obs.groupby(['CN', clustering_col], observed = False).count().reset_index()
-        facets = len(towards_abundance['CN'].unique())
+        facets = towards_abundance['CN'].nunique()
         if int(facets) == int(cols):
             cols -= 1    ## automatically reshape if it is too small
 

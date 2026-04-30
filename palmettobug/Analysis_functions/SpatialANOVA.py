@@ -434,7 +434,7 @@ class SpatialANOVA():
                 compare_to_threshold_copy = compare_to_threshold[compare_to_threshold['condition'] == k]
                 if compare_to_threshold_copy[cellType_key].max() < self.threshold:
                     counter += 1
-                if (len(compare_to_threshold['condition'].unique()) - counter) <= 1:
+                if (compare_to_threshold['condition'].nunique() - counter) <= 1:
                     bad_cell_types.append(str(i))
                     print(f"The celltype {str(i)} is only present in one condition -- ANOVAs and F-statistics will not be available for that celltype!")
                     break   
@@ -958,7 +958,7 @@ class SpatialANOVA():
             a 4-dimensional numpy array of floats (also saves this as self.heatmap_salami)
         '''
         num_radii = int((self.max - self.min) / self.step) + 1
-        num_conditions = len(self.data_table['condition'].unique())
+        num_conditions = self.data_table['condition'].nunique()
         num_comparisons = int(np.sqrt(len(self._all_comparison_list)))
         output = np.zeros([num_comparisons, num_comparisons, num_radii, num_conditions])
         for i,ii in enumerate(self.data_table['condition'].unique()):

@@ -317,7 +317,7 @@ class Spatial_py(ctk.CTkFrame):
                         pass    #### don't want to offer columns with more divisions to the data than the sample_id's
                     else:       ## block columns shared between conditions
                         for j in categories:
-                            num_conditions = len(data_obs[data_obs[i] == j]['condition'].unique())
+                            num_conditions = data_obs[data_obs[i] == j]['condition'].nunique()
                             if num_conditions > 1:
                                 break
                         else:
@@ -1375,7 +1375,7 @@ class CNannotationWindow(ctk.CTkToplevel, metaclass = CtkSingletonWindow):
         self.master = master
         self.directory = self.master.AnalysisObject.directory
         self.id_out = None
-        self.number = len(self.master.AnalysisObject.data.obs['CN'].unique())
+        self.number = self.master.AnalysisObject.data.obs['CN'].nunique()
 
         self.new = self.new_merge_frame(self)
         self.new.grid(column = 0, row = 0, rowspan = 4, padx = 5, pady = 5)

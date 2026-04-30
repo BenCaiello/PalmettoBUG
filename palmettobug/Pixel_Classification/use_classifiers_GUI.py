@@ -786,7 +786,7 @@ class Pixel_usage_widgets(ctk.CTkFrame):
 
             metadata = self.merge_frame.retrieve()
             if self.classifier_option_menu.get() == "merged_classification_maps":
-                number_of_classes = len(metadata['merging'].unique())
+                number_of_classes = metadata['merging'].nunique()
             else:
                 number_of_classes = len(metadata)
 

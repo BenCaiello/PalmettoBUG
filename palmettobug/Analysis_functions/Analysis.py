@@ -2026,7 +2026,7 @@ class Analysis:
             maximum_legend = len(color_by)
             patch_bank1 = [Patch(color = '#E9E9E9', label = color_by)]
 
-        number_of_panels = len(downsample_UMAP_df[subsetting_column].unique()) + 1   ## plus one for the initial all together plot
+        number_of_panels = downsample_UMAP_df[subsetting_column]nunique() + 1   ## plus one for the initial all together plot
         if number_of_panels < 3:
             msg = "only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)"
             if self._in_gui: 
@@ -2251,7 +2251,7 @@ class Analysis:
         pre_heatmap_df = pd.DataFrame(analysis_anndata.X,  columns = analysis_anndata.var.index)
         heatmap_df = pd.concat([pre_heatmap_df.reset_index(), analysis_anndata.obs.reset_index()], axis = 1)
         ## need to add columns
-        number_of_panels = len(heatmap_df[subsetting_column].astype('str').unique()) + 1   ## plus one for the initial all together plot
+        number_of_panels = heatmap_df[subsetting_column].astype('str').nunique() + 1   ## plus one for the initial all together plot
         if number_of_panels > 15:
             number_of_columns = 4
 
@@ -2467,7 +2467,7 @@ class Analysis:
         data_long_form[facet_title] = data_long_form['value']
 
         default_col_num = 3
-        num_panels = len(data_long_form[groupby_column].unique())
+        num_panels = data_long_form[groupby_column].nunique()
         default_row_num = ((num_panels - 1)  // default_col_num) + 1
         if default_row_num == 1:
             col_num = default_col_num - 1
@@ -2564,7 +2564,7 @@ class Analysis:
             color_bank += color_bank
         patch_bank1, color_dict = self._color_bank_constructor(color_bank, 'condition', color_enumerator)
         
-        length = len(reshaped_for_histogram_tracings[groupby_column].unique())
+        length = reshaped_for_histogram_tracings[groupby_column].nunique()
         colwrap = 4
         row_num  = ((length - 1) // colwrap) + 1
         if (row_num == 1) and (colwrap > 2):
@@ -2656,7 +2656,7 @@ class Analysis:
                                              / abundance_plot_prep[bars_by].astype('str').replace(div_dict))
         abundance_plot_prep[groupby_column] = abundance_plot_prep[groupby_column].astype('category')
         abundance_plot_prep = abundance_plot_prep[abundance_plot_prep['file_name'] != 0]
-        number_of_panels = len(abundance_plot_prep['condition'].unique())
+        number_of_panels = abundance_plot_prep['condition'].nunique()
         if number_of_panels < number_of_columns:
             number_of_columns = number_of_panels
         number_of_rows = (number_of_panels // number_of_columns)
@@ -2730,8 +2730,8 @@ class Analysis:
         ## check N_column groups are not shared between hues
         for i in self.data.obs[N_column].unique():
             n_col = self.data.obs[self.data.obs[N_column] == i].copy()
-            unique_hue = n_col[hue].astype('str').unique()
-            if len(unique_hue) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
+            unique_hues = n_col[hue].astype('str').nunique()
+            if unique_hues > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
                 print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
                 return
         
@@ -2764,7 +2764,7 @@ class Analysis:
         zip_dict = cluster_data.astype({N_column: str, hue: str}).set_index(N_column)[hue].to_dict()       
         numerators[hue] = numerators[N_column].astype('str').replace(zip_dict).astype(hue_cat)
 
-        # print(numerators['proportions'].sum()  / len(numerators[N_column].unique()))    ## should add up to 100...
+        # print(numerators['proportions'].sum()  / numerators[N_column].nunique())    ## should add up to 100...
         griddy = sns.FacetGrid(numerators, col = groupby_column, col_wrap = 4, sharey = False)
         if plot_type == "boxplot":
             griddy.map_dataframe(sns.boxplot, x = hue, y = "proportions", hue = hue, palette='viridis', **kwargs)
@@ -3368,8 +3368,8 @@ class Analysis:
         '''
         for i in self.data.obs[N_column].unique():
             n_col = self.data.obs[self.data.obs[N_column] == i]
-            unique_conditions = n_col[colorby].astype('str').unique()
-            if len(unique_conditions) > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
+            unique_conditions = n_col[colorby].astype('str').nunique()
+            if unique_conditions > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
                 print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition (colorby) and not more than 1. Cancelling")
                 return
         text_size = 10
@@ -4129,13 +4129,11 @@ class Analysis:
         # Step 1: use back-up data & recover labels (either 'none' if filtered/dropped before clustering, or clustering labels)
         if self.back_up_data is not None:
             data = self.back_up_data.obs.copy()
-            #unique_sample_ids = data['sample_id'].unique()
             data[clustering] = 'none'
             data.index = data.index.astype('str')
             data.loc[self.data.obs.index, clustering] = list(self.data.obs[clustering].astype('str'))
             data = data[[clustering,"file_name"]].copy()
         else:
-            #unique_sample_ids = self.data.obs['sample_id'].unique()
             data = self.data.obs[[clustering,"file_name"]].copy()
         
         # Step 2: Assign numbers to the labels, including 'none'
