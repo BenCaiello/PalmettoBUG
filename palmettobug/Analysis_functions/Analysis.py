@@ -2026,7 +2026,7 @@ class Analysis:
             maximum_legend = len(color_by)
             patch_bank1 = [Patch(color = '#E9E9E9', label = color_by)]
 
-        number_of_panels = downsample_UMAP_df[subsetting_column]nunique() + 1   ## plus one for the initial all together plot
+        number_of_panels = downsample_UMAP_df[subsetting_column].nunique() + 1   ## plus one for the initial all together plot
         if number_of_panels < 3:
             msg = "only one class in subsetting column! no figure will be made (use a non-facetting function to plot this UMAP)"
             if self._in_gui: 
