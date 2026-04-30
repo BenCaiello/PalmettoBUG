@@ -2543,8 +2543,8 @@ class Analysis:
         reshaped_for_histogram_tracings["imageID"] = reshaped_for_histogram_tracings["imageID"].astype('str')
 
         
-        zip_dict = metadata.astype({'sample_id': str, 'condition': str}).set_index('sample_id')['condition'].to_dict()
-        reshaped_for_histogram_tracings["condition"] = reshaped_for_histogram_tracings["imageID"].astype('str').replace(zip_dict).astype('category')
+        sample_to_condition_dict = metadata.astype({'sample_id': str, 'condition': str}).set_index('sample_id')['condition'].to_dict()
+        reshaped_for_histogram_tracings["condition"] = reshaped_for_histogram_tracings["imageID"].astype('str').replace(sample_to_condition_dict).astype('category')
 
         color_bank = [  '#0202BB','#DD0202', 
                     '#02AA02', '#888644', 
@@ -2579,12 +2579,12 @@ class Analysis:
         else:    ## only 1 panel /facet / ax
             axs = np.array([axs]) 
 
+        plot_over = np.linspace(minimum, maximum, 200)
         for i,ii in enumerate(reshaped_for_histogram_tracings[groupby_column].sort_values().unique()):
             axs[i].set_title(f'{groupby_column}: {ii}', size = text_size)
             df1 = reshaped_for_histogram_tracings[reshaped_for_histogram_tracings[groupby_column] == ii]
-            plot_over = np.linspace(minimum, maximum, 200)
             for j,jj in enumerate(df1['imageID'].astype('int').sort_values().unique().astype('str')):
-                condition = metadata[metadata['sample_id'].astype('str') == jj].loc[:,'condition'].values[0]
+                condition = sample_to_condition_dict[jj]
                 df = df1[df1['imageID'].astype('str') == jj]
                 values = np.array(df['exprs'])
                 if (len(values) > 1) and (values.sum() != 0):
@@ -2728,16 +2728,25 @@ class Analysis:
             a matplotlib figure
         '''
         ## check N_column groups are not shared between hues
-        for i in self.data.obs[N_column].unique():
-            n_col = self.data.obs[self.data.obs[N_column] == i].copy()
-            unique_hues = n_col[hue].astype('str').nunique()
-            if unique_hues > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
-                print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
-                return
+        violations = (
+            self.data.obs
+            .groupby(N_column)[hue]
+            .nunique()
+        )
+
+        if (violations > 1).any():
+            print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
+            return
+
+        #for i in self.data.obs[N_column].unique():
+        #    n_col = self.data.obs[self.data.obs[N_column] == i].copy()
+        #    unique_hues = n_col[hue].astype('str').nunique()
+        #    if unique_hues > 1:    ## if an N_column grouping has no relevant corresponding condition, we can ignore that
+        #        print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
+        #        return
         
-        flowsom_clustering = self.data.copy()
-        cluster_data = pd.DataFrame(flowsom_clustering.X) 
-        obs = flowsom_clustering.obs.copy()
+        cluster_data = pd.DataFrame() 
+        obs = self.data.obs.copy()
         cluster_data[groupby_column] = list(obs[groupby_column]) 
 
         cluster_data[N_column] = list(obs[N_column]) 
