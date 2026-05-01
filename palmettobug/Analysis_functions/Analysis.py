@@ -2831,11 +2831,6 @@ class Analysis:
         manipul_df[groupby_column] = list(data.obs[groupby_column])
         manipul_df[N_column] = list(data.obs[N_column])
         manipul_df = manipul_df.groupby([N_column, groupby_column], observed = False).mean(numeric_only = True).reset_index()
-        cluster_dict = {}
-        anti_cluster_dict = {}
-        for i in manipul_df[groupby_column].unique():
-            cluster_dict[i] = manipul_df[manipul_df[groupby_column] == i].drop([N_column, groupby_column], axis = 1)
-            anti_cluster_dict[f"-{i}"] = manipul_df[manipul_df[groupby_column] != i].drop([N_column, groupby_column], axis = 1)
 
         df_out_dict = {}
         for i,ii in zip(cluster_dict, manipul_df[groupby_column].unique()):
@@ -2846,12 +2841,6 @@ class Analysis:
             means = inside_cluster.mean(axis = 0)
             stds = inside_cluster.std(axis = 0)
             mean_diff  = means - outside_cluster.mean(axis = 0)
-            print(mean_diff, inside_cluster)
-
-            means = cluster_dict[i].mean(axis = 0)
-            stds = cluster_dict[i].std(axis = 0)
-            mean_diff  = means - anti_cluster_dict[f"-{i}"].mean(axis = 0)
-            print(mean_diff, cluster_dict[i])
             ## previously manually did t-test --> now favor ANOVA
             n = len(inside_cluster)
             se = stds / np.sqrt(n)    ## still want se for plotting later (?!)
@@ -2861,9 +2850,7 @@ class Analysis:
  
             adj_pvalues = scipy.stats.false_discovery_control(my_pvalues + 1e-25, method = 'bh')
 
-            my_F = [sigfig.round(k, 4, warn = False) for k in my_F]
-            adj_pvalues = [sigfig.round(k, 4, warn = False) for k in adj_pvalues]
-            mean_diff = [sigfig.round(k, 4, warn = False) for k in mean_diff]
+            
             se = [sigfig.round(k, 4, warn = False) for k in se]
             out_df = pd.DataFrame({"F_statistic" : my_F, 
                                    "p_values" : my_pvalues, 
@@ -2872,6 +2859,10 @@ class Analysis:
                                    "st_error" : se}, 
                                    index = list_of_antigens)
             out_df = out_df.sort_values('p_values')
+            out_df["F_statistic"] = [sigfig.round(k, 4, warn = False) for k in my_F]
+            out_df["p_values"] = [sigfig.round(k, 4, warn = False) for k in my_pvalues]
+            out_df["FDR_corrected"] = [sigfig.round(k, 4, warn = False) for k in adj_pvalues]
+            out_df["Difference in expression mean"] = [sigfig.round(k, 4, warn = False) for k in mean_diff]
             print(out_df)
             df_out_dict[i] = out_df
             self.df_out_dict = df_out_dict
@@ -2910,8 +2901,8 @@ class Analysis:
 
         df_array = np.apply_along_axis(_quant, arr = df_array, axis = 0, upper = 0.9, lower = 0.1)
         
-        new_df = pd.DataFrame(df_array, index = stat_df.index,  columns = stat_df.columns).T    ## quant 0-->1 same as min_max
-        plot = sns.clustermap(new_df.T, cmap = "coolwarm", linewidths = 0.01, yticklabels = True, xticklabels = True, **kwargs)
+        new_df = pd.DataFrame(df_array, index = stat_df.index,  columns = stat_df.columns)
+        plot = sns.clustermap(new_df, cmap = "coolwarm", linewidths = 0.01, yticklabels = True, xticklabels = True, **kwargs)
         plot.figure.suptitle(f"-log {statistic.replace('_',' ')} p values for each ANOVA comparison, \n scaled within each cluster", y = 1.04)
         if filename is not None:
             plot.savefig(f"{self.save_dir}/{title_assistant}{filename}.png", bbox_inches = "tight") 
