@@ -2833,7 +2833,7 @@ class Analysis:
         manipul_df = manipul_df.groupby([N_column, groupby_column], observed = False).mean(numeric_only = True).reset_index()
 
         df_out_dict = {}
-        for i,ii in zip(cluster_dict, manipul_df[groupby_column].unique()):
+        for ii in cluster_dict:
             
             in_cluster = manipul_df[groupby_column] == ii
             inside_cluster = manipul_df.loc[in_cluster, list_of_antigens]
