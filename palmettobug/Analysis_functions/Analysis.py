@@ -2833,7 +2833,7 @@ class Analysis:
         manipul_df = manipul_df.groupby([N_column, groupby_column], observed = False).mean(numeric_only = True).reset_index()
 
         df_out_dict = {}
-        for ii in cluster_dict:
+        for ii in manipul_df[groupby_column].unique():
             
             in_cluster = manipul_df[groupby_column] == ii
             inside_cluster = manipul_df.loc[in_cluster, list_of_antigens]
@@ -2864,7 +2864,7 @@ class Analysis:
             out_df["FDR_corrected"] = [sigfig.round(k, 4, warn = False) for k in adj_pvalues]
             out_df["Difference in expression mean"] = [sigfig.round(k, 4, warn = False) for k in mean_diff]
             print(out_df)
-            df_out_dict[i] = out_df
+            df_out_dict[ii] = out_df
             self.df_out_dict = df_out_dict
 
         return df_out_dict
