@@ -2762,7 +2762,7 @@ class Analysis:
         divisor = cluster_data.groupby(N_column, observed = False).count().iloc[:,0]
         
         cluster_data[N_column] = cluster_data[N_column].astype('category')
-        numerators = cluster_data.groupby([N_column,groupby_column], observed = False).count().loc[:,0]
+        numerators = cluster_data.groupby([N_column,groupby_column], observed = False).count().iloc[:,0]
         numerators = numerators.reset_index()
 
         divisor.index = divisor.index.astype('str')
@@ -2773,7 +2773,7 @@ class Analysis:
         zip_dict = cluster_data.astype({N_column: str, hue: str}).set_index(N_column)[hue].to_dict()       
         numerators[hue] = numerators[N_column].astype('str').replace(zip_dict).astype(hue_cat)
 
-        # print(numerators['proportions'].sum()  / numerators[N_column].nunique())    ## should add up to 100...
+        print(numerators['proportions'].sum()  / numerators[N_column].nunique())    ## should add up to 100...
         griddy = sns.FacetGrid(numerators, col = groupby_column, col_wrap = 4, sharey = False)
         if plot_type == "boxplot":
             griddy.map_dataframe(sns.boxplot, x = hue, y = "proportions", hue = hue, palette='viridis', **kwargs)

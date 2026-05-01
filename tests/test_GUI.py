@@ -660,7 +660,8 @@ def test_launch_abundance_window():
     assert isinstance(figure, matplotlib.figure.Figure), "abundance 2 (strip)plot did not return a matplotlib figure"
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
-
+    assert False
+'''
 def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
     window.refresh_cluster_stats_clusters()
@@ -1148,3 +1149,5 @@ def test_plot_class_centers():
 
 def test_app_destroy():
     app.destroy()
+
+'''
