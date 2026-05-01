@@ -2857,6 +2857,7 @@ class Analysis:
                                    "FDR_corrected" : adj_pvalues, 
                                    "Difference in expression mean" : mean_diff, 
                                    "st_error" : se}, 
+                                   dtype = 'str',
                                    index = list_of_antigens)
             out_df = out_df.sort_values('p_values')
             out_df["F_statistic"] = [sigfig.round(k, 4, warn = False) for k in my_F]

@@ -676,7 +676,7 @@ def test_launch_cluster_stats_window():
     assert isinstance(table_launch, ctk.CTkToplevel)
     table_launch.destroy()
     window.destroy()
-    assert blur_flatten_quantile_sample
+    assert False
 '''
 
 def test_launch_cluster_merging():
