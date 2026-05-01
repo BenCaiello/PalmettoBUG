@@ -2728,15 +2728,7 @@ class Analysis:
             a matplotlib figure
         '''
         ## check N_column groups are not shared between hues
-        violations = (
-            self.data.obs
-            .groupby(N_column)[hue]
-            .nunique()
-        )
-
-        if (violations > 1).any():
-            print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
-            return
+        
 
         #for i in self.data.obs[N_column].unique():
         #    n_col = self.data.obs[self.data.obs[N_column] == i].copy()
@@ -2748,6 +2740,16 @@ class Analysis:
         cluster_data = pd.DataFrame() 
         obs = self.data.obs.copy()
         cluster_data[groupby_column] = list(obs[groupby_column]) 
+
+        violations = (
+            obs
+            .groupby(N_column)[hue]
+            .nunique()
+        )
+
+        if (violations > 1).any():
+            print("Warning! Each group in the agreggation / 'N_column' parameter MUST be present in only 1 condition and not more than 1. Cancelling")
+            return
 
         cluster_data[N_column] = list(obs[N_column]) 
         cluster_data[hue] = list(obs[hue])
@@ -2762,7 +2764,8 @@ class Analysis:
         divisor = cluster_data.groupby(N_column, observed = False).count().iloc[:,0]
         
         cluster_data[N_column] = cluster_data[N_column].astype('category')
-        numerators = cluster_data.groupby([N_column,groupby_column], observed = False).count().iloc[:,0]
+        print(cluster_data)
+        numerators = cluster_data.groupby([N_column,groupby_column], observed = False).size()
         numerators = numerators.reset_index()
 
         divisor.index = divisor.index.astype('str')
