@@ -2857,14 +2857,12 @@ class Analysis:
                                    "FDR_corrected" : adj_pvalues, 
                                    "Difference in expression mean" : mean_diff, 
                                    "st_error" : se}, 
-                                   dtype = 'str',
                                    index = list_of_antigens)
             out_df = out_df.sort_values('p_values')
             out_df["F_statistic"] = [sigfig.round(k, 4, warn = False) for k in my_F]
             out_df["p_values"] = [sigfig.round(k, 4, warn = False) for k in my_pvalues]
             out_df["FDR_corrected"] = [sigfig.round(k, 4, warn = False) for k in adj_pvalues]
             out_df["Difference in expression mean"] = [sigfig.round(k, 4, warn = False) for k in mean_diff]
-            print(out_df)
             df_out_dict[ii] = out_df
             self.df_out_dict = df_out_dict
 

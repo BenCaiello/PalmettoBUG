@@ -676,8 +676,7 @@ def test_launch_cluster_stats_window():
     assert isinstance(table_launch, ctk.CTkToplevel)
     table_launch.destroy()
     window.destroy()
-    assert False
-'''
+
 
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
@@ -1151,5 +1150,3 @@ def test_plot_class_centers():
 
 def test_app_destroy():
     app.destroy()
-
-'''
