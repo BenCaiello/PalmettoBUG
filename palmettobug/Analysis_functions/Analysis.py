@@ -2764,7 +2764,6 @@ class Analysis:
         divisor = cluster_data.groupby(N_column, observed = False).count().iloc[:,0]
         
         cluster_data[N_column] = cluster_data[N_column].astype('category')
-        print(cluster_data)
         numerators = cluster_data.groupby([N_column,groupby_column], observed = False).size()
         numerators = numerators.reset_index()
 
@@ -2776,7 +2775,6 @@ class Analysis:
         zip_dict = cluster_data.astype({N_column: str, hue: str}).set_index(N_column)[hue].to_dict()       
         numerators[hue] = numerators[N_column].astype('str').replace(zip_dict).astype(hue_cat)
 
-        print(numerators['proportions'].sum()  / numerators[N_column].nunique())    ## should add up to 100...
         griddy = sns.FacetGrid(numerators, col = groupby_column, col_wrap = 4, sharey = False)
         if plot_type == "boxplot":
             griddy.map_dataframe(sns.boxplot, x = hue, y = "proportions", hue = hue, palette='viridis', **kwargs)
@@ -2820,11 +2818,11 @@ class Analysis:
             a dictionary with keys = unique values of the groupby_column, and values = pandas dataframes containing the statistics for that 
             groupby_column value. This dictionary is also saved as self.df_out_dict, from which it is accessed by the self.plot_cluster_stats method
         '''
-        data = self.data.copy()
+        data = self.data
         manipul_df = pd.DataFrame(data.X)
         if marker_class != "All":
             marker_slicer = np.array(self.panel['marker_class'] == marker_class)
-            manipul_df = manipul_df.T[marker_slicer].T
+            manipul_df = manipul_df.loc[:, marker_slicer]
             manipul_df.columns = data.var.index[marker_slicer]
         else:
             manipul_df.columns = data.var.index
@@ -2840,40 +2838,41 @@ class Analysis:
             anti_cluster_dict[f"-{i}"] = manipul_df[manipul_df[groupby_column] != i].drop([N_column, groupby_column], axis = 1)
 
         df_out_dict = {}
-        for i in cluster_dict:
-            #whole_group_means = anti_cluster_dict[f"-{i}"].mean(axis = 0)   #### really whole group mean, except the group in question...
+        for i,ii in zip(cluster_dict, manipul_df[groupby_column].unique()):
+            
+            in_cluster = manipul_df[groupby_column] == ii
+            inside_cluster = manipul_df.loc[in_cluster, list_of_antigens]
+            outside_cluster = manipul_df.loc[~in_cluster, list_of_antigens]
+            means = inside_cluster.mean(axis = 0)
+            stds = inside_cluster.std(axis = 0)
+            mean_diff  = means - outside_cluster.mean(axis = 0)
+            print(mean_diff, inside_cluster)
+
             means = cluster_dict[i].mean(axis = 0)
             stds = cluster_dict[i].std(axis = 0)
             mean_diff  = means - anti_cluster_dict[f"-{i}"].mean(axis = 0)
+            print(mean_diff, cluster_dict[i])
             ## previously manually did t-test --> now favor ANOVA
-            n = len(cluster_dict[i])
+            n = len(inside_cluster)
             se = stds / np.sqrt(n)    ## still want se for plotting later (?!)
-            anova = scipy.stats.f_oneway(cluster_dict[i], anti_cluster_dict[f"-{i}"], axis = 0)   # alt: kruskal
+            anova = scipy.stats.f_oneway(inside_cluster, outside_cluster, axis = 0)   # alt: kruskal
             my_pvalues = anova[1]
-            my_t = anova[0]
-            top_t_stats = np.flip(np.sort(np.abs(my_t)))[:]
-            slicer = (np.abs(my_t) >= top_t_stats[-1])
-            antigens = list_of_antigens[slicer]
-            top_ts = my_t[slicer]
+            my_F = anova[0]
+ 
             adj_pvalues = scipy.stats.false_discovery_control(my_pvalues + 1e-25, method = 'bh')
-            top_ps = adj_pvalues[slicer]
-            mean_changes = mean_diff[slicer]
-            top_ts = [sigfig.round(i, 4, warn = False) for i in top_ts]
-            top_ps = [sigfig.round(i, 4, warn = False) for i in top_ps]
-            mean_changes = [sigfig.round(i, 4, warn = False) for i in mean_changes]
-            se = [sigfig.round(i, 4, warn = False) for i in se]
-            out_df = pd.DataFrame([top_ts, 
-                                   my_pvalues, 
-                                   top_ps, 
-                                   mean_changes, 
-                                   se], 
-                                   columns = antigens, 
-                                   index = ["F_statistic", "p_values", "FDR_corrected","Difference in expression mean", "st_error"])
-            out_df = out_df.T
-            out_df["p_values"] = my_pvalues
-            out_df["FDR_corrected"] = top_ps
+
+            my_F = [sigfig.round(k, 4, warn = False) for k in my_F]
+            adj_pvalues = [sigfig.round(k, 4, warn = False) for k in adj_pvalues]
+            mean_diff = [sigfig.round(k, 4, warn = False) for k in mean_diff]
+            se = [sigfig.round(k, 4, warn = False) for k in se]
+            out_df = pd.DataFrame({"F_statistic" : my_F, 
+                                   "p_values" : my_pvalues, 
+                                   "FDR_corrected" : adj_pvalues, 
+                                   "Difference in expression mean" : mean_diff, 
+                                   "st_error" : se}, 
+                                   index = list_of_antigens)
             out_df = out_df.sort_values('p_values')
-            out_df["p_values"] = [sigfig.round(i, 4, warn = False) for i in out_df["p_values"]]        
+            print(out_df)
             df_out_dict[i] = out_df
             self.df_out_dict = df_out_dict
 

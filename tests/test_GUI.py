@@ -660,8 +660,8 @@ def test_launch_abundance_window():
     assert isinstance(figure, matplotlib.figure.Figure), "abundance 2 (strip)plot did not return a matplotlib figure"
     assert isinstance(window, ctk.CTkToplevel)
     window.destroy()
-    assert False
-'''
+
+
 def test_launch_cluster_stats_window():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_stats_window()
     window.refresh_cluster_stats_clusters()
@@ -676,6 +676,8 @@ def test_launch_cluster_stats_window():
     assert isinstance(table_launch, ctk.CTkToplevel)
     table_launch.destroy()
     window.destroy()
+    assert blur_flatten_quantile_sample
+'''
 
 def test_launch_cluster_merging():
     window = app.Tabs.py_exploratory.analysiswidg.launch_cluster_merging()
