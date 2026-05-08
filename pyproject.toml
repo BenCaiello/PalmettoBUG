@@ -185,7 +185,7 @@ dependencies = [
             "opencv-python-headless==4.11.0.86",
             "overrides==7.7.0",
             "packaging==24.2",
-            "pandas==2.2.3",
+            "pandas==3.0.0",
             "pandocfilters==1.5.1",
             "param==2.2.0",
             "parso==0.8.4",
