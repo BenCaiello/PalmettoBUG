@@ -32,6 +32,14 @@ Top targets for performance optimization:
 Top targets for dependency simplification:
 - opencv (pixel classifier re-write)
 
-## Plan
+## Status and Installation
 
-Setup and test Rust crates in this branch, then merge any Rust additions that are working well back into main. If making this package a hybrid Rust/Python package somehow over-complicates the installation (it shouldn't?) while still significantly improving performace, then I may release this branch as an alternative version of the package.
+Rust seems to be successfuly configured to accelerate certain portions of the PalmettoBUG, generally tested to ensure identical outputs as Python:
+1). Ripley's stats (K / L / g) greatly accelerated, especially with permutation correction. Validation: Without perm. correction the rust code calculates identical K values as python implementation, but with perm. correction the values diverge from python, but this is expected because the random seed is not set to be the same between the two programming languages
+2). Parts of pixel classification feature generating code ported into Rust
+3). Mask boolean function (takes two masks and finds overlapping / non-overlapping objects, etc.) and pixel smoothing functions ported into Rust
+
+Installation (Currently not on PyPI, in part because of the complexity of releasing multiple packages for different operating systems and in part because of how distributing compiled rust binaries directly complicates license compliance / listing all licenses). This *should* work on most common Linux operating systems, and I think Windows OS's as well:
+1). Install rust & Python 3.10 on your machine (Python preferably inside an environment manager, such as conda)
+2). Download and save this repository to your computer
+3). Run `pip install -e .` inisde the directory where you saved this repository (the directory should contain the pyproject.toml file)
