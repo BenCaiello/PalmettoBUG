@@ -1,4 +1,4 @@
-# PalmettoBUG
+# PalmettoBUG 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/BenCaiello/PalmettoBUG/python-app.yml)
 ![Codecov](https://img.shields.io/codecov/c/github/BenCaiello/PalmettoBUG)
 ![Pepy Total Downloads](https://img.shields.io/pepy/dt/palmettobug)
